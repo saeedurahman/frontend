@@ -1,0 +1,1 @@
+﻿class GetProductsUseCase { const GetProductsUseCase(); }

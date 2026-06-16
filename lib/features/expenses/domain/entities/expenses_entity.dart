@@ -1,0 +1,1 @@
+﻿class ExpensesEntity { const ExpensesEntity(); }

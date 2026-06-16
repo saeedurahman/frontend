@@ -1,0 +1,3 @@
+﻿class DashboardData {
+  const DashboardData();
+}

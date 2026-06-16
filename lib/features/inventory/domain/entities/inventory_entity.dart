@@ -1,0 +1,1 @@
+﻿class InventoryEntity { const InventoryEntity(); }

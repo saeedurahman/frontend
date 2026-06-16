@@ -1,0 +1,1 @@
+﻿class SettingsEntity { const SettingsEntity(); }

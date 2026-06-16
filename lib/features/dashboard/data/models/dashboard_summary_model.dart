@@ -1,0 +1,3 @@
+﻿class DashboardSummaryModel {
+  const DashboardSummaryModel();
+}

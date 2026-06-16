@@ -1,0 +1,3 @@
+﻿class SalesTrendModel {
+  const SalesTrendModel();
+}

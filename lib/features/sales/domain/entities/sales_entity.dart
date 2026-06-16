@@ -1,0 +1,1 @@
+﻿class SalesEntity { const SalesEntity(); }

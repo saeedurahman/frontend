@@ -1,0 +1,10 @@
+{
+  "@@locale": "en",
+  "appTitle": "Frantend POS",
+  "login": "Login",
+  "logout": "Logout",
+  "email": "Email",
+  "password": "Password",
+  "dashboard": "Dashboard",
+  "offlineMode": "Offline Mode"
+}

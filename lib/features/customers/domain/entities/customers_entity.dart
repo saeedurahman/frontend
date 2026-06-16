@@ -1,0 +1,1 @@
+﻿class CustomersEntity { const CustomersEntity(); }

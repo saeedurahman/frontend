@@ -1,0 +1,3 @@
+﻿class GetTodayVsYesterdayUseCase {
+  const GetTodayVsYesterdayUseCase();
+}

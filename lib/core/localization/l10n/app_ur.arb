@@ -1,0 +1,10 @@
+{
+  "@@locale": "ur",
+  "appTitle": "فرنٹینڈ POS",
+  "login": "لاگ ان",
+  "logout": "لاگ آؤٹ",
+  "email": "ای میل",
+  "password": "پاس ورڈ",
+  "dashboard": "ڈیش بورڈ",
+  "offlineMode": "آف لائن موڈ"
+}

@@ -1,0 +1,3 @@
+﻿class KpiModel {
+  const KpiModel();
+}
