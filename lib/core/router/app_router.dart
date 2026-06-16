@@ -15,6 +15,7 @@ import 'package:frantend/features/register/presentation/widgets/register_flow_sh
 import 'package:frantend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frantend/features/pos/presentation/pages/pos_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
+import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
@@ -75,160 +76,148 @@ class AppRouter {
           ),
         ],
       ),
-      GoRoute(
-        path: RouteNames.dashboard,
-        builder: (_, __) => const DashboardPage(),
-      ),
-      GoRoute(
-        path: RouteNames.pos,
-        builder: (_, __) => const PosPage(),
-      ),
-      GoRoute(
-        path: RouteNames.products,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Products'),
+      ShellRoute(
+        builder: (context, state, child) {
+          final meta = _metaForPath(state.uri.path);
+          return AppShell(
+            title: meta.$1,
+            breadcrumb: meta.$2,
+            child: child,
+          );
+        },
         routes: [
           GoRoute(
-            path: 'new',
-            builder: (_, __) =>
-                const FeaturePlaceholderPage(title: 'New Product'),
+            path: RouteNames.dashboard,
+            builder: (_, __) => const DashboardPage(),
           ),
           GoRoute(
-            path: ':id',
-            builder: (_, state) => FeaturePlaceholderPage(
-              title: 'Product #${state.pathParameters['id']}',
-            ),
+            path: RouteNames.pos,
+            builder: (_, __) => const PosPage(),
           ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.inventory,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Inventory'),
-        routes: [
           GoRoute(
-            path: 'purchase-orders',
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Purchase Orders',
-            ),
+            path: RouteNames.products,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Products'),
             routes: [
               GoRoute(
                 path: 'new',
-                builder: (_, __) => const FeaturePlaceholderPage(
-                  title: 'New Purchase Order',
+                builder: (_, __) =>
+                    const FeaturePlaceholderPage(title: 'New Product'),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => FeaturePlaceholderPage(
+                  title: 'Product #${state.pathParameters['id']}',
                 ),
               ),
             ],
           ),
           GoRoute(
-            path: 'stock-adjustments',
+            path: RouteNames.inventory,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Inventory'),
+          ),
+          GoRoute(
+            path: RouteNames.purchases,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Purchases'),
+          ),
+          GoRoute(
+            path: RouteNames.sales,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Sales'),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => FeaturePlaceholderPage(
+                  title: 'Sale #${state.pathParameters['id']}',
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.returns,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Returns'),
+          ),
+          GoRoute(
+            path: RouteNames.customers,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Customers'),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => FeaturePlaceholderPage(
+                  title: 'Customer #${state.pathParameters['id']}',
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.suppliers,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Suppliers'),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => FeaturePlaceholderPage(
+                  title: 'Supplier #${state.pathParameters['id']}',
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.expenses,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Expenses'),
+          ),
+          GoRoute(
+            path: RouteNames.cashRegister,
             builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Stock Adjustments',
+              title: 'Cash Register',
             ),
+            routes: [
+              GoRoute(
+                path: 'shifts',
+                builder: (_, __) => const FeaturePlaceholderPage(title: 'Shifts'),
+              ),
+            ],
           ),
           GoRoute(
-            path: 'transfers',
+            path: RouteNames.analytics,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Analytics'),
+          ),
+          GoRoute(
+            path: RouteNames.reports,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Reports'),
+          ),
+          GoRoute(
+            path: RouteNames.settings,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Settings'),
+            routes: [
+              GoRoute(
+                path: 'business',
+                builder: (_, __) => const FeaturePlaceholderPage(
+                  title: 'Business Settings',
+                ),
+              ),
+              GoRoute(
+                path: 'receipt',
+                builder: (_, __) => const FeaturePlaceholderPage(
+                  title: 'Receipt Settings',
+                ),
+              ),
+              GoRoute(
+                path: 'tax',
+                builder: (_, __) => const FeaturePlaceholderPage(
+                  title: 'Tax Settings',
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.notifications,
             builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Inventory Transfers',
+              title: 'Notifications',
             ),
+          ),
+          GoRoute(
+            path: RouteNames.auditLogs,
+            builder: (_, __) => const FeaturePlaceholderPage(title: 'Audit Logs'),
           ),
         ],
-      ),
-      GoRoute(
-        path: RouteNames.sales,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Sales'),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder: (_, state) => FeaturePlaceholderPage(
-              title: 'Sale #${state.pathParameters['id']}',
-            ),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.returns,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Returns'),
-      ),
-      GoRoute(
-        path: RouteNames.customers,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Customers'),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder: (_, state) => FeaturePlaceholderPage(
-              title: 'Customer #${state.pathParameters['id']}',
-            ),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.suppliers,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Suppliers'),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder: (_, state) => FeaturePlaceholderPage(
-              title: 'Supplier #${state.pathParameters['id']}',
-            ),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.expenses,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Expenses'),
-      ),
-      GoRoute(
-        path: RouteNames.cashRegister,
-        builder: (_, __) => const FeaturePlaceholderPage(
-          title: 'Cash Register',
-        ),
-        routes: [
-          GoRoute(
-            path: 'shifts',
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Shifts'),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.analytics,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Analytics'),
-      ),
-      GoRoute(
-        path: RouteNames.reports,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Reports'),
-      ),
-      GoRoute(
-        path: RouteNames.settings,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Settings'),
-        routes: [
-          GoRoute(
-            path: 'business',
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Business Settings',
-            ),
-          ),
-          GoRoute(
-            path: 'receipt',
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Receipt Settings',
-            ),
-          ),
-          GoRoute(
-            path: 'tax',
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Tax Settings',
-            ),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: RouteNames.notifications,
-        builder: (_, __) => const FeaturePlaceholderPage(
-          title: 'Notifications',
-        ),
-      ),
-      GoRoute(
-        path: RouteNames.auditLogs,
-        builder: (_, __) => const FeaturePlaceholderPage(title: 'Audit Logs'),
       ),
     ],
     errorBuilder: (_, state) => Scaffold(
@@ -237,4 +226,26 @@ class AppRouter {
   );
 
   static GoRouter create() => AppRouter(sl<AuthGuard>()).router;
+}
+
+(String, String) _metaForPath(String path) {
+  if (path.startsWith(RouteNames.dashboard)) return ('Dashboard', 'Home / Dashboard');
+  if (path.startsWith(RouteNames.pos)) return ('Point of Sale', 'Home / Point of Sale');
+  if (path.startsWith(RouteNames.products)) return ('Products', 'Home / Catalog / Products');
+  if (path.startsWith(RouteNames.inventory)) return ('Inventory', 'Home / Inventory');
+  if (path.startsWith(RouteNames.purchases)) return ('Purchases', 'Home / Inventory / Purchases');
+  if (path.startsWith(RouteNames.sales)) return ('Sales', 'Home / Sales');
+  if (path.startsWith(RouteNames.returns)) return ('Returns', 'Home / Sales / Returns');
+  if (path.startsWith(RouteNames.customers)) return ('Customers', 'Home / Sales / Customers');
+  if (path.startsWith(RouteNames.expenses)) return ('Expenses', 'Home / Finance / Expenses');
+  if (path.startsWith(RouteNames.suppliers)) return ('Suppliers', 'Home / Finance / Suppliers');
+  if (path.startsWith(RouteNames.cashRegister)) return ('Cash Register', 'Home / Finance / Cash Register');
+  if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');
+  if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
+  if (path.startsWith(RouteNames.settings)) return ('Settings', 'Home / System / Settings');
+  if (path.startsWith(RouteNames.notifications)) {
+    return ('Notifications', 'Home / System / Notifications');
+  }
+  if (path.startsWith(RouteNames.auditLogs)) return ('Audit Logs', 'Home / System / Audit Logs');
+  return ('PakPOS', 'Home');
 }

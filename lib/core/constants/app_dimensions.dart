@@ -14,7 +14,7 @@ abstract final class AppDimensions {
   static const double radiusXl = 24;
 
   // Layout
-  static const double sidebarWidth = 260;
+  static const double sidebarWidth = 240;
   static const double topBarHeight = 64;
   static const double maxContentWidth = 1400;
 

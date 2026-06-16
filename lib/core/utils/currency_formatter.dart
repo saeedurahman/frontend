@@ -1,21 +1,32 @@
 import 'package:intl/intl.dart';
 
-abstract final class CurrencyFormatter {
-  static final NumberFormat _pkrFormat = NumberFormat.currency(
-    locale: 'en_PK',
-    symbol: 'Rs. ',
-    decimalDigits: 2,
-  );
+final NumberFormat _pkrFormatter = NumberFormat.currency(
+  locale: 'en_PK',
+  symbol: '',
+  decimalDigits: 0,
+);
 
-  static String formatPkr(num amount) => _pkrFormat.format(amount);
+String formatPKR(dynamic amount) {
+  final value = _toDouble(amount);
+  return 'Rs. ${_pkrFormatter.format(value).trim()}';
+}
 
-  static String formatPkrCompact(num amount) {
-    if (amount >= 1000000) {
-      return 'Rs. ${(amount / 1000000).toStringAsFixed(1)}M';
-    }
-    if (amount >= 1000) {
-      return 'Rs. ${(amount / 1000).toStringAsFixed(1)}K';
-    }
-    return formatPkr(amount);
+String formatCompact(double amount) {
+  final absolute = amount.abs();
+  if (absolute >= 1000000000) {
+    return '${(amount / 1000000000).toStringAsFixed(1)}B';
   }
+  if (absolute >= 1000000) {
+    return '${(amount / 1000000).toStringAsFixed(1)}M';
+  }
+  if (absolute >= 1000) {
+    return '${(amount / 1000).toStringAsFixed(1)}K';
+  }
+  return amount.toStringAsFixed(0);
+}
+
+double _toDouble(dynamic value) {
+  if (value == null) return 0;
+  if (value is num) return value.toDouble();
+  return double.tryParse(value.toString()) ?? 0;
 }

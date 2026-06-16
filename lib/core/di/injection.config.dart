@@ -28,6 +28,16 @@ import '../../features/auth/domain/usecases/pin_login_usecase.dart' as _i564;
 import '../../features/auth/domain/usecases/register_business_usecase.dart'
     as _i642;
 import '../../features/auth/presentation/cubit/auth_cubit.dart' as _i117;
+import '../../features/dashboard/data/datasources/dashboard_remote_datasource.dart'
+    as _i817;
+import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart'
+    as _i509;
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart'
+    as _i665;
+import '../../features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart'
+    as _i1062;
+import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart'
+    as _i24;
 import '../../features/register/data/repositories/register_repository_impl.dart'
     as _i68;
 import '../../features/register/domain/repositories/register_repository.dart'
@@ -109,6 +119,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i960.LocaleCubit>(
       () => _i960.LocaleCubit(gh<_i574.PreferencesStorage>()),
     );
+    gh.lazySingleton<_i817.DashboardRemoteDataSource>(
+      () => _i817.DashboardRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio(gh<_i667.DioClient>()));
     gh.lazySingleton<_i417.SyncManager>(
       () => _i417.SyncManager(
@@ -126,6 +139,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i987.SyncWorker>(
       () => _i987.SyncWorker(gh<_i417.SyncManager>()),
     );
+    gh.lazySingleton<_i665.DashboardRepository>(
+      () =>
+          _i509.DashboardRepositoryImpl(gh<_i817.DashboardRemoteDataSource>()),
+    );
     gh.lazySingleton<_i787.AuthRepository>(
       () => _i153.AuthRepositoryImpl(
         remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
@@ -133,6 +150,9 @@ extension GetItInjectableX on _i174.GetIt {
         networkInfo: gh<_i932.NetworkInfo>(),
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
+    );
+    gh.factory<_i1062.GetDashboardSummaryUseCase>(
+      () => _i1062.GetDashboardSummaryUseCase(gh<_i665.DashboardRepository>()),
     );
     gh.lazySingleton<_i994.RegisterRepository>(
       () => _i68.RegisterRepositoryImpl(gh<_i787.AuthRepository>()),
@@ -161,6 +181,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i266.RegisterCubit>(
       () => _i266.RegisterCubit(gh<_i994.RegisterRepository>()),
+    );
+    gh.factory<_i24.DashboardCubit>(
+      () => _i24.DashboardCubit(gh<_i1062.GetDashboardSummaryUseCase>()),
     );
     return this;
   }

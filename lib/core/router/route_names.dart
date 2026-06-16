@@ -20,6 +20,7 @@ abstract final class RouteNames {
   static const String productDetail = '/products/:id';
   static const String productNew = '/products/new';
   static const String inventory = '/inventory';
+  static const String purchases = '/purchases';
   static const String purchaseOrders = '/inventory/purchase-orders';
   static const String purchaseOrderNew = '/inventory/purchase-orders/new';
   static const String stockAdjustments = '/inventory/stock-adjustments';
@@ -32,8 +33,8 @@ abstract final class RouteNames {
   static const String suppliers = '/suppliers';
   static const String supplierDetail = '/suppliers/:id';
   static const String expenses = '/expenses';
-  static const String cashRegister = '/register';
-  static const String shifts = '/register/shifts';
+  static const String cashRegister = '/cash-register';
+  static const String shifts = '/cash-register/shifts';
   static const String analytics = '/analytics';
   static const String reports = '/reports';
   static const String settings = '/settings';

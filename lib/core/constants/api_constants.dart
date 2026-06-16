@@ -32,6 +32,14 @@ abstract final class ApiConstants {
   static const String dashboardSummary = '/dashboard/summary';
   static const String dashboardSalesTrend = '/dashboard/sales-trend';
 
+  // Analytics dashboard
+  static const String analyticsDashboard = '/analytics/dashboard';
+  static const String analyticsSalesTrend = '/analytics/sales-trend';
+  static const String analyticsPaymentBreakdown = '/analytics/payment-breakdown';
+  static const String analyticsTopProducts = '/analytics/top-products';
+  static const String analyticsRecentTransactions = '/analytics/recent-transactions';
+  static const String analyticsInventoryInsights = '/analytics/inventory-insights';
+
   // Sync
   static const String syncPush = '/sync/push';
   static const String syncPull = '/sync/pull';
