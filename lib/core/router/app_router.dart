@@ -14,6 +14,33 @@ import 'package:frantend/features/auth/presentation/pages/register/step4_owner.d
 import 'package:frantend/features/register/presentation/widgets/register_flow_shell.dart';
 import 'package:frantend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frantend/features/pos/presentation/pages/pos_page.dart';
+import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
+import 'package:frantend/features/pos/data/models/sale_response_model.dart';
+import 'package:frantend/features/returns/presentation/pages/process_return_page.dart';
+import 'package:frantend/features/sales/presentation/pages/sale_detail_page.dart';
+import 'package:frantend/features/sales/presentation/pages/sales_list_page.dart';
+import 'package:frantend/features/inventory/presentation/pages/inventory_stock_page.dart';
+import 'package:frantend/features/inventory/presentation/pages/stock_movements_page.dart';
+import 'package:frantend/features/products/presentation/pages/product_form_page.dart';
+import 'package:frantend/features/products/presentation/pages/products_list_page.dart';
+import 'package:frantend/features/purchases/presentation/pages/goods_receipt_page.dart';
+import 'package:frantend/features/purchases/presentation/pages/purchase_order_detail_page.dart';
+import 'package:frantend/features/purchases/presentation/pages/purchase_order_form_page.dart';
+import 'package:frantend/features/purchases/presentation/pages/purchase_orders_list_page.dart';
+import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
+import 'package:frantend/features/cash_register/presentation/pages/close_shift_page.dart';
+import 'package:frantend/features/cash_register/presentation/pages/current_shift_page.dart';
+import 'package:frantend/features/cash_register/presentation/pages/shift_detail_page.dart';
+import 'package:frantend/features/cash_register/presentation/pages/shift_history_page.dart';
+import 'package:frantend/features/customers/presentation/pages/customer_form_page.dart';
+import 'package:frantend/features/customers/presentation/pages/customer_ledger_page.dart';
+import 'package:frantend/features/customers/presentation/pages/customers_list_page.dart';
+import 'package:frantend/features/suppliers/presentation/pages/supplier_form_page.dart';
+import 'package:frantend/features/suppliers/presentation/pages/suppliers_list_page.dart';
+import 'package:frantend/features/expenses/presentation/pages/expense_detail_page.dart';
+import 'package:frantend/features/expenses/presentation/pages/expense_form_page.dart';
+import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
+import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -93,41 +120,87 @@ class AppRouter {
           GoRoute(
             path: RouteNames.pos,
             builder: (_, __) => const PosPage(),
-          ),
-          GoRoute(
-            path: RouteNames.products,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Products'),
             routes: [
               GoRoute(
-                path: 'new',
-                builder: (_, __) =>
-                    const FeaturePlaceholderPage(title: 'New Product'),
-              ),
-              GoRoute(
-                path: ':id',
-                builder: (_, state) => FeaturePlaceholderPage(
-                  title: 'Product #${state.pathParameters['id']}',
+                path: 'receipt',
+                builder: (_, state) => ReceiptPreviewPage(
+                  sale: state.extra as SaleResponseModel,
                 ),
               ),
             ],
           ),
           GoRoute(
+            path: RouteNames.products,
+            builder: (_, __) => const ProductsListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const ProductFormPage(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => ProductFormPage(
+                  productId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                redirect: (_, state) =>
+                    '${RouteNames.products}/${state.pathParameters['id']}/edit',
+              ),
+            ],
+          ),
+          GoRoute(
             path: RouteNames.inventory,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Inventory'),
+            builder: (_, __) => const InventoryStockPage(),
+            routes: [
+              GoRoute(
+                path: 'movements/:productId',
+                builder: (_, state) => StockMovementsPage(
+                  productId: state.pathParameters['productId']!,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: RouteNames.purchases,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Purchases'),
+            builder: (_, __) => const PurchaseOrdersListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const PurchaseOrderFormPage(),
+              ),
+              GoRoute(
+                path: ':id/receive',
+                builder: (_, state) => GoodsReceiptPage(
+                  purchaseOrderId: state.pathParameters['id']!,
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => PurchaseOrderDetailPage(
+                  orderId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: RouteNames.sales,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Sales'),
+            builder: (_, __) => const SalesListPage(),
             routes: [
               GoRoute(
                 path: ':id',
-                builder: (_, state) => FeaturePlaceholderPage(
-                  title: 'Sale #${state.pathParameters['id']}',
+                builder: (_, state) => SaleDetailPage(
+                  saleId: state.pathParameters['id']!,
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'return',
+                    builder: (_, state) => ProcessReturnPage(
+                      saleId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -137,41 +210,91 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.customers,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Customers'),
+            builder: (_, __) => const CustomersListPage(),
             routes: [
               GoRoute(
+                path: 'new',
+                builder: (_, __) => const CustomerFormPage(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => CustomerFormPage(
+                  customerId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
                 path: ':id',
-                builder: (_, state) => FeaturePlaceholderPage(
-                  title: 'Customer #${state.pathParameters['id']}',
+                builder: (_, state) => CustomerLedgerPage(
+                  customerId: state.pathParameters['id']!,
                 ),
               ),
             ],
           ),
           GoRoute(
             path: RouteNames.suppliers,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Suppliers'),
+            builder: (_, __) => const SuppliersListPage(),
             routes: [
               GoRoute(
-                path: ':id',
-                builder: (_, state) => FeaturePlaceholderPage(
-                  title: 'Supplier #${state.pathParameters['id']}',
+                path: 'new',
+                builder: (_, __) => const SupplierFormPage(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => SupplierFormPage(
+                  supplierId: state.pathParameters['id'],
                 ),
               ),
             ],
           ),
           GoRoute(
             path: RouteNames.expenses,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Expenses'),
+            builder: (_, __) => const ExpensesListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const ExpenseFormPage(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => ExpenseFormPage(
+                  expenseId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => ExpenseDetailPage(
+                  expenseId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: RouteNames.cashRegister,
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Cash Register',
-            ),
+            builder: (_, __) => const CurrentShiftPage(),
             routes: [
               GoRoute(
-                path: 'shifts',
-                builder: (_, __) => const FeaturePlaceholderPage(title: 'Shifts'),
+                path: 'history',
+                builder: (_, __) => const ShiftHistoryPage(),
+                routes: [
+                  GoRoute(
+                    path: ':shiftId',
+                    builder: (_, state) => ShiftDetailPage(
+                      shiftId: state.pathParameters['shiftId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'close',
+                builder: (_, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return CloseShiftPage(
+                    shiftId: extra?['shiftId'] as String? ?? '',
+                    summary: extra?['summary'] as ShiftSummaryModel? ??
+                        const ShiftSummaryModel(),
+                    registerName: extra?['registerName'] as String? ?? '',
+                  );
+                },
               ),
             ],
           ),
@@ -185,25 +308,19 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.settings,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Settings'),
+            builder: (_, __) => const SettingsPage(),
             routes: [
               GoRoute(
                 path: 'business',
-                builder: (_, __) => const FeaturePlaceholderPage(
-                  title: 'Business Settings',
-                ),
+                redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
                 path: 'receipt',
-                builder: (_, __) => const FeaturePlaceholderPage(
-                  title: 'Receipt Settings',
-                ),
+                redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
                 path: 'tax',
-                builder: (_, __) => const FeaturePlaceholderPage(
-                  title: 'Tax Settings',
-                ),
+                redirect: (_, __) => RouteNames.settings,
               ),
             ],
           ),

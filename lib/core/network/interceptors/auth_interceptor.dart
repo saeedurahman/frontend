@@ -17,6 +17,7 @@ class AuthInterceptor extends Interceptor {
   final OnUnauthorized? onUnauthorized;
 
   bool _isRefreshing = false;
+  final List<_QueuedRequest> _retryQueue = [];
 
   @override
   Future<void> onRequest(
@@ -44,7 +45,8 @@ class AuthInterceptor extends Interceptor {
   ) async {
     if (err.response?.statusCode == 401 && _dio != null) {
       if (_isRefreshing) {
-        return handler.next(err);
+        _retryQueue.add(_QueuedRequest(err, handler));
+        return;
       }
 
       _isRefreshing = true;
@@ -52,16 +54,41 @@ class AuthInterceptor extends Interceptor {
         final refreshed = await _refreshToken();
         if (refreshed) {
           final token = await _secureStorage.getAccessToken();
+          
+          // Retry the original request
           err.requestOptions.headers[ApiConstants.authorizationHeader] =
               '${ApiConstants.bearerPrefix}$token';
           final response = await _dio.fetch<dynamic>(err.requestOptions);
-          return handler.resolve(response);
+          handler.resolve(response);
+
+          // Retry all queued requests
+          for (final queued in _retryQueue) {
+            try {
+              queued.err.requestOptions.headers[ApiConstants.authorizationHeader] =
+                  '${ApiConstants.bearerPrefix}$token';
+              final queuedResponse = await _dio.fetch<dynamic>(queued.err.requestOptions);
+              queued.handler.resolve(queuedResponse);
+            } catch (e) {
+              queued.handler.reject(DioException(
+                requestOptions: queued.err.requestOptions,
+                error: e,
+              ));
+            }
+          }
+          _retryQueue.clear();
+          return;
         }
       } catch (e) {
         AppLogger.error('Token refresh failed', error: e);
       } finally {
         _isRefreshing = false;
       }
+
+      // If refresh failed, reject all queued requests and the original request
+      for (final queued in _retryQueue) {
+        queued.handler.next(queued.err);
+      }
+      _retryQueue.clear();
 
       await onUnauthorized?.call();
       return handler.next(err);
@@ -107,4 +134,10 @@ class AuthInterceptor extends Interceptor {
       return false;
     }
   }
+}
+
+class _QueuedRequest {
+  _QueuedRequest(this.err, this.handler);
+  final DioException err;
+  final ErrorInterceptorHandler handler;
 }

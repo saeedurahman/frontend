@@ -14,18 +14,84 @@ abstract final class ApiConstants {
 
   // Business
   static const String businesses = '/businesses';
+  static const String businessMe = '/business/me';
   static const String branches = '/branches';
+
+  // Settings
+  static const String settings = '/settings';
+  static const String settingsBulk = '/settings/bulk';
+  static String settingByKey(String key) => '/settings/$key';
+
+  // Tax rates
+  static const String taxRates = '/tax-rates';
+  static String taxRateById(String id) => '/tax-rates/$id';
 
   // Products
   static const String products = '/products';
+  static const String categories = '/categories';
+  static const String brands = '/brands';
+  static const String units = '/units';
+  static const String unitConversions = '/units/conversions';
+  static const String priceLists = '/prices/lists';
 
   // Sales
   static const String sales = '/sales';
+  static String saleCancel(String id) => '/sales/$id/cancel';
+  static String invoiceData(String saleId) => '/invoice/$saleId';
+  static String invoiceThermal(String saleId) => '/invoice/$saleId/thermal';
+  static const String invoiceExportSales = '/invoice/export/sales';
+
+  // Returns
+  static const String returns = '/returns';
+  static String returnById(String id) => '/returns/$id';
+
+  // Registers & Shifts
+  static const String registers = '/registers';
+  static const String shiftsOpen = '/shifts/open';
+  static const String shifts = '/shifts';
+  static String shiftById(String shiftId) => '/shifts/$shiftId';
+  static String shiftClose(String shiftId) => '/shifts/$shiftId/close';
+
+  static String registerActiveShift(String registerId) =>
+      '/registers/$registerId/active-shift';
+
+  static String shiftSummary(String shiftId) => '/shifts/$shiftId/summary';
+
+  static String productPrice(String productId) => '/prices/product/$productId';
 
   // Customers
   static const String customers = '/customers';
+  static String customerBalance(String id) => '/customers/$id/balance';
+  static String customerLedger(String id) => '/customers/$id/ledger';
+  static String customerPayments(String id) => '/customers/$id/payments';
 
-  // Inventory
+  // Suppliers
+  static const String suppliers = '/suppliers';
+  static String supplierBalance(String supplierId) =>
+      '/supplier-ledger/$supplierId/balance';
+
+  // Purchases
+  static const String purchaseOrders = '/purchases/orders';
+  static String purchaseOrder(String id) => '/purchases/orders/$id';
+  static String purchaseOrderStatus(String id) =>
+      '/purchases/orders/$id/status';
+  static const String purchaseReceipts = '/purchases/receipts';
+  static String purchaseReceipt(String id) => '/purchases/receipts/$id';
+
+  // Expenses
+  static const String expenses = '/expenses';
+  static const String expenseCategories = '/expenses/categories';
+  static String expenseById(String id) => '/expenses/$id';
+  static String expenseCategoryById(String id) => '/expenses/categories/$id';
+  static String expensePayments(String expenseId) => '/expenses/$expenseId/payments';
+
+  // Stock & Adjustments
+  static const String stockBalances = '/stock/balances';
+  static const String stockBalance = '/stock/balance';
+  static const String stockMovements = '/stock/movements';
+  static const String adjustments = '/adjustments';
+
+  // Legacy placeholder (unused)
   static const String inventory = '/inventory';
 
   // Dashboard

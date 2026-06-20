@@ -1389,6 +1389,282 @@ class ProductsTableCompanion extends UpdateCompanion<ProductsTableData> {
   }
 }
 
+class $MasterDataCacheTableTable extends MasterDataCacheTable
+    with TableInfo<$MasterDataCacheTableTable, MasterDataCacheTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MasterDataCacheTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
+  );
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _jsonDataMeta = const VerificationMeta(
+    'jsonData',
+  );
+  @override
+  late final GeneratedColumn<String> jsonData = GeneratedColumn<String>(
+    'json_data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [cacheKey, jsonData, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'master_data_cache_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MasterDataCacheTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('json_data')) {
+      context.handle(
+        _jsonDataMeta,
+        jsonData.isAcceptableOrUnknown(data['json_data']!, _jsonDataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_jsonDataMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  MasterDataCacheTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MasterDataCacheTableData(
+      cacheKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cache_key'],
+      )!,
+      jsonData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}json_data'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MasterDataCacheTableTable createAlias(String alias) {
+    return $MasterDataCacheTableTable(attachedDatabase, alias);
+  }
+}
+
+class MasterDataCacheTableData extends DataClass
+    implements Insertable<MasterDataCacheTableData> {
+  final String cacheKey;
+  final String jsonData;
+  final DateTime cachedAt;
+  const MasterDataCacheTableData({
+    required this.cacheKey,
+    required this.jsonData,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['json_data'] = Variable<String>(jsonData);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  MasterDataCacheTableCompanion toCompanion(bool nullToAbsent) {
+    return MasterDataCacheTableCompanion(
+      cacheKey: Value(cacheKey),
+      jsonData: Value(jsonData),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory MasterDataCacheTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MasterDataCacheTableData(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      jsonData: serializer.fromJson<String>(json['jsonData']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'jsonData': serializer.toJson<String>(jsonData),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  MasterDataCacheTableData copyWith({
+    String? cacheKey,
+    String? jsonData,
+    DateTime? cachedAt,
+  }) => MasterDataCacheTableData(
+    cacheKey: cacheKey ?? this.cacheKey,
+    jsonData: jsonData ?? this.jsonData,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  MasterDataCacheTableData copyWithCompanion(
+    MasterDataCacheTableCompanion data,
+  ) {
+    return MasterDataCacheTableData(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      jsonData: data.jsonData.present ? data.jsonData.value : this.jsonData,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MasterDataCacheTableData(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('jsonData: $jsonData, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cacheKey, jsonData, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MasterDataCacheTableData &&
+          other.cacheKey == this.cacheKey &&
+          other.jsonData == this.jsonData &&
+          other.cachedAt == this.cachedAt);
+}
+
+class MasterDataCacheTableCompanion
+    extends UpdateCompanion<MasterDataCacheTableData> {
+  final Value<String> cacheKey;
+  final Value<String> jsonData;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const MasterDataCacheTableCompanion({
+    this.cacheKey = const Value.absent(),
+    this.jsonData = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MasterDataCacheTableCompanion.insert({
+    required String cacheKey,
+    required String jsonData,
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : cacheKey = Value(cacheKey),
+       jsonData = Value(jsonData),
+       cachedAt = Value(cachedAt);
+  static Insertable<MasterDataCacheTableData> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? jsonData,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (jsonData != null) 'json_data': jsonData,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MasterDataCacheTableCompanion copyWith({
+    Value<String>? cacheKey,
+    Value<String>? jsonData,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return MasterDataCacheTableCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      jsonData: jsonData ?? this.jsonData,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (jsonData.present) {
+      map['json_data'] = Variable<String>(jsonData.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MasterDataCacheTableCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('jsonData: $jsonData, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SalesTableTable extends SalesTable
     with TableInfo<$SalesTableTable, SalesTableData> {
   @override
@@ -2136,6 +2412,319 @@ class SalesTableCompanion extends UpdateCompanion<SalesTableData> {
           ..write('syncStatus: $syncStatus, ')
           ..write('createdAt: $createdAt, ')
           ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PendingSalesTableTable extends PendingSalesTable
+    with TableInfo<$PendingSalesTableTable, PendingSalesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingSalesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending_sync'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, payloadJson, status, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_sales_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingSalesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PendingSalesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingSalesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingSalesTableTable createAlias(String alias) {
+    return $PendingSalesTableTable(attachedDatabase, alias);
+  }
+}
+
+class PendingSalesTableData extends DataClass
+    implements Insertable<PendingSalesTableData> {
+  final String id;
+  final String payloadJson;
+  final String status;
+  final DateTime createdAt;
+  const PendingSalesTableData({
+    required this.id,
+    required this.payloadJson,
+    required this.status,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PendingSalesTableCompanion toCompanion(bool nullToAbsent) {
+    return PendingSalesTableCompanion(
+      id: Value(id),
+      payloadJson: Value(payloadJson),
+      status: Value(status),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PendingSalesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingSalesTableData(
+      id: serializer.fromJson<String>(json['id']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PendingSalesTableData copyWith({
+    String? id,
+    String? payloadJson,
+    String? status,
+    DateTime? createdAt,
+  }) => PendingSalesTableData(
+    id: id ?? this.id,
+    payloadJson: payloadJson ?? this.payloadJson,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PendingSalesTableData copyWithCompanion(PendingSalesTableCompanion data) {
+    return PendingSalesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingSalesTableData(')
+          ..write('id: $id, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, payloadJson, status, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingSalesTableData &&
+          other.id == this.id &&
+          other.payloadJson == this.payloadJson &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt);
+}
+
+class PendingSalesTableCompanion
+    extends UpdateCompanion<PendingSalesTableData> {
+  final Value<String> id;
+  final Value<String> payloadJson;
+  final Value<String> status;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PendingSalesTableCompanion({
+    this.id = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingSalesTableCompanion.insert({
+    required String id,
+    required String payloadJson,
+    this.status = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       payloadJson = Value(payloadJson),
+       createdAt = Value(createdAt);
+  static Insertable<PendingSalesTableData> custom({
+    Expression<String>? id,
+    Expression<String>? payloadJson,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingSalesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? payloadJson,
+    Value<String>? status,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PendingSalesTableCompanion(
+      id: id ?? this.id,
+      payloadJson: payloadJson ?? this.payloadJson,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingSalesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3166,12 +3755,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SyncQueueTableTable syncQueueTable = $SyncQueueTableTable(this);
   late final $ProductsTableTable productsTable = $ProductsTableTable(this);
+  late final $MasterDataCacheTableTable masterDataCacheTable =
+      $MasterDataCacheTableTable(this);
   late final $SalesTableTable salesTable = $SalesTableTable(this);
+  late final $PendingSalesTableTable pendingSalesTable =
+      $PendingSalesTableTable(this);
   late final $CustomersTableTable customersTable = $CustomersTableTable(this);
   late final $UsersTableTable usersTable = $UsersTableTable(this);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
   late final ProductsDao productsDao = ProductsDao(this as AppDatabase);
+  late final MasterDataCacheDao masterDataCacheDao = MasterDataCacheDao(
+    this as AppDatabase,
+  );
   late final SalesDao salesDao = SalesDao(this as AppDatabase);
+  late final PendingSalesDao pendingSalesDao = PendingSalesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3179,7 +3778,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     syncQueueTable,
     productsTable,
+    masterDataCacheTable,
     salesTable,
+    pendingSalesTable,
     customersTable,
     usersTable,
   ];
@@ -3861,6 +4462,184 @@ typedef $$ProductsTableTableProcessedTableManager =
       ProductsTableData,
       PrefetchHooks Function()
     >;
+typedef $$MasterDataCacheTableTableCreateCompanionBuilder =
+    MasterDataCacheTableCompanion Function({
+      required String cacheKey,
+      required String jsonData,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$MasterDataCacheTableTableUpdateCompanionBuilder =
+    MasterDataCacheTableCompanion Function({
+      Value<String> cacheKey,
+      Value<String> jsonData,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$MasterDataCacheTableTableFilterComposer
+    extends Composer<_$AppDatabase, $MasterDataCacheTableTable> {
+  $$MasterDataCacheTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get jsonData => $composableBuilder(
+    column: $table.jsonData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MasterDataCacheTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $MasterDataCacheTableTable> {
+  $$MasterDataCacheTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get jsonData => $composableBuilder(
+    column: $table.jsonData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MasterDataCacheTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MasterDataCacheTableTable> {
+  $$MasterDataCacheTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
+
+  GeneratedColumn<String> get jsonData =>
+      $composableBuilder(column: $table.jsonData, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$MasterDataCacheTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MasterDataCacheTableTable,
+          MasterDataCacheTableData,
+          $$MasterDataCacheTableTableFilterComposer,
+          $$MasterDataCacheTableTableOrderingComposer,
+          $$MasterDataCacheTableTableAnnotationComposer,
+          $$MasterDataCacheTableTableCreateCompanionBuilder,
+          $$MasterDataCacheTableTableUpdateCompanionBuilder,
+          (
+            MasterDataCacheTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $MasterDataCacheTableTable,
+              MasterDataCacheTableData
+            >,
+          ),
+          MasterDataCacheTableData,
+          PrefetchHooks Function()
+        > {
+  $$MasterDataCacheTableTableTableManager(
+    _$AppDatabase db,
+    $MasterDataCacheTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MasterDataCacheTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MasterDataCacheTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MasterDataCacheTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> cacheKey = const Value.absent(),
+                Value<String> jsonData = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MasterDataCacheTableCompanion(
+                cacheKey: cacheKey,
+                jsonData: jsonData,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cacheKey,
+                required String jsonData,
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MasterDataCacheTableCompanion.insert(
+                cacheKey: cacheKey,
+                jsonData: jsonData,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MasterDataCacheTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MasterDataCacheTableTable,
+      MasterDataCacheTableData,
+      $$MasterDataCacheTableTableFilterComposer,
+      $$MasterDataCacheTableTableOrderingComposer,
+      $$MasterDataCacheTableTableAnnotationComposer,
+      $$MasterDataCacheTableTableCreateCompanionBuilder,
+      $$MasterDataCacheTableTableUpdateCompanionBuilder,
+      (
+        MasterDataCacheTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $MasterDataCacheTableTable,
+          MasterDataCacheTableData
+        >,
+      ),
+      MasterDataCacheTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$SalesTableTableCreateCompanionBuilder =
     SalesTableCompanion Function({
       required String id,
@@ -4217,6 +4996,202 @@ typedef $$SalesTableTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $SalesTableTable, SalesTableData>,
       ),
       SalesTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$PendingSalesTableTableCreateCompanionBuilder =
+    PendingSalesTableCompanion Function({
+      required String id,
+      required String payloadJson,
+      Value<String> status,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$PendingSalesTableTableUpdateCompanionBuilder =
+    PendingSalesTableCompanion Function({
+      Value<String> id,
+      Value<String> payloadJson,
+      Value<String> status,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$PendingSalesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingSalesTableTable> {
+  $$PendingSalesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingSalesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingSalesTableTable> {
+  $$PendingSalesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingSalesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingSalesTableTable> {
+  $$PendingSalesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PendingSalesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingSalesTableTable,
+          PendingSalesTableData,
+          $$PendingSalesTableTableFilterComposer,
+          $$PendingSalesTableTableOrderingComposer,
+          $$PendingSalesTableTableAnnotationComposer,
+          $$PendingSalesTableTableCreateCompanionBuilder,
+          $$PendingSalesTableTableUpdateCompanionBuilder,
+          (
+            PendingSalesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $PendingSalesTableTable,
+              PendingSalesTableData
+            >,
+          ),
+          PendingSalesTableData,
+          PrefetchHooks Function()
+        > {
+  $$PendingSalesTableTableTableManager(
+    _$AppDatabase db,
+    $PendingSalesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingSalesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingSalesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingSalesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingSalesTableCompanion(
+                id: id,
+                payloadJson: payloadJson,
+                status: status,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String payloadJson,
+                Value<String> status = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PendingSalesTableCompanion.insert(
+                id: id,
+                payloadJson: payloadJson,
+                status: status,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingSalesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingSalesTableTable,
+      PendingSalesTableData,
+      $$PendingSalesTableTableFilterComposer,
+      $$PendingSalesTableTableOrderingComposer,
+      $$PendingSalesTableTableAnnotationComposer,
+      $$PendingSalesTableTableCreateCompanionBuilder,
+      $$PendingSalesTableTableUpdateCompanionBuilder,
+      (
+        PendingSalesTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $PendingSalesTableTable,
+          PendingSalesTableData
+        >,
+      ),
+      PendingSalesTableData,
       PrefetchHooks Function()
     >;
 typedef $$CustomersTableTableCreateCompanionBuilder =
@@ -4749,8 +5724,12 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableTableManager(_db, _db.syncQueueTable);
   $$ProductsTableTableTableManager get productsTable =>
       $$ProductsTableTableTableManager(_db, _db.productsTable);
+  $$MasterDataCacheTableTableTableManager get masterDataCacheTable =>
+      $$MasterDataCacheTableTableTableManager(_db, _db.masterDataCacheTable);
   $$SalesTableTableTableManager get salesTable =>
       $$SalesTableTableTableManager(_db, _db.salesTable);
+  $$PendingSalesTableTableTableManager get pendingSalesTable =>
+      $$PendingSalesTableTableTableManager(_db, _db.pendingSalesTable);
   $$CustomersTableTableTableManager get customersTable =>
       $$CustomersTableTableTableManager(_db, _db.customersTable);
   $$UsersTableTableTableManager get usersTable =>

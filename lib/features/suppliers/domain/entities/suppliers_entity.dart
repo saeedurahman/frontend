@@ -1,1 +1,0 @@
-﻿class SuppliersEntity { const SuppliersEntity(); }

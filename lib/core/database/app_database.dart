@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
+import 'package:frantend/core/database/daos/pending_sales_dao.dart';
 import 'package:frantend/core/database/daos/products_dao.dart';
 import 'package:frantend/core/database/daos/sales_dao.dart';
 import 'package:frantend/core/database/daos/sync_queue_dao.dart';
 import 'package:frantend/core/database/tables/customers_table.dart';
+import 'package:frantend/core/database/tables/master_data_cache_table.dart';
+import 'package:frantend/core/database/tables/pending_sales_table.dart';
 import 'package:frantend/core/database/tables/products_table.dart';
 import 'package:frantend/core/database/tables/sales_table.dart';
 import 'package:frantend/core/database/tables/sync_queue_table.dart';
@@ -20,25 +24,41 @@ part 'app_database.g.dart';
   tables: [
     SyncQueueTable,
     ProductsTable,
+    MasterDataCacheTable,
     SalesTable,
+    PendingSalesTable,
     CustomersTable,
     UsersTable,
   ],
-  daos: [SyncQueueDao, ProductsDao, SalesDao],
+  daos: [
+    SyncQueueDao,
+    ProductsDao,
+    MasterDataCacheDao,
+    SalesDao,
+    PendingSalesDao,
+  ],
 )
 @lazySingleton
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-        },
-      );
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(masterDataCacheTable);
+      }
+      if (from < 3) {
+        await m.createTable(pendingSalesTable);
+      }
+    },
+  );
 }
 
 LazyDatabase _openConnection() {
