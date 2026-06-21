@@ -26,6 +26,8 @@ sealed class SettingsState with _$SettingsState {
     @Default(false) bool isSavingReceipt,
     @Default(false) bool isSavingBranchOverride,
     @Default(false) bool isSavingTaxRate,
+    String? defaultTaxRateId,
+    @Default(false) bool isSavingDefaultTaxRate,
     String? errorMessage,
   }) = SettingsLoaded;
 

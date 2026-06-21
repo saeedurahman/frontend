@@ -5,6 +5,8 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/inventory/presentation/cubit/inventory_stock_cubit.dart';
 import 'package:frantend/features/inventory/presentation/cubit/inventory_stock_state.dart';
 import 'package:frantend/features/inventory/presentation/widgets/stock_adjustment_dialog.dart';
@@ -26,7 +28,14 @@ class InventoryStockPage extends StatelessWidget {
         BlocProvider(create: (_) => sl<InventoryStockCubit>()..load()),
         BlocProvider(create: (_) => sl<CategoriesCubit>()..load()),
       ],
-      child: const _InventoryStockView(),
+      child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
+        bloc: sl<BranchSelectorCubit>(),
+        listenWhen: (previous, current) =>
+            previous.selectedBranchId != current.selectedBranchId &&
+            current.isInitialized,
+        listener: (context, _) => context.read<InventoryStockCubit>().refresh(),
+        child: const _InventoryStockView(),
+      ),
     );
   }
 }

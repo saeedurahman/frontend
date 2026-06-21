@@ -41,6 +41,9 @@ import 'package:frantend/features/expenses/presentation/pages/expense_detail_pag
 import 'package:frantend/features/expenses/presentation/pages/expense_form_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
+import 'package:frantend/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:frantend/features/audit/presentation/pages/audit_logs_page.dart';
+import 'package:frantend/features/reports/presentation/pages/reports_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -300,11 +303,11 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.analytics,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Analytics'),
+            builder: (_, __) => const ReportsPage(),
           ),
           GoRoute(
             path: RouteNames.reports,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Reports'),
+            redirect: (_, __) => RouteNames.analytics,
           ),
           GoRoute(
             path: RouteNames.settings,
@@ -326,13 +329,11 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.notifications,
-            builder: (_, __) => const FeaturePlaceholderPage(
-              title: 'Notifications',
-            ),
+            builder: (_, __) => const NotificationsPage(),
           ),
           GoRoute(
             path: RouteNames.auditLogs,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Audit Logs'),
+            builder: (_, __) => const AuditLogsPage(),
           ),
         ],
       ),

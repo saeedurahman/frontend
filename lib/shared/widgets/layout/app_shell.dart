@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
@@ -7,6 +8,13 @@ import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
+import 'package:frantend/features/branches/presentation/widgets/branch_selector_chip.dart';
+import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:frantend/features/notifications/presentation/cubit/notifications_state.dart';
+import 'package:frantend/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -16,13 +24,11 @@ class AppShell extends StatefulWidget {
     required this.title,
     required this.breadcrumb,
     required this.child,
-    this.unreadCount = 0,
   });
 
   final String title;
   final String breadcrumb;
   final Widget child;
-  final int unreadCount;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -44,44 +50,55 @@ class _AppShellState extends State<AppShell> {
       builder: (context, snapshot) {
         final user = snapshot.data;
 
-        return Scaffold(
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final content = Row(
-                children: [
-                  _Sidebar(user: user, unreadCount: widget.unreadCount),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _TopBar(
-                          title: widget.title,
-                          breadcrumb: widget.breadcrumb,
-                          user: user,
-                          unreadCount: widget.unreadCount,
-                        ),
-                        Expanded(
-                          child: Container(
-                            color: const Color(0xFFF8FAFC),
-                            padding: const EdgeInsets.all(AppDimensions.spacingMd),
-                            child: widget.child,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
+        return BlocBuilder<NotificationsCubit, NotificationsState>(
+          bloc: sl<NotificationsCubit>(),
+          builder: (context, notifState) {
+            final unreadCount = switch (notifState) {
+              NotificationsLoaded(:final unreadCount) => unreadCount,
+              _ => 0,
+            };
 
-              if (constraints.maxWidth >= 1024) {
-                return content;
-              }
+            return Scaffold(
+              body: LayoutBuilder(
+                builder: (context, constraints) {
+                  final content = Row(
+                    children: [
+                      _Sidebar(user: user, unreadCount: unreadCount),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            _TopBar(
+                              title: widget.title,
+                              breadcrumb: widget.breadcrumb,
+                              user: user,
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: const Color(0xFFF8FAFC),
+                                padding: const EdgeInsets.all(
+                                  AppDimensions.spacingMd,
+                                ),
+                                child: widget.child,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
 
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(width: 1024, child: content),
-              );
-            },
-          ),
+                  if (constraints.maxWidth >= 1024) {
+                    return content;
+                  }
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(width: 1024, child: content),
+                  );
+                },
+              ),
+            );
+          },
         );
       },
     );
@@ -98,173 +115,192 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     final businessName = user?.businessName ?? 'PakPOS Business';
-    final branchName = user?.branchId != null
-        ? 'Branch ${user!.branchId!.substring(0, 8)}'
-        : 'Main Branch';
 
     return Material(
       color: Colors.transparent,
       child: Container(
-      width: 240,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(right: BorderSide(color: Color(0xFFE5E7EB))),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(
-            height: 64,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Text('☪', style: TextStyle(fontSize: 24, color: AppColors.primary)),
-                  SizedBox(width: 8),
-                  Text(
-                    'PakPOS',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
+        width: 240,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(right: BorderSide(color: Color(0xFFE5E7EB))),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 64,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/app_logos/pk.png',
+                      height: 92,
+                      width: 92,
+                      fit: BoxFit.cover,
                     ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'PakPOS',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9F4),
+                border: Border.all(color: const Color(0xFFBBF7D0)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    businessName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  BlocBuilder<BranchSelectorCubit, BranchSelectorState>(
+                    bloc: sl<BranchSelectorCubit>(),
+                    builder: (context, branchState) {
+                      return Text(
+                        branchState.selectedBranchName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-          ),
-          Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F9F4),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  businessName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                children: [
+                  const _SectionLabel('MAIN'),
+                  _NavItem(
+                    icon: Icons.dashboard_outlined,
+                    label: 'Dashboard',
+                    routePath: RouteNames.dashboard,
+                    isActive: location == RouteNames.dashboard,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  branchName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.primary),
-                ),
-              ],
+                  _NavItem(
+                    icon: Icons.point_of_sale,
+                    label: 'Point of Sale',
+                    routePath: RouteNames.pos,
+                    isActive: location == RouteNames.pos,
+                  ),
+                  const _SectionLabel('CATALOG'),
+                  _NavItem(
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Products',
+                    routePath: RouteNames.products,
+                    isActive: location.startsWith(RouteNames.products),
+                  ),
+                  const _SectionLabel('INVENTORY'),
+                  _NavItem(
+                    icon: Icons.warehouse_outlined,
+                    label: 'Inventory',
+                    routePath: RouteNames.inventory,
+                    isActive: location.startsWith(RouteNames.inventory),
+                  ),
+                  _NavItem(
+                    icon: Icons.shopping_cart_outlined,
+                    label: 'Purchases',
+                    routePath: RouteNames.purchases,
+                    isActive: location.startsWith(RouteNames.purchases),
+                  ),
+                  const _SectionLabel('SALES'),
+                  _NavItem(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Sales',
+                    routePath: RouteNames.sales,
+                    isActive: location.startsWith(RouteNames.sales),
+                  ),
+                  _NavItem(
+                    icon: Icons.assignment_return_outlined,
+                    label: 'Returns',
+                    routePath: RouteNames.returns,
+                    isActive: location.startsWith(RouteNames.returns),
+                  ),
+                  _NavItem(
+                    icon: Icons.people_outline,
+                    label: 'Customers',
+                    routePath: RouteNames.customers,
+                    isActive: location.startsWith(RouteNames.customers),
+                  ),
+                  const _SectionLabel('FINANCE'),
+                  _NavItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    label: 'Expenses',
+                    routePath: RouteNames.expenses,
+                    isActive: location.startsWith(RouteNames.expenses),
+                  ),
+                  _NavItem(
+                    icon: Icons.local_shipping_outlined,
+                    label: 'Suppliers',
+                    routePath: RouteNames.suppliers,
+                    isActive: location.startsWith(RouteNames.suppliers),
+                  ),
+                  _NavItem(
+                    icon: Icons.point_of_sale_outlined,
+                    label: 'Cash Register',
+                    routePath: RouteNames.cashRegister,
+                    isActive: location.startsWith(RouteNames.cashRegister),
+                  ),
+                  if (UserRoleUtils.canViewReports(user?.role)) ...[
+                    const _SectionLabel('REPORTS'),
+                    _NavItem(
+                      icon: Icons.bar_chart_outlined,
+                      label: 'Analytics',
+                      routePath: RouteNames.analytics,
+                      isActive: location.startsWith(RouteNames.analytics),
+                    ),
+                  ],
+                  const _SectionLabel('SYSTEM'),
+                  _NavItem(
+                    icon: Icons.settings_outlined,
+                    label: 'Settings',
+                    routePath: RouteNames.settings,
+                    isActive: location.startsWith(RouteNames.settings),
+                  ),
+                  _NavItem(
+                    icon: Icons.notifications_outlined,
+                    label: 'Notifications',
+                    routePath: RouteNames.notifications,
+                    isActive: location.startsWith(RouteNames.notifications),
+                    badgeCount: unreadCount,
+                  ),
+                  if (UserRoleUtils.isOwner(user?.role))
+                    _NavItem(
+                      icon: Icons.history_outlined,
+                      label: 'Audit Logs',
+                      routePath: RouteNames.auditLogs,
+                      isActive: location.startsWith(RouteNames.auditLogs),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              children: [
-                const _SectionLabel('MAIN'),
-                _NavItem(
-                  icon: Icons.dashboard_outlined,
-                  label: 'Dashboard',
-                  routePath: RouteNames.dashboard,
-                  isActive: location == RouteNames.dashboard,
-                ),
-                _NavItem(
-                  icon: Icons.point_of_sale,
-                  label: 'Point of Sale',
-                  routePath: RouteNames.pos,
-                  isActive: location == RouteNames.pos,
-                ),
-                const _SectionLabel('CATALOG'),
-                _NavItem(
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Products',
-                  routePath: RouteNames.products,
-                  isActive: location.startsWith(RouteNames.products),
-                ),
-                const _SectionLabel('INVENTORY'),
-                _NavItem(
-                  icon: Icons.warehouse_outlined,
-                  label: 'Inventory',
-                  routePath: RouteNames.inventory,
-                  isActive: location.startsWith(RouteNames.inventory),
-                ),
-                _NavItem(
-                  icon: Icons.shopping_cart_outlined,
-                  label: 'Purchases',
-                  routePath: RouteNames.purchases,
-                  isActive: location.startsWith(RouteNames.purchases),
-                ),
-                const _SectionLabel('SALES'),
-                _NavItem(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Sales',
-                  routePath: RouteNames.sales,
-                  isActive: location.startsWith(RouteNames.sales),
-                ),
-                _NavItem(
-                  icon: Icons.assignment_return_outlined,
-                  label: 'Returns',
-                  routePath: RouteNames.returns,
-                  isActive: location.startsWith(RouteNames.returns),
-                ),
-                _NavItem(
-                  icon: Icons.people_outline,
-                  label: 'Customers',
-                  routePath: RouteNames.customers,
-                  isActive: location.startsWith(RouteNames.customers),
-                ),
-                const _SectionLabel('FINANCE'),
-                _NavItem(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: 'Expenses',
-                  routePath: RouteNames.expenses,
-                  isActive: location.startsWith(RouteNames.expenses),
-                ),
-                _NavItem(
-                  icon: Icons.local_shipping_outlined,
-                  label: 'Suppliers',
-                  routePath: RouteNames.suppliers,
-                  isActive: location.startsWith(RouteNames.suppliers),
-                ),
-                _NavItem(
-                  icon: Icons.point_of_sale_outlined,
-                  label: 'Cash Register',
-                  routePath: RouteNames.cashRegister,
-                  isActive: location.startsWith(RouteNames.cashRegister),
-                ),
-                const _SectionLabel('REPORTS'),
-                _NavItem(
-                  icon: Icons.bar_chart_outlined,
-                  label: 'Analytics',
-                  routePath: RouteNames.analytics,
-                  isActive: location.startsWith(RouteNames.analytics),
-                ),
-                const _SectionLabel('SYSTEM'),
-                _NavItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  routePath: RouteNames.settings,
-                  isActive: location.startsWith(RouteNames.settings),
-                ),
-                _NavItem(
-                  icon: Icons.notifications_outlined,
-                  label: 'Notifications',
-                  routePath: RouteNames.notifications,
-                  isActive: location.startsWith(RouteNames.notifications),
-                  badgeCount: unreadCount,
-                ),
-              ],
-            ),
-          ),
-          _SidebarFooter(user: user),
-        ],
-      ),
+            _SidebarFooter(user: user),
+          ],
+        ),
       ),
     );
   }
@@ -282,7 +318,7 @@ class _SectionLabel extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 11,
+          fontSize: 14,
           letterSpacing: 0.7,
           color: Color(0xFF94A3B8),
           fontWeight: FontWeight.w700,
@@ -332,8 +368,8 @@ class _NavItemState extends State<_NavItem> {
             color: active
                 ? AppColors.primary
                 : showHover
-                    ? const Color(0xFFF0F9F4)
-                    : Colors.transparent,
+                ? const Color(0xFFF0F9F4)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border(
               left: BorderSide(
@@ -346,7 +382,7 @@ class _NavItemState extends State<_NavItem> {
             children: [
               Icon(
                 widget.icon,
-                size: 20,
+                size: 25,
                 color: active ? Colors.white : AppColors.primary,
               ),
               const SizedBox(width: 10),
@@ -357,12 +393,16 @@ class _NavItemState extends State<_NavItem> {
                   style: TextStyle(
                     color: active ? Colors.white : AppColors.primary,
                     fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
               ),
               if (widget.badgeCount > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: active ? Colors.white : AppColors.error,
                     borderRadius: BorderRadius.circular(10),
@@ -430,7 +470,10 @@ class _SidebarFooter extends StatelessWidget {
                   role,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7280),
+                  ),
                 ),
               ],
             ),
@@ -440,6 +483,8 @@ class _SidebarFooter extends StatelessWidget {
             icon: const Icon(Icons.logout_rounded),
             color: AppColors.primary,
             onPressed: () async {
+              sl<NotificationsCubit>().stopSession();
+              sl<BranchSelectorCubit>().stopSession();
               await sl<AuthRepository>().logout();
               sl<AuthGuard>().setAuthenticated(false);
               if (context.mounted) context.go(RouteNames.login);
@@ -456,166 +501,131 @@ class _TopBar extends StatelessWidget {
     required this.title,
     required this.breadcrumb,
     required this.user,
-    required this.unreadCount,
   });
 
   final String title;
   final String breadcrumb;
   final UserModel? user;
-  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  breadcrumb,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            child: InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: () async {
-              final route = await showSearch<String?>(
-                context: context,
-                delegate: _GlobalSearchDelegate(),
-              );
-              if (route != null && context.mounted) context.go(route);
-            },
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 320),
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: const Row(
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Search products, customers...',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Color(0xFF94A3B8)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    breadcrumb,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          ),
-          const SizedBox(width: 14),
-          StreamBuilder<int>(
-            stream: Stream<int>.periodic(const Duration(seconds: 1), (x) => x),
-            builder: (context, _) => Text(
-              DateFormat('EEE, dd MMM yyyy  hh:mm a').format(DateTime.now()),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Stack(
-            children: [
-              IconButton(
-                tooltip: 'Notifications',
-                onPressed: () => context.go(RouteNames.notifications),
-                icon: const Icon(Icons.notifications_none_rounded),
-                color: AppColors.primary,
-              ),
-              if (unreadCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      unreadCount > 99 ? '99+' : '$unreadCount',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+            Flexible(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () async {
+                  final route = await showSearch<String?>(
+                    context: context,
+                    delegate: _GlobalSearchDelegate(user: user),
+                  );
+                  if (route != null && context.mounted) context.go(route);
+                },
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Search products, customers...',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Color(0xFF94A3B8)),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primary),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              user?.branchId != null
-                  ? 'Branch ${user!.branchId!.substring(0, 6)}'
-                  : 'Main Branch',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          PopupMenuButton<String>(
-            tooltip: 'User menu',
-            onSelected: (value) async {
-              if (value == 'logout') {
-                await sl<AuthRepository>().logout();
-                sl<AuthGuard>().setAuthenticated(false);
-                if (context.mounted) context.go(RouteNames.login);
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem<String>(
-                value: 'logout',
-                child: Text('Logout'),
+            const SizedBox(width: 24),
+            StreamBuilder<int>(
+              stream: Stream<int>.periodic(
+                const Duration(seconds: 1),
+                (x) => x,
               ),
-            ],
-            child: CircleAvatar(
-              radius: 17,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                _initials(user?.name ?? 'U'),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              builder: (context, _) => Text(
+                DateFormat('EEE, dd MMM yyyy  hh:mm a').format(DateTime.now()),
+                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
               ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 14),
+            const NotificationBellButton(),
+            const SizedBox(width: 16),
+            const BranchSelectorChip(),
+            const SizedBox(width: 20),
+            PopupMenuButton<String>(
+              tooltip: 'User menu',
+              onSelected: (value) async {
+                if (value == 'logout') {
+                  sl<NotificationsCubit>().stopSession();
+                  sl<BranchSelectorCubit>().stopSession();
+                  await sl<AuthRepository>().logout();
+                  sl<AuthGuard>().setAuthenticated(false);
+                  if (context.mounted) context.go(RouteNames.login);
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Text('Logout', style: TextStyle(fontSize: 16)),
+                ),
+              ],
+              child: CircleAvatar(
+                radius: 25,
+                backgroundColor: AppColors.primary,
+                child: Text(
+                  _initials(user?.name ?? 'U'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -628,33 +638,34 @@ class _SearchRouteItem {
 }
 
 class _GlobalSearchDelegate extends SearchDelegate<String?> {
-  _GlobalSearchDelegate()
-      : _items = const [
-          _SearchRouteItem('Dashboard', RouteNames.dashboard),
-          _SearchRouteItem('Point of Sale', RouteNames.pos),
-          _SearchRouteItem('Products', RouteNames.products),
-          _SearchRouteItem('Inventory', RouteNames.inventory),
-          _SearchRouteItem('Purchases', RouteNames.purchases),
-          _SearchRouteItem('Sales', RouteNames.sales),
-          _SearchRouteItem('Returns', RouteNames.returns),
-          _SearchRouteItem('Customers', RouteNames.customers),
-          _SearchRouteItem('Expenses', RouteNames.expenses),
-          _SearchRouteItem('Suppliers', RouteNames.suppliers),
-          _SearchRouteItem('Cash Register', RouteNames.cashRegister),
-          _SearchRouteItem('Analytics', RouteNames.analytics),
-          _SearchRouteItem('Settings', RouteNames.settings),
-          _SearchRouteItem('Notifications', RouteNames.notifications),
-        ];
+  _GlobalSearchDelegate({this.user})
+    : _items = [
+        const _SearchRouteItem('Dashboard', RouteNames.dashboard),
+        const _SearchRouteItem('Point of Sale', RouteNames.pos),
+        const _SearchRouteItem('Products', RouteNames.products),
+        const _SearchRouteItem('Inventory', RouteNames.inventory),
+        const _SearchRouteItem('Purchases', RouteNames.purchases),
+        const _SearchRouteItem('Sales', RouteNames.sales),
+        const _SearchRouteItem('Returns', RouteNames.returns),
+        const _SearchRouteItem('Customers', RouteNames.customers),
+        const _SearchRouteItem('Expenses', RouteNames.expenses),
+        const _SearchRouteItem('Suppliers', RouteNames.suppliers),
+        const _SearchRouteItem('Cash Register', RouteNames.cashRegister),
+        if (UserRoleUtils.canViewReports(user?.role))
+          const _SearchRouteItem('Analytics', RouteNames.analytics),
+        if (UserRoleUtils.isOwner(user?.role))
+          const _SearchRouteItem('Audit Logs', RouteNames.auditLogs),
+        const _SearchRouteItem('Settings', RouteNames.settings),
+        const _SearchRouteItem('Notifications', RouteNames.notifications),
+      ];
 
+  final UserModel? user;
   final List<_SearchRouteItem> _items;
 
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      IconButton(
-        onPressed: () => query = '',
-        icon: const Icon(Icons.clear),
-      ),
+      IconButton(onPressed: () => query = '', icon: const Icon(Icons.clear)),
     ];
   }
 

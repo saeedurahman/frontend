@@ -611,26 +611,80 @@ class _TaxRatesTab extends StatelessWidget {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final rate = activeRates[index];
+                    final isDefault = state.defaultTaxRateId == rate.id;
+                    final isBusy =
+                        state.isSavingTaxRate || state.isSavingDefaultTaxRate;
                     return ListTile(
-                      title: Text(rate.name),
+                      title: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              rate.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isDefault) ...[
+                            const SizedBox(width: 8),
+                            _DefaultTaxBadge(),
+                          ],
+                        ],
+                      ),
                       subtitle: Text('${rate.rate}%'),
-                      trailing: IconButton(
-                        tooltip: 'Deactivate',
-                        icon: const Icon(Icons.block, color: AppColors.error),
-                        onPressed: state.isSavingTaxRate
+                      leading: Radio<String>(
+                        value: rate.id,
+                        groupValue: state.defaultTaxRateId,
+                        activeColor: AppColors.primary,
+                        onChanged: isBusy
                             ? null
-                            : () async {
-                                final ok = await cubit.updateTaxRateActive(
-                                  rate.id,
-                                  false,
-                                );
+                            : (value) async {
+                                if (value == null) return;
+                                final ok = await cubit.setDefaultTaxRate(value);
                                 if (ok && context.mounted) {
                                   AppAlerts.showSuccessMessage(
                                     context,
-                                    'Tax rate deactivated',
+                                    'Default tax rate updated',
                                   );
                                 }
                               },
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isDefault)
+                            TextButton(
+                              onPressed: isBusy
+                                  ? null
+                                  : () async {
+                                      final ok =
+                                          await cubit.clearDefaultTaxRate();
+                                      if (ok && context.mounted) {
+                                        AppAlerts.showSuccessMessage(
+                                          context,
+                                          'Default tax rate removed',
+                                        );
+                                      }
+                                    },
+                              child: const Text('Remove Default'),
+                            ),
+                          IconButton(
+                            tooltip: 'Deactivate',
+                            icon: const Icon(Icons.block, color: AppColors.error),
+                            onPressed: isBusy
+                                ? null
+                                : () async {
+                                    final ok = await cubit.updateTaxRateActive(
+                                      rate.id,
+                                      false,
+                                    );
+                                    if (ok && context.mounted) {
+                                      AppAlerts.showSuccessMessage(
+                                        context,
+                                        'Tax rate deactivated',
+                                      );
+                                    }
+                                  },
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -808,6 +862,30 @@ class _BranchOverridesTabState extends State<_BranchOverridesTab> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DefaultTaxBadge extends StatelessWidget {
+  const _DefaultTaxBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.accentLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.accent),
+      ),
+      child: const Text(
+        'Default',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: AppColors.accentDark,
         ),
       ),
     );

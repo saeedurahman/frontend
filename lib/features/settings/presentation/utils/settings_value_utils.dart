@@ -6,6 +6,7 @@ abstract final class SettingKeys {
   static const receiptShowTax = 'receipt.show_tax';
   static const receiptShowLogo = 'receipt.show_logo';
   static const businessLogoUrl = 'business.logo_url';
+  static const taxDefaultRateId = 'tax.default_rate_id';
 }
 
 abstract final class SettingsValueUtils {

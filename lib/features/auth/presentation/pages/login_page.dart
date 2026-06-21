@@ -5,6 +5,8 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_state.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/auth/presentation/pages/desktop_login_widget.dart';
 import 'package:frantend/features/auth/presentation/pages/mobile_login_widget.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -33,7 +35,11 @@ class _LoginView extends StatelessWidget {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           state.maybeWhen(
-            authenticated: (_) => context.go(RouteNames.dashboard),
+            authenticated: (_) {
+              sl<NotificationsCubit>().startSession();
+              sl<BranchSelectorCubit>().startSession();
+              context.go(RouteNames.dashboard);
+            },
             error: (message) => AppAlerts.showErrorMessage(context, message),
             orElse: () {},
           );

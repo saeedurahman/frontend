@@ -36,6 +36,8 @@ mixin _$SettingsState {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )
     loaded,
@@ -60,6 +62,8 @@ mixin _$SettingsState {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -84,6 +88,8 @@ mixin _$SettingsState {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -196,6 +202,8 @@ class _$SettingsInitialImpl implements SettingsInitial {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )
     loaded,
@@ -224,6 +232,8 @@ class _$SettingsInitialImpl implements SettingsInitial {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -252,6 +262,8 @@ class _$SettingsInitialImpl implements SettingsInitial {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -366,6 +378,8 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )
     loaded,
@@ -394,6 +408,8 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -422,6 +438,8 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -498,6 +516,8 @@ abstract class _$$SettingsLoadedImplCopyWith<$Res> {
     bool isSavingReceipt,
     bool isSavingBranchOverride,
     bool isSavingTaxRate,
+    String? defaultTaxRateId,
+    bool isSavingDefaultTaxRate,
     String? errorMessage,
   });
 
@@ -532,6 +552,8 @@ class __$$SettingsLoadedImplCopyWithImpl<$Res>
     Object? isSavingReceipt = null,
     Object? isSavingBranchOverride = null,
     Object? isSavingTaxRate = null,
+    Object? defaultTaxRateId = freezed,
+    Object? isSavingDefaultTaxRate = null,
     Object? errorMessage = freezed,
   }) {
     return _then(
@@ -592,6 +614,14 @@ class __$$SettingsLoadedImplCopyWithImpl<$Res>
             ? _value.isSavingTaxRate
             : isSavingTaxRate // ignore: cast_nullable_to_non_nullable
                   as bool,
+        defaultTaxRateId: freezed == defaultTaxRateId
+            ? _value.defaultTaxRateId
+            : defaultTaxRateId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isSavingDefaultTaxRate: null == isSavingDefaultTaxRate
+            ? _value.isSavingDefaultTaxRate
+            : isSavingDefaultTaxRate // ignore: cast_nullable_to_non_nullable
+                  as bool,
         errorMessage: freezed == errorMessage
             ? _value.errorMessage
             : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -629,6 +659,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
     this.isSavingReceipt = false,
     this.isSavingBranchOverride = false,
     this.isSavingTaxRate = false,
+    this.defaultTaxRateId,
+    this.isSavingDefaultTaxRate = false,
     this.errorMessage,
   }) : _businessSettings = businessSettings,
        _taxRates = taxRates;
@@ -682,11 +714,16 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
   @JsonKey()
   final bool isSavingTaxRate;
   @override
+  final String? defaultTaxRateId;
+  @override
+  @JsonKey()
+  final bool isSavingDefaultTaxRate;
+  @override
   final String? errorMessage;
 
   @override
   String toString() {
-    return 'SettingsState.loaded(business: $business, businessSettings: $businessSettings, taxRates: $taxRates, footerText: $footerText, paperSize: $paperSize, showTaxOnReceipt: $showTaxOnReceipt, showLogoOnReceipt: $showLogoOnReceipt, branchOverrideId: $branchOverrideId, branchOverrideFooter: $branchOverrideFooter, branchFooterIsOverride: $branchFooterIsOverride, isSavingBusiness: $isSavingBusiness, isSavingReceipt: $isSavingReceipt, isSavingBranchOverride: $isSavingBranchOverride, isSavingTaxRate: $isSavingTaxRate, errorMessage: $errorMessage)';
+    return 'SettingsState.loaded(business: $business, businessSettings: $businessSettings, taxRates: $taxRates, footerText: $footerText, paperSize: $paperSize, showTaxOnReceipt: $showTaxOnReceipt, showLogoOnReceipt: $showLogoOnReceipt, branchOverrideId: $branchOverrideId, branchOverrideFooter: $branchOverrideFooter, branchFooterIsOverride: $branchFooterIsOverride, isSavingBusiness: $isSavingBusiness, isSavingReceipt: $isSavingReceipt, isSavingBranchOverride: $isSavingBranchOverride, isSavingTaxRate: $isSavingTaxRate, defaultTaxRateId: $defaultTaxRateId, isSavingDefaultTaxRate: $isSavingDefaultTaxRate, errorMessage: $errorMessage)';
   }
 
   @override
@@ -723,6 +760,10 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
                 other.isSavingBranchOverride == isSavingBranchOverride) &&
             (identical(other.isSavingTaxRate, isSavingTaxRate) ||
                 other.isSavingTaxRate == isSavingTaxRate) &&
+            (identical(other.defaultTaxRateId, defaultTaxRateId) ||
+                other.defaultTaxRateId == defaultTaxRateId) &&
+            (identical(other.isSavingDefaultTaxRate, isSavingDefaultTaxRate) ||
+                other.isSavingDefaultTaxRate == isSavingDefaultTaxRate) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage));
   }
@@ -744,6 +785,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
     isSavingReceipt,
     isSavingBranchOverride,
     isSavingTaxRate,
+    defaultTaxRateId,
+    isSavingDefaultTaxRate,
     errorMessage,
   );
 
@@ -778,6 +821,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )
     loaded,
@@ -798,6 +843,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       isSavingReceipt,
       isSavingBranchOverride,
       isSavingTaxRate,
+      defaultTaxRateId,
+      isSavingDefaultTaxRate,
       errorMessage,
     );
   }
@@ -822,6 +869,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -842,6 +891,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       isSavingReceipt,
       isSavingBranchOverride,
       isSavingTaxRate,
+      defaultTaxRateId,
+      isSavingDefaultTaxRate,
       errorMessage,
     );
   }
@@ -866,6 +917,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -888,6 +941,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
         isSavingReceipt,
         isSavingBranchOverride,
         isSavingTaxRate,
+        defaultTaxRateId,
+        isSavingDefaultTaxRate,
         errorMessage,
       );
     }
@@ -948,6 +1003,8 @@ abstract class SettingsLoaded implements SettingsState {
     final bool isSavingReceipt,
     final bool isSavingBranchOverride,
     final bool isSavingTaxRate,
+    final String? defaultTaxRateId,
+    final bool isSavingDefaultTaxRate,
     final String? errorMessage,
   }) = _$SettingsLoadedImpl;
 
@@ -965,6 +1022,8 @@ abstract class SettingsLoaded implements SettingsState {
   bool get isSavingReceipt;
   bool get isSavingBranchOverride;
   bool get isSavingTaxRate;
+  String? get defaultTaxRateId;
+  bool get isSavingDefaultTaxRate;
   String? get errorMessage;
 
   /// Create a copy of SettingsState
@@ -1061,6 +1120,8 @@ class _$SettingsErrorImpl implements SettingsError {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )
     loaded,
@@ -1089,6 +1150,8 @@ class _$SettingsErrorImpl implements SettingsError {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,
@@ -1117,6 +1180,8 @@ class _$SettingsErrorImpl implements SettingsError {
       bool isSavingReceipt,
       bool isSavingBranchOverride,
       bool isSavingTaxRate,
+      String? defaultTaxRateId,
+      bool isSavingDefaultTaxRate,
       String? errorMessage,
     )?
     loaded,

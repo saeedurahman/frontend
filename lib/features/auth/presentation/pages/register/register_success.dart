@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/register/domain/entities/register_entity.dart';
 import 'package:frantend/features/register/presentation/cubit/register_cubit.dart';
 import 'package:frantend/features/register/presentation/cubit/register_state.dart';
@@ -127,7 +130,11 @@ class RegisterSuccessPage extends StatelessWidget {
               width: double.infinity,
               height: AppDimensions.buttonHeight,
               child: ElevatedButton(
-                onPressed: () => context.go(RouteNames.dashboard),
+                onPressed: () {
+                  sl<NotificationsCubit>().startSession();
+                  sl<BranchSelectorCubit>().startSession();
+                  context.go(RouteNames.dashboard);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.textOnPrimary,

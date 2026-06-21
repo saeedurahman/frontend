@@ -8,6 +8,7 @@ import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/payment_modal.dart';
 import 'package:frantend/features/pos/presentation/widgets/pos_dialogs.dart';
+import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 
 class CartPanel extends StatelessWidget {
@@ -147,6 +148,8 @@ class _CartItemRow extends StatelessWidget {
     final cubit = context.read<PosCubit>();
     final item = state.cartItems[index];
     final hasDiscount = item.lineDiscount > Decimal.zero;
+    final hasTax = item.taxRateId != null;
+    final taxLabel = hasTax ? item.taxRateName! : 'No tax';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -216,6 +219,48 @@ class _CartItemRow extends StatelessWidget {
                       ),
                     ),
                   ),
+                GestureDetector(
+                  onTap: () async {
+                    final result = await LineTaxRateDialog.show(
+                      context,
+                      taxRates: state.taxRates,
+                      selectedTaxRateId: item.taxRateId,
+                    );
+                    if (result == null) return;
+                    if (result is LineTaxRateNone) {
+                      cubit.updateLineTaxRate(index, null);
+                    } else if (result is TaxRateModel) {
+                      cubit.updateLineTaxRate(index, result);
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: hasTax
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : AppColors.background,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: hasTax
+                            ? AppColors.primary.withValues(alpha: 0.25)
+                            : AppColors.border,
+                      ),
+                    ),
+                    child: Text(
+                      taxLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: hasTax
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
                 TextButton(
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,

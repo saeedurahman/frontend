@@ -5,7 +5,13 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
+
+/// Sentinel returned when the user explicitly chooses no tax on a line.
+class LineTaxRateNone {
+  const LineTaxRateNone();
+}
 
 class CartDiscountDialog extends StatefulWidget {
   const CartDiscountDialog({
@@ -238,6 +244,68 @@ class _ItemDiscountDialogState extends State<ItemDiscountDialog> {
             }
           },
           child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+}
+
+class LineTaxRateDialog extends StatelessWidget {
+  const LineTaxRateDialog({
+    super.key,
+    required this.taxRates,
+    this.selectedTaxRateId,
+  });
+
+  final List<TaxRateModel> taxRates;
+  final String? selectedTaxRateId;
+
+  static Future<Object?> show(
+    BuildContext context, {
+    required List<TaxRateModel> taxRates,
+    String? selectedTaxRateId,
+  }) {
+    return showDialog<Object?>(
+      context: context,
+      builder: (_) => LineTaxRateDialog(
+        taxRates: taxRates,
+        selectedTaxRateId: selectedTaxRateId,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Line Tax Rate'),
+      content: SizedBox(
+        width: 320,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              title: const Text('No Tax (0%)'),
+              trailing: selectedTaxRateId == null
+                  ? const Icon(Icons.check, color: AppColors.primary, size: 20)
+                  : null,
+              onTap: () => Navigator.pop(context, const LineTaxRateNone()),
+            ),
+            ...taxRates.map(
+              (rate) => ListTile(
+                title: Text('${rate.name} (${rate.rate}%)'),
+                trailing: selectedTaxRateId == rate.id
+                    ? const Icon(Icons.check, color: AppColors.primary, size: 20)
+                    : null,
+                onTap: () => Navigator.pop(context, rate),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
         ),
       ],
     );

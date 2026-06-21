@@ -13,6 +13,8 @@ class CartItemModel {
     required this.qty,
     this.itemDiscountPct,
     this.itemDiscountAmount,
+    this.taxRateId,
+    this.taxRateName,
     this.taxRate,
     this.lineNote,
     this.maxAvailableStock,
@@ -28,6 +30,8 @@ class CartItemModel {
   final Decimal qty;
   final Decimal? itemDiscountPct;
   final Decimal? itemDiscountAmount;
+  final String? taxRateId;
+  final String? taxRateName;
   final Decimal? taxRate;
   final String? lineNote;
   final Decimal? maxAvailableStock;
@@ -69,11 +73,14 @@ class CartItemModel {
     Decimal? qty,
     Decimal? itemDiscountPct,
     Decimal? itemDiscountAmount,
+    String? taxRateId,
+    String? taxRateName,
     Decimal? taxRate,
     String? lineNote,
     Decimal? maxAvailableStock,
     bool? priceManual,
     bool clearLineNote = false,
+    bool clearTax = false,
   }) {
     return CartItemModel(
       productId: productId ?? this.productId,
@@ -85,7 +92,9 @@ class CartItemModel {
       qty: qty ?? this.qty,
       itemDiscountPct: itemDiscountPct ?? this.itemDiscountPct,
       itemDiscountAmount: itemDiscountAmount ?? this.itemDiscountAmount,
-      taxRate: taxRate ?? this.taxRate,
+      taxRateId: clearTax ? null : (taxRateId ?? this.taxRateId),
+      taxRateName: clearTax ? null : (taxRateName ?? this.taxRateName),
+      taxRate: clearTax ? null : (taxRate ?? this.taxRate),
       lineNote: clearLineNote ? null : (lineNote ?? this.lineNote),
       maxAvailableStock: maxAvailableStock ?? this.maxAvailableStock,
       priceManual: priceManual ?? this.priceManual,

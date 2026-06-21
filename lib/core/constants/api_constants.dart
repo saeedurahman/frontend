@@ -16,6 +16,7 @@ abstract final class ApiConstants {
   static const String businesses = '/businesses';
   static const String businessMe = '/business/me';
   static const String branches = '/branches';
+  static String branchById(String id) => '/branches/$id';
 
   // Settings
   static const String settings = '/settings';
@@ -105,10 +106,39 @@ abstract final class ApiConstants {
   static const String analyticsTopProducts = '/analytics/top-products';
   static const String analyticsRecentTransactions = '/analytics/recent-transactions';
   static const String analyticsInventoryInsights = '/analytics/inventory-insights';
+  static const String analyticsSalesSummary = '/analytics/sales-summary';
+  static const String analyticsTodayVsYesterday = '/analytics/today-vs-yesterday';
+  static const String analyticsCategoryPerformance = '/analytics/category-performance';
+  static const String analyticsBranchComparison = '/analytics/branch-comparison';
+  static const String analyticsCashierPerformance = '/analytics/cashier-performance';
+  static const String analyticsFraudAlerts = '/analytics/fraud-alerts';
+  static const String analyticsStockValuation = '/analytics/stock-valuation';
+  static const String analyticsCustomerInsights = '/analytics/customer-insights';
+  static const String analyticsProfitLoss = '/analytics/profit-loss';
+  static const String analyticsExpenseSummary = '/analytics/expense-summary';
+  static const String analyticsPeakHours = '/analytics/peak-hours';
+  static const String analyticsPeakDays = '/analytics/peak-days';
+  static const String analyticsProductMovement = '/analytics/product-movement';
+  static const String analyticsDeadStock = '/analytics/dead-stock';
+  static const String analyticsTaxSummary = '/analytics/tax-summary';
+  static const String analyticsCashInDrawer = '/analytics/cash-in-drawer';
+  static const String invoiceExportInventory = '/invoice/export/inventory';
 
   // Sync
   static const String syncPush = '/sync/push';
   static const String syncPull = '/sync/pull';
+
+  // Notifications
+  static const String notifications = '/notifications';
+  static const String notificationsMarkRead = '/notifications/mark-read';
+  static const String notificationsMarkAllRead = '/notifications/mark-all-read';
+  static const String notificationsCheckAlerts = '/notifications/check-alerts';
+  static String notificationById(String id) => '/notifications/$id';
+
+  // Audit logs
+  static const String auditLogs = '/audit';
+  static String auditRecordHistory(String tableName, String recordId) =>
+      '/audit/record/$tableName/$recordId';
 
   // Headers
   static const String contentType = 'application/json';

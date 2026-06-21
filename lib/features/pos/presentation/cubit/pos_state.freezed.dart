@@ -32,6 +32,8 @@ mixin _$PosState {
   bool get isLoadingProducts => throw _privateConstructorUsedError;
   String? get productsError => throw _privateConstructorUsedError;
   List<CartItemModel> get cartItems => throw _privateConstructorUsedError;
+  List<TaxRateModel> get taxRates => throw _privateConstructorUsedError;
+  TaxRateModel? get defaultTaxRate => throw _privateConstructorUsedError;
   CustomerModel? get selectedCustomer => throw _privateConstructorUsedError;
   String? get cartDiscountType => throw _privateConstructorUsedError;
   String? get cartDiscountValue => throw _privateConstructorUsedError;
@@ -73,6 +75,8 @@ abstract class $PosStateCopyWith<$Res> {
     bool isLoadingProducts,
     String? productsError,
     List<CartItemModel> cartItems,
+    List<TaxRateModel> taxRates,
+    TaxRateModel? defaultTaxRate,
     CustomerModel? selectedCustomer,
     String? cartDiscountType,
     String? cartDiscountValue,
@@ -88,6 +92,7 @@ abstract class $PosStateCopyWith<$Res> {
 
   $RegisterShiftModelCopyWith<$Res>? get activeShift;
   $ShiftSummaryModelCopyWith<$Res>? get shiftSummary;
+  $TaxRateModelCopyWith<$Res>? get defaultTaxRate;
   $CustomerModelCopyWith<$Res>? get selectedCustomer;
 }
 
@@ -121,6 +126,8 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
     Object? isLoadingProducts = null,
     Object? productsError = freezed,
     Object? cartItems = null,
+    Object? taxRates = null,
+    Object? defaultTaxRate = freezed,
     Object? selectedCustomer = freezed,
     Object? cartDiscountType = freezed,
     Object? cartDiscountValue = freezed,
@@ -195,6 +202,14 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
                 ? _value.cartItems
                 : cartItems // ignore: cast_nullable_to_non_nullable
                       as List<CartItemModel>,
+            taxRates: null == taxRates
+                ? _value.taxRates
+                : taxRates // ignore: cast_nullable_to_non_nullable
+                      as List<TaxRateModel>,
+            defaultTaxRate: freezed == defaultTaxRate
+                ? _value.defaultTaxRate
+                : defaultTaxRate // ignore: cast_nullable_to_non_nullable
+                      as TaxRateModel?,
             selectedCustomer: freezed == selectedCustomer
                 ? _value.selectedCustomer
                 : selectedCustomer // ignore: cast_nullable_to_non_nullable
@@ -276,6 +291,20 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $TaxRateModelCopyWith<$Res>? get defaultTaxRate {
+    if (_value.defaultTaxRate == null) {
+      return null;
+    }
+
+    return $TaxRateModelCopyWith<$Res>(_value.defaultTaxRate!, (value) {
+      return _then(_value.copyWith(defaultTaxRate: value) as $Val);
+    });
+  }
+
+  /// Create a copy of PosState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $CustomerModelCopyWith<$Res>? get selectedCustomer {
     if (_value.selectedCustomer == null) {
       return null;
@@ -312,6 +341,8 @@ abstract class _$$PosStateImplCopyWith<$Res>
     bool isLoadingProducts,
     String? productsError,
     List<CartItemModel> cartItems,
+    List<TaxRateModel> taxRates,
+    TaxRateModel? defaultTaxRate,
     CustomerModel? selectedCustomer,
     String? cartDiscountType,
     String? cartDiscountValue,
@@ -329,6 +360,8 @@ abstract class _$$PosStateImplCopyWith<$Res>
   $RegisterShiftModelCopyWith<$Res>? get activeShift;
   @override
   $ShiftSummaryModelCopyWith<$Res>? get shiftSummary;
+  @override
+  $TaxRateModelCopyWith<$Res>? get defaultTaxRate;
   @override
   $CustomerModelCopyWith<$Res>? get selectedCustomer;
 }
@@ -362,6 +395,8 @@ class __$$PosStateImplCopyWithImpl<$Res>
     Object? isLoadingProducts = null,
     Object? productsError = freezed,
     Object? cartItems = null,
+    Object? taxRates = null,
+    Object? defaultTaxRate = freezed,
     Object? selectedCustomer = freezed,
     Object? cartDiscountType = freezed,
     Object? cartDiscountValue = freezed,
@@ -436,6 +471,14 @@ class __$$PosStateImplCopyWithImpl<$Res>
             ? _value._cartItems
             : cartItems // ignore: cast_nullable_to_non_nullable
                   as List<CartItemModel>,
+        taxRates: null == taxRates
+            ? _value._taxRates
+            : taxRates // ignore: cast_nullable_to_non_nullable
+                  as List<TaxRateModel>,
+        defaultTaxRate: freezed == defaultTaxRate
+            ? _value.defaultTaxRate
+            : defaultTaxRate // ignore: cast_nullable_to_non_nullable
+                  as TaxRateModel?,
         selectedCustomer: freezed == selectedCustomer
             ? _value.selectedCustomer
             : selectedCustomer // ignore: cast_nullable_to_non_nullable
@@ -504,6 +547,8 @@ class _$PosStateImpl extends _PosState {
     this.isLoadingProducts = true,
     this.productsError,
     final List<CartItemModel> cartItems = const [],
+    final List<TaxRateModel> taxRates = const [],
+    this.defaultTaxRate,
     this.selectedCustomer,
     this.cartDiscountType,
     this.cartDiscountValue,
@@ -519,6 +564,7 @@ class _$PosStateImpl extends _PosState {
        _products = products,
        _categories = categories,
        _cartItems = cartItems,
+       _taxRates = taxRates,
        _priceCache = priceCache,
        _productDetailsCache = productDetailsCache,
        super._();
@@ -586,6 +632,17 @@ class _$PosStateImpl extends _PosState {
     return EqualUnmodifiableListView(_cartItems);
   }
 
+  final List<TaxRateModel> _taxRates;
+  @override
+  @JsonKey()
+  List<TaxRateModel> get taxRates {
+    if (_taxRates is EqualUnmodifiableListView) return _taxRates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_taxRates);
+  }
+
+  @override
+  final TaxRateModel? defaultTaxRate;
   @override
   final CustomerModel? selectedCustomer;
   @override
@@ -628,7 +685,7 @@ class _$PosStateImpl extends _PosState {
 
   @override
   String toString() {
-    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName)';
+    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName)';
   }
 
   @override
@@ -671,6 +728,9 @@ class _$PosStateImpl extends _PosState {
               other._cartItems,
               _cartItems,
             ) &&
+            const DeepCollectionEquality().equals(other._taxRates, _taxRates) &&
+            (identical(other.defaultTaxRate, defaultTaxRate) ||
+                other.defaultTaxRate == defaultTaxRate) &&
             (identical(other.selectedCustomer, selectedCustomer) ||
                 other.selectedCustomer == selectedCustomer) &&
             (identical(other.cartDiscountType, cartDiscountType) ||
@@ -717,6 +777,8 @@ class _$PosStateImpl extends _PosState {
     isLoadingProducts,
     productsError,
     const DeepCollectionEquality().hash(_cartItems),
+    const DeepCollectionEquality().hash(_taxRates),
+    defaultTaxRate,
     selectedCustomer,
     cartDiscountType,
     cartDiscountValue,
@@ -756,6 +818,8 @@ abstract class _PosState extends PosState {
     final bool isLoadingProducts,
     final String? productsError,
     final List<CartItemModel> cartItems,
+    final List<TaxRateModel> taxRates,
+    final TaxRateModel? defaultTaxRate,
     final CustomerModel? selectedCustomer,
     final String? cartDiscountType,
     final String? cartDiscountValue,
@@ -800,6 +864,10 @@ abstract class _PosState extends PosState {
   String? get productsError;
   @override
   List<CartItemModel> get cartItems;
+  @override
+  List<TaxRateModel> get taxRates;
+  @override
+  TaxRateModel? get defaultTaxRate;
   @override
   CustomerModel? get selectedCustomer;
   @override

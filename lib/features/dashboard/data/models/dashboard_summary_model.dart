@@ -62,7 +62,7 @@ class PaymentBreakdownModel {
   factory PaymentBreakdownModel.fromJson(Map<String, dynamic> json) {
     return PaymentBreakdownModel(
       method: json['payment_method']?.toString() ?? 'unknown',
-      amount: _toDouble(json['amount']),
+      amount: _toDouble(json['total_amount'] ?? json['amount']),
     );
   }
 
@@ -80,8 +80,8 @@ class TopProductModel {
   factory TopProductModel.fromJson(Map<String, dynamic> json) {
     return TopProductModel(
       name: json['product_name']?.toString() ?? 'Unknown',
-      unitsSold: _toInt(json['units_sold']),
-      revenue: _toDouble(json['revenue']),
+      unitsSold: _toInt(json['total_qty_sold'] ?? json['units_sold']),
+      revenue: _toDouble(json['total_revenue'] ?? json['revenue']),
     );
   }
 
@@ -101,11 +101,15 @@ class RecentTransactionModel {
 
   factory RecentTransactionModel.fromJson(Map<String, dynamic> json) {
     return RecentTransactionModel(
-      invoiceNo: json['invoice_no']?.toString() ?? '-',
+      invoiceNo: json['sale_number']?.toString() ??
+          json['invoice_no']?.toString() ??
+          '-',
       customerName: json['customer_name']?.toString() ?? 'Walk-in',
       status: json['status']?.toString() ?? 'completed',
       totalAmount: _toDouble(json['total_amount']),
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+      createdAt: DateTime.tryParse(
+        json['sold_at']?.toString() ?? json['created_at']?.toString() ?? '',
+      ),
     );
   }
 

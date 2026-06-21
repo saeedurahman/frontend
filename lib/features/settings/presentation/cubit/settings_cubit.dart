@@ -57,6 +57,10 @@ class SettingsCubit extends Cubit<SettingsState> {
                     business: business,
                     businessSettings: settings,
                     taxRates: taxRates,
+                    defaultTaxRateId: SettingsValueUtils.valueForKey(
+                      settings,
+                      SettingKeys.taxDefaultRateId,
+                    ),
                     footerText: _footerFromSettings(settings),
                     paperSize: _paperFromSettings(settings),
                     showTaxOnReceipt: _boolFromSettings(
@@ -389,6 +393,77 @@ class SettingsCubit extends Cubit<SettingsState> {
     );
   }
 
+  Future<bool> setDefaultTaxRate(String taxRateId) async {
+    final current = state;
+    if (current is! SettingsLoaded) return false;
+
+    emit(current.copyWith(isSavingDefaultTaxRate: true, errorMessage: null));
+
+    final result = await _bulkUpdateSettings([
+      {
+        'setting_key': SettingKeys.taxDefaultRateId,
+        'setting_value': SettingsValueUtils.wrapValue(taxRateId),
+      },
+    ]);
+
+    return result.fold(
+      (f) {
+        emit(
+          current.copyWith(
+            isSavingDefaultTaxRate: false,
+            errorMessage: f.message,
+          ),
+        );
+        return false;
+      },
+      (updated) {
+        emit(
+          current.copyWith(
+            businessSettings: updated,
+            defaultTaxRateId: taxRateId,
+            isSavingDefaultTaxRate: false,
+            errorMessage: null,
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> clearDefaultTaxRate() async {
+    final current = state;
+    if (current is! SettingsLoaded) return false;
+
+    emit(current.copyWith(isSavingDefaultTaxRate: true, errorMessage: null));
+
+    final result = await _deleteSetting(SettingKeys.taxDefaultRateId);
+
+    return result.fold(
+      (f) {
+        emit(
+          current.copyWith(
+            isSavingDefaultTaxRate: false,
+            errorMessage: f.message,
+          ),
+        );
+        return false;
+      },
+      (_) {
+        emit(
+          current.copyWith(
+            defaultTaxRateId: null,
+            businessSettings: current.businessSettings
+                .where((s) => s.settingKey != SettingKeys.taxDefaultRateId)
+                .toList(),
+            isSavingDefaultTaxRate: false,
+            errorMessage: null,
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
   Future<bool> updateTaxRateActive(String id, bool isActive) async {
     final current = state;
     if (current is! SettingsLoaded) return false;
@@ -405,9 +480,12 @@ class SettingsCubit extends Cubit<SettingsState> {
         final taxRates = current.taxRates
             .map((t) => t.id == updated.id ? updated : t)
             .toList();
+        final clearedDefault =
+            !isActive && current.defaultTaxRateId == id ? null : current.defaultTaxRateId;
         emit(
           current.copyWith(
             taxRates: taxRates,
+            defaultTaxRateId: clearedDefault,
             isSavingTaxRate: false,
             errorMessage: null,
           ),

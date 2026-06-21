@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/sales/domain/usecases/sales_usecases.dart';
 import 'package:frantend/features/sales/presentation/cubit/sales_list_state.dart';
 import 'package:injectable/injectable.dart';
@@ -38,8 +40,10 @@ class SalesListCubit extends Cubit<SalesListState> {
     final now = DateTime.now();
     _dateTo = DateTime(now.year, now.month, now.day, 23, 59, 59);
     _dateFrom = _dateTo.subtract(const Duration(days: 6));
-    final user = await _authLocal.getCachedUser();
-    _branchId = user?.branchId;
+    final selector = sl<BranchSelectorCubit>().state;
+    _branchId = selector.isInitialized && selector.selectedBranchId != null
+        ? selector.selectedBranchId
+        : (await _authLocal.getCachedUser())?.branchId;
     await loadSales();
   }
 

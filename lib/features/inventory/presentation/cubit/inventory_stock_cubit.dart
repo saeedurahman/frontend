@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
 import 'package:frantend/features/inventory/presentation/cubit/inventory_stock_state.dart';
@@ -16,17 +17,14 @@ import 'package:injectable/injectable.dart';
 @injectable
 class InventoryStockCubit extends Cubit<InventoryStockState> {
   InventoryStockCubit({
-    required AuthLocalDataSource authLocalDataSource,
     required GetProductsUseCase getProductsUseCase,
     required GetProductByIdUseCase getProductByIdUseCase,
     required GetStockBalancesUseCase getStockBalancesUseCase,
-  })  : _authLocal = authLocalDataSource,
-        _getProducts = getProductsUseCase,
+  })  : _getProducts = getProductsUseCase,
         _getProductById = getProductByIdUseCase,
         _getBalances = getStockBalancesUseCase,
         super(const InventoryStockState.initial());
 
-  final AuthLocalDataSource _authLocal;
   final GetProductsUseCase _getProducts;
   final GetProductByIdUseCase _getProductById;
   final GetStockBalancesUseCase _getBalances;
@@ -48,8 +46,7 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
   Future<void> load() async {
     emit(const InventoryStockState.loading());
 
-    final user = await _authLocal.getCachedUser();
-    final branchId = user?.branchId;
+    final branchId = sl<BranchSelectorCubit>().state.selectedBranchId;
     if (branchId == null) {
       emit(const InventoryStockState.error('Branch not found. Please log in again.'));
       return;

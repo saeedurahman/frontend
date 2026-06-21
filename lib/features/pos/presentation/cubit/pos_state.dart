@@ -7,6 +7,7 @@ import 'package:frantend/features/pos/domain/utils/pos_calculations.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
+import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 
 part 'pos_state.freezed.dart';
 
@@ -30,6 +31,8 @@ class PosState with _$PosState {
     @Default(true) bool isLoadingProducts,
     String? productsError,
     @Default([]) List<CartItemModel> cartItems,
+    @Default([]) List<TaxRateModel> taxRates,
+    TaxRateModel? defaultTaxRate,
     CustomerModel? selectedCustomer,
     String? cartDiscountType,
     String? cartDiscountValue,

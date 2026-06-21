@@ -23,6 +23,9 @@ import 'package:frantend/features/products/domain/usecases/get_categories_usecas
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_products_usecase.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
+import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
+import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
+import 'package:frantend/features/settings/presentation/utils/settings_value_utils.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -40,6 +43,8 @@ class PosCubit extends Cubit<PosState> {
     required GetRegistersUseCase getRegistersUseCase,
     required CreateRegisterUseCase createRegisterUseCase,
     required GetStockBalanceUseCase getStockBalanceUseCase,
+    required GetTaxRatesUseCase getTaxRatesUseCase,
+    required GetSettingsUseCase getSettingsUseCase,
     required AuthLocalDataSource authLocalDataSource,
     required NetworkInfo networkInfo,
   })  : _getProducts = getProductsUseCase,
@@ -54,6 +59,8 @@ class PosCubit extends Cubit<PosState> {
         _getRegisters = getRegistersUseCase,
         _createRegister = createRegisterUseCase,
         _getStockBalance = getStockBalanceUseCase,
+        _getTaxRates = getTaxRatesUseCase,
+        _getSettings = getSettingsUseCase,
         _authLocal = authLocalDataSource,
         _networkInfo = networkInfo,
         super(const PosState());
@@ -70,10 +77,17 @@ class PosCubit extends Cubit<PosState> {
   final GetRegistersUseCase _getRegisters;
   final CreateRegisterUseCase _createRegister;
   final GetStockBalanceUseCase _getStockBalance;
+  final GetTaxRatesUseCase _getTaxRates;
+  final GetSettingsUseCase _getSettings;
   final AuthLocalDataSource _authLocal;
   final NetworkInfo _networkInfo;
 
   Timer? _searchDebounce;
+
+  void _safeEmit(PosState newState) {
+    if (isClosed) return;
+    emit(newState);
+  }
 
   @override
   Future<void> close() {
@@ -84,7 +98,8 @@ class PosCubit extends Cubit<PosState> {
   Future<void> init() async {
     final user = await _authLocal.getCachedUser();
     final offline = !await _networkInfo.isConnected;
-    emit(state.copyWith(
+    if (isClosed) return;
+    _safeEmit(state.copyWith(
       cashierName: user?.name ?? 'Cashier',
       branchId: user?.branchId,
       businessName: user?.businessName,
@@ -93,19 +108,58 @@ class PosCubit extends Cubit<PosState> {
     await Future.wait([
       _loadProducts(),
       _loadCategories(),
+      _loadTaxData(),
       checkActiveShift(),
     ]);
   }
 
+  Future<void> _loadTaxData() async {
+    final taxResult = await _getTaxRates();
+    final settingsResult = await _getSettings();
+    if (isClosed) return;
+
+    taxResult.fold(
+      (_) {},
+      (taxRates) {
+        TaxRateModel? defaultRate;
+        settingsResult.fold(
+          (_) {},
+          (settings) {
+            final defaultId = SettingsValueUtils.valueForKey(
+              settings,
+              SettingKeys.taxDefaultRateId,
+            );
+            if (defaultId != null) {
+              for (final rate in taxRates) {
+                if (rate.id == defaultId && rate.isActive) {
+                  defaultRate = rate;
+                  break;
+                }
+              }
+            }
+          },
+        );
+        _safeEmit(state.copyWith(
+          taxRates: taxRates.where((t) => t.isActive).toList(),
+          defaultTaxRate: defaultRate,
+        ));
+      },
+    );
+  }
+
+  static String taxDisplayLabel(TaxRateModel rate) =>
+      '${rate.name} ${rate.rate}%';
+
   Future<void> _loadProducts() async {
-    emit(state.copyWith(isLoadingProducts: true, productsError: null));
+    _safeEmit(state.copyWith(isLoadingProducts: true, productsError: null));
     final result = await _getProducts(isActive: true, limit: 200);
+    if (isClosed) return;
     result.fold(
-      (failure) => emit(state.copyWith(
+      (failure) => _safeEmit(state.copyWith(
         isLoadingProducts: false,
         productsError: failure.message,
       )),
-      (page) => emit(state.copyWith(
+      (page) => _safeEmit(state.copyWith(
         isLoadingProducts: false,
         products: page.items,
       )),
@@ -114,18 +168,19 @@ class PosCubit extends Cubit<PosState> {
 
   Future<void> _loadCategories() async {
     final result = await _getCategories();
+    if (isClosed) return;
     result.fold(
       (_) {},
-      (categories) => emit(state.copyWith(categories: categories)),
+      (categories) => _safeEmit(state.copyWith(categories: categories)),
     );
   }
 
   Future<void> checkActiveShift() async {
-    emit(state.copyWith(isCheckingShift: true, registersError: null));
+    _safeEmit(state.copyWith(isCheckingShift: true, registersError: null));
     final branchId = state.branchId;
 
     if (branchId == null) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         isCheckingShift: false,
         registersError: 'Branch not configured for your account. Please re-login.',
       ));
@@ -133,16 +188,17 @@ class PosCubit extends Cubit<PosState> {
     }
 
     final registersResult = await _getRegisters(branchId: branchId);
+    if (isClosed) return;
     await registersResult.fold(
       (failure) async {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           isCheckingShift: false,
           registersError: failure.message,
         ));
       },
       (registers) async {
         if (registers.isEmpty) {
-          emit(state.copyWith(
+          _safeEmit(state.copyWith(
             registers: registers,
             isCheckingShift: false,
             activeShift: null,
@@ -152,14 +208,15 @@ class PosCubit extends Cubit<PosState> {
         }
 
         final registerId = state.selectedRegisterId ?? registers.first.id;
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           registers: registers,
           selectedRegisterId: registerId,
         ));
 
         final shiftResult = await _getActiveShift(registerId);
+        if (isClosed) return;
         shiftResult.fold(
-          (failure) => emit(state.copyWith(
+          (failure) => _safeEmit(state.copyWith(
             isCheckingShift: false,
             registersError: failure.message,
           )),
@@ -167,9 +224,10 @@ class PosCubit extends Cubit<PosState> {
             ShiftSummaryModel? summary;
             if (shift != null) {
               final summaryResult = await _getShiftSummary(shift.id);
+              if (isClosed) return;
               summaryResult.fold((_) {}, (s) => summary = s);
             }
-            emit(state.copyWith(
+            _safeEmit(state.copyWith(
               activeShift: shift,
               shiftSummary: summary,
               isCheckingShift: false,
@@ -185,22 +243,23 @@ class PosCubit extends Cubit<PosState> {
     final branchId = state.branchId;
     if (branchId == null) return false;
 
-    emit(state.copyWith(isCreatingRegister: true, registersError: null));
+    _safeEmit(state.copyWith(isCreatingRegister: true, registersError: null));
     final result = await _createRegister({
       'name': name,
       'branch_id': branchId,
     });
+    if (isClosed) return false;
 
     return result.fold(
       (failure) {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           isCreatingRegister: false,
           registersError: failure.message,
         ));
         return false;
       },
       (register) {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           registers: [register],
           selectedRegisterId: register.id,
           isCreatingRegister: false,
@@ -214,8 +273,9 @@ class PosCubit extends Cubit<PosState> {
     final shift = state.activeShift;
     if (shift == null) return;
     final result = await _getShiftSummary(shift.id);
+    if (isClosed) return;
     result.fold((_) {}, (summary) {
-      emit(state.copyWith(shiftSummary: summary));
+      _safeEmit(state.copyWith(shiftSummary: summary));
     });
   }
 
@@ -223,20 +283,21 @@ class PosCubit extends Cubit<PosState> {
     final registerId = state.selectedRegisterId;
     if (registerId == null) return false;
 
-    emit(state.copyWith(isOpeningShift: true));
+    _safeEmit(state.copyWith(isOpeningShift: true));
     final result = await _openShift({
       'cash_register_id': registerId,
       'opening_float': DecimalUtils.format(openingFloat),
       if (notes != null && notes.isNotEmpty) 'notes': notes,
     });
+    if (isClosed) return false;
 
     return result.fold(
       (_) {
-        emit(state.copyWith(isOpeningShift: false));
+        _safeEmit(state.copyWith(isOpeningShift: false));
         return false;
       },
       (shift) {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           activeShift: shift,
           isOpeningShift: false,
           isCheckingShift: false,
@@ -258,7 +319,8 @@ class PosCubit extends Cubit<PosState> {
   void searchProducts(String query) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-      emit(state.copyWith(productSearchQuery: query));
+      if (isClosed) return;
+      _safeEmit(state.copyWith(productSearchQuery: query));
     });
   }
 
@@ -284,7 +346,7 @@ class PosCubit extends Cubit<PosState> {
 
   ProductListItemModel _toListItem(ProductModel product) {
     final cache = {...state.productDetailsCache, product.id: product};
-    emit(state.copyWith(productDetailsCache: cache));
+    _safeEmit(state.copyWith(productDetailsCache: cache));
     return ProductListItemModel(
       id: product.id,
       businessId: product.businessId,
@@ -309,10 +371,11 @@ class PosCubit extends Cubit<PosState> {
     if (details == null ||
         (details.variations.length > 1 && variationId == null)) {
       final result = await _getProductById(product.id);
+      if (isClosed) return AddToCartOutcome.added;
       result.fold((_) {}, (p) {
         details = p;
         final cache = {...state.productDetailsCache, product.id: p};
-        emit(state.copyWith(productDetailsCache: cache));
+        _safeEmit(state.copyWith(productDetailsCache: cache));
       });
     }
 
@@ -352,10 +415,11 @@ class PosCubit extends Cubit<PosState> {
 
     if (resolvedPrice == null) {
       final priceResult = await _getProductPrice(product.id, variationId);
+      if (isClosed) return AddToCartOutcome.added;
       await priceResult.fold((_) {}, (p) {
         if (p != null && p > Decimal.zero) {
           resolvedPrice = p;
-          emit(state.copyWith(
+          _safeEmit(state.copyWith(
             priceCache: {...state.priceCache, priceKey: p.toString()},
           ));
         }
@@ -376,7 +440,7 @@ class PosCubit extends Cubit<PosState> {
     }
 
     if (manualUnitPrice != null) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         priceCache: {
           ...state.priceCache,
           priceKey: manualUnitPrice.toString(),
@@ -409,6 +473,8 @@ class PosCubit extends Cubit<PosState> {
       });
     }
 
+    if (isClosed) return AddToCartOutcome.added;
+
     if (availableStock != null && availableStock! < requestedQty) {
       final label = variation?.name != null
           ? '${product.name} (${variation!.name})'
@@ -425,8 +491,9 @@ class PosCubit extends Cubit<PosState> {
       final updated = item.copyWith(qty: item.qty + Decimal.one);
       final items = [...state.cartItems];
       items[existingIndex] = updated;
-      emit(state.copyWith(cartItems: items));
+      _safeEmit(state.copyWith(cartItems: items));
     } else {
+      final defaultRate = state.defaultTaxRate;
       final newItem = CartItemModel(
         productId: product.id,
         variationId: variationId,
@@ -437,8 +504,14 @@ class PosCubit extends Cubit<PosState> {
         qty: Decimal.one,
         priceManual: isManualPrice,
         maxAvailableStock: availableStock,
+        taxRateId: defaultRate?.id,
+        taxRateName:
+            defaultRate != null ? taxDisplayLabel(defaultRate) : null,
+        taxRate: defaultRate != null
+            ? (Decimal.tryParse(defaultRate.rate) ?? Decimal.zero)
+            : null,
       );
-      emit(state.copyWith(cartItems: [...state.cartItems, newItem]));
+      _safeEmit(state.copyWith(cartItems: [...state.cartItems, newItem]));
     }
 
     return AddToCartOutcome.added;
@@ -458,8 +531,9 @@ class PosCubit extends Cubit<PosState> {
       return state.productDetailsCache[productId];
     }
     final result = await _getProductById(productId);
+    if (isClosed) return null;
     return result.fold((_) => null, (product) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         productDetailsCache: {...state.productDetailsCache, productId: product},
       ));
       return product;
@@ -509,6 +583,21 @@ class PosCubit extends Cubit<PosState> {
     emit(state.copyWith(cartItems: items));
   }
 
+  void updateLineTaxRate(int cartIndex, TaxRateModel? newRate) {
+    if (cartIndex < 0 || cartIndex >= state.cartItems.length) return;
+    final items = [...state.cartItems];
+    if (newRate == null) {
+      items[cartIndex] = items[cartIndex].copyWith(clearTax: true);
+    } else {
+      items[cartIndex] = items[cartIndex].copyWith(
+        taxRateId: newRate.id,
+        taxRateName: taxDisplayLabel(newRate),
+        taxRate: Decimal.tryParse(newRate.rate) ?? Decimal.zero,
+      );
+    }
+    emit(state.copyWith(cartItems: items));
+  }
+
   void updateLineNote(int cartIndex, String note) {
     if (cartIndex < 0 || cartIndex >= state.cartItems.length) return;
     final items = [...state.cartItems];
@@ -548,7 +637,7 @@ class PosCubit extends Cubit<PosState> {
   }
 
   void clearCart() {
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       cartItems: [],
       selectedCustomer: null,
       cartDiscountType: null,
@@ -567,7 +656,7 @@ class PosCubit extends Cubit<PosState> {
       throw Exception('Branch not configured');
     }
 
-    emit(state.copyWith(isSubmittingSale: true));
+    _safeEmit(state.copyWith(isSubmittingSale: true));
 
     try {
       final lines = PosCalculations.buildSaleLines(
@@ -597,17 +686,20 @@ class PosCubit extends Cubit<PosState> {
       };
 
       final result = await _createSale(body);
+      if (isClosed) {
+        throw Exception('Sale submission cancelled');
+      }
       return result.fold(
         (failure) => throw Exception(failure.message),
         (sale) {
           clearCart();
-          emit(state.copyWith(isSubmittingSale: false));
+          _safeEmit(state.copyWith(isSubmittingSale: false));
           refreshShiftSummary();
           return sale;
         },
       );
     } catch (e) {
-      emit(state.copyWith(isSubmittingSale: false));
+      _safeEmit(state.copyWith(isSubmittingSale: false));
       rethrow;
     }
   }

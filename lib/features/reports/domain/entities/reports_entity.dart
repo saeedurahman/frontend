@@ -1,1 +1,0 @@
-﻿class ReportsEntity { const ReportsEntity(); }

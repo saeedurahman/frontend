@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/dashboard/data/models/dashboard_summary_model.dart';
 import 'package:frantend/features/dashboard/data/models/sales_trend_model.dart';
 import 'package:frantend/features/dashboard/domain/entities/dashboard_data.dart';
@@ -16,9 +18,22 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<DashboardCubit>()..loadDashboard(),
-      child: const _DashboardView(),
+    final branchId = sl<BranchSelectorCubit>().state.selectedBranchId;
+    return BlocListener<BranchSelectorCubit, BranchSelectorState>(
+      bloc: sl<BranchSelectorCubit>(),
+      listenWhen: (previous, current) =>
+          previous.selectedBranchId != current.selectedBranchId &&
+          current.isInitialized,
+      listener: (context, branchState) {
+        context.read<DashboardCubit>().loadDashboard(
+              branchId: branchState.selectedBranchId,
+            );
+      },
+      child: BlocProvider(
+        create: (_) => sl<DashboardCubit>()
+          ..loadDashboard(branchId: branchId),
+        child: const _DashboardView(),
+      ),
     );
   }
 }
@@ -87,13 +102,13 @@ class _DashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _KpiSection(summary: summary),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
               _ChartsSection(
                 salesTrend: data.salesTrend,
                 paymentBreakdown: data.paymentBreakdown,
                 trendDays: loaded.trendDays,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
               _ThreeColumnSection(data: data),
             ],
           ),
@@ -303,7 +318,7 @@ class _SalesTrendCard extends StatelessWidget {
         1.2;
 
     return _CardContainer(
-      title: 'Sales Trend',
+      title: 'Sales Trend', 
       trailing: Wrap(
         spacing: 8,
         children: [
@@ -478,7 +493,7 @@ class _PaymentMethodsCard extends StatelessWidget {
                         Text(
                           'Total\n${formatPKR(total)}',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                         ),
                       ],
                     ),
@@ -504,7 +519,7 @@ class _PaymentMethodsCard extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             '${item.method} (${formatPKR(item.amount)})',
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ],
                       );
@@ -603,7 +618,7 @@ class _TopProductsCard extends StatelessWidget {
                               item.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                             ),
                           ),
                         ],
@@ -611,7 +626,7 @@ class _TopProductsCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Text('${item.unitsSold} units'),
+                          Text('${item.unitsSold} units', style: const TextStyle(fontSize: 16)),
                           const Spacer(),
                           Text(
                             formatPKR(item.revenue),
@@ -673,7 +688,7 @@ class _RecentSalesCard extends StatelessWidget {
                               tx.customerName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -785,8 +800,8 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 180,
-      height: 110,
+      width: 200,
+      height: 130,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -805,7 +820,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: borderColor, size: 18),
+              Icon(icon, color: borderColor, size: 32),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -813,7 +828,7 @@ class _StatCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 16,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -826,7 +841,7 @@ class _StatCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 24,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -836,7 +851,7 @@ class _StatCard extends StatelessWidget {
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: subtitleColor),
+            style: TextStyle(fontSize: 14, color: subtitleColor),
           ),
         ],
       ),
@@ -879,7 +894,7 @@ class _CardContainer extends StatelessWidget {
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
@@ -922,7 +937,7 @@ class _RangeButton extends StatelessWidget {
           label,
           style: TextStyle(
             color: selected ? Colors.white : AppColors.textSecondary,
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -943,7 +958,7 @@ class _StatusChip extends StatelessWidget {
     final color = isPartial ? const Color(0xFFF59E0B) : AppColors.success;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
@@ -973,18 +988,18 @@ class _AlertRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: color, size: 18),
+        Icon(icon, color: color, size: 26),
         const SizedBox(width: 8),
-        Expanded(child: Text(text)),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 16))),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             '$count',
-            style: TextStyle(fontWeight: FontWeight.w700, color: color),
+            style: TextStyle(fontWeight: FontWeight.w700, color: color, fontSize: 16),
           ),
         ),
       ],
