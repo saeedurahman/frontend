@@ -146,12 +146,14 @@ class _ProductCardState extends State<_ProductCard> {
   bool _flash = false;
 
   Future<void> _onTap() async {
+    debugPrint('[POS:GridTap] card tapped "${widget.product.name}" id=${widget.product.id}');
     final cubit = context.read<PosCubit>();
     final added = await addProductFromGridTap(
       context,
       cubit,
       widget.product,
     );
+    debugPrint('[POS:GridTap] card tap added=$added');
     if (added && mounted) _flashAdded();
   }
 

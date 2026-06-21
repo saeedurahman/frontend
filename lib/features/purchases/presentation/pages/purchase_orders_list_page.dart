@@ -13,8 +13,14 @@ import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
-class PurchaseOrdersListPage extends StatelessWidget {
-  const PurchaseOrdersListPage({super.key});
+Future<void> openPurchaseOrderForm(BuildContext context) async {
+  final created = await context.push<bool>(RouteNames.purchaseOrderNew);
+  if (created == true && context.mounted) {
+    await context.read<PurchaseOrdersListCubit>().refresh();
+  }
+}
+
+class PurchaseOrdersListPage extends StatelessWidget {  const PurchaseOrdersListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +103,7 @@ class _Toolbar extends StatelessWidget {
         ),
         const Spacer(),
         ElevatedButton.icon(
-          onPressed: () => context.push(RouteNames.purchaseOrderNew),
-          style: ElevatedButton.styleFrom(
+          onPressed: () => openPurchaseOrderForm(context),          style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
           ),

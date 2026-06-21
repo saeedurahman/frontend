@@ -184,6 +184,8 @@ import '../../features/purchases/data/repositories/purchases_repository_impl.dar
     as _i652;
 import '../../features/purchases/domain/repositories/purchases_repository.dart'
     as _i363;
+import '../../features/purchases/domain/services/purchase_order_line_enricher.dart'
+    as _i706;
 import '../../features/purchases/domain/usecases/purchase_usecases.dart'
     as _i838;
 import '../../features/purchases/presentation/cubit/goods_receipt_cubit.dart'
@@ -660,6 +662,9 @@ extension GetItInjectableX on _i174.GetIt {
         getStockMovementsUseCase: gh<_i380.GetStockMovementsUseCase>(),
       ),
     );
+    gh.factory<_i706.PurchaseOrderLineEnricher>(
+      () => _i706.PurchaseOrderLineEnricher(gh<_i341.GetProductByIdUseCase>()),
+    );
     gh.lazySingleton<_i511.PosRepository>(
       () => _i84.PosRepositoryImpl(
         remoteDataSource: gh<_i449.PosRemoteDataSource>(),
@@ -795,12 +800,6 @@ extension GetItInjectableX on _i174.GetIt {
         updateTaxRateUseCase: gh<_i279.UpdateTaxRateUseCase>(),
       ),
     );
-    gh.lazySingleton<_i363.PurchasesRepository>(
-      () => _i652.PurchasesRepositoryImpl(
-        remoteDataSource: gh<_i212.PurchasesRemoteDataSource>(),
-        errorHandler: gh<_i308.ErrorHandler>(),
-      ),
-    );
     gh.factory<_i804.BrandsCubit>(
       () => _i804.BrandsCubit(
         getBrandsUseCase: gh<_i546.GetBrandsUseCase>(),
@@ -903,6 +902,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i890.CloseShiftCubit>(
       () => _i890.CloseShiftCubit(
         closeShiftUseCase: gh<_i820.CloseRegisterShiftUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i363.PurchasesRepository>(
+      () => _i652.PurchasesRepositoryImpl(
+        remoteDataSource: gh<_i212.PurchasesRemoteDataSource>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
+        lineEnricher: gh<_i706.PurchaseOrderLineEnricher>(),
       ),
     );
     gh.factory<_i838.GetPurchaseOrdersUseCase>(

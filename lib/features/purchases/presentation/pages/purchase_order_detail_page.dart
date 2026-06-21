@@ -346,8 +346,14 @@ class _LineRow extends StatelessWidget {
                   line.productName ?? line.productId,
                   style: AppTextStyles.titleMedium,
                 ),
-                if (line.variationName != null)
-                  Text(line.variationName!, style: AppTextStyles.bodySmall),
+                if (line.variationName != null &&
+                    line.variationName!.isNotEmpty)
+                  Text(
+                    line.variationName!,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
               ],
             ),
           ),

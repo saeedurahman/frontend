@@ -21,8 +21,8 @@ _$PurchaseLineModelImpl _$$PurchaseLineModelImplFromJson(
   taxRate: json['tax_rate'] as String? ?? '0',
   batchNumber: json['batch_number'] as String?,
   expiryDate: json['expiry_date'] as String?,
-  productName: json['productName'] as String?,
-  variationName: json['variationName'] as String?,
+  productName: json['product_name'] as String?,
+  variationName: json['variation_name'] as String?,
   sku: json['sku'] as String?,
 );
 
@@ -41,8 +41,8 @@ Map<String, dynamic> _$$PurchaseLineModelImplToJson(
   'tax_rate': instance.taxRate,
   'batch_number': instance.batchNumber,
   'expiry_date': instance.expiryDate,
-  'productName': instance.productName,
-  'variationName': instance.variationName,
+  'product_name': instance.productName,
+  'variation_name': instance.variationName,
   'sku': instance.sku,
 };
 

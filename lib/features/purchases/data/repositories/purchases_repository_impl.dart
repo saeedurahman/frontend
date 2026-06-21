@@ -4,6 +4,7 @@ import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/purchases/data/datasources/purchases_remote_datasource.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/domain/repositories/purchases_repository.dart';
+import 'package:frantend/features/purchases/domain/services/purchase_order_line_enricher.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: PurchasesRepository)
@@ -11,11 +12,14 @@ class PurchasesRepositoryImpl implements PurchasesRepository {
   PurchasesRepositoryImpl({
     required PurchasesRemoteDataSource remoteDataSource,
     required ErrorHandler errorHandler,
+    required PurchaseOrderLineEnricher lineEnricher,
   })  : _remote = remoteDataSource,
-        _errorHandler = errorHandler;
+        _errorHandler = errorHandler,
+        _lineEnricher = lineEnricher;
 
   final PurchasesRemoteDataSource _remote;
   final ErrorHandler _errorHandler;
+  final PurchaseOrderLineEnricher _lineEnricher;
 
   @override
   Future<Either<Failure, List<PurchaseOrderModel>>> getPurchaseOrders() async {
@@ -31,7 +35,7 @@ class PurchasesRepositoryImpl implements PurchasesRepository {
   Future<Either<Failure, PurchaseOrderModel>> getPurchaseOrder(String id) async {
     try {
       final result = await _remote.getPurchaseOrder(id);
-      return Right(result);
+      return Right(await _lineEnricher.enrich(result));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
@@ -43,7 +47,7 @@ class PurchasesRepositoryImpl implements PurchasesRepository {
   ) async {
     try {
       final result = await _remote.createPurchaseOrder(body);
-      return Right(result);
+      return Right(await _lineEnricher.enrich(result));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
@@ -56,7 +60,7 @@ class PurchasesRepositoryImpl implements PurchasesRepository {
   ) async {
     try {
       final result = await _remote.updatePurchaseOrderStatus(id, status);
-      return Right(result);
+      return Right(await _lineEnricher.enrich(result));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

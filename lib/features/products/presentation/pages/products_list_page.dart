@@ -127,7 +127,7 @@ class _ProductsListViewState extends State<_ProductsListView> {
               onSearchChanged: _onSearchChanged,
               onSearchSubmitted: _onSearchSubmitted,
             ),
-            const SizedBox(height: AppDimensions.spacingMd),
+            const SizedBox(height: AppDimensions.spacingXxl),
             Expanded(
               child: switch (state) {
                 ProductsListInitial() || ProductsListLoading() =>
@@ -137,9 +137,17 @@ class _ProductsListViewState extends State<_ProductsListView> {
                     hasFilters:
                         context.read<ProductsListCubit>().hasActiveFilters,
                   ),
-                ProductsListLoaded loaded => _ProductsTable(
-                    state: loaded,
-                    scrollController: _scrollController,
+                ProductsListLoaded loaded => BlocBuilder<CategoriesCubit, CategoriesState>(
+                    builder: (context, _) {
+                      return BlocBuilder<BrandsCubit, BrandsState>(
+                        builder: (context, _) {
+                          return _ProductsTable(
+                            state: loaded,
+                            scrollController: _scrollController,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ProductsListError(:final message) => Center(
                     child: Text(message, style: AppTextStyles.bodyMedium),
@@ -164,17 +172,18 @@ class _Toolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('Products', style: AppTextStyles.headlineMedium),
+        const Text('Products', style: AppTextStyles.headlineMedium),
         const SizedBox(width: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '($total products)',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary),
+            '( $total products )',
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.background),
+            
           ),
         ),
         const Spacer(),
@@ -209,8 +218,8 @@ class _FilterBar extends StatelessWidget {
     final cubit = context.read<ProductsListCubit>();
 
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 16,
+      runSpacing: 16,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         SizedBox(
@@ -232,12 +241,14 @@ class _FilterBar extends StatelessWidget {
             ),
           ),
         ),
+       const SizedBox(width: 18,),
         BlocBuilder<CategoriesCubit, CategoriesState>(
           builder: (context, catState) {
             final categories = switch (catState) {
               CategoriesLoaded(:final categories) => categories,
               _ => <CategoryModel>[],
             };
+            final flat = flattenCategories(categories);
             return _FilterDropdown<String?>(
               label: 'Category',
               value: switch (context.watch<ProductsListCubit>().state) {
@@ -247,7 +258,7 @@ class _FilterBar extends StatelessWidget {
               },
               items: [
                 const DropdownMenuItem(value: null, child: Text('All Categories')),
-                ...flattenCategories(categories).map(
+                ...flat.map(
                   (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
                 ),
               ],
@@ -255,6 +266,7 @@ class _FilterBar extends StatelessWidget {
             );
           },
         ),
+         const SizedBox(width: 18,),
         BlocBuilder<BrandsCubit, BrandsState>(
           builder: (context, brandState) {
             final brands = switch (brandState) {
@@ -277,6 +289,7 @@ class _FilterBar extends StatelessWidget {
             );
           },
         ),
+         const SizedBox(width: 18,),
         _StatusFilter(cubit: cubit),
         if (cubit.hasActiveFilters)
           TextButton(
@@ -393,6 +406,7 @@ class _SegmentButton extends StatelessWidget {
           style: AppTextStyles.bodySmall.copyWith(
             color: selected ? Colors.white : AppColors.textSecondary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 16
           ),
         ),
       ),
@@ -432,15 +446,15 @@ class _ProductsTable extends StatelessWidget {
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: AppColors.border)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const SizedBox(width: 48),
+                SizedBox(width: 48),
                 Expanded(flex: 3, child: Text('Product', style: AppTextStyles.labelLarge)),
                 Expanded(child: Text('Category', style: AppTextStyles.labelLarge)),
                 Expanded(child: Text('Brand', style: AppTextStyles.labelLarge)),
                 Expanded(child: Text('Type', style: AppTextStyles.labelLarge)),
                 SizedBox(width: 80, child: Text('Status', style: AppTextStyles.labelLarge)),
-                const SizedBox(width: 80),
+                SizedBox(width: 80),
               ],
             ),
           ),
@@ -457,7 +471,10 @@ class _ProductsTable extends StatelessWidget {
                 }
                 return _ProductRow(
                   product: state.items[index],
-                  categoryName: _categoryName(context, state.items[index].categoryId),
+                  categoryName: _categoryName(
+                    context,
+                    state.items[index].categoryId,
+                  ),
                   brandName: _brandName(context, state.items[index].brandId),
                   onTap: () => openProductForm(
                     context,
@@ -548,12 +565,13 @@ class _ProductRow extends StatelessWidget {
           child: Row(
             children: [
               _ProductThumb(imageUrl: product.imageUrl),
+               const SizedBox(width: 12,),
               Expanded(
                 flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.name, style: AppTextStyles.titleMedium),
+                    Text(product.name, style: AppTextStyles.titleMedium,),
                     if (product.sku != null)
                       Text(product.sku!, style: AppTextStyles.bodySmall),
                   ],
@@ -612,8 +630,8 @@ class _ProductThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 50,
+      height: 50,
       margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -625,7 +643,7 @@ class _ProductThumb extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Image.network(imageUrl!, fit: BoxFit.cover),
             )
-          : const Icon(Icons.inventory_2_outlined, size: 20, color: AppColors.textSecondary),
+          : const Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.textSecondary),
     );
   }
 }

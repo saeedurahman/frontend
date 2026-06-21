@@ -44,7 +44,9 @@ mixin _$PurchaseLineModel {
   String? get batchNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'expiry_date')
   String? get expiryDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_name')
   String? get productName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'variation_name')
   String? get variationName => throw _privateConstructorUsedError;
   String? get sku => throw _privateConstructorUsedError;
 
@@ -78,8 +80,8 @@ abstract class $PurchaseLineModelCopyWith<$Res> {
     @JsonKey(name: 'tax_rate') String taxRate,
     @JsonKey(name: 'batch_number') String? batchNumber,
     @JsonKey(name: 'expiry_date') String? expiryDate,
-    String? productName,
-    String? variationName,
+    @JsonKey(name: 'product_name') String? productName,
+    @JsonKey(name: 'variation_name') String? variationName,
     String? sku,
   });
 }
@@ -205,8 +207,8 @@ abstract class _$$PurchaseLineModelImplCopyWith<$Res>
     @JsonKey(name: 'tax_rate') String taxRate,
     @JsonKey(name: 'batch_number') String? batchNumber,
     @JsonKey(name: 'expiry_date') String? expiryDate,
-    String? productName,
-    String? variationName,
+    @JsonKey(name: 'product_name') String? productName,
+    @JsonKey(name: 'variation_name') String? variationName,
     String? sku,
   });
 }
@@ -324,8 +326,8 @@ class _$PurchaseLineModelImpl extends _PurchaseLineModel {
     @JsonKey(name: 'tax_rate') this.taxRate = '0',
     @JsonKey(name: 'batch_number') this.batchNumber,
     @JsonKey(name: 'expiry_date') this.expiryDate,
-    this.productName,
-    this.variationName,
+    @JsonKey(name: 'product_name') this.productName,
+    @JsonKey(name: 'variation_name') this.variationName,
     this.sku,
   }) : super._();
 
@@ -368,8 +370,10 @@ class _$PurchaseLineModelImpl extends _PurchaseLineModel {
   @JsonKey(name: 'expiry_date')
   final String? expiryDate;
   @override
+  @JsonKey(name: 'product_name')
   final String? productName;
   @override
+  @JsonKey(name: 'variation_name')
   final String? variationName;
   @override
   final String? sku;
@@ -465,8 +469,8 @@ abstract class _PurchaseLineModel extends PurchaseLineModel {
     @JsonKey(name: 'tax_rate') final String taxRate,
     @JsonKey(name: 'batch_number') final String? batchNumber,
     @JsonKey(name: 'expiry_date') final String? expiryDate,
-    final String? productName,
-    final String? variationName,
+    @JsonKey(name: 'product_name') final String? productName,
+    @JsonKey(name: 'variation_name') final String? variationName,
     final String? sku,
   }) = _$PurchaseLineModelImpl;
   const _PurchaseLineModel._() : super._();
@@ -510,8 +514,10 @@ abstract class _PurchaseLineModel extends PurchaseLineModel {
   @JsonKey(name: 'expiry_date')
   String? get expiryDate;
   @override
+  @JsonKey(name: 'product_name')
   String? get productName;
   @override
+  @JsonKey(name: 'variation_name')
   String? get variationName;
   @override
   String? get sku;

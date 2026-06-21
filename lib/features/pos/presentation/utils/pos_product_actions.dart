@@ -17,11 +17,16 @@ Future<bool> addProductWithPricePrompt(
   String? variationName,
   Decimal? manualUnitPrice,
 }) async {
+  debugPrint(
+    '[POS:AddToCart] product="${product.name}" id=${product.id} '
+    'variationId=$variationId manualPrice=$manualUnitPrice',
+  );
   final outcome = await cubit.addToCart(
     product,
     variationId: variationId,
     manualUnitPrice: manualUnitPrice,
   );
+  debugPrint('[POS:AddToCart] outcome=${outcome.result} message=${outcome.message}');
 
   switch (outcome.result) {
     case AddToCartResult.added:
@@ -60,15 +65,27 @@ Future<bool> addProductFromGridTap(
   PosCubit cubit,
   ProductListItemModel product,
 ) async {
+  debugPrint('[POS:GridTap] product="${product.name}" id=${product.id}');
   final details = await cubit.getProductDetails(product.id);
-  if (!context.mounted) return false;
+  if (!context.mounted) {
+    debugPrint('[POS:GridTap] ABORT — context unmounted after getProductDetails');
+    return false;
+  }
+
+  final variationCount = details?.variations.length ?? 0;
+  debugPrint('[POS:GridTap] variations=$variationCount');
 
   if (details != null && details.variations.length > 1) {
+    debugPrint('[POS:GridTap] MULTI-variation → show picker');
     final variation = await showModalBottomSheet<VariationModel>(
       context: context,
       builder: (ctx) => _VariationPicker(variations: details.variations),
     );
-    if (variation == null) return false;
+    if (variation == null) {
+      debugPrint('[POS:GridTap] picker cancelled');
+      return false;
+    }
+    debugPrint('[POS:GridTap] picked variation="${variation.name}" id=${variation.id}');
     return addProductWithPricePrompt(
       context,
       cubit,
@@ -78,6 +95,7 @@ Future<bool> addProductFromGridTap(
     );
   }
 
+  debugPrint('[POS:GridTap] SINGLE/no-variation → add directly');
   return addProductWithPricePrompt(context, cubit, product: product);
 }
 
@@ -86,8 +104,17 @@ Future<bool> addBarcodeWithPricePrompt(
   PosCubit cubit,
   String barcode,
 ) async {
+  debugPrint('[POS:Barcode] lookup barcode="$barcode"');
   final product = await cubit.getListItemByBarcode(barcode);
-  if (product == null || !context.mounted) return false;
+  if (product == null) {
+    debugPrint('[POS:Barcode] NOT FOUND for "$barcode"');
+    return false;
+  }
+  if (!context.mounted) {
+    debugPrint('[POS:Barcode] ABORT — context unmounted');
+    return false;
+  }
+  debugPrint('[POS:Barcode] FOUND "${product.name}" id=${product.id} → grid tap flow');
   return addProductFromGridTap(context, cubit, product);
 }
 

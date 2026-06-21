@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/domain/usecases/purchase_usecases.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_order_detail_state.dart';
 import 'package:injectable/injectable.dart';

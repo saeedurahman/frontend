@@ -197,9 +197,16 @@ class _ReceiptLineRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${line.productName ?? line.productId}${line.variationName != null ? ' — ${line.variationName}' : ''}',
+            line.productName ?? line.productId,
             style: AppTextStyles.titleMedium,
           ),
+          if (line.variationName != null && line.variationName!.isNotEmpty)
+            Text(
+              line.variationName!,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
           Text(
             'Remaining: ${line.qtyToReceive}',
             style: AppTextStyles.bodySmall,

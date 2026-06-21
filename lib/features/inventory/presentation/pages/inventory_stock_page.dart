@@ -84,7 +84,10 @@ class _InventoryStockViewState extends State<_InventoryStockView> {
                 InventoryStockLoaded(:final filteredRows)
                     when filteredRows.isEmpty =>
                   const Center(child: Text('No stock records found')),
-                InventoryStockLoaded loaded => _StockTable(rows: loaded.filteredRows),
+                InventoryStockLoaded loaded => BlocBuilder<CategoriesCubit, CategoriesState>(
+                    builder: (context, _) =>
+                        _StockTable(rows: loaded.filteredRows),
+                  ),
                 InventoryStockError(:final message) =>
                   Center(child: Text(message)),
               },
@@ -273,7 +276,9 @@ class _StockTable extends StatelessWidget {
                       ),
                       Expanded(
                         child: Text(
-                          row.product.categoryName ?? '—',
+                          _categoryName(context, row.product.categoryId) ??
+                              row.product.categoryName ??
+                              '—',
                           style: AppTextStyles.bodySmall,
                         ),
                       ),
@@ -332,6 +337,17 @@ class _StockTable extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String? _categoryName(BuildContext context, String? categoryId) {
+    if (categoryId == null) return null;
+    final catState = context.read<CategoriesCubit>().state;
+    if (catState is CategoriesLoaded) {
+      for (final category in flattenCategories(catState.categories)) {
+        if (category.id == categoryId) return category.name;
+      }
+    }
+    return null;
   }
 }
 

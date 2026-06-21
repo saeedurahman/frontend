@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/router/route_names.dart';
@@ -13,6 +14,7 @@ import 'package:frantend/features/auth/presentation/pages/register/step3_branch.
 import 'package:frantend/features/auth/presentation/pages/register/step4_owner.dart';
 import 'package:frantend/features/register/presentation/widgets/register_flow_shell.dart';
 import 'package:frantend/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/pages/pos_page.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
@@ -122,7 +124,10 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.pos,
-            builder: (_, __) => const PosPage(),
+            builder: (_, __) => BlocProvider(
+              create: (_) => sl<PosCubit>()..init(),
+              child: const PosPage(),
+            ),
             routes: [
               GoRoute(
                 path: 'receipt',

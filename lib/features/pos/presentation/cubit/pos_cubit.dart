@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -317,9 +318,11 @@ class PosCubit extends Cubit<PosState> {
   }
 
   void searchProducts(String query) {
+    debugPrint('[POS:Search] searchProducts debounced query="$query"');
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       if (isClosed) return;
+      debugPrint('[POS:Search] applied filter query="$query"');
       _safeEmit(state.copyWith(productSearchQuery: query));
     });
   }
@@ -329,19 +332,35 @@ class PosCubit extends Cubit<PosState> {
   }
 
   Future<bool> lookupBarcode(String barcode) async {
+    debugPrint('[POS:Cubit] lookupBarcode "$barcode"');
     final result = await _lookupBarcode(barcode);
     return result.fold(
-      (_) => false,
+      (failure) {
+        debugPrint('[POS:Cubit] lookupBarcode FAILED: ${failure.message}');
+        return false;
+      },
       (product) async {
+        debugPrint('[POS:Cubit] lookupBarcode OK product="${product.name}"');
         final outcome = await _addProductModelToCart(product);
+        debugPrint('[POS:Cubit] lookupBarcode add outcome=${outcome.result}');
         return outcome.result == AddToCartResult.added;
       },
     );
   }
 
   Future<ProductListItemModel?> getListItemByBarcode(String barcode) async {
+    debugPrint('[POS:Cubit] getListItemByBarcode "$barcode"');
     final result = await _lookupBarcode(barcode);
-    return result.fold((_) => null, _toListItem);
+    return result.fold(
+      (failure) {
+        debugPrint('[POS:Cubit] getListItemByBarcode FAILED: ${failure.message}');
+        return null;
+      },
+      (product) {
+        debugPrint('[POS:Cubit] getListItemByBarcode OK product="${product.name}"');
+        return _toListItem(product);
+      },
+    );
   }
 
   ProductListItemModel _toListItem(ProductModel product) {
@@ -367,6 +386,10 @@ class PosCubit extends Cubit<PosState> {
     String? variationId,
     Decimal? manualUnitPrice,
   }) async {
+    debugPrint(
+      '[POS:Cubit] addToCart "${product.name}" variationId=$variationId '
+      'manualPrice=$manualUnitPrice cartSize=${state.cartItems.length}',
+    );
     ProductModel? details = state.productDetailsCache[product.id];
     if (details == null ||
         (details.variations.length > 1 && variationId == null)) {
@@ -381,6 +404,7 @@ class PosCubit extends Cubit<PosState> {
 
     details ??= state.productDetailsCache[product.id];
     if (details != null && details!.variations.length > 1 && variationId == null) {
+      debugPrint('[POS:Cubit] addToCart → needsVariation (${details!.variations.length} variations)');
       return AddToCartOutcome(result: AddToCartResult.needsVariation);
     }
 
@@ -429,6 +453,7 @@ class PosCubit extends Cubit<PosState> {
     final needsManualPrice =
         resolvedPrice == null || resolvedPrice! <= Decimal.zero;
     if (needsManualPrice) {
+      debugPrint('[POS:Cubit] addToCart → needsPrice');
       return AddToCartOutcome(
         result: AddToCartResult.needsPrice,
         pendingPrice: PendingPricePrompt(
@@ -476,6 +501,7 @@ class PosCubit extends Cubit<PosState> {
     if (isClosed) return AddToCartOutcome.added;
 
     if (availableStock != null && availableStock! < requestedQty) {
+      debugPrint('[POS:Cubit] addToCart → insufficientStock available=$availableStock requested=$requestedQty');
       final label = variation?.name != null
           ? '${product.name} (${variation!.name})'
           : product.name;
@@ -492,6 +518,7 @@ class PosCubit extends Cubit<PosState> {
       final items = [...state.cartItems];
       items[existingIndex] = updated;
       _safeEmit(state.copyWith(cartItems: items));
+      debugPrint('[POS:Cubit] addToCart → QTY INCREASED cartSize=${items.length}');
     } else {
       final defaultRate = state.defaultTaxRate;
       final newItem = CartItemModel(
@@ -511,7 +538,9 @@ class PosCubit extends Cubit<PosState> {
             ? (Decimal.tryParse(defaultRate.rate) ?? Decimal.zero)
             : null,
       );
-      _safeEmit(state.copyWith(cartItems: [...state.cartItems, newItem]));
+      final items = [...state.cartItems, newItem];
+      _safeEmit(state.copyWith(cartItems: items));
+      debugPrint('[POS:Cubit] addToCart → ADDED cartSize=${items.length}');
     }
 
     return AddToCartOutcome.added;

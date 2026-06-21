@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
-import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
@@ -14,6 +14,7 @@ import 'package:frantend/features/pos/presentation/widgets/customer_picker_dialo
 import 'package:frantend/features/pos/presentation/utils/pos_product_actions.dart';
 import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:go_router/go_router.dart';
 
 class PosPage extends StatefulWidget {
   const PosPage({super.key});
@@ -27,9 +28,6 @@ class _PosPageState extends State<PosPage> {
   final _searchController = TextEditingController();
   bool _paymentModalOpen = false;
 
-  DateTime? _lastKeyTime;
-  int _rapidKeyCount = 0;
-
   @override
   void dispose() {
     _searchFocusNode.dispose();
@@ -39,138 +37,124 @@ class _PosPageState extends State<PosPage> {
 
   Future<void> _handleBarcodeOrSearch(PosCubit cubit) async {
     final text = _searchController.text.trim();
-    if (text.isEmpty) return;
-
-    if (_rapidKeyCount >= 3) {
-      final found = await addBarcodeWithPricePrompt(context, cubit, text);
-      _searchController.clear();
-      _rapidKeyCount = 0;
-      if (!found && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product not found')),
-        );
-      }
-      _searchFocusNode.requestFocus();
+    debugPrint('[POS:Enter] barcode lookup for "$text"');
+    if (text.isEmpty) {
+      debugPrint('[POS:Enter] SKIP — empty search text');
       return;
     }
 
-    cubit.searchProducts(text);
+    final found = await addBarcodeWithPricePrompt(context, cubit, text);
+    debugPrint('[POS:Enter] barcode result found=$found');
+    _searchController.clear();
+    cubit.setSearchQueryImmediate('');
+    if (!found && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product not found')),
+      );
+    }
+    _searchFocusNode.requestFocus();
   }
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent) {
-      final now = DateTime.now();
-      if (_lastKeyTime != null &&
-          now.difference(_lastKeyTime!).inMilliseconds < 50) {
-        _rapidKeyCount++;
-      } else {
-        _rapidKeyCount = 1;
-      }
-      _lastKeyTime = now;
-
-      if (event.logicalKey == LogicalKeyboardKey.enter) {
-        _handleBarcodeOrSearch(context.read<PosCubit>());
-        return KeyEventResult.handled;
-      }
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.enter) {
+      debugPrint(
+        '[POS:Key] Enter pressed searchText="${_searchController.text}"',
+      );
+      _handleBarcodeOrSearch(context.read<PosCubit>());
+      return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<PosCubit>()..init(),
-      child: Builder(
-        builder: (context) {
-          return CallbackShortcuts(
-            bindings: {
-              const SingleActivator(LogicalKeyboardKey.f2): () =>
-                  _searchFocusNode.requestFocus(),
-              const SingleActivator(LogicalKeyboardKey.f4): () =>
-                  _openCustomerPicker(context),
-              const SingleActivator(LogicalKeyboardKey.f8): () {
-                final state = context.read<PosCubit>().state;
-                if (state.cartItems.isNotEmpty) {
-                  PaymentModal.show(context);
-                }
-              },
-              const SingleActivator(LogicalKeyboardKey.escape): () =>
-                  _handleEscape(context),
-            },
-            child: Focus(
-              autofocus: true,
-              child: BlocBuilder<PosCubit, PosState>(
-                builder: (context, state) {
-                  return Stack(
-                    children: [
-                      Column(
-                        children: [
-                          _PosHeader(
-                            state: state,
-                            searchController: _searchController,
-                            searchFocusNode: _searchFocusNode,
-                            onSearchKey: (node, event) => _handleKey(node, event),
-                            onSearchChanged: (v) {
-                              context.read<PosCubit>().setSearchQueryImmediate(v);
-                              context.read<PosCubit>().searchProducts(v);
-                            },
-                            onCustomerTap: () => _openCustomerPicker(context),
-                            onShiftTap: () => _showShiftSummary(context, state),
-                          ),
-                          Expanded(
-                            child: state.isShiftReady
-                                ? Row(
-                                    children: [
-                                      const Expanded(
-                                        flex: 65,
-                                        child: ProductGridArea(),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        color: AppColors.border,
-                                      ),
-                                      SizedBox(
-                                        width: 420,
-                                        child: CartPanel(
-                                          onPayPressed: () =>
-                                              PaymentModal.show(context),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            color: AppColors.background,
-                            child: const Text(
-                              'F2 Search • F4 Customer • F8 Payment • ESC Cancel',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (state.isCheckingShift)
-                        Container(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                      if (!state.isCheckingShift && !state.isShiftReady)
-                        _ShiftGateOverlay(state: state),
-                    ],
-                  );
-                },
-              ),
-            ),
-          );
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f2): () =>
+            _searchFocusNode.requestFocus(),
+        const SingleActivator(LogicalKeyboardKey.f4): () =>
+            _openCustomerPicker(context),
+        const SingleActivator(LogicalKeyboardKey.f8): () {
+          final state = context.read<PosCubit>().state;
+          if (state.cartItems.isNotEmpty) {
+            PaymentModal.show(context);
+          }
         },
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            _handleEscape(context),
+      },
+      child: Focus(
+        autofocus: true,
+        child: BlocBuilder<PosCubit, PosState>(
+          builder: (context, state) {
+            return Stack(
+              children: [
+                Column(
+                  children: [
+                    _PosHeader(
+                      state: state,
+                      searchController: _searchController,
+                      searchFocusNode: _searchFocusNode,
+                      onSearchKey: _handleKey,
+                      onSearchChanged: (v) {
+                        context.read<PosCubit>().setSearchQueryImmediate(v);
+                        context.read<PosCubit>().searchProducts(v);
+                      },
+                      onCustomerTap: () => _openCustomerPicker(context),
+                      onShiftTap: () => _showShiftSummary(context, state),
+                    ),
+                    Expanded(
+                      child: state.isShiftReady
+                          ? Row(
+                              children: [
+                                const Expanded(
+                                  flex: 65,
+                                  child: ProductGridArea(),
+                                ),
+                                Container(
+                                  width: 1,
+                                  color: AppColors.border,
+                                ),
+                                SizedBox(
+                                  width: 420,
+                                  child: CartPanel(
+                                    onPayPressed: () =>
+                                        PaymentModal.show(context),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      color: AppColors.background,
+                      child: const Text(
+                        'F2 Search • F4 Customer • F8 Payment • ESC Cancel',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (state.isCheckingShift)
+                  Container(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                if (!state.isCheckingShift && !state.isShiftReady)
+                  _ShiftGateOverlay(state: state),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -184,7 +168,10 @@ class _PosPageState extends State<PosPage> {
 
   Future<void> _handleEscape(BuildContext context) async {
     if (_paymentModalOpen) {
-      Navigator.of(context, rootNavigator: true).pop();
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
       return;
     }
     final state = context.read<PosCubit>().state;
@@ -201,17 +188,26 @@ class _PosPageState extends State<PosPage> {
 
   void _showShiftSummary(BuildContext context, PosState state) {
     final summary = state.shiftSummary;
+    final shift = state.activeShift;
+    final registerName = _registerNameForShift(state);
+
+    void dismissPopover(BuildContext dialogContext) {
+      if (Navigator.canPop(dialogContext)) {
+        Navigator.pop(dialogContext);
+      }
+    }
+
     showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Shift Summary'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (state.activeShift?.openingFloat != null)
+            if (shift?.openingFloat != null)
               Text(
-                'Opening float: ${formatPKR(double.tryParse(state.activeShift!.openingFloat!) ?? 0)}',
+                'Opening float: ${formatPKR(double.tryParse(shift!.openingFloat) ?? 0)}',
               ),
             if (summary != null) ...[
               Text(
@@ -225,12 +221,55 @@ class _PosPageState extends State<PosPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            onPressed: () => dismissPopover(dialogContext),
+            child: const Text('Done'),
+          ),
+          OutlinedButton(
+            onPressed: shift == null || summary == null
+                ? null
+                : () {
+                    dismissPopover(dialogContext);
+                    context
+                        .push(
+                          RouteNames.closeShift,
+                          extra: {
+                            'shiftId': shift.id,
+                            'summary': summary,
+                            'registerName': registerName,
+                          },
+                        )
+                        .then((_) {
+                      if (context.mounted) {
+                        context.read<PosCubit>().checkActiveShift();
+                      }
+                    });
+                  },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.warning,
+              side: const BorderSide(color: AppColors.warning),
+            ),
+            child: const Text('Close Shift →'),
           ),
         ],
       ),
     );
+  }
+
+  String _registerNameForShift(PosState state) {
+    final shift = state.activeShift;
+    final embeddedName = shift?.register?.name;
+    if (embeddedName != null && embeddedName.isNotEmpty) {
+      return embeddedName;
+    }
+
+    final registerId = shift?.cashRegisterId ?? state.selectedRegisterId;
+    if (registerId != null) {
+      for (final register in state.registers) {
+        if (register.id == registerId) return register.name;
+      }
+    }
+
+    return state.registers.isNotEmpty ? state.registers.first.name : '';
   }
 }
 

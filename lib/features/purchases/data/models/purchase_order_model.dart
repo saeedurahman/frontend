@@ -21,8 +21,8 @@ class PurchaseLineModel with _$PurchaseLineModel {
     @JsonKey(name: 'tax_rate') @Default('0') String taxRate,
     @JsonKey(name: 'batch_number') String? batchNumber,
     @JsonKey(name: 'expiry_date') String? expiryDate,
-    String? productName,
-    String? variationName,
+    @JsonKey(name: 'product_name') String? productName,
+    @JsonKey(name: 'variation_name') String? variationName,
     String? sku,
   }) = _PurchaseLineModel;
 
