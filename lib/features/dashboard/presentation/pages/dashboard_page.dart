@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
@@ -11,6 +12,7 @@ import 'package:frantend/features/dashboard/data/models/sales_trend_model.dart';
 import 'package:frantend/features/dashboard/domain/entities/dashboard_data.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_state.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -578,6 +580,7 @@ class _TopProductsCard extends StatelessWidget {
     return _CardContainer(
       title: 'Top Products',
       trailing: const Text('View All →', style: TextStyle(color: AppColors.primary)),
+      onTrailingTap: () => context.go(RouteNames.analytics),
       child: SizedBox(
         height: 300,
         child: products.isEmpty
@@ -661,6 +664,7 @@ class _RecentSalesCard extends StatelessWidget {
     return _CardContainer(
       title: 'Recent Sales',
       trailing: const Text('View All →', style: TextStyle(color: AppColors.primary)),
+      onTrailingTap: () => context.go(RouteNames.sales),
       child: SizedBox(
         height: 300,
         child: transactions.isEmpty
@@ -864,11 +868,13 @@ class _CardContainer extends StatelessWidget {
     required this.title,
     required this.child,
     this.trailing,
+    this.onTrailingTap,
   });
 
   final String title;
   final Widget child;
   final Widget? trailing;
+  final VoidCallback? onTrailingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -900,7 +906,12 @@ class _CardContainer extends StatelessWidget {
                   ),
                 ),
               ),
-              if (trailing != null) trailing!,
+              if (trailing != null)
+                GestureDetector(
+                  onTap: onTrailingTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: trailing!,
+                ),
             ],
           ),
           const SizedBox(height: 10),

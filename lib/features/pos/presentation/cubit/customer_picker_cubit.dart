@@ -1,22 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart'
+    as customers_uc;
 import 'package:frantend/features/pos/data/models/customer_model.dart';
-import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/presentation/cubit/customer_picker_state.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class CustomerPickerCubit extends Cubit<CustomerPickerState> {
   CustomerPickerCubit({
-    required SearchCustomersUseCase searchCustomersUseCase,
-    required CreateCustomerUseCase createCustomerUseCase,
-  })  : _searchCustomers = searchCustomersUseCase,
+    required customers_uc.GetCustomersUseCase getCustomersUseCase,
+    required customers_uc.CreateCustomerUseCase createCustomerUseCase,
+  })  : _getCustomers = getCustomersUseCase,
         _createCustomer = createCustomerUseCase,
         super(const CustomerPickerState());
 
-  final SearchCustomersUseCase _searchCustomers;
-  final CreateCustomerUseCase _createCustomer;
+  final customers_uc.GetCustomersUseCase _getCustomers;
+  final customers_uc.CreateCustomerUseCase _createCustomer;
   Timer? _debounce;
 
   @override
@@ -25,28 +26,39 @@ class CustomerPickerCubit extends Cubit<CustomerPickerState> {
     return super.close();
   }
 
+  Future<void> loadInitial() => _fetchCustomers(search: null);
+
   void search(String query) {
-    emit(state.copyWith(searchQuery: query, showCreateForm: false));
+    final trimmed = query.trim();
+    emit(state.copyWith(searchQuery: query, showCreateForm: false, error: null));
     _debounce?.cancel();
-    if (query.length < 2) {
-      emit(state.copyWith(results: [], isSearching: false));
+
+    if (trimmed.isEmpty) {
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        _fetchCustomers(search: null);
+      });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 300), () async {
-      emit(state.copyWith(isSearching: true, error: null));
-      final result = await _searchCustomers(query);
-      result.fold(
-        (failure) => emit(state.copyWith(
-          isSearching: false,
-          error: failure.message,
-          results: [],
-        )),
-        (customers) => emit(state.copyWith(
-          isSearching: false,
-          results: customers,
-        )),
-      );
+
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _fetchCustomers(search: trimmed);
     });
+  }
+
+  Future<void> _fetchCustomers({String? search}) async {
+    emit(state.copyWith(isSearching: true, error: null));
+    final result = await _getCustomers(search: search);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        isSearching: false,
+        error: failure.message,
+        results: [],
+      )),
+      (customers) => emit(state.copyWith(
+        isSearching: false,
+        results: customers,
+      )),
+    );
   }
 
   void showCreateForm() {

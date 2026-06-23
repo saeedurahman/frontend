@@ -149,5 +149,8 @@ int _toInt(dynamic value) {
   if (value == null) return 0;
   if (value is int) return value;
   if (value is num) return value.toInt();
+  // API Decimal fields serialize as strings like "12.0000".
+  final asDouble = double.tryParse(value.toString());
+  if (asDouble != null) return asDouble.round();
   return int.tryParse(value.toString()) ?? 0;
 }

@@ -169,6 +169,7 @@ class _PaymentModalState extends State<PaymentModal> {
                     line.referenceController.dispose();
                     _lines.removeAt(i);
                   }),
+                  onAmountChanged: () => setState(() {}),
                   onQuickCash: line.method == PaymentMethods.cash
                       ? (amount) => setState(() {
                             line.amountController.text =
@@ -291,12 +292,14 @@ class _PaymentLineEditor extends StatelessWidget {
   const _PaymentLineEditor({
     required this.line,
     required this.onRemove,
+    required this.onAmountChanged,
     required this.grandTotal,
     this.onQuickCash,
   });
 
   final _PaymentLineEntry line;
   final VoidCallback onRemove;
+  final VoidCallback onAmountChanged;
   final void Function(Decimal amount)? onQuickCash;
   final Decimal grandTotal;
 
@@ -330,6 +333,7 @@ class _PaymentLineEditor extends StatelessWidget {
                 labelText: 'Amount',
                 border: OutlineInputBorder(),
               ),
+              onChanged: (_) => onAmountChanged(),
             ),
             if (line.method == PaymentMethods.wallet ||
                 line.method == PaymentMethods.card ||

@@ -390,6 +390,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i956.GetReturnByIdUseCase>(
       () => _i956.GetReturnByIdUseCase(gh<_i899.ReturnsRepository>()),
     );
+    gh.factory<_i993.CustomerPickerCubit>(
+      () => _i993.CustomerPickerCubit(
+        getCustomersUseCase: gh<_i449.GetCustomersUseCase>(),
+        createCustomerUseCase: gh<_i449.CreateCustomerUseCase>(),
+      ),
+    );
     gh.factory<_i423.ReportsFilterCubit>(
       () => _i423.ReportsFilterCubit(gh<_i992.AuthLocalDataSource>()),
     );
@@ -1064,12 +1070,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i483.PurchaseOrdersListCubit(
         getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
         getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-      ),
-    );
-    gh.factory<_i993.CustomerPickerCubit>(
-      () => _i993.CustomerPickerCubit(
-        searchCustomersUseCase: gh<_i698.SearchCustomersUseCase>(),
-        createCustomerUseCase: gh<_i698.CreateCustomerUseCase>(),
       ),
     );
     gh.factory<_i117.AuthCubit>(

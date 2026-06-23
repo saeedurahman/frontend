@@ -14,7 +14,7 @@ class CustomerPickerDialog extends StatelessWidget {
     return showDialog<CustomerModel?>(
       context: context,
       builder: (_) => BlocProvider(
-        create: (_) => sl<CustomerPickerCubit>(),
+        create: (_) => sl<CustomerPickerCubit>()..loadInitial(),
         child: const CustomerPickerDialog(),
       ),
     );
@@ -62,7 +62,19 @@ class CustomerPickerDialog extends StatelessWidget {
                     onChanged: context.read<CustomerPickerCubit>().search,
                   ),
                 ),
-                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () =>
+                          context.read<CustomerPickerCubit>().showCreateForm(),
+                      icon: const Icon(Icons.person_add_outlined, size: 18),
+                      label: const Text('Create new customer'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Walk-in Customer'),
@@ -79,7 +91,8 @@ class CustomerPickerDialog extends StatelessWidget {
                   Expanded(
                     child: _CustomerResults(
                       results: state.results,
-                      query: state.searchQuery,
+                      query: state.searchQuery.trim(),
+                      error: state.error,
                       onCreateTap: () =>
                           context.read<CustomerPickerCubit>().showCreateForm(),
                     ),
@@ -98,15 +111,43 @@ class _CustomerResults extends StatelessWidget {
     required this.results,
     required this.query,
     required this.onCreateTap,
+    this.error,
   });
 
   final List<CustomerModel> results;
   final String query;
   final VoidCallback onCreateTap;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
-    if (results.isEmpty && query.length >= 3) {
+    if (error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.error),
+              ),
+              if (query.length >= 2) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: onCreateTap,
+                  icon: const Icon(Icons.add),
+                  label: Text('Create "$query" as new customer'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (results.isEmpty && query.length >= 2) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -119,6 +160,15 @@ class _CustomerResults extends StatelessWidget {
               label: Text('Create "$query" as new customer'),
             ),
           ],
+        ),
+      );
+    }
+
+    if (results.isEmpty) {
+      return const Center(
+        child: Text(
+          'Type to search customers',
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       );
     }

@@ -76,7 +76,8 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
   Future<List<CustomerModel>> searchCustomers(String query) async {
     final response = await _dioClient.dio.get<dynamic>(
       ApiConstants.customers,
-      queryParameters: {'search': query, 'limit': 20},
+      queryParameters:
+          query.isNotEmpty ? {'search': query} : null,
     );
     return _toModelList(response.data, CustomerModel.fromJson);
   }

@@ -219,44 +219,51 @@ class _CartItemRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                GestureDetector(
-                  onTap: () async {
-                    final result = await LineTaxRateDialog.show(
-                      context,
-                      taxRates: state.taxRates,
-                      selectedTaxRateId: item.taxRateId,
-                    );
-                    if (result == null) return;
-                    if (result is LineTaxRateNone) {
-                      cubit.updateLineTaxRate(index, null);
-                    } else if (result is TaxRateModel) {
-                      cubit.updateLineTaxRate(index, result);
-                    }
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 2),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hasTax
-                          ? AppColors.primary.withValues(alpha: 0.08)
-                          : AppColors.background,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () async {
+                        final result = await LineTaxRateDialog.show(
+                          context,
+                          taxRates: state.taxRates,
+                          selectedTaxRateId: item.taxRateId,
+                        );
+                        if (result == null) return;
+                        if (result is LineTaxRateNone) {
+                          cubit.updateLineTaxRate(index, null);
+                        } else if (result is TaxRateModel) {
+                          cubit.updateLineTaxRate(index, result);
+                        }
+                      },
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: hasTax
-                            ? AppColors.primary.withValues(alpha: 0.25)
-                            : AppColors.border,
-                      ),
-                    ),
-                    child: Text(
-                      taxLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: hasTax
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: hasTax
+                              ? AppColors.primary.withValues(alpha: 0.08)
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: hasTax
+                                ? AppColors.primary.withValues(alpha: 0.25)
+                                : AppColors.border,
+                          ),
+                        ),
+                        child: Text(
+                          taxLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: hasTax
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                          ),
+                        ),
                       ),
                     ),
                   ),
