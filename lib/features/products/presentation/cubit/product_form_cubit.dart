@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/constants/app_config.dart';
+import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
 import 'package:frantend/features/products/domain/usecases/add_barcode_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/add_variation_usecase.dart';
@@ -8,6 +12,7 @@ import 'package:frantend/features/products/domain/usecases/update_product_usecas
 import 'package:frantend/features/products/presentation/cubit/product_form_state.dart';
 import 'package:frantend/features/products/presentation/utils/variation_utils.dart';
 import 'package:injectable/injectable.dart';
+import 'package:image_picker/image_picker.dart';
 
 @injectable
 class ProductFormCubit extends Cubit<ProductFormState> {
@@ -17,11 +22,13 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     required UpdateProductUseCase updateProductUseCase,
     required AddVariationUseCase addVariationUseCase,
     required AddBarcodeUseCase addBarcodeUseCase,
+    required ImageUploadService imageUploadService,
   })  : _getProductById = getProductByIdUseCase,
         _createProduct = createProductUseCase,
         _updateProduct = updateProductUseCase,
         _addVariation = addVariationUseCase,
         _addBarcode = addBarcodeUseCase,
+        _imageUpload = imageUploadService,
         super(const ProductFormState());
 
   final GetProductByIdUseCase _getProductById;
@@ -29,6 +36,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   final UpdateProductUseCase _updateProduct;
   final AddVariationUseCase _addVariation;
   final AddBarcodeUseCase _addBarcode;
+  final ImageUploadService _imageUpload;
+  final ImagePicker _imagePicker = ImagePicker();
 
   void initCreate() {
     emit(const ProductFormState(mode: 'create'));
@@ -99,6 +108,49 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   void updateImageUrl(String? value) => emit(state.copyWith(imageUrl: value));
   void updateLocalImagePath(String? path) =>
       emit(state.copyWith(localImagePath: path));
+
+  Future<void> pickAndUploadImage() async {
+    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    final file = File(picked.path);
+    emit(
+      state.copyWith(
+        localImagePath: picked.path,
+        isUploadingImage: true,
+        imageUploadError: null,
+      ),
+    );
+
+    try {
+      final url = await _imageUpload.uploadImage(
+        file,
+        folder: AppConfig.cloudinaryProductsFolder,
+      );
+      emit(
+        state.copyWith(
+          imageUrl: url,
+          localImagePath: null,
+          isUploadingImage: false,
+          imageUploadError: null,
+        ),
+      );
+    } on ImageUploadException catch (e) {
+      emit(
+        state.copyWith(
+          isUploadingImage: false,
+          imageUploadError: e.message,
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          isUploadingImage: false,
+          imageUploadError: 'Image upload failed. Please try again.',
+        ),
+      );
+    }
+  }
   void updateCategoryId(String? id) =>
       emit(state.copyWith(selectedCategoryId: id));
   void updateBrandId(String? id) => emit(state.copyWith(selectedBrandId: id));

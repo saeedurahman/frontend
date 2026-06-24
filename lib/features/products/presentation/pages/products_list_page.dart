@@ -16,6 +16,9 @@ import 'package:frantend/features/products/presentation/cubit/products_list_cubi
 import 'package:frantend/features/products/presentation/cubit/products_list_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -54,30 +57,13 @@ class _ProductsListView extends StatefulWidget {
 
 class _ProductsListViewState extends State<_ProductsListView> {
   final _searchController = TextEditingController();
-  final _scrollController = ScrollController();
   DateTime? _lastKeyTime;
   int _rapidKeyCount = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final max = _scrollController.position.maxScrollExtent;
-    final offset = _scrollController.offset;
-    if (max > 0 && offset / max >= 0.8) {
-      context.read<ProductsListCubit>().loadMore();
-    }
   }
 
   void _onSearchChanged(String value) {
@@ -131,7 +117,11 @@ class _ProductsListViewState extends State<_ProductsListView> {
             Expanded(
               child: switch (state) {
                 ProductsListInitial() || ProductsListLoading() =>
-                  const _ShimmerTable(),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: const AppDataTableShimmer(),
+                  ),
                 ProductsListLoaded(:final items) when items.isEmpty =>
                   _EmptyState(
                     hasFilters:
@@ -141,10 +131,7 @@ class _ProductsListViewState extends State<_ProductsListView> {
                     builder: (context, _) {
                       return BlocBuilder<BrandsCubit, BrandsState>(
                         builder: (context, _) {
-                          return _ProductsTable(
-                            state: loaded,
-                            scrollController: _scrollController,
-                          );
+                          return _ProductsTable(state: loaded);
                         },
                       );
                     },
@@ -154,8 +141,6 @@ class _ProductsListViewState extends State<_ProductsListView> {
                   ),
               },
             ),
-            if (state is ProductsListLoaded && state.items.isNotEmpty)
-              _PaginationFooter(state: state),
           ],
         );
       },
@@ -414,81 +399,178 @@ class _SegmentButton extends StatelessWidget {
   }
 }
 
-class _ProductsTable extends StatelessWidget {
-  const _ProductsTable({
-    required this.state,
-    required this.scrollController,
-  });
+const _productTableColumns = [
+  AppDataTableColumn(label: 'Product', flex: 4, sortable: true),
+  AppDataTableColumn(label: 'Category', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Brand', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Type', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Status', flex: 2, sortable: true),
+];
+
+enum _ProductSortColumn { product, category, brand, type, status }
+
+class _ProductsTable extends StatefulWidget {
+  const _ProductsTable({required this.state});
 
   final ProductsListLoaded state;
-  final ScrollController scrollController;
+
+  @override
+  State<_ProductsTable> createState() => _ProductsTableState();
+}
+
+class _ProductsTableState extends State<_ProductsTable> {
+  _ProductSortColumn? _sortColumn;
+  bool _sortAscending = true;
+
+  ProductsListLoaded get state => widget.state;
+
+  List<ProductListItemModel> get _sortedItems {
+    final items = [...state.items];
+    final column = _sortColumn;
+    if (column == null) return items;
+
+    int compare<T extends Comparable<T>>(T a, T b) =>
+        _sortAscending ? a.compareTo(b) : b.compareTo(a);
+
+    items.sort((a, b) {
+      return switch (column) {
+        _ProductSortColumn.product =>
+          compare(a.name.toLowerCase(), b.name.toLowerCase()),
+        _ProductSortColumn.category => compare(
+            (a.categoryName ?? '').toLowerCase(),
+            (b.categoryName ?? '').toLowerCase(),
+          ),
+        _ProductSortColumn.brand => compare(
+            (a.brandName ?? '').toLowerCase(),
+            (b.brandName ?? '').toLowerCase(),
+          ),
+        _ProductSortColumn.type => compare(
+            a.productType.toLowerCase(),
+            b.productType.toLowerCase(),
+          ),
+        _ProductSortColumn.status => compare(
+            a.isActive ? 1 : 0,
+            b.isActive ? 1 : 0,
+          ),
+      };
+    });
+    return items;
+  }
+
+  void _toggleSort(int columnIndex) {
+    final column = _ProductSortColumn.values[columnIndex];
+    setState(() {
+      if (_sortColumn == column) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortColumn = column;
+        _sortAscending = true;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProductsListCubit>();
+    final from = state.total == 0 ? 0 : state.skip + 1;
+    final to = (state.skip + state.items.length).clamp(0, state.total);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return AppDataTable<ProductListItemModel>(
+      columns: _productTableColumns,
+      items: _sortedItems,
+      itemId: (product) => product.id,
+      onColumnSort: _toggleSort,
+      onRowTap: (product) => openProductForm(
+        context,
+        '${RouteNames.products}/${product.id}/edit',
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
+      pagination: AppDataTablePaginationData(
+        from: from,
+        to: to,
+        total: state.total,
+        itemLabel: 'products',
+        currentPage: cubit.currentPage(state),
+        totalPages: cubit.totalPages(state),
+        pageSize: [10, 25, 50].contains(state.limit)
+            ? state.limit
+            : cubit.pageSize,
+        onPageSizeChanged: cubit.setPageSize,
+        onGoToPage: cubit.goToPage,
+      ),
+      rowBuilder: (context, product, {required selected, required onSelected}) {
+        final categoryName =
+            _categoryName(context, product.categoryId) ?? product.categoryName;
+        final brandName =
+            _brandName(context, product.brandId) ?? product.brandName;
+        final variantLabel =
+            product.productType == 'variant' ? 'Variant' : 'Default';
+
+        return AppDataTableRowLayout(
+          columns: _productTableColumns,
+          selected: selected,
+          onSelected: onSelected,
+          cells: [
+            AppTableProductCell(
+              name: product.name,
+              code: appTableProductCode(sku: product.sku, id: product.id),
+              variantLabel: variantLabel,
+              imageUrl: product.imageUrl,
             ),
-            child: const Row(
+            categoryName != null
+                ? AppTableCategoryBadge(name: categoryName)
+                : const AppTableDashText(),
+            Text(
+              brandName ?? '—',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            AppTableTypeBadge(type: product.productType),
+            Row(
               children: [
-                SizedBox(width: 48),
-                Expanded(flex: 3, child: Text('Product', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Category', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Brand', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Type', style: AppTextStyles.labelLarge)),
-                SizedBox(width: 80, child: Text('Status', style: AppTextStyles.labelLarge)),
-                SizedBox(width: 80),
+                Switch(
+                  value: product.isActive,
+                  activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => cubit.toggleActive(product.id, v),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  product.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: product.isActive
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
+          ],
+          actions: Row(
+            children: [
+              AppTableActionButton(
+                icon: Icons.edit_outlined,
+                tooltip: 'Edit',
+                onPressed: () => openProductForm(
+                  context,
+                  '${RouteNames.products}/${product.id}/edit',
+                ),
+              ),
+              const SizedBox(width: 6),
+              AppTableActionButton(
+                icon: Icons.delete_outline,
+                iconColor: AppColors.error,
+                tooltip: 'Delete',
+                onPressed: () => _confirmDelete(context, product),
+              ),
+            ],
           ),
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.items.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return _ProductRow(
-                  product: state.items[index],
-                  categoryName: _categoryName(
-                    context,
-                    state.items[index].categoryId,
-                  ),
-                  brandName: _brandName(context, state.items[index].brandId),
-                  onTap: () => openProductForm(
-                    context,
-                    '${RouteNames.products}/${state.items[index].id}/edit',
-                  ),
-                  onToggleActive: (v) =>
-                      cubit.toggleActive(state.items[index].id, v),
-                  onDelete: () => _confirmDelete(context, state.items[index]),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -531,198 +613,6 @@ class _ProductsTable extends StatelessWidget {
         AppAlerts.showSuccessMessage(context, 'Product deleted');
       }
     }
-  }
-}
-
-class _ProductRow extends StatelessWidget {
-  const _ProductRow({
-    required this.product,
-    this.categoryName,
-    this.brandName,
-    required this.onTap,
-    required this.onToggleActive,
-    required this.onDelete,
-  });
-
-  final ProductListItemModel product;
-  final String? categoryName;
-  final String? brandName;
-  final VoidCallback onTap;
-  final ValueChanged<bool> onToggleActive;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.border)),
-          ),
-          child: Row(
-            children: [
-              _ProductThumb(imageUrl: product.imageUrl),
-               const SizedBox(width: 12,),
-              Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(product.name, style: AppTextStyles.titleMedium,),
-                    if (product.sku != null)
-                      Text(product.sku!, style: AppTextStyles.bodySmall),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: categoryName != null
-                    ? _Chip(label: categoryName!)
-                    : const Text('—', style: AppTextStyles.bodySmall),
-              ),
-              Expanded(
-                child: Text(
-                  brandName ?? '—',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ),
-              Expanded(child: _TypeChip(type: product.productType)),
-              SizedBox(
-                width: 80,
-                child: Switch(
-                  value: product.isActive,
-                  activeThumbColor: AppColors.primary,
-                  onChanged: onToggleActive,
-                ),
-              ),
-              SizedBox(
-                width: 80,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      onPressed: onTap,
-                      tooltip: 'Edit',
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete_outline, size: 20, color: AppColors.error),
-                      onPressed: onDelete,
-                      tooltip: 'Delete',
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProductThumb extends StatelessWidget {
-  const _ProductThumb({this.imageUrl});
-
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 50,
-      height: 50,
-      margin: const EdgeInsets.only(right: 8),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: imageUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(imageUrl!, fit: BoxFit.cover),
-            )
-          : const Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.textSecondary),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(label, style: AppTextStyles.bodySmall),
-    );
-  }
-}
-
-class _TypeChip extends StatelessWidget {
-  const _TypeChip({required this.type});
-
-  final String type;
-
-  Color get _color => switch (type) {
-        'standard' => AppColors.info,
-        'variant' => AppColors.primary,
-        'composite' => AppColors.accentDark,
-        'manufactured' => AppColors.warning,
-        'service' => AppColors.textSecondary,
-        _ => AppColors.textSecondary,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        type,
-        style: AppTextStyles.bodySmall.copyWith(color: _color),
-      ),
-    );
-  }
-}
-
-class _PaginationFooter extends StatelessWidget {
-  const _PaginationFooter({required this.state});
-
-  final ProductsListLoaded state;
-
-  @override
-  Widget build(BuildContext context) {
-    final from = state.skip + 1;
-    final to = (state.skip + state.items.length).clamp(0, state.total);
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Showing $from-$to of ${state.total}',
-            style: AppTextStyles.bodySmall,
-          ),
-          if (state.isLoadingMore)
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-        ],
-      ),
-    );
   }
 }
 
@@ -773,34 +663,6 @@ class _EmptyState extends StatelessWidget {
             label: const Text('Add Product'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ShimmerTable extends StatelessWidget {
-  const _ShimmerTable();
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: List.generate(
-            5,
-            (_) => Container(
-              height: 64,
-              margin: const EdgeInsets.all(12),
-              color: Colors.white,
-            ),
-          ),
-        ),
       ),
     );
   }

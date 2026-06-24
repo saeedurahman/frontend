@@ -22,6 +22,7 @@ sealed class SettingsState with _$SettingsState {
     String? branchOverrideId,
     String? branchOverrideFooter,
     @Default(false) bool branchFooterIsOverride,
+    @Default(false) bool isUploadingLogo,
     @Default(false) bool isSavingBusiness,
     @Default(false) bool isSavingReceipt,
     @Default(false) bool isSavingBranchOverride,

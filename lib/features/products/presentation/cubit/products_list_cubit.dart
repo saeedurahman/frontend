@@ -26,7 +26,8 @@ class ProductsListCubit extends Cubit<ProductsListState> {
   final UpdateProductUseCase _updateProduct;
   final GetProductByBarcodeUseCase _getProductByBarcode;
 
-  static const _pageSize = 50;
+  static const _defaultPageSize = 10;
+  int _pageSize = _defaultPageSize;
   Timer? _searchDebounce;
 
   String? _search;
@@ -98,6 +99,56 @@ class ProductsListCubit extends Cubit<ProductsListState> {
           );
         }
       },
+    );
+  }
+
+  int get pageSize => _pageSize;
+
+  int currentPage(ProductsListLoaded state) => (state.skip ~/ state.limit) + 1;
+
+  int totalPages(ProductsListLoaded state) {
+    if (state.total == 0) return 1;
+    return (state.total / state.limit).ceil();
+  }
+
+  Future<void> setPageSize(int size) async {
+    if (size < 1 || _pageSize == size) return;
+    _pageSize = size;
+    await loadProducts();
+  }
+
+  Future<void> goToPage(int page) async {
+    final current = state;
+    if (current is! ProductsListLoaded) return;
+    final totalPages = this.totalPages(current);
+    final target = page.clamp(1, totalPages);
+    if (target == currentPage(current)) return;
+
+    emit(const ProductsListState.loading());
+    final skip = (target - 1) * _pageSize;
+    final result = await _getProducts(
+      categoryId: _categoryId,
+      brandId: _brandId,
+      isActive: _isActive,
+      search: _search,
+      skip: skip,
+      limit: _pageSize,
+    );
+
+    result.fold(
+      (failure) => emit(ProductsListState.error(failure.message)),
+      (page) => emit(
+        ProductsListState.loaded(
+          items: page.items,
+          total: page.total,
+          skip: page.skip,
+          limit: page.limit,
+          currentSearch: _search,
+          currentCategoryId: _categoryId,
+          currentBrandId: _brandId,
+          currentIsActive: _isActive,
+        ),
+      ),
     );
   }
 

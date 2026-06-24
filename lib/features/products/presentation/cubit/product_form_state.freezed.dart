@@ -561,6 +561,8 @@ mixin _$ProductFormState {
   List<BarcodeFormItem> get barcodes => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isSubmitting => throw _privateConstructorUsedError;
+  bool get isUploadingImage => throw _privateConstructorUsedError;
+  String? get imageUploadError => throw _privateConstructorUsedError;
   Map<String, String> get errors => throw _privateConstructorUsedError;
 
   /// Create a copy of ProductFormState
@@ -600,6 +602,8 @@ abstract class $ProductFormStateCopyWith<$Res> {
     List<BarcodeFormItem> barcodes,
     bool isLoading,
     bool isSubmitting,
+    bool isUploadingImage,
+    String? imageUploadError,
     Map<String, String> errors,
   });
 }
@@ -641,6 +645,8 @@ class _$ProductFormStateCopyWithImpl<$Res, $Val extends ProductFormState>
     Object? barcodes = null,
     Object? isLoading = null,
     Object? isSubmitting = null,
+    Object? isUploadingImage = null,
+    Object? imageUploadError = freezed,
     Object? errors = null,
   }) {
     return _then(
@@ -733,6 +739,14 @@ class _$ProductFormStateCopyWithImpl<$Res, $Val extends ProductFormState>
                 ? _value.isSubmitting
                 : isSubmitting // ignore: cast_nullable_to_non_nullable
                       as bool,
+            isUploadingImage: null == isUploadingImage
+                ? _value.isUploadingImage
+                : isUploadingImage // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            imageUploadError: freezed == imageUploadError
+                ? _value.imageUploadError
+                : imageUploadError // ignore: cast_nullable_to_non_nullable
+                      as String?,
             errors: null == errors
                 ? _value.errors
                 : errors // ignore: cast_nullable_to_non_nullable
@@ -775,6 +789,8 @@ abstract class _$$ProductFormStateImplCopyWith<$Res>
     List<BarcodeFormItem> barcodes,
     bool isLoading,
     bool isSubmitting,
+    bool isUploadingImage,
+    String? imageUploadError,
     Map<String, String> errors,
   });
 }
@@ -815,6 +831,8 @@ class __$$ProductFormStateImplCopyWithImpl<$Res>
     Object? barcodes = null,
     Object? isLoading = null,
     Object? isSubmitting = null,
+    Object? isUploadingImage = null,
+    Object? imageUploadError = freezed,
     Object? errors = null,
   }) {
     return _then(
@@ -907,6 +925,14 @@ class __$$ProductFormStateImplCopyWithImpl<$Res>
             ? _value.isSubmitting
             : isSubmitting // ignore: cast_nullable_to_non_nullable
                   as bool,
+        isUploadingImage: null == isUploadingImage
+            ? _value.isUploadingImage
+            : isUploadingImage // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        imageUploadError: freezed == imageUploadError
+            ? _value.imageUploadError
+            : imageUploadError // ignore: cast_nullable_to_non_nullable
+                  as String?,
         errors: null == errors
             ? _value._errors
             : errors // ignore: cast_nullable_to_non_nullable
@@ -942,6 +968,8 @@ class _$ProductFormStateImpl implements _ProductFormState {
     final List<BarcodeFormItem> barcodes = const [],
     this.isLoading = false,
     this.isSubmitting = false,
+    this.isUploadingImage = false,
+    this.imageUploadError,
     final Map<String, String> errors = const {},
   }) : _variations = variations,
        _barcodes = barcodes,
@@ -1014,6 +1042,11 @@ class _$ProductFormStateImpl implements _ProductFormState {
   @override
   @JsonKey()
   final bool isSubmitting;
+  @override
+  @JsonKey()
+  final bool isUploadingImage;
+  @override
+  final String? imageUploadError;
   final Map<String, String> _errors;
   @override
   @JsonKey()
@@ -1025,7 +1058,7 @@ class _$ProductFormStateImpl implements _ProductFormState {
 
   @override
   String toString() {
-    return 'ProductFormState(mode: $mode, productId: $productId, name: $name, sku: $sku, description: $description, imageUrl: $imageUrl, localImagePath: $localImagePath, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedBaseUnitId: $selectedBaseUnitId, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, shelfLifeDays: $shelfLifeDays, minStockLevel: $minStockLevel, maxStockLevel: $maxStockLevel, variations: $variations, barcodes: $barcodes, isLoading: $isLoading, isSubmitting: $isSubmitting, errors: $errors)';
+    return 'ProductFormState(mode: $mode, productId: $productId, name: $name, sku: $sku, description: $description, imageUrl: $imageUrl, localImagePath: $localImagePath, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedBaseUnitId: $selectedBaseUnitId, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, shelfLifeDays: $shelfLifeDays, minStockLevel: $minStockLevel, maxStockLevel: $maxStockLevel, variations: $variations, barcodes: $barcodes, isLoading: $isLoading, isSubmitting: $isSubmitting, isUploadingImage: $isUploadingImage, imageUploadError: $imageUploadError, errors: $errors)';
   }
 
   @override
@@ -1075,6 +1108,10 @@ class _$ProductFormStateImpl implements _ProductFormState {
                 other.isLoading == isLoading) &&
             (identical(other.isSubmitting, isSubmitting) ||
                 other.isSubmitting == isSubmitting) &&
+            (identical(other.isUploadingImage, isUploadingImage) ||
+                other.isUploadingImage == isUploadingImage) &&
+            (identical(other.imageUploadError, imageUploadError) ||
+                other.imageUploadError == imageUploadError) &&
             const DeepCollectionEquality().equals(other._errors, _errors));
   }
 
@@ -1103,6 +1140,8 @@ class _$ProductFormStateImpl implements _ProductFormState {
     const DeepCollectionEquality().hash(_barcodes),
     isLoading,
     isSubmitting,
+    isUploadingImage,
+    imageUploadError,
     const DeepCollectionEquality().hash(_errors),
   ]);
 
@@ -1142,6 +1181,8 @@ abstract class _ProductFormState implements ProductFormState {
     final List<BarcodeFormItem> barcodes,
     final bool isLoading,
     final bool isSubmitting,
+    final bool isUploadingImage,
+    final String? imageUploadError,
     final Map<String, String> errors,
   }) = _$ProductFormStateImpl;
 
@@ -1189,6 +1230,10 @@ abstract class _ProductFormState implements ProductFormState {
   bool get isLoading;
   @override
   bool get isSubmitting;
+  @override
+  bool get isUploadingImage;
+  @override
+  String? get imageUploadError;
   @override
   Map<String, String> get errors;
 

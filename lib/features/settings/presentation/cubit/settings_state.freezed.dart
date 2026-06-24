@@ -32,6 +32,7 @@ mixin _$SettingsState {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -58,6 +59,7 @@ mixin _$SettingsState {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -84,6 +86,7 @@ mixin _$SettingsState {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -198,6 +201,7 @@ class _$SettingsInitialImpl implements SettingsInitial {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -228,6 +232,7 @@ class _$SettingsInitialImpl implements SettingsInitial {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -258,6 +263,7 @@ class _$SettingsInitialImpl implements SettingsInitial {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -374,6 +380,7 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -404,6 +411,7 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -434,6 +442,7 @@ class _$SettingsLoadingImpl implements SettingsLoading {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -512,6 +521,7 @@ abstract class _$$SettingsLoadedImplCopyWith<$Res> {
     String? branchOverrideId,
     String? branchOverrideFooter,
     bool branchFooterIsOverride,
+    bool isUploadingLogo,
     bool isSavingBusiness,
     bool isSavingReceipt,
     bool isSavingBranchOverride,
@@ -548,6 +558,7 @@ class __$$SettingsLoadedImplCopyWithImpl<$Res>
     Object? branchOverrideId = freezed,
     Object? branchOverrideFooter = freezed,
     Object? branchFooterIsOverride = null,
+    Object? isUploadingLogo = null,
     Object? isSavingBusiness = null,
     Object? isSavingReceipt = null,
     Object? isSavingBranchOverride = null,
@@ -597,6 +608,10 @@ class __$$SettingsLoadedImplCopyWithImpl<$Res>
         branchFooterIsOverride: null == branchFooterIsOverride
             ? _value.branchFooterIsOverride
             : branchFooterIsOverride // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isUploadingLogo: null == isUploadingLogo
+            ? _value.isUploadingLogo
+            : isUploadingLogo // ignore: cast_nullable_to_non_nullable
                   as bool,
         isSavingBusiness: null == isSavingBusiness
             ? _value.isSavingBusiness
@@ -655,6 +670,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
     this.branchOverrideId,
     this.branchOverrideFooter,
     this.branchFooterIsOverride = false,
+    this.isUploadingLogo = false,
     this.isSavingBusiness = false,
     this.isSavingReceipt = false,
     this.isSavingBranchOverride = false,
@@ -703,6 +719,9 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
   final bool branchFooterIsOverride;
   @override
   @JsonKey()
+  final bool isUploadingLogo;
+  @override
+  @JsonKey()
   final bool isSavingBusiness;
   @override
   @JsonKey()
@@ -723,7 +742,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
 
   @override
   String toString() {
-    return 'SettingsState.loaded(business: $business, businessSettings: $businessSettings, taxRates: $taxRates, footerText: $footerText, paperSize: $paperSize, showTaxOnReceipt: $showTaxOnReceipt, showLogoOnReceipt: $showLogoOnReceipt, branchOverrideId: $branchOverrideId, branchOverrideFooter: $branchOverrideFooter, branchFooterIsOverride: $branchFooterIsOverride, isSavingBusiness: $isSavingBusiness, isSavingReceipt: $isSavingReceipt, isSavingBranchOverride: $isSavingBranchOverride, isSavingTaxRate: $isSavingTaxRate, defaultTaxRateId: $defaultTaxRateId, isSavingDefaultTaxRate: $isSavingDefaultTaxRate, errorMessage: $errorMessage)';
+    return 'SettingsState.loaded(business: $business, businessSettings: $businessSettings, taxRates: $taxRates, footerText: $footerText, paperSize: $paperSize, showTaxOnReceipt: $showTaxOnReceipt, showLogoOnReceipt: $showLogoOnReceipt, branchOverrideId: $branchOverrideId, branchOverrideFooter: $branchOverrideFooter, branchFooterIsOverride: $branchFooterIsOverride, isUploadingLogo: $isUploadingLogo, isSavingBusiness: $isSavingBusiness, isSavingReceipt: $isSavingReceipt, isSavingBranchOverride: $isSavingBranchOverride, isSavingTaxRate: $isSavingTaxRate, defaultTaxRateId: $defaultTaxRateId, isSavingDefaultTaxRate: $isSavingDefaultTaxRate, errorMessage: $errorMessage)';
   }
 
   @override
@@ -752,6 +771,8 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
                 other.branchOverrideFooter == branchOverrideFooter) &&
             (identical(other.branchFooterIsOverride, branchFooterIsOverride) ||
                 other.branchFooterIsOverride == branchFooterIsOverride) &&
+            (identical(other.isUploadingLogo, isUploadingLogo) ||
+                other.isUploadingLogo == isUploadingLogo) &&
             (identical(other.isSavingBusiness, isSavingBusiness) ||
                 other.isSavingBusiness == isSavingBusiness) &&
             (identical(other.isSavingReceipt, isSavingReceipt) ||
@@ -781,6 +802,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
     branchOverrideId,
     branchOverrideFooter,
     branchFooterIsOverride,
+    isUploadingLogo,
     isSavingBusiness,
     isSavingReceipt,
     isSavingBranchOverride,
@@ -817,6 +839,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -839,6 +862,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       branchOverrideId,
       branchOverrideFooter,
       branchFooterIsOverride,
+      isUploadingLogo,
       isSavingBusiness,
       isSavingReceipt,
       isSavingBranchOverride,
@@ -865,6 +889,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -887,6 +912,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       branchOverrideId,
       branchOverrideFooter,
       branchFooterIsOverride,
+      isUploadingLogo,
       isSavingBusiness,
       isSavingReceipt,
       isSavingBranchOverride,
@@ -913,6 +939,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -937,6 +964,7 @@ class _$SettingsLoadedImpl implements SettingsLoaded {
         branchOverrideId,
         branchOverrideFooter,
         branchFooterIsOverride,
+        isUploadingLogo,
         isSavingBusiness,
         isSavingReceipt,
         isSavingBranchOverride,
@@ -999,6 +1027,7 @@ abstract class SettingsLoaded implements SettingsState {
     final String? branchOverrideId,
     final String? branchOverrideFooter,
     final bool branchFooterIsOverride,
+    final bool isUploadingLogo,
     final bool isSavingBusiness,
     final bool isSavingReceipt,
     final bool isSavingBranchOverride,
@@ -1018,6 +1047,7 @@ abstract class SettingsLoaded implements SettingsState {
   String? get branchOverrideId;
   String? get branchOverrideFooter;
   bool get branchFooterIsOverride;
+  bool get isUploadingLogo;
   bool get isSavingBusiness;
   bool get isSavingReceipt;
   bool get isSavingBranchOverride;
@@ -1116,6 +1146,7 @@ class _$SettingsErrorImpl implements SettingsError {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -1146,6 +1177,7 @@ class _$SettingsErrorImpl implements SettingsError {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,
@@ -1176,6 +1208,7 @@ class _$SettingsErrorImpl implements SettingsError {
       String? branchOverrideId,
       String? branchOverrideFooter,
       bool branchFooterIsOverride,
+      bool isUploadingLogo,
       bool isSavingBusiness,
       bool isSavingReceipt,
       bool isSavingBranchOverride,

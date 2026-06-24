@@ -1,14 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
-import 'package:frantend/features/pos/presentation/models/add_to_cart_outcome.dart';
 import 'package:frantend/features/pos/presentation/models/add_to_cart_result.dart';
 import 'package:frantend/features/pos/presentation/widgets/manual_price_dialog.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
 import 'package:frantend/utils/app_alerts.dart';
 
-/// Adds a product to the cart, prompting for manual price when needed.
+/// Adds a product to the cart, optionally prompting for manual price when needed.
 Future<bool> addProductWithPricePrompt(
   BuildContext context,
   PosCubit cubit, {
@@ -16,6 +15,7 @@ Future<bool> addProductWithPricePrompt(
   String? variationId,
   String? variationName,
   Decimal? manualUnitPrice,
+  bool promptForPrice = true,
 }) async {
   debugPrint(
     '[POS:AddToCart] product="${product.name}" id=${product.id} '
@@ -34,6 +34,8 @@ Future<bool> addProductWithPricePrompt(
     case AddToCartResult.needsVariation:
       return false;
     case AddToCartResult.needsPrice:
+      if (!promptForPrice) return false;
+
       final pending = outcome.pendingPrice;
       if (pending == null || !context.mounted) return false;
 
@@ -63,8 +65,9 @@ Future<bool> addProductWithPricePrompt(
 Future<bool> addProductFromGridTap(
   BuildContext context,
   PosCubit cubit,
-  ProductListItemModel product,
-) async {
+  ProductListItemModel product, {
+  bool promptForPrice = true,
+}) async {
   debugPrint('[POS:GridTap] product="${product.name}" id=${product.id}');
   final details = await cubit.getProductDetails(product.id);
   if (!context.mounted) {
@@ -92,11 +95,57 @@ Future<bool> addProductFromGridTap(
       product: product,
       variationId: variation.id,
       variationName: variation.name,
+      promptForPrice: promptForPrice,
     );
   }
 
   debugPrint('[POS:GridTap] SINGLE/no-variation → add directly');
-  return addProductWithPricePrompt(context, cubit, product: product);
+  return addProductWithPricePrompt(
+    context,
+    cubit,
+    product: product,
+    promptForPrice: promptForPrice,
+  );
+}
+
+/// Opens the manual price dialog, then adds the product with that price.
+Future<bool> setProductPriceFromGrid(
+  BuildContext context,
+  PosCubit cubit,
+  ProductListItemModel product,
+) async {
+  final details = await cubit.getProductDetails(product.id);
+  if (!context.mounted) return false;
+
+  String? variationId;
+  String? variationName;
+
+  if (details != null && details.variations.length > 1) {
+    final variation = await showModalBottomSheet<VariationModel>(
+      context: context,
+      builder: (ctx) => _VariationPicker(variations: details.variations),
+    );
+    if (variation == null || !context.mounted) return false;
+    variationId = variation.id;
+    variationName = variation.name;
+  }
+
+  final price = await ManualPriceDialog.show(
+    context,
+    productName: product.name,
+    variationName: variationName,
+  );
+  if (price == null || !context.mounted) return false;
+
+  return addProductWithPricePrompt(
+    context,
+    cubit,
+    product: product,
+    variationId: variationId,
+    variationName: variationName,
+    manualUnitPrice: price,
+    promptForPrice: false,
+  );
 }
 
 Future<bool> addBarcodeWithPricePrompt(

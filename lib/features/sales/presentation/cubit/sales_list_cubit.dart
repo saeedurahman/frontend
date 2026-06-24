@@ -17,7 +17,8 @@ class SalesListCubit extends Cubit<SalesListState> {
         _authLocal = authLocalDataSource,
         super(const SalesListState.initial());
 
-  static const _pageSize = 50;
+  static const _defaultPageSize = 10;
+  int _pageSize = _defaultPageSize;
 
   final GetSalesUseCase _getSales;
   final AuthLocalDataSource _authLocal;
@@ -113,6 +114,64 @@ class SalesListCubit extends Cubit<SalesListState> {
             ),
           );
         }
+      },
+    );
+  }
+
+  int get pageSize => _pageSize;
+
+  int currentPage(SalesListLoaded state) => (state.skip ~/ state.limit) + 1;
+
+  int totalPages(SalesListLoaded state) {
+    if (state.total == 0) return 1;
+    return (state.total / state.limit).ceil();
+  }
+
+  Future<void> setPageSize(int size) async {
+    if (size < 1 || _pageSize == size) return;
+    _pageSize = size;
+    await loadSales();
+  }
+
+  Future<void> goToPage(int page) async {
+    final current = state;
+    if (current is! SalesListLoaded) return;
+    final totalPages = this.totalPages(current);
+    final target = page.clamp(1, totalPages);
+    if (target == currentPage(current)) return;
+
+    emit(const SalesListState.loading());
+    final skip = (target - 1) * _pageSize;
+    final result = await _getSales(
+      branchId: _branchId,
+      status: _status,
+      dateFrom: _dateFrom,
+      dateTo: _dateTo,
+      search: _search,
+      skip: skip,
+      limit: _pageSize,
+    );
+
+    result.fold(
+      (failure) => emit(SalesListState.error(failure.message)),
+      (page) {
+        final hasFilters = _status != null ||
+            (_search != null && _search!.isNotEmpty) ||
+            _branchId != null;
+        emit(
+          SalesListLoaded(
+            items: page.items,
+            total: page.total,
+            skip: page.skip,
+            limit: page.limit,
+            statusFilter: _status,
+            branchIdFilter: _branchId,
+            searchQuery: _search,
+            dateFrom: _dateFrom,
+            dateTo: _dateTo,
+            hasActiveFilters: hasFilters,
+          ),
+        );
       },
     );
   }

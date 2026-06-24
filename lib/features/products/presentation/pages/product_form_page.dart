@@ -26,7 +26,6 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ProductFormPage extends StatelessWidget {
   const ProductFormPage({super.key, this.productId});
@@ -454,47 +453,81 @@ class _ImageUpload extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProductFormCubit>();
-    final path = state.localImagePath ?? state.imageUrl;
+    final previewUrl = state.imageUrl;
+    final localPath = state.localImagePath;
+    final hasPreview = (previewUrl != null && previewUrl.startsWith('http')) ||
+        localPath != null;
 
-    return InkWell(
-      onTap: () async {
-        final picker = ImagePicker();
-        final file = await picker.pickImage(source: ImageSource.gallery);
-        if (file != null) cubit.updateLocalImagePath(file.path);
-      },
-      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: state.isUploadingImage ? null : cubit.pickAndUploadImage,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          border: Border.all(color: AppColors.border),
-          color: AppColors.inputFill,
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              border: Border.all(color: AppColors.border),
+              color: AppColors.inputFill,
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (hasPreview)
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                    child: previewUrl != null && previewUrl.startsWith('http')
+                        ? Image.network(previewUrl, fit: BoxFit.contain)
+                        : Image.file(File(localPath!), fit: BoxFit.contain),
+                  )
+                else
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.upload_file_rounded,
+                          color: AppColors.primary, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Click to upload product image',
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const Text(
+                        'PNG or JPG — uploaded to cloud storage',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ],
+                  ),
+                if (state.isUploadingImage)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black38,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMd),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
-        child: path != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                child: path.startsWith('http')
-                    ? Image.network(path, fit: BoxFit.contain)
-                    : Image.file(File(path), fit: BoxFit.contain),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.upload_file_rounded,
-                      color: AppColors.primary, size: 32),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Drag and drop or click to upload',
-                    style: AppTextStyles.bodyMedium
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const Text(
-                    'PNG or JPG (upload integration pending)',
-                    style: AppTextStyles.bodySmall,
-                  ),
-                ],
-              ),
-      ),
+        if (state.imageUploadError != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            state.imageUploadError!,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+          ),
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: state.isUploadingImage ? null : cubit.pickAndUploadImage,
+            child: const Text('Retry upload'),
+          ),
+        ],
+      ],
     );
   }
 }

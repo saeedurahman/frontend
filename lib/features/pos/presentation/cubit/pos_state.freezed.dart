@@ -39,6 +39,7 @@ mixin _$PosState {
   String? get cartDiscountValue => throw _privateConstructorUsedError;
   String? get cartNote => throw _privateConstructorUsedError;
   Map<String, String> get priceCache => throw _privateConstructorUsedError;
+  Map<String, String> get stockCache => throw _privateConstructorUsedError;
   Map<String, ProductModel> get productDetailsCache =>
       throw _privateConstructorUsedError;
   bool get isSubmittingSale => throw _privateConstructorUsedError;
@@ -82,6 +83,7 @@ abstract class $PosStateCopyWith<$Res> {
     String? cartDiscountValue,
     String? cartNote,
     Map<String, String> priceCache,
+    Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
     bool isSubmittingSale,
     bool isOffline,
@@ -133,6 +135,7 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
     Object? cartDiscountValue = freezed,
     Object? cartNote = freezed,
     Object? priceCache = null,
+    Object? stockCache = null,
     Object? productDetailsCache = null,
     Object? isSubmittingSale = null,
     Object? isOffline = null,
@@ -229,6 +232,10 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
             priceCache: null == priceCache
                 ? _value.priceCache
                 : priceCache // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>,
+            stockCache: null == stockCache
+                ? _value.stockCache
+                : stockCache // ignore: cast_nullable_to_non_nullable
                       as Map<String, String>,
             productDetailsCache: null == productDetailsCache
                 ? _value.productDetailsCache
@@ -348,6 +355,7 @@ abstract class _$$PosStateImplCopyWith<$Res>
     String? cartDiscountValue,
     String? cartNote,
     Map<String, String> priceCache,
+    Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
     bool isSubmittingSale,
     bool isOffline,
@@ -402,6 +410,7 @@ class __$$PosStateImplCopyWithImpl<$Res>
     Object? cartDiscountValue = freezed,
     Object? cartNote = freezed,
     Object? priceCache = null,
+    Object? stockCache = null,
     Object? productDetailsCache = null,
     Object? isSubmittingSale = null,
     Object? isOffline = null,
@@ -499,6 +508,10 @@ class __$$PosStateImplCopyWithImpl<$Res>
             ? _value._priceCache
             : priceCache // ignore: cast_nullable_to_non_nullable
                   as Map<String, String>,
+        stockCache: null == stockCache
+            ? _value._stockCache
+            : stockCache // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>,
         productDetailsCache: null == productDetailsCache
             ? _value._productDetailsCache
             : productDetailsCache // ignore: cast_nullable_to_non_nullable
@@ -554,6 +567,7 @@ class _$PosStateImpl extends _PosState {
     this.cartDiscountValue,
     this.cartNote,
     final Map<String, String> priceCache = const {},
+    final Map<String, String> stockCache = const {},
     final Map<String, ProductModel> productDetailsCache = const {},
     this.isSubmittingSale = false,
     this.isOffline = false,
@@ -566,6 +580,7 @@ class _$PosStateImpl extends _PosState {
        _cartItems = cartItems,
        _taxRates = taxRates,
        _priceCache = priceCache,
+       _stockCache = stockCache,
        _productDetailsCache = productDetailsCache,
        super._();
 
@@ -660,6 +675,15 @@ class _$PosStateImpl extends _PosState {
     return EqualUnmodifiableMapView(_priceCache);
   }
 
+  final Map<String, String> _stockCache;
+  @override
+  @JsonKey()
+  Map<String, String> get stockCache {
+    if (_stockCache is EqualUnmodifiableMapView) return _stockCache;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_stockCache);
+  }
+
   final Map<String, ProductModel> _productDetailsCache;
   @override
   @JsonKey()
@@ -685,7 +709,7 @@ class _$PosStateImpl extends _PosState {
 
   @override
   String toString() {
-    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName)';
+    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName)';
   }
 
   @override
@@ -744,6 +768,10 @@ class _$PosStateImpl extends _PosState {
               _priceCache,
             ) &&
             const DeepCollectionEquality().equals(
+              other._stockCache,
+              _stockCache,
+            ) &&
+            const DeepCollectionEquality().equals(
               other._productDetailsCache,
               _productDetailsCache,
             ) &&
@@ -784,6 +812,7 @@ class _$PosStateImpl extends _PosState {
     cartDiscountValue,
     cartNote,
     const DeepCollectionEquality().hash(_priceCache),
+    const DeepCollectionEquality().hash(_stockCache),
     const DeepCollectionEquality().hash(_productDetailsCache),
     isSubmittingSale,
     isOffline,
@@ -825,6 +854,7 @@ abstract class _PosState extends PosState {
     final String? cartDiscountValue,
     final String? cartNote,
     final Map<String, String> priceCache,
+    final Map<String, String> stockCache,
     final Map<String, ProductModel> productDetailsCache,
     final bool isSubmittingSale,
     final bool isOffline,
@@ -878,6 +908,8 @@ abstract class _PosState extends PosState {
   String? get cartNote;
   @override
   Map<String, String> get priceCache;
+  @override
+  Map<String, String> get stockCache;
   @override
   Map<String, ProductModel> get productDetailsCache;
   @override

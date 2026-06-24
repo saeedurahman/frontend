@@ -5,14 +5,27 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
+const _purchaseOrderTableColumns = [
+  AppDataTableColumn(label: 'PO Number', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Supplier', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Ordered', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Expected', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Status', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Total', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Items', flex: 1, sortable: true),
+];
 Future<void> openPurchaseOrderForm(BuildContext context) async {
   final created = await context.push<bool>(RouteNames.purchaseOrderNew);
   if (created == true && context.mounted) {
@@ -20,7 +33,8 @@ Future<void> openPurchaseOrderForm(BuildContext context) async {
   }
 }
 
-class PurchaseOrdersListPage extends StatelessWidget {  const PurchaseOrdersListPage({super.key});
+class PurchaseOrdersListPage extends StatelessWidget {
+  const PurchaseOrdersListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +72,11 @@ class _PurchaseOrdersListView extends StatelessWidget {
             Expanded(
               child: switch (state) {
                 PurchaseOrdersListInitial() || PurchaseOrdersListLoading() =>
-                  const _ShimmerTable(),
-                PurchaseOrdersListLoaded(:final filteredOrders)
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: const AppDataTableShimmer(),
+                  ),                PurchaseOrdersListLoaded(:final filteredOrders)
                     when filteredOrders.isEmpty =>
                   const Center(
                     child: Text('No purchase orders found'),
@@ -103,7 +120,8 @@ class _Toolbar extends StatelessWidget {
         ),
         const Spacer(),
         ElevatedButton.icon(
-          onPressed: () => openPurchaseOrderForm(context),          style: ElevatedButton.styleFrom(
+          onPressed: () => openPurchaseOrderForm(context),
+          style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
           ),
@@ -191,145 +209,167 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _OrdersTable extends StatelessWidget {
+class _OrdersTable extends StatefulWidget {
   const _OrdersTable({required this.orders});
 
   final List<PurchaseOrderModel> orders;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
-            ),
-            child: Row(
-              children: [
-                Expanded(child: Text('PO Number', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Supplier', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Ordered', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Expected', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Status', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Total', style: AppTextStyles.labelLarge)),
-                SizedBox(width: 60, child: Text('Items', style: AppTextStyles.labelLarge)),
-                const SizedBox(width: 40),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return _OrderRow(order: order);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<_OrdersTable> createState() => _OrdersTableState();
 }
 
-class _OrderRow extends StatelessWidget {
-  const _OrderRow({required this.order});
-
-  final PurchaseOrderModel order;
+class _OrdersTableState extends State<_OrdersTable> {
+  int? _sortColumn;
+  bool _sortAscending = true;
 
   String _formatDate(String? value) {
-    if (value == null) return '—';
+    if (value == null || value.isEmpty) return '—';
     return value.split('T').first;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => context.push('${RouteNames.purchases}/${order.id}'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.border)),
+  List<PurchaseOrderModel> get _sortedOrders {
+    final orders = [...widget.orders];
+    final column = _sortColumn;
+    if (column == null) return orders;
+
+    int compare<T extends Comparable<T>>(T a, T b) =>
+        _sortAscending ? a.compareTo(b) : b.compareTo(a);
+
+    orders.sort((a, b) {
+      return switch (column) {
+        0 => compare(a.poNumber.toLowerCase(), b.poNumber.toLowerCase()),
+        1 => compare(
+            (a.supplier?.name ?? a.supplierId).toLowerCase(),
+            (b.supplier?.name ?? b.supplierId).toLowerCase(),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(order.poNumber, style: AppTextStyles.titleMedium),
-              ),
-              Expanded(
-                child: Text(
-                  order.supplier?.name ?? order.supplierId,
-                  style: AppTextStyles.bodySmall,
-                ),
-              ),
-              Expanded(
-                child: Text(_formatDate(order.orderedAt), style: AppTextStyles.bodySmall),
-              ),
-              Expanded(
-                child: Text(_formatDate(order.expectedAt), style: AppTextStyles.bodySmall),
-              ),
-              Expanded(child: PurchaseStatusChip(status: order.status)),
-              Expanded(
-                child: Text(
-                  order.grandTotal.toStringAsFixed(2),
-                  style: AppTextStyles.bodySmall,
-                ),
-              ),
-              SizedBox(
-                width: 60,
-                child: Text('${order.lines.length}', style: AppTextStyles.bodySmall),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () => context.push('${RouteNames.purchases}/${order.id}'),
-              ),
-            ],
+        2 => compare(
+            (a.orderedAt ?? '').toLowerCase(),
+            (b.orderedAt ?? '').toLowerCase(),
           ),
-        ),
-      ),
-    );
+        3 => compare(
+            (a.expectedAt ?? '').toLowerCase(),
+            (b.expectedAt ?? '').toLowerCase(),
+          ),
+        4 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
+        5 => compare(a.grandTotal, b.grandTotal),
+        6 => compare(a.lines.length, b.lines.length),
+        _ => 0,
+      };
+    });
+    return orders;
   }
-}
 
-class _ShimmerTable extends StatelessWidget {
-  const _ShimmerTable();
+  void _openOrder(BuildContext context, PurchaseOrderModel order) {
+    context.push('${RouteNames.purchases}/${order.id}');
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: List.generate(
-            5,
-            (_) => Container(
-              height: 64,
-              margin: const EdgeInsets.all(12),
-              color: Colors.white,
-            ),
-          ),
-        ),
+    final orders = _sortedOrders;
+    final total = orders.length;
+
+    return AppDataTable<PurchaseOrderModel>(
+      columns: _purchaseOrderTableColumns,
+      items: orders,
+      itemId: (order) => order.id,
+      onColumnSort: (index) {
+        setState(() {
+          if (_sortColumn == index) {
+            _sortAscending = !_sortAscending;
+          } else {
+            _sortColumn = index;
+            _sortAscending = true;
+          }
+        });
+      },
+      onRowTap: (order) => _openOrder(context, order),
+      pagination: AppDataTablePaginationData(
+        from: total == 0 ? 0 : 1,
+        to: total,
+        total: total,
+        itemLabel: 'orders',
       ),
+      rowBuilder: (context, order, {required selected, required onSelected}) {
+        return AppDataTableRowLayout(
+          columns: _purchaseOrderTableColumns,
+          selected: selected,
+          onSelected: onSelected,
+          cells: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  order.poNumber,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (order.notes != null && order.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    order.notes!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            Text(
+              order.supplier?.name ?? order.supplierId,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              _formatDate(order.orderedAt),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              _formatDate(order.expectedAt),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            PurchaseStatusChip(status: order.status),
+            Text(
+              formatPKR(order.grandTotal),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              '${order.lines.length}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+          actions: AppTableActionButton(
+            icon: Icons.chevron_right,
+            tooltip: 'View',
+            onPressed: () => _openOrder(context, order),
+          ),
+        );
+      },
     );
   }
 }

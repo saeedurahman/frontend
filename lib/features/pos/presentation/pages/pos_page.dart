@@ -92,6 +92,7 @@ class _PosPageState extends State<PosPage> {
               children: [
                 Column(
                   children: [
+                    // shift , walkin customer , search part
                     _PosHeader(
                       state: state,
                       searchController: _searchController,
@@ -117,7 +118,7 @@ class _PosPageState extends State<PosPage> {
                                   color: AppColors.border,
                                 ),
                                 SizedBox(
-                                  width: 420,
+                                  width: 460,
                                   child: CartPanel(
                                     onPayPressed: () =>
                                         PaymentModal.show(context),
@@ -296,49 +297,35 @@ class _PosHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasCustomer = state.selectedCustomer != null;
     return Container(
-      height: 56,
+      height: 66,
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         children: [
           Text(
             state.cashierName ?? 'Cashier',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
           const Text('  •  ', style: TextStyle(color: AppColors.textSecondary)),
           InkWell(
             onTap: onShiftTap,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.15),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
+              child: Text(
                     state.isOffline ? 'Shift Open (Offline)' : 'Shift Open',
                     style: const TextStyle(
-                      color: AppColors.success,
+                      color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                      fontSize: 14,
                     ),
                   ),
-                ],
-              ),
             ),
           ),
           const Spacer(),
@@ -346,7 +333,7 @@ class _PosHeader extends StatelessWidget {
             onTap: onCustomerTap,
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: hasCustomer
                     ? AppColors.primary.withValues(alpha: 0.12)
@@ -361,16 +348,16 @@ class _PosHeader extends StatelessWidget {
                     ? '👤 ${state.selectedCustomer!.name}'
                     : '👤 Walk-in Customer',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 16,
                   color: hasCustomer ? AppColors.primary : AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 26),
           SizedBox(
-            width: 280,
+            width: 250,
             child: Focus(
               onKeyEvent: onSearchKey,
               child: TextField(
@@ -378,7 +365,8 @@ class _PosHeader extends StatelessWidget {
                 focusNode: searchFocusNode,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Scan barcode or search product...',
+                  hintText: 'Scan barcode or search product...' ,
+                  hintStyle: const TextStyle(fontSize: 16),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -387,7 +375,7 @@ class _PosHeader extends StatelessWidget {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.search, size: 20),
+                  prefixIcon: const Icon(Icons.search, size: 28),
                 ),
                 onChanged: onSearchChanged,
               ),

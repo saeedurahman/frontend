@@ -300,22 +300,10 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                         ),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _logoUrlController,
-                    decoration: const InputDecoration(
-                      labelText: 'Logo URL (optional)',
-                      helperText:
-                          'Paste hosted image URL — upload integration pending',
-                    ),
-                    onChanged: (v) => cubit.patchBusiness(
-                          (b) => b.copyWith(
-                            logoUrl: v.trim().isEmpty ? null : v.trim(),
-                          ),
-                        ),
-                  ),
+                  Text('Business Logo', style: AppTextStyles.titleMedium),
+                  const SizedBox(height: 8),
                   if (business.logoUrl != null &&
                       business.logoUrl!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
@@ -325,7 +313,39 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
+                    const SizedBox(height: 8),
                   ],
+                  OutlinedButton.icon(
+                    onPressed: widget.state.isUploadingLogo
+                        ? null
+                        : () => cubit.pickAndUploadLogo(),
+                    icon: widget.state.isUploadingLogo
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.upload_file_outlined, size: 18),
+                    label: Text(
+                      widget.state.isUploadingLogo
+                          ? 'Uploading…'
+                          : 'Upload Logo',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _logoUrlController,
+                    decoration: const InputDecoration(
+                      labelText: 'Or paste logo URL',
+                      helperText:
+                          'Optional — use upload above or paste a hosted image URL',
+                    ),
+                    onChanged: (v) => cubit.patchBusiness(
+                          (b) => b.copyWith(
+                            logoUrl: v.trim().isEmpty ? null : v.trim(),
+                          ),
+                        ),
+                  ),
                   const SizedBox(height: 12),
                   InputDecorator(
                     decoration: const InputDecoration(

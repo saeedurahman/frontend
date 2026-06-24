@@ -13,9 +13,23 @@ import 'package:frantend/features/sales/presentation/cubit/sales_list_state.dart
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+
+const _salesTableColumns = [
+  AppDataTableColumn(label: 'Invoice #', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Date/Time', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Customer', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Cashier', flex: 1, sortable: true),
+  AppDataTableColumn(label: 'Items', flex: 1, sortable: true),
+  AppDataTableColumn(label: 'Payment', flex: 1, sortable: false),
+  AppDataTableColumn(label: 'Total', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Status', flex: 1, sortable: true),
+];
 
 class SalesListPage extends StatelessWidget {
   const SalesListPage({super.key});
@@ -69,7 +83,11 @@ class _SalesListViewState extends State<_SalesListView> {
             Expanded(
               child: switch (state) {
                 SalesListInitial() || SalesListLoading() =>
-                  const _ShimmerTable(),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: const AppDataTableShimmer(),
+                  ),
                 SalesListLoaded(:final items) when items.isEmpty =>
                   _EmptyState(
                     hasFilters: state.hasActiveFilters,
@@ -219,10 +237,18 @@ class _FilterBar extends StatelessWidget {
       a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
-class _SalesTable extends StatelessWidget {
+class _SalesTable extends StatefulWidget {
   const _SalesTable({required this.state});
 
   final SalesListLoaded state;
+
+  @override
+  State<_SalesTable> createState() => _SalesTableState();
+}
+
+class _SalesTableState extends State<_SalesTable> {
+  int? _sortColumn;
+  bool _sortAscending = true;
 
   String _formatDate(String soldAt) {
     try {
@@ -237,175 +263,147 @@ class _SalesTable extends StatelessWidget {
     return formatPKR(double.tryParse(amount) ?? 0);
   }
 
+  List<SaleListItemModel> get _sortedItems {
+    final items = [...widget.state.items];
+    final column = _sortColumn;
+    if (column == null) return items;
+
+    int compare<T extends Comparable<T>>(T a, T b) =>
+        _sortAscending ? a.compareTo(b) : b.compareTo(a);
+
+    items.sort((a, b) {
+      return switch (column) {
+        0 => compare(
+            a.saleNumber.toLowerCase(),
+            b.saleNumber.toLowerCase(),
+          ),
+        1 => compare(a.soldAt.toLowerCase(), b.soldAt.toLowerCase()),
+        2 => compare(
+            (a.customerName ?? '').toLowerCase(),
+            (b.customerName ?? '').toLowerCase(),
+          ),
+        3 => compare(
+            (a.cashierName ?? '').toLowerCase(),
+            (b.cashierName ?? '').toLowerCase(),
+          ),
+        4 => compare(a.itemCount ?? 0, b.itemCount ?? 0),
+        6 => compare(
+            double.tryParse(a.totalAmount ?? '0') ?? 0,
+            double.tryParse(b.totalAmount ?? '0') ?? 0,
+          ),
+        7 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
+        _ => 0,
+      };
+    });
+    return items;
+  }
+
+  void _openSale(BuildContext context, SaleListItemModel item) {
+    context.push(RouteNames.saleDetailPath(item.id));
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<SalesListCubit>();
+    final state = widget.state;
+    final from = state.total == 0 ? 0 : state.skip + 1;
+    final to = (state.skip + state.items.length).clamp(0, state.total);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return AppDataTable<SaleListItemModel>(
+      columns: _salesTableColumns,
+      items: _sortedItems,
+      itemId: (item) => item.id,
+      onColumnSort: (index) {
+        setState(() {
+          if (_sortColumn == index) {
+            _sortAscending = !_sortAscending;
+          } else {
+            _sortColumn = index;
+            _sortAscending = true;
+          }
+        });
+      },
+      onRowTap: (item) => _openSale(context, item),
+      pagination: AppDataTablePaginationData(
+        from: from,
+        to: to,
+        total: state.total,
+        itemLabel: 'sales',
+        currentPage: cubit.currentPage(state),
+        totalPages: cubit.totalPages(state),
+        pageSize: [10, 25, 50].contains(state.limit)
+            ? state.limit
+            : cubit.pageSize,
+        onPageSizeChanged: cubit.setPageSize,
+        onGoToPage: cubit.goToPage,
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
-            ),
-            child: Row(
-              children: [
-                Expanded(flex: 2, child: Text('Invoice #', style: AppTextStyles.labelLarge)),
-                Expanded(flex: 2, child: Text('Date/Time', style: AppTextStyles.labelLarge)),
-                Expanded(flex: 2, child: Text('Customer', style: AppTextStyles.labelLarge)),
-                Expanded(flex: 1, child: Text('Cashier', style: AppTextStyles.labelLarge)),
-                Expanded(flex: 1, child: Text('Items', style: AppTextStyles.labelLarge)),
-                Expanded(flex: 1, child: Text('Payment', style: AppTextStyles.labelLarge)),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Total',
-                    style: AppTextStyles.labelLarge,
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                Expanded(flex: 1, child: Text('Status', style: AppTextStyles.labelLarge)),
-              ],
-            ),
-          ),
-          Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is ScrollEndNotification &&
-                    notification.metrics.extentAfter < 200 &&
-                    !state.isLoadingMore &&
-                    state.items.length < state.total) {
-                  cubit.loadMore();
-                }
-                return false;
-              },
-              child: ListView.builder(
-                itemCount:
-                    state.items.length + (state.isLoadingMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= state.items.length) {
-                    return const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  final item = state.items[index];
-                  return _SaleRow(
-                    item: item,
-                    formatDate: _formatDate,
-                    formatAmount: _formatAmount,
-                    onTap: () => context.push(RouteNames.saleDetailPath(item.id)),
-                  );
-                },
+      rowBuilder: (context, item, {required selected, required onSelected}) {
+        final customerLabel = item.customerName ?? 'Walk-in Customer';
+        final itemCountLabel =
+            item.itemCount != null ? '${item.itemCount} items' : '—';
+
+        return AppDataTableRowLayout(
+          columns: _salesTableColumns,
+          selected: selected,
+          onSelected: onSelected,
+          cells: [
+            Text(
+              item.saleNumber,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.primary,
               ),
             ),
+            Text(
+              _formatDate(item.soldAt),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              customerLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              item.cashierName ?? '—',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              itemCountLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SaleListPaymentMethodsCell(methods: item.paymentMethods),
+            SaleListTotalCell(
+              totalAmount: item.totalAmount,
+              balanceDue: item.balanceDue,
+              formatAmount: _formatAmount,
+            ),
+            SaleStatusChip(status: item.status),
+          ],
+          actions: AppTableActionButton(
+            icon: Icons.chevron_right,
+            tooltip: 'View',
+            onPressed: () => _openSale(context, item),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SaleRow extends StatelessWidget {
-  const _SaleRow({
-    required this.item,
-    required this.formatDate,
-    required this.formatAmount,
-    required this.onTap,
-  });
-
-  final SaleListItemModel item;
-  final String Function(String) formatDate;
-  final String Function(String?) formatAmount;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final customerLabel = item.customerName ?? 'Walk-in Customer';
-    final itemCountLabel =
-        item.itemCount != null ? '${item.itemCount} items' : '—';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.border)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Text(
-                  item.saleNumber,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(formatDate(item.soldAt), style: AppTextStyles.bodySmall),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  customerLabel,
-                  style: AppTextStyles.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  item.cashierName ?? '—',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(itemCountLabel, style: AppTextStyles.bodySmall),
-              ),
-              Expanded(
-                flex: 1,
-                child: SaleListPaymentMethodsCell(methods: item.paymentMethods),
-              ),
-              Expanded(
-                flex: 2,
-                child: SaleListTotalCell(
-                  totalAmount: item.totalAmount,
-                  balanceDue: item.balanceDue,
-                  formatAmount: formatAmount,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: SaleStatusChip(status: item.status),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -437,34 +435,6 @@ class _EmptyState extends StatelessWidget {
             OutlinedButton(onPressed: onClear, child: const Text('Clear Filters')),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _ShimmerTable extends StatelessWidget {
-  const _ShimmerTable();
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: List.generate(
-            5,
-            (_) => Container(
-              height: 56,
-              margin: const EdgeInsets.all(12),
-              color: Colors.white,
-            ),
-          ),
-        ),
       ),
     );
   }

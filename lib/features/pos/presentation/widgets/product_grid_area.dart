@@ -21,6 +21,11 @@ class ProductGridArea extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _CategoryTabs(state: state),
+            Container(
+              height: 2,
+              color: AppColors.brandingPanel,
+            ),
+            const SizedBox(height: 15),
             Expanded(
               child: state.isLoadingProducts
                   ? const _ProductShimmerGrid()
@@ -43,7 +48,7 @@ class _CategoryTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<PosCubit>();
     return SizedBox(
-      height: 48,
+      height: 52,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -98,7 +103,7 @@ class _CategoryChip extends StatelessWidget {
             style: TextStyle(
               color: selected ? Colors.white : AppColors.textSecondary,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: 16,
             ),
           ),
         ),
@@ -116,14 +121,14 @@ class _ProductGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount =
-            (constraints.maxWidth / 180).floor().clamp(2, 6);
+            (constraints.maxWidth / 180).floor().clamp(2, 5);
         return GridView.builder(
           padding: const EdgeInsets.all(12),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.82,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 0.68,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) =>
@@ -145,15 +150,13 @@ class _ProductCard extends StatefulWidget {
 class _ProductCardState extends State<_ProductCard> {
   bool _flash = false;
 
-  Future<void> _onTap() async {
-    debugPrint('[POS:GridTap] card tapped "${widget.product.name}" id=${widget.product.id}');
+  Future<void> _openPriceDialog() async {
     final cubit = context.read<PosCubit>();
-    final added = await addProductFromGridTap(
+    final added = await setProductPriceFromGrid(
       context,
       cubit,
       widget.product,
     );
-    debugPrint('[POS:GridTap] card tap added=$added');
     if (added && mounted) _flashAdded();
   }
 
@@ -164,86 +167,221 @@ class _ProductCardState extends State<_ProductCard> {
     });
   }
 
+  bool _isInStock(String? stock) {
+    if (stock == null) return false;
+    final qty = Decimal.tryParse(stock);
+    return qty != null && qty > Decimal.zero;
+  }
+
+  String _formatStock(String? stock) {
+    if (stock == null) return '—';
+    final qty = Decimal.tryParse(stock);
+    if (qty == null) return stock;
+    if (qty == qty.truncate()) return qty.toStringAsFixed(0);
+    return qty.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PosCubit>();
     final price = cubit.getDisplayPrice(widget.product.id);
+    final stock = cubit.getDisplayStock(widget.product.id);
+    final hasPrice = price != null && price > Decimal.zero;
+    final inStock = _isInStock(stock);
+    final imageUrl = widget.product.imageUrl?.trim();
+    final hasNetworkImage =
+        imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('http');
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: _onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            color: _flash
-                ? AppColors.primary.withValues(alpha: 0.08)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: _flash ? AppColors.primary : AppColors.border,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: 100,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(9),
-                  ),
-                  child: widget.product.imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: widget.product.imageUrl!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: 100,
-                          errorWidget: (_, __, ___) =>
-                              _PlaceholderImage(name: widget.product.name),
-                        )
-                      : _PlaceholderImage(name: widget.product.name),
-                ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openPriceDialog,
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              color: _flash
+                  ? AppColors.primary.withValues(alpha: 0.06)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _flash ? AppColors.primary : AppColors.border,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(11),
+                    ),
+                    child: hasNetworkImage
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => _PlaceholderImage(
+                              name: widget.product.name,
+                              loading: true,
+                            ),
+                            errorWidget: (_, __, ___) =>
+                                _PlaceholderImage(name: widget.product.name),
+                          )
+                        : _PlaceholderImage(name: widget.product.name),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _StockBadge(inStock: inStock),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 6,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.product.name,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: 16,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    if (widget.product.sku != null)
+                    if (widget.product.categoryName != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        widget.product.sku!,
+                        widget.product.categoryName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 10),
+                    _InfoRow(
+                      icon: Icons.inventory_2_outlined,
+                      label: 'Stock',
+                      value: _formatStock(stock),
+                      valueColor: AppColors.textPrimary,
+                      valueBold: true,
+                    ),
                     const SizedBox(height: 4),
-                    Text(
-                      price != null && price > Decimal.zero
+                    _InfoRow(
+                      icon: Icons.sell_outlined,
+                      label: 'Price',
+                      value: hasPrice
                           ? formatPKR(price.toDouble())
-                          : 'Tap to set price',
-                      style: TextStyle(
-                        color: price != null && price > Decimal.zero
-                            ? AppColors.primary
-                            : AppColors.warning,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                          : 'Tap to set',
+                      valueColor:
+                          hasPrice ? AppColors.textPrimary : AppColors.warning,
+                      valueBold: hasPrice,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Material(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(8),
+                            child: InkWell(
+                              onTap: _openPriceDialog,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        hasPrice
+                                            ? formatPKR(price.toDouble())
+                                            : 'Tap to set price',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: hasPrice
+                                              ? AppColors.textPrimary
+                                              : AppColors.warning,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 14,
+                                      color: hasPrice
+                                          ? AppColors.textSecondary
+                                          : AppColors.warning,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          height: 36,
+                          width: 36,
+                          child: Material(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(8),
+                            child: PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(
+                                Icons.more_vert,
+                                size: 18,
+                                color: AppColors.textSecondary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              onSelected: (value) {
+                                if (value == 'add') _openPriceDialog();
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'add',
+                                  child: Text('Add to cart'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
           ),
         ),
       ),
@@ -251,24 +389,123 @@ class _ProductCardState extends State<_ProductCard> {
   }
 }
 
+class _StockBadge extends StatelessWidget {
+  const _StockBadge({required this.inStock});
+
+  final bool inStock;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: inStock ? AppColors.success : AppColors.error,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            inStock ? 'In Stock' : 'Out of Stock',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+    this.valueBold = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color valueColor;
+  final bool valueBold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            color: valueColor,
+            fontWeight: valueBold ? FontWeight.bold : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _PlaceholderImage extends StatelessWidget {
-  const _PlaceholderImage({required this.name});
+  const _PlaceholderImage({
+    required this.name,
+    this.loading = false,
+  });
+
   final String name;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     final letter = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return Container(
-      color: AppColors.primary.withValues(alpha: 0.12),
+      color: AppColors.primary.withValues(alpha: loading ? 0.06 : 0.12),
       alignment: Alignment.center,
-      child: Text(
-        letter,
-        style: const TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
-        ),
-      ),
+      child: loading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(
+              letter,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
     );
   }
 }
@@ -282,9 +519,9 @@ class _ProductShimmerGrid extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.82,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.68,
       ),
       itemCount: 8,
       itemBuilder: (_, __) => Shimmer.fromColors(

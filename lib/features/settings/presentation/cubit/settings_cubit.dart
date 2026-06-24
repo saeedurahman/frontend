@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/constants/app_config.dart';
+import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/features/settings/data/models/app_setting_model.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/features/settings/presentation/utils/settings_value_utils.dart';
 import 'package:injectable/injectable.dart';
+import 'package:image_picker/image_picker.dart';
 
 @injectable
 class SettingsCubit extends Cubit<SettingsState> {
@@ -17,6 +22,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     required GetTaxRatesUseCase getTaxRatesUseCase,
     required CreateTaxRateUseCase createTaxRateUseCase,
     required UpdateTaxRateUseCase updateTaxRateUseCase,
+    required ImageUploadService imageUploadService,
   })  : _getBusiness = getBusinessProfileUseCase,
         _updateBusiness = updateBusinessProfileUseCase,
         _getSettings = getSettingsUseCase,
@@ -25,6 +31,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         _getTaxRates = getTaxRatesUseCase,
         _createTaxRate = createTaxRateUseCase,
         _updateTaxRate = updateTaxRateUseCase,
+        _imageUpload = imageUploadService,
         super(const SettingsState.initial());
 
   final GetBusinessProfileUseCase _getBusiness;
@@ -35,6 +42,8 @@ class SettingsCubit extends Cubit<SettingsState> {
   final GetTaxRatesUseCase _getTaxRates;
   final CreateTaxRateUseCase _createTaxRate;
   final UpdateTaxRateUseCase _updateTaxRate;
+  final ImageUploadService _imageUpload;
+  final ImagePicker _imagePicker = ImagePicker();
 
   Future<void> loadAll() async {
     emit(const SettingsState.loading());
@@ -131,6 +140,50 @@ class SettingsCubit extends Cubit<SettingsState> {
     _mutateLoaded(
       (s) => s.copyWith(business: patch(s.business), errorMessage: null),
     );
+  }
+
+  Future<void> pickAndUploadLogo() async {
+    final current = state;
+    if (current is! SettingsLoaded) return;
+
+    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    emit(current.copyWith(isUploadingLogo: true, errorMessage: null));
+
+    try {
+      final url = await _imageUpload.uploadImage(
+        File(picked.path),
+        folder: AppConfig.cloudinaryLogosFolder,
+      );
+      final latest = state;
+      if (latest is! SettingsLoaded) return;
+      emit(
+        latest.copyWith(
+          isUploadingLogo: false,
+          business: latest.business.copyWith(logoUrl: url),
+          errorMessage: null,
+        ),
+      );
+    } on ImageUploadException catch (e) {
+      final latest = state;
+      if (latest is! SettingsLoaded) return;
+      emit(
+        latest.copyWith(
+          isUploadingLogo: false,
+          errorMessage: e.message,
+        ),
+      );
+    } catch (_) {
+      final latest = state;
+      if (latest is! SettingsLoaded) return;
+      emit(
+        latest.copyWith(
+          isUploadingLogo: false,
+          errorMessage: 'Logo upload failed. Please try again.',
+        ),
+      );
+    }
   }
 
   void updateBusinessField({

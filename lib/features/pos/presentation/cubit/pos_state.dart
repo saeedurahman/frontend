@@ -38,6 +38,7 @@ class PosState with _$PosState {
     String? cartDiscountValue,
     String? cartNote,
     @Default({}) Map<String, String> priceCache,
+    @Default({}) Map<String, String> stockCache,
     @Default({}) Map<String, ProductModel> productDetailsCache,
     @Default(false) bool isSubmittingSale,
     @Default(false) bool isOffline,

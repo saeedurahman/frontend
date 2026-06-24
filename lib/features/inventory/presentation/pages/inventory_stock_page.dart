@@ -14,10 +14,22 @@ import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
+const _inventoryTableColumns = [
+  AppDataTableColumn(label: 'Product', flex: 4, sortable: true),
+  AppDataTableColumn(label: 'Variation', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Category', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Current Stock', flex: 2, sortable: true),
+  AppDataTableColumn(label: 'Min Level', flex: 1, sortable: true),
+  AppDataTableColumn(label: 'Unit', flex: 1, sortable: true),
+  AppDataTableColumn(label: 'Last Movement', flex: 2, sortable: true),
+];
 class InventoryStockPage extends StatelessWidget {
   const InventoryStockPage({super.key});
 
@@ -80,8 +92,11 @@ class _InventoryStockViewState extends State<_InventoryStockView> {
             Expanded(
               child: switch (state) {
                 InventoryStockInitial() || InventoryStockLoading() =>
-                  const _ShimmerTable(),
-                InventoryStockLoaded(:final filteredRows)
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: const AppDataTableShimmer(),
+                  ),                InventoryStockLoaded(:final filteredRows)
                     when filteredRows.isEmpty =>
                   const Center(child: Text('No stock records found')),
                 InventoryStockLoaded loaded => BlocBuilder<CategoriesCubit, CategoriesState>(
@@ -207,10 +222,18 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _StockTable extends StatelessWidget {
+class _StockTable extends StatefulWidget {
   const _StockTable({required this.rows});
 
   final List<StockDisplayRow> rows;
+
+  @override
+  State<_StockTable> createState() => _StockTableState();
+}
+
+class _StockTableState extends State<_StockTable> {
+  int? _sortColumn;
+  bool _sortAscending = true;
 
   Color _stockColor(StockDisplayRow row) {
     if (row.isOutOfStock) return AppColors.error;
@@ -218,125 +241,48 @@ class _StockTable extends StatelessWidget {
     return AppColors.success;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<InventoryStockCubit>();
+  String _stockLabel(StockDisplayRow row) {
+    if (row.isOutOfStock) return 'Out of Stock';
+    if (row.isLowStock) return 'Low Stock';
+    return 'In Stock';
+  }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  List<StockDisplayRow> get _sortedRows {
+    final rows = [...widget.rows];
+    final column = _sortColumn;
+    if (column == null) return rows;
+
+    int compare<T extends Comparable<T>>(T a, T b) =>
+        _sortAscending ? a.compareTo(b) : b.compareTo(a);
+
+    rows.sort((a, b) {
+      return switch (column) {
+        0 => compare(a.product.name.toLowerCase(), b.product.name.toLowerCase()),
+        1 => compare(
+            (a.variationName ?? '').toLowerCase(),
+            (b.variationName ?? '').toLowerCase(),
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
-            ),
-            child: Row(
-              children: [
-                Expanded(flex: 3, child: Text('Product', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Variation', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Category', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Current Stock', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Min Level', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Unit', style: AppTextStyles.labelLarge)),
-                Expanded(child: Text('Last Movement', style: AppTextStyles.labelLarge)),
-                const SizedBox(width: 100),
-              ],
-            ),
+        2 => compare(
+            (a.product.categoryName ?? '').toLowerCase(),
+            (b.product.categoryName ?? '').toLowerCase(),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: rows.length,
-              itemBuilder: (context, index) {
-                final row = rows[index];
-                final color = _stockColor(row);
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: AppColors.border)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(row.product.name, style: AppTextStyles.titleMedium),
-                      ),
-                      Expanded(
-                        child: Text(row.variationName ?? '—', style: AppTextStyles.bodySmall),
-                      ),
-                      Expanded(
-                        child: Text(
-                          _categoryName(context, row.product.categoryId) ??
-                              row.product.categoryName ??
-                              '—',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          row.balance.currentQty,
-                          style: AppTextStyles.titleMedium.copyWith(color: color),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          row.minStockLevel ?? '—',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(row.unitName ?? '—', style: AppTextStyles.bodySmall),
-                      ),
-                      Expanded(
-                        child: Text(
-                          row.balance.lastMovementAt?.split('T').first ?? '—',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 100,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              tooltip: 'Adjust',
-                              icon: const Icon(Icons.tune, size: 20),
-                              onPressed: () async {
-                                final saved = await StockAdjustmentDialog.show(
-                                  context,
-                                  row: row,
-                                );
-                                if (saved == true) await cubit.refresh();
-                              },
-                            ),
-                            IconButton(
-                              tooltip: 'Movements',
-                              icon: const Icon(Icons.history, size: 20),
-                              onPressed: () => context.push(
-                                '${RouteNames.inventory}/movements/${row.product.id}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+        3 => compare(a.currentQty, b.currentQty),
+        4 => compare(
+            double.tryParse(a.minStockLevel ?? '') ?? 0,
+            double.tryParse(b.minStockLevel ?? '') ?? 0,
           ),
-        ],
-      ),
-    );
+        5 => compare(
+            (a.unitName ?? '').toLowerCase(),
+            (b.unitName ?? '').toLowerCase(),
+          ),
+        6 => compare(
+            (a.balance.lastMovementAt ?? '').toLowerCase(),
+            (b.balance.lastMovementAt ?? '').toLowerCase(),
+          ),
+        _ => 0,
+      };
+    });
+    return rows;
   }
 
   String? _categoryName(BuildContext context, String? categoryId) {
@@ -349,32 +295,129 @@ class _StockTable extends StatelessWidget {
     }
     return null;
   }
-}
 
-class _ShimmerTable extends StatelessWidget {
-  const _ShimmerTable();
+  String _rowId(StockDisplayRow row) =>
+      '${row.product.id}:${row.balance.variationId ?? 'default'}';
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: List.generate(
-            5,
-            (_) => Container(
-              height: 64,
-              margin: const EdgeInsets.all(12),
-              color: Colors.white,
-            ),
-          ),
-        ),
+    final cubit = context.read<InventoryStockCubit>();
+    final rows = _sortedRows;
+    final total = rows.length;
+
+    return AppDataTable<StockDisplayRow>(
+      columns: _inventoryTableColumns,
+      items: rows,
+      itemId: _rowId,
+      actionsWidth: 88,
+      onColumnSort: (index) {
+        setState(() {
+          if (_sortColumn == index) {
+            _sortAscending = !_sortAscending;
+          } else {
+            _sortColumn = index;
+            _sortAscending = true;
+          }
+        });
+      },
+      pagination: AppDataTablePaginationData(
+        from: total == 0 ? 0 : 1,
+        to: total,
+        total: total,
+        itemLabel: 'items',
       ),
+      rowBuilder: (context, row, {required selected, required onSelected}) {
+        final categoryName = _categoryName(context, row.product.categoryId) ??
+            row.product.categoryName;
+        final stockColor = _stockColor(row);
+        final variantLabel = row.variationName ?? 'Default';
+
+        return AppDataTableRowLayout(
+          columns: _inventoryTableColumns,
+          selected: selected,
+          onSelected: onSelected,
+          cells: [
+            AppTableProductCell(
+              name: row.product.name,
+              code: appTableProductCode(
+                sku: row.product.sku,
+                id: row.product.id,
+              ),
+              variantLabel: variantLabel,
+              imageUrl: row.product.imageUrl,
+              subtitle: row.unitName != null ? 'Unit: ${row.unitName}' : null,
+            ),
+            row.variationName != null
+                ? AppTableVariantBadge(label: row.variationName!)
+                : const AppTableDashText(),
+            categoryName != null
+                ? AppTableCategoryBadge(name: categoryName)
+                : const AppTableDashText(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  row.balance.currentQty,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: stockColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                AppTableStatusBadge(
+                  label: _stockLabel(row),
+                  color: stockColor,
+                ),
+              ],
+            ),
+            Text(
+              row.minStockLevel ?? '—',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              row.unitName ?? '—',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              row.balance.lastMovementAt?.split('T').first ?? '—',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+          actions: Row(
+            children: [
+              AppTableActionButton(
+                icon: Icons.tune,
+                tooltip: 'Adjust',
+                onPressed: () async {
+                  final saved = await StockAdjustmentDialog.show(
+                    context,
+                    row: row,
+                  );
+                  if (saved == true) await cubit.refresh();
+                },
+              ),
+              const SizedBox(width: 6),
+              AppTableActionButton(
+                icon: Icons.history,
+                tooltip: 'Movements',
+                onPressed: () => context.push(
+                  '${RouteNames.inventory}/movements/${row.product.id}',
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

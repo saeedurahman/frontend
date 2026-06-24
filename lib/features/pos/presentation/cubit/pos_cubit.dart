@@ -44,6 +44,7 @@ class PosCubit extends Cubit<PosState> {
     required GetRegistersUseCase getRegistersUseCase,
     required CreateRegisterUseCase createRegisterUseCase,
     required GetStockBalanceUseCase getStockBalanceUseCase,
+    required GetStockBalancesUseCase getStockBalancesUseCase,
     required GetTaxRatesUseCase getTaxRatesUseCase,
     required GetSettingsUseCase getSettingsUseCase,
     required AuthLocalDataSource authLocalDataSource,
@@ -60,6 +61,7 @@ class PosCubit extends Cubit<PosState> {
         _getRegisters = getRegistersUseCase,
         _createRegister = createRegisterUseCase,
         _getStockBalance = getStockBalanceUseCase,
+        _getStockBalances = getStockBalancesUseCase,
         _getTaxRates = getTaxRatesUseCase,
         _getSettings = getSettingsUseCase,
         _authLocal = authLocalDataSource,
@@ -78,6 +80,7 @@ class PosCubit extends Cubit<PosState> {
   final GetRegistersUseCase _getRegisters;
   final CreateRegisterUseCase _createRegister;
   final GetStockBalanceUseCase _getStockBalance;
+  final GetStockBalancesUseCase _getStockBalances;
   final GetTaxRatesUseCase _getTaxRates;
   final GetSettingsUseCase _getSettings;
   final AuthLocalDataSource _authLocal;
@@ -112,6 +115,7 @@ class PosCubit extends Cubit<PosState> {
       _loadTaxData(),
       checkActiveShift(),
     ]);
+    await _loadStockBalances();
   }
 
   Future<void> _loadTaxData() async {
@@ -165,6 +169,32 @@ class PosCubit extends Cubit<PosState> {
         products: page.items,
       )),
     );
+    await _loadStockBalances();
+  }
+
+  Future<void> _loadStockBalances() async {
+    final branchId = state.branchId;
+    if (branchId == null || state.products.isEmpty) return;
+
+    final result = await _getStockBalances(branchId: branchId);
+    if (isClosed) return;
+
+    result.fold((_) {}, (balances) {
+      final cache = <String, String>{};
+      for (final balance in balances) {
+        final existing =
+            Decimal.tryParse(cache[balance.productId] ?? '') ?? Decimal.zero;
+        final add = Decimal.tryParse(balance.currentQty) ?? Decimal.zero;
+        cache[balance.productId] = DecimalUtils.format(
+          existing + add,
+          fractionDigits: 4,
+        );
+      }
+      for (final product in state.products) {
+        cache.putIfAbsent(product.id, () => '0');
+      }
+      _safeEmit(state.copyWith(stockCache: cache));
+    });
   }
 
   Future<void> _loadCategories() async {
@@ -739,4 +769,6 @@ class PosCubit extends Cubit<PosState> {
     if (raw == null) return null;
     return Decimal.tryParse(raw);
   }
+
+  String? getDisplayStock(String productId) => state.stockCache[productId];
 }

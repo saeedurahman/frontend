@@ -56,7 +56,7 @@ class _ManualPriceDialogState extends State<ManualPriceDialog> {
         : widget.productName;
 
     return AlertDialog(
-      title: Text('Set Price for $title'),
+      title: Text('Set Price for $title', style: Theme.of(context).textTheme.titleMedium),
       content: SizedBox(
         width: 320,
         child: Column(
@@ -65,7 +65,7 @@ class _ManualPriceDialogState extends State<ManualPriceDialog> {
           children: [
             const Text(
               'No price configured for this product',
-              style: TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
             TextField(

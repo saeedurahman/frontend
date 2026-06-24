@@ -51,6 +51,8 @@ class ProductFormState with _$ProductFormState {
     @Default([]) List<BarcodeFormItem> barcodes,
     @Default(false) bool isLoading,
     @Default(false) bool isSubmitting,
+    @Default(false) bool isUploadingImage,
+    String? imageUploadError,
     @Default({}) Map<String, String> errors,
   }) = _ProductFormState;
 }

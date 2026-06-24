@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/app.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/network/insecure_http_overrides.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/sync/sync_worker.dart';
 import 'package:frantend/core/utils/logger.dart';
@@ -9,6 +10,7 @@ import 'package:frantend/features/notifications/presentation/cubit/notifications
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  configureHttpOverrides();
 
   await configureDependencies();
   await sl<AuthGuard>().checkAuth();

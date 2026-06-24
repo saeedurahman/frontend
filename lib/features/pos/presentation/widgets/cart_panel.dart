@@ -1,4 +1,5 @@
-﻿import 'package:decimal/decimal.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,13 +71,15 @@ class CartPanel extends StatelessWidget {
               Expanded(
                 child: state.cartItems.isEmpty
                     ? const _EmptyCart()
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                         itemCount: state.cartItems.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) => _CartItemRow(
-                          index: index,
-                          state: state,
+                        itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _CartItemCard(
+                            index: index,
+                            state: state,
+                          ),
                         ),
                       ),
               ),
@@ -137,11 +140,18 @@ class _EmptyCart extends StatelessWidget {
   }
 }
 
-class _CartItemRow extends StatelessWidget {
-  const _CartItemRow({required this.index, required this.state});
+class _CartItemCard extends StatelessWidget {
+  const _CartItemCard({required this.index, required this.state});
 
   final int index;
   final PosState state;
+
+  String? _imageUrlFor(String productId) {
+    for (final product in state.products) {
+      if (product.id == productId) return product.imageUrl;
+    }
+    return state.productDetailsCache[productId]?.imageUrl;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,175 +160,318 @@ class _CartItemRow extends StatelessWidget {
     final hasDiscount = item.lineDiscount > Decimal.zero;
     final hasTax = item.taxRateId != null;
     final taxLabel = hasTax ? item.taxRateName! : 'No tax';
+    final imageUrl = _imageUrlFor(item.productId)?.trim();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _CartItemImage(
+            imageUrl: imageUrl,
+            name: item.productName,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.productName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (item.variationName != null)
-                      Container(
-                        margin: const EdgeInsets.only(right: 6, top: 2),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          item.variationName!,
-                          style: const TextStyle(fontSize: 11),
-                        ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.productName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (item.variationName != null)
+                                _VariantBadge(label: item.variationName!),
+                              if (item.sku != null) ...[
+                                Text(
+                                  '•',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary
+                                        .withValues(alpha: 0.6),
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  item.sku!,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          GestureDetector(
+                            onTap: () async {
+                              final result = await LineTaxRateDialog.show(
+                                context,
+                                taxRates: state.taxRates,
+                                selectedTaxRateId: item.taxRateId,
+                              );
+                              if (result == null) return;
+                              if (result is LineTaxRateNone) {
+                                cubit.updateLineTaxRate(index, null);
+                              } else if (result is TaxRateModel) {
+                                cubit.updateLineTaxRate(index, result);
+                              }
+                            },
+                            child: _TaxBadge(
+                              label: taxLabel,
+                              hasTax: hasTax,
+                            ),
+                          ),
+                          if (hasDiscount) ...[
+                            const SizedBox(height: 4),
+                            GestureDetector(
+                              onTap: () async {
+                                final result = await ItemDiscountDialog.show(
+                                  context,
+                                  lineSubtotal: item.lineSubtotal,
+                                  currentPct: item.effectiveDiscountPct,
+                                  currentAmount: item.effectiveDiscountAmount,
+                                );
+                                if (result != null) {
+                                  cubit.updateItemDiscount(
+                                    index,
+                                    pct: result.$1,
+                                    amount: result.$2,
+                                  );
+                                }
+                              },
+                              child: Text(
+                                'Discount: ${formatPKR(item.lineDiscount.toDouble())}',
+                                style: const TextStyle(
+                                  color: AppColors.warning,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 4),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: AppColors.primary,
+                            ),
+                            onPressed: () async {
+                              final note = await LineNoteDialog.show(
+                                context,
+                                initialNote: item.lineNote,
+                              );
+                              if (note != null) cubit.updateLineNote(index, note);
+                            },
+                            child: Text(
+                              item.lineNote?.isNotEmpty == true
+                                  ? item.lineNote!
+                                  : '+ Add note',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    if (item.sku != null)
-                      Text(
-                        item.sku!,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (hasDiscount)
+                                  Text(
+                                    formatPKR(item.lineSubtotal.toDouble()),
+                                    style: const TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                Text(
+                                  formatPKR(item.lineTotal.toDouble()),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 6),
+                            InkWell(
+                              onTap: () => cubit.removeFromCart(index),
+                              borderRadius: BorderRadius.circular(4),
+                              child: const Padding(
+                                padding: EdgeInsets.all(2),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        _QtyStepper(index: index, qty: item.qty),
+                      ],
+                    ),
                   ],
-                ),
-                if (hasDiscount)
-                  GestureDetector(
-                    onTap: () async {
-                      final result = await ItemDiscountDialog.show(
-                        context,
-                        lineSubtotal: item.lineSubtotal,
-                        currentPct: item.effectiveDiscountPct,
-                        currentAmount: item.effectiveDiscountAmount,
-                      );
-                      if (result != null) {
-                        cubit.updateItemDiscount(
-                          index,
-                          pct: result.$1,
-                          amount: result.$2,
-                        );
-                      }
-                    },
-                    child: Text(
-                      'Discount: ${formatPKR(item.lineDiscount.toDouble())}',
-                      style: const TextStyle(
-                        color: AppColors.warning,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () async {
-                        final result = await LineTaxRateDialog.show(
-                          context,
-                          taxRates: state.taxRates,
-                          selectedTaxRateId: item.taxRateId,
-                        );
-                        if (result == null) return;
-                        if (result is LineTaxRateNone) {
-                          cubit.updateLineTaxRate(index, null);
-                        } else if (result is TaxRateModel) {
-                          cubit.updateLineTaxRate(index, result);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 2),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: hasTax
-                              ? AppColors.primary.withValues(alpha: 0.08)
-                              : AppColors.background,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: hasTax
-                                ? AppColors.primary.withValues(alpha: 0.25)
-                                : AppColors.border,
-                          ),
-                        ),
-                        child: Text(
-                          taxLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: hasTax
-                                ? AppColors.primary
-                                : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () async {
-                    final note = await LineNoteDialog.show(
-                      context,
-                      initialNote: item.lineNote,
-                    );
-                    if (note != null) cubit.updateLineNote(index, note);
-                  },
-                  child: Text(
-                    item.lineNote?.isNotEmpty == true
-                        ? item.lineNote!
-                        : '+ Add note',
-                    style: const TextStyle(fontSize: 11),
-                  ),
                 ),
               ],
             ),
           ),
-          _QtyStepper(index: index, qty: item.qty),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (hasDiscount)
-                Text(
-                  formatPKR(item.lineSubtotal.toDouble()),
-                  style: const TextStyle(
-                    decoration: TextDecoration.lineThrough,
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
+        ],
+      ),
+    );
+  }
+}
+
+class _CartItemImage extends StatelessWidget {
+  const _CartItemImage({
+    required this.imageUrl,
+    required this.name,
+  });
+
+  final String? imageUrl;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasNetworkImage = imageUrl != null &&
+        imageUrl!.isNotEmpty &&
+        imageUrl!.startsWith('http');
+    final letter = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: hasNetworkImage
+            ? CachedNetworkImage(
+                imageUrl: imageUrl!,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => ColoredBox(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                 ),
-              Text(
-                formatPKR(item.lineTotal.toDouble()),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+                errorWidget: (_, __, ___) => _placeholder(letter),
+              )
+            : _placeholder(letter),
+      ),
+    );
+  }
+
+  Widget _placeholder(String letter) {
+    return ColoredBox(
+      color: AppColors.primary.withValues(alpha: 0.1),
+      child: Center(
+        child: Text(
+          letter,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
           ),
-          IconButton(
-            iconSize: 16,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: () => cubit.removeFromCart(index),
-            icon: const Icon(Icons.close, size: 16),
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VariantBadge extends StatelessWidget {
+  const _VariantBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _TaxBadge extends StatelessWidget {
+  const _TaxBadge({required this.label, required this.hasTax});
+
+  final String label;
+  final bool hasTax;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: hasTax
+            ? AppColors.primary.withValues(alpha: 0.08)
+            : AppColors.background,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: hasTax
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : AppColors.border,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: hasTax ? AppColors.primary : AppColors.textSecondary,
+        ),
       ),
     );
   }
@@ -361,33 +514,38 @@ class _QtyStepperState extends State<_QtyStepper> {
   Widget build(BuildContext context) {
     final cubit = context.read<PosCubit>();
     return Container(
+      height: 34,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.remove, size: 16),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          _StepperButton(
+            icon: Icons.remove,
             onPressed: () => cubit.decrementQty(widget.index),
           ),
+          Container(width: 1, height: 34, color: AppColors.border),
           SizedBox(
             width: 36,
             child: TextField(
               controller: _controller,
               textAlign: TextAlign.center,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.symmetric(vertical: 8),
               ),
               onSubmitted: (v) {
                 final qty = Decimal.tryParse(v) ?? Decimal.one;
@@ -395,13 +553,37 @@ class _QtyStepperState extends State<_QtyStepper> {
               },
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 16),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          Container(width: 1, height: 34, color: AppColors.border),
+          _StepperButton(
+            icon: Icons.add,
+            color: AppColors.primary,
             onPressed: () => cubit.incrementQty(widget.index),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({
+    required this.icon,
+    required this.onPressed,
+    this.color = AppColors.textSecondary,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      child: SizedBox(
+        width: 32,
+        height: 34,
+        child: Icon(icon, size: 16, color: color),
       ),
     );
   }
