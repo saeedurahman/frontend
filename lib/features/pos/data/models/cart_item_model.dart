@@ -103,4 +103,54 @@ class CartItemModel {
 
   String get cartKey =>
       variationId != null ? '$productId:$variationId' : productId;
+
+  Map<String, dynamic> toJson() => {
+        'product_id': productId,
+        if (variationId != null) 'variation_id': variationId,
+        'product_name': productName,
+        if (variationName != null) 'variation_name': variationName,
+        if (sku != null) 'sku': sku,
+        'unit_price': unitPrice.toString(),
+        'qty': qty.toString(),
+        if (itemDiscountPct != null)
+          'item_discount_pct': itemDiscountPct!.toString(),
+        if (itemDiscountAmount != null)
+          'item_discount_amount': itemDiscountAmount!.toString(),
+        if (taxRateId != null) 'tax_rate_id': taxRateId,
+        if (taxRateName != null) 'tax_rate_name': taxRateName,
+        if (taxRate != null) 'tax_rate': taxRate!.toString(),
+        if (lineNote != null) 'line_note': lineNote,
+        if (maxAvailableStock != null)
+          'max_available_stock': maxAvailableStock!.toString(),
+        'price_manual': priceManual,
+      };
+
+  factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    return CartItemModel(
+      productId: json['product_id'] as String,
+      variationId: json['variation_id'] as String?,
+      productName: json['product_name'] as String,
+      variationName: json['variation_name'] as String?,
+      sku: json['sku'] as String?,
+      unitPrice: Decimal.tryParse(json['unit_price']?.toString() ?? '') ??
+          Decimal.zero,
+      qty: Decimal.tryParse(json['qty']?.toString() ?? '') ?? Decimal.one,
+      itemDiscountPct: json['item_discount_pct'] != null
+          ? Decimal.tryParse(json['item_discount_pct'].toString())
+          : null,
+      itemDiscountAmount: json['item_discount_amount'] != null
+          ? Decimal.tryParse(json['item_discount_amount'].toString())
+          : null,
+      taxRateId: json['tax_rate_id'] as String?,
+      taxRateName: json['tax_rate_name'] as String?,
+      taxRate: json['tax_rate'] != null
+          ? Decimal.tryParse(json['tax_rate'].toString())
+          : null,
+      lineNote: json['line_note'] as String?,
+      maxAvailableStock: json['max_available_stock'] != null
+          ? Decimal.tryParse(json['max_available_stock'].toString())
+          : null,
+      priceManual: json['price_manual'] as bool? ?? false,
+    );
+  }
 }

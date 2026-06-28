@@ -11,8 +11,9 @@ import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_l
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
-import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
+import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -209,54 +210,42 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _OrdersTable extends StatefulWidget {
+class _OrdersTable extends StatelessWidget {
   const _OrdersTable({required this.orders});
 
   final List<PurchaseOrderModel> orders;
 
-  @override
-  State<_OrdersTable> createState() => _OrdersTableState();
-}
-
-class _OrdersTableState extends State<_OrdersTable> {
-  int? _sortColumn;
-  bool _sortAscending = true;
-
-  String _formatDate(String? value) {
+  static String _formatDate(String? value) {
     if (value == null || value.isEmpty) return '—';
     return value.split('T').first;
   }
 
-  List<PurchaseOrderModel> get _sortedOrders {
-    final orders = [...widget.orders];
-    final column = _sortColumn;
-    if (column == null) return orders;
+  static int _sortCompare(
+    PurchaseOrderModel a,
+    PurchaseOrderModel b,
+    int column,
+  ) {
+    int compare<T extends Comparable<T>>(T x, T y) => x.compareTo(y);
 
-    int compare<T extends Comparable<T>>(T a, T b) =>
-        _sortAscending ? a.compareTo(b) : b.compareTo(a);
-
-    orders.sort((a, b) {
-      return switch (column) {
-        0 => compare(a.poNumber.toLowerCase(), b.poNumber.toLowerCase()),
-        1 => compare(
-            (a.supplier?.name ?? a.supplierId).toLowerCase(),
-            (b.supplier?.name ?? b.supplierId).toLowerCase(),
-          ),
-        2 => compare(
-            (a.orderedAt ?? '').toLowerCase(),
-            (b.orderedAt ?? '').toLowerCase(),
-          ),
-        3 => compare(
-            (a.expectedAt ?? '').toLowerCase(),
-            (b.expectedAt ?? '').toLowerCase(),
-          ),
-        4 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
-        5 => compare(a.grandTotal, b.grandTotal),
-        6 => compare(a.lines.length, b.lines.length),
-        _ => 0,
-      };
-    });
-    return orders;
+    return switch (column) {
+      0 => compare(a.poNumber.toLowerCase(), b.poNumber.toLowerCase()),
+      1 => compare(
+          (a.supplier?.name ?? a.supplierId).toLowerCase(),
+          (b.supplier?.name ?? b.supplierId).toLowerCase(),
+        ),
+      2 => compare(
+          (a.orderedAt ?? '').toLowerCase(),
+          (b.orderedAt ?? '').toLowerCase(),
+        ),
+      3 => compare(
+          (a.expectedAt ?? '').toLowerCase(),
+          (b.expectedAt ?? '').toLowerCase(),
+        ),
+      4 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
+      5 => compare(a.grandTotal, b.grandTotal),
+      6 => compare(a.lines.length, b.lines.length),
+      _ => 0,
+    };
   }
 
   void _openOrder(BuildContext context, PurchaseOrderModel order) {
@@ -265,30 +254,14 @@ class _OrdersTableState extends State<_OrdersTable> {
 
   @override
   Widget build(BuildContext context) {
-    final orders = _sortedOrders;
-    final total = orders.length;
-
-    return AppDataTable<PurchaseOrderModel>(
+    return AppPaginatedDataTable<PurchaseOrderModel>(
       columns: _purchaseOrderTableColumns,
       items: orders,
       itemId: (order) => order.id,
-      onColumnSort: (index) {
-        setState(() {
-          if (_sortColumn == index) {
-            _sortAscending = !_sortAscending;
-          } else {
-            _sortColumn = index;
-            _sortAscending = true;
-          }
-        });
-      },
+      itemLabel: 'orders',
+      paginationMode: AppTablePaginationMode.summary,
+      sortCompare: _sortCompare,
       onRowTap: (order) => _openOrder(context, order),
-      pagination: AppDataTablePaginationData(
-        from: total == 0 ? 0 : 1,
-        to: total,
-        total: total,
-        itemLabel: 'orders',
-      ),
       rowBuilder: (context, order, {required selected, required onSelected}) {
         return AppDataTableRowLayout(
           columns: _purchaseOrderTableColumns,

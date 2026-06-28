@@ -198,6 +198,8 @@ mixin _$CustomerLedgerState {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -216,6 +218,8 @@ mixin _$CustomerLedgerState {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -234,6 +238,8 @@ mixin _$CustomerLedgerState {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -341,6 +347,8 @@ class _$CustomerLedgerInitialImpl implements CustomerLedgerInitial {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -363,6 +371,8 @@ class _$CustomerLedgerInitialImpl implements CustomerLedgerInitial {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -385,6 +395,8 @@ class _$CustomerLedgerInitialImpl implements CustomerLedgerInitial {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -494,6 +506,8 @@ class _$CustomerLedgerLoadingImpl implements CustomerLedgerLoading {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -516,6 +530,8 @@ class _$CustomerLedgerLoadingImpl implements CustomerLedgerLoading {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -538,6 +554,8 @@ class _$CustomerLedgerLoadingImpl implements CustomerLedgerLoading {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -608,6 +626,8 @@ abstract class _$$CustomerLedgerLoadedImplCopyWith<$Res> {
     List<LedgerDisplayRow> entries,
     bool isLoadingMore,
     bool hasMore,
+    int currentPage,
+    int pageSize,
     bool isRecordingPayment,
     String? paymentError,
     bool isCheckingPaymentShift,
@@ -636,6 +656,8 @@ class __$$CustomerLedgerLoadedImplCopyWithImpl<$Res>
     Object? entries = null,
     Object? isLoadingMore = null,
     Object? hasMore = null,
+    Object? currentPage = null,
+    Object? pageSize = null,
     Object? isRecordingPayment = null,
     Object? paymentError = freezed,
     Object? isCheckingPaymentShift = null,
@@ -663,6 +685,14 @@ class __$$CustomerLedgerLoadedImplCopyWithImpl<$Res>
             ? _value.hasMore
             : hasMore // ignore: cast_nullable_to_non_nullable
                   as bool,
+        currentPage: null == currentPage
+            ? _value.currentPage
+            : currentPage // ignore: cast_nullable_to_non_nullable
+                  as int,
+        pageSize: null == pageSize
+            ? _value.pageSize
+            : pageSize // ignore: cast_nullable_to_non_nullable
+                  as int,
         isRecordingPayment: null == isRecordingPayment
             ? _value.isRecordingPayment
             : isRecordingPayment // ignore: cast_nullable_to_non_nullable
@@ -703,6 +733,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
     required final List<LedgerDisplayRow> entries,
     this.isLoadingMore = false,
     this.hasMore = true,
+    this.currentPage = 1,
+    this.pageSize = 10,
     this.isRecordingPayment = false,
     this.paymentError,
     this.isCheckingPaymentShift = false,
@@ -729,6 +761,12 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
   final bool hasMore;
   @override
   @JsonKey()
+  final int currentPage;
+  @override
+  @JsonKey()
+  final int pageSize;
+  @override
+  @JsonKey()
   final bool isRecordingPayment;
   @override
   final String? paymentError;
@@ -740,7 +778,7 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
 
   @override
   String toString() {
-    return 'CustomerLedgerState.loaded(customer: $customer, balance: $balance, entries: $entries, isLoadingMore: $isLoadingMore, hasMore: $hasMore, isRecordingPayment: $isRecordingPayment, paymentError: $paymentError, isCheckingPaymentShift: $isCheckingPaymentShift, activePaymentShiftId: $activePaymentShiftId)';
+    return 'CustomerLedgerState.loaded(customer: $customer, balance: $balance, entries: $entries, isLoadingMore: $isLoadingMore, hasMore: $hasMore, currentPage: $currentPage, pageSize: $pageSize, isRecordingPayment: $isRecordingPayment, paymentError: $paymentError, isCheckingPaymentShift: $isCheckingPaymentShift, activePaymentShiftId: $activePaymentShiftId)';
   }
 
   @override
@@ -755,6 +793,10 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
             (identical(other.isLoadingMore, isLoadingMore) ||
                 other.isLoadingMore == isLoadingMore) &&
             (identical(other.hasMore, hasMore) || other.hasMore == hasMore) &&
+            (identical(other.currentPage, currentPage) ||
+                other.currentPage == currentPage) &&
+            (identical(other.pageSize, pageSize) ||
+                other.pageSize == pageSize) &&
             (identical(other.isRecordingPayment, isRecordingPayment) ||
                 other.isRecordingPayment == isRecordingPayment) &&
             (identical(other.paymentError, paymentError) ||
@@ -773,6 +815,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
     const DeepCollectionEquality().hash(_entries),
     isLoadingMore,
     hasMore,
+    currentPage,
+    pageSize,
     isRecordingPayment,
     paymentError,
     isCheckingPaymentShift,
@@ -802,6 +846,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -816,6 +862,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
       entries,
       isLoadingMore,
       hasMore,
+      currentPage,
+      pageSize,
       isRecordingPayment,
       paymentError,
       isCheckingPaymentShift,
@@ -834,6 +882,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -848,6 +898,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
       entries,
       isLoadingMore,
       hasMore,
+      currentPage,
+      pageSize,
       isRecordingPayment,
       paymentError,
       isCheckingPaymentShift,
@@ -866,6 +918,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -882,6 +936,8 @@ class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
         entries,
         isLoadingMore,
         hasMore,
+        currentPage,
+        pageSize,
         isRecordingPayment,
         paymentError,
         isCheckingPaymentShift,
@@ -936,6 +992,8 @@ abstract class CustomerLedgerLoaded implements CustomerLedgerState {
     required final List<LedgerDisplayRow> entries,
     final bool isLoadingMore,
     final bool hasMore,
+    final int currentPage,
+    final int pageSize,
     final bool isRecordingPayment,
     final String? paymentError,
     final bool isCheckingPaymentShift,
@@ -947,6 +1005,8 @@ abstract class CustomerLedgerLoaded implements CustomerLedgerState {
   List<LedgerDisplayRow> get entries;
   bool get isLoadingMore;
   bool get hasMore;
+  int get currentPage;
+  int get pageSize;
   bool get isRecordingPayment;
   String? get paymentError;
   bool get isCheckingPaymentShift;
@@ -1040,6 +1100,8 @@ class _$CustomerLedgerErrorImpl implements CustomerLedgerError {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -1062,6 +1124,8 @@ class _$CustomerLedgerErrorImpl implements CustomerLedgerError {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,
@@ -1084,6 +1148,8 @@ class _$CustomerLedgerErrorImpl implements CustomerLedgerError {
       List<LedgerDisplayRow> entries,
       bool isLoadingMore,
       bool hasMore,
+      int currentPage,
+      int pageSize,
       bool isRecordingPayment,
       String? paymentError,
       bool isCheckingPaymentShift,

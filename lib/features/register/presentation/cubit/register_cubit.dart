@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/features/register/domain/entities/register_entity.dart';
 import 'package:frantend/features/register/domain/repositories/register_repository.dart';
 import 'package:frantend/features/register/presentation/cubit/register_state.dart';
@@ -8,10 +9,11 @@ import 'package:intl_phone_field/phone_number.dart';
 
 @injectable
 class RegisterCubit extends Cubit<RegisterState> {
-  RegisterCubit(this._repository)
+  RegisterCubit(this._repository, this._authGuard)
       : super(const RegisterFormState(data: RegisterEntity.initial));
 
   final RegisterRepository _repository;
+  final AuthGuard _authGuard;
 
   final step1FormKey = GlobalKey<FormState>();
   final step3FormKey = GlobalKey<FormState>();
@@ -90,7 +92,10 @@ class RegisterCubit extends Cubit<RegisterState> {
     final result = await _repository.register(payload);
     result.fold(
       (failure) => emit(RegisterFailure(failure.message, data: payload)),
-      (_) => emit(RegisterSuccess(data: payload)),
+      (_) {
+        _authGuard.setAuthenticated(true);
+        emit(RegisterSuccess(data: payload));
+      },
     );
   }
 

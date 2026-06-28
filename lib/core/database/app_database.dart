@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:frantend/core/database/daos/held_orders_dao.dart';
 import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
 import 'package:frantend/core/database/daos/pending_sales_dao.dart';
 import 'package:frantend/core/database/daos/products_dao.dart';
 import 'package:frantend/core/database/daos/sales_dao.dart';
 import 'package:frantend/core/database/daos/sync_queue_dao.dart';
 import 'package:frantend/core/database/tables/customers_table.dart';
+import 'package:frantend/core/database/tables/held_orders_table.dart';
 import 'package:frantend/core/database/tables/master_data_cache_table.dart';
 import 'package:frantend/core/database/tables/pending_sales_table.dart';
 import 'package:frantend/core/database/tables/products_table.dart';
@@ -27,6 +29,7 @@ part 'app_database.g.dart';
     MasterDataCacheTable,
     SalesTable,
     PendingSalesTable,
+    HeldOrdersTable,
     CustomersTable,
     UsersTable,
   ],
@@ -36,6 +39,7 @@ part 'app_database.g.dart';
     MasterDataCacheDao,
     SalesDao,
     PendingSalesDao,
+    HeldOrdersDao,
   ],
 )
 @lazySingleton
@@ -43,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,6 +60,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(pendingSalesTable);
+      }
+      if (from < 4) {
+        await m.createTable(heldOrdersTable);
       }
     },
   );

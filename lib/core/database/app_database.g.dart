@@ -2731,6 +2731,651 @@ class PendingSalesTableCompanion
   }
 }
 
+class $HeldOrdersTableTable extends HeldOrdersTable
+    with TableInfo<$HeldOrdersTableTable, HeldOrdersTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HeldOrdersTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cartItemsJsonMeta = const VerificationMeta(
+    'cartItemsJson',
+  );
+  @override
+  late final GeneratedColumn<String> cartItemsJson = GeneratedColumn<String>(
+    'cart_items_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _customerIdMeta = const VerificationMeta(
+    'customerId',
+  );
+  @override
+  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
+    'customer_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _customerNameMeta = const VerificationMeta(
+    'customerName',
+  );
+  @override
+  late final GeneratedColumn<String> customerName = GeneratedColumn<String>(
+    'customer_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cartDiscountTypeMeta = const VerificationMeta(
+    'cartDiscountType',
+  );
+  @override
+  late final GeneratedColumn<String> cartDiscountType = GeneratedColumn<String>(
+    'cart_discount_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cartDiscountValueMeta = const VerificationMeta(
+    'cartDiscountValue',
+  );
+  @override
+  late final GeneratedColumn<String> cartDiscountValue =
+      GeneratedColumn<String>(
+        'cart_discount_value',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _itemCountMeta = const VerificationMeta(
+    'itemCount',
+  );
+  @override
+  late final GeneratedColumn<int> itemCount = GeneratedColumn<int>(
+    'item_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalAmountMeta = const VerificationMeta(
+    'totalAmount',
+  );
+  @override
+  late final GeneratedColumn<String> totalAmount = GeneratedColumn<String>(
+    'total_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    label,
+    createdAt,
+    cartItemsJson,
+    customerId,
+    customerName,
+    cartDiscountType,
+    cartDiscountValue,
+    itemCount,
+    totalAmount,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'held_orders_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HeldOrdersTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('cart_items_json')) {
+      context.handle(
+        _cartItemsJsonMeta,
+        cartItemsJson.isAcceptableOrUnknown(
+          data['cart_items_json']!,
+          _cartItemsJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cartItemsJsonMeta);
+    }
+    if (data.containsKey('customer_id')) {
+      context.handle(
+        _customerIdMeta,
+        customerId.isAcceptableOrUnknown(data['customer_id']!, _customerIdMeta),
+      );
+    }
+    if (data.containsKey('customer_name')) {
+      context.handle(
+        _customerNameMeta,
+        customerName.isAcceptableOrUnknown(
+          data['customer_name']!,
+          _customerNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cart_discount_type')) {
+      context.handle(
+        _cartDiscountTypeMeta,
+        cartDiscountType.isAcceptableOrUnknown(
+          data['cart_discount_type']!,
+          _cartDiscountTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cart_discount_value')) {
+      context.handle(
+        _cartDiscountValueMeta,
+        cartDiscountValue.isAcceptableOrUnknown(
+          data['cart_discount_value']!,
+          _cartDiscountValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('item_count')) {
+      context.handle(
+        _itemCountMeta,
+        itemCount.isAcceptableOrUnknown(data['item_count']!, _itemCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemCountMeta);
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+        _totalAmountMeta,
+        totalAmount.isAcceptableOrUnknown(
+          data['total_amount']!,
+          _totalAmountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalAmountMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HeldOrdersTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HeldOrdersTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      cartItemsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cart_items_json'],
+      )!,
+      customerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_id'],
+      ),
+      customerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_name'],
+      ),
+      cartDiscountType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cart_discount_type'],
+      ),
+      cartDiscountValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cart_discount_value'],
+      ),
+      itemCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}item_count'],
+      )!,
+      totalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}total_amount'],
+      )!,
+    );
+  }
+
+  @override
+  $HeldOrdersTableTable createAlias(String alias) {
+    return $HeldOrdersTableTable(attachedDatabase, alias);
+  }
+}
+
+class HeldOrdersTableData extends DataClass
+    implements Insertable<HeldOrdersTableData> {
+  final String id;
+  final String label;
+  final DateTime createdAt;
+  final String cartItemsJson;
+  final String? customerId;
+  final String? customerName;
+  final String? cartDiscountType;
+  final String? cartDiscountValue;
+  final int itemCount;
+  final String totalAmount;
+  const HeldOrdersTableData({
+    required this.id,
+    required this.label,
+    required this.createdAt,
+    required this.cartItemsJson,
+    this.customerId,
+    this.customerName,
+    this.cartDiscountType,
+    this.cartDiscountValue,
+    required this.itemCount,
+    required this.totalAmount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['label'] = Variable<String>(label);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['cart_items_json'] = Variable<String>(cartItemsJson);
+    if (!nullToAbsent || customerId != null) {
+      map['customer_id'] = Variable<String>(customerId);
+    }
+    if (!nullToAbsent || customerName != null) {
+      map['customer_name'] = Variable<String>(customerName);
+    }
+    if (!nullToAbsent || cartDiscountType != null) {
+      map['cart_discount_type'] = Variable<String>(cartDiscountType);
+    }
+    if (!nullToAbsent || cartDiscountValue != null) {
+      map['cart_discount_value'] = Variable<String>(cartDiscountValue);
+    }
+    map['item_count'] = Variable<int>(itemCount);
+    map['total_amount'] = Variable<String>(totalAmount);
+    return map;
+  }
+
+  HeldOrdersTableCompanion toCompanion(bool nullToAbsent) {
+    return HeldOrdersTableCompanion(
+      id: Value(id),
+      label: Value(label),
+      createdAt: Value(createdAt),
+      cartItemsJson: Value(cartItemsJson),
+      customerId: customerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerId),
+      customerName: customerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerName),
+      cartDiscountType: cartDiscountType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cartDiscountType),
+      cartDiscountValue: cartDiscountValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cartDiscountValue),
+      itemCount: Value(itemCount),
+      totalAmount: Value(totalAmount),
+    );
+  }
+
+  factory HeldOrdersTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HeldOrdersTableData(
+      id: serializer.fromJson<String>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cartItemsJson: serializer.fromJson<String>(json['cartItemsJson']),
+      customerId: serializer.fromJson<String?>(json['customerId']),
+      customerName: serializer.fromJson<String?>(json['customerName']),
+      cartDiscountType: serializer.fromJson<String?>(json['cartDiscountType']),
+      cartDiscountValue: serializer.fromJson<String?>(
+        json['cartDiscountValue'],
+      ),
+      itemCount: serializer.fromJson<int>(json['itemCount']),
+      totalAmount: serializer.fromJson<String>(json['totalAmount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'label': serializer.toJson<String>(label),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cartItemsJson': serializer.toJson<String>(cartItemsJson),
+      'customerId': serializer.toJson<String?>(customerId),
+      'customerName': serializer.toJson<String?>(customerName),
+      'cartDiscountType': serializer.toJson<String?>(cartDiscountType),
+      'cartDiscountValue': serializer.toJson<String?>(cartDiscountValue),
+      'itemCount': serializer.toJson<int>(itemCount),
+      'totalAmount': serializer.toJson<String>(totalAmount),
+    };
+  }
+
+  HeldOrdersTableData copyWith({
+    String? id,
+    String? label,
+    DateTime? createdAt,
+    String? cartItemsJson,
+    Value<String?> customerId = const Value.absent(),
+    Value<String?> customerName = const Value.absent(),
+    Value<String?> cartDiscountType = const Value.absent(),
+    Value<String?> cartDiscountValue = const Value.absent(),
+    int? itemCount,
+    String? totalAmount,
+  }) => HeldOrdersTableData(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    createdAt: createdAt ?? this.createdAt,
+    cartItemsJson: cartItemsJson ?? this.cartItemsJson,
+    customerId: customerId.present ? customerId.value : this.customerId,
+    customerName: customerName.present ? customerName.value : this.customerName,
+    cartDiscountType: cartDiscountType.present
+        ? cartDiscountType.value
+        : this.cartDiscountType,
+    cartDiscountValue: cartDiscountValue.present
+        ? cartDiscountValue.value
+        : this.cartDiscountValue,
+    itemCount: itemCount ?? this.itemCount,
+    totalAmount: totalAmount ?? this.totalAmount,
+  );
+  HeldOrdersTableData copyWithCompanion(HeldOrdersTableCompanion data) {
+    return HeldOrdersTableData(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cartItemsJson: data.cartItemsJson.present
+          ? data.cartItemsJson.value
+          : this.cartItemsJson,
+      customerId: data.customerId.present
+          ? data.customerId.value
+          : this.customerId,
+      customerName: data.customerName.present
+          ? data.customerName.value
+          : this.customerName,
+      cartDiscountType: data.cartDiscountType.present
+          ? data.cartDiscountType.value
+          : this.cartDiscountType,
+      cartDiscountValue: data.cartDiscountValue.present
+          ? data.cartDiscountValue.value
+          : this.cartDiscountValue,
+      itemCount: data.itemCount.present ? data.itemCount.value : this.itemCount,
+      totalAmount: data.totalAmount.present
+          ? data.totalAmount.value
+          : this.totalAmount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeldOrdersTableData(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cartItemsJson: $cartItemsJson, ')
+          ..write('customerId: $customerId, ')
+          ..write('customerName: $customerName, ')
+          ..write('cartDiscountType: $cartDiscountType, ')
+          ..write('cartDiscountValue: $cartDiscountValue, ')
+          ..write('itemCount: $itemCount, ')
+          ..write('totalAmount: $totalAmount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    label,
+    createdAt,
+    cartItemsJson,
+    customerId,
+    customerName,
+    cartDiscountType,
+    cartDiscountValue,
+    itemCount,
+    totalAmount,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HeldOrdersTableData &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.createdAt == this.createdAt &&
+          other.cartItemsJson == this.cartItemsJson &&
+          other.customerId == this.customerId &&
+          other.customerName == this.customerName &&
+          other.cartDiscountType == this.cartDiscountType &&
+          other.cartDiscountValue == this.cartDiscountValue &&
+          other.itemCount == this.itemCount &&
+          other.totalAmount == this.totalAmount);
+}
+
+class HeldOrdersTableCompanion extends UpdateCompanion<HeldOrdersTableData> {
+  final Value<String> id;
+  final Value<String> label;
+  final Value<DateTime> createdAt;
+  final Value<String> cartItemsJson;
+  final Value<String?> customerId;
+  final Value<String?> customerName;
+  final Value<String?> cartDiscountType;
+  final Value<String?> cartDiscountValue;
+  final Value<int> itemCount;
+  final Value<String> totalAmount;
+  final Value<int> rowid;
+  const HeldOrdersTableCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.cartItemsJson = const Value.absent(),
+    this.customerId = const Value.absent(),
+    this.customerName = const Value.absent(),
+    this.cartDiscountType = const Value.absent(),
+    this.cartDiscountValue = const Value.absent(),
+    this.itemCount = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HeldOrdersTableCompanion.insert({
+    required String id,
+    required String label,
+    required DateTime createdAt,
+    required String cartItemsJson,
+    this.customerId = const Value.absent(),
+    this.customerName = const Value.absent(),
+    this.cartDiscountType = const Value.absent(),
+    this.cartDiscountValue = const Value.absent(),
+    required int itemCount,
+    required String totalAmount,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       label = Value(label),
+       createdAt = Value(createdAt),
+       cartItemsJson = Value(cartItemsJson),
+       itemCount = Value(itemCount),
+       totalAmount = Value(totalAmount);
+  static Insertable<HeldOrdersTableData> custom({
+    Expression<String>? id,
+    Expression<String>? label,
+    Expression<DateTime>? createdAt,
+    Expression<String>? cartItemsJson,
+    Expression<String>? customerId,
+    Expression<String>? customerName,
+    Expression<String>? cartDiscountType,
+    Expression<String>? cartDiscountValue,
+    Expression<int>? itemCount,
+    Expression<String>? totalAmount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (createdAt != null) 'created_at': createdAt,
+      if (cartItemsJson != null) 'cart_items_json': cartItemsJson,
+      if (customerId != null) 'customer_id': customerId,
+      if (customerName != null) 'customer_name': customerName,
+      if (cartDiscountType != null) 'cart_discount_type': cartDiscountType,
+      if (cartDiscountValue != null) 'cart_discount_value': cartDiscountValue,
+      if (itemCount != null) 'item_count': itemCount,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HeldOrdersTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? label,
+    Value<DateTime>? createdAt,
+    Value<String>? cartItemsJson,
+    Value<String?>? customerId,
+    Value<String?>? customerName,
+    Value<String?>? cartDiscountType,
+    Value<String?>? cartDiscountValue,
+    Value<int>? itemCount,
+    Value<String>? totalAmount,
+    Value<int>? rowid,
+  }) {
+    return HeldOrdersTableCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      createdAt: createdAt ?? this.createdAt,
+      cartItemsJson: cartItemsJson ?? this.cartItemsJson,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      cartDiscountType: cartDiscountType ?? this.cartDiscountType,
+      cartDiscountValue: cartDiscountValue ?? this.cartDiscountValue,
+      itemCount: itemCount ?? this.itemCount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (cartItemsJson.present) {
+      map['cart_items_json'] = Variable<String>(cartItemsJson.value);
+    }
+    if (customerId.present) {
+      map['customer_id'] = Variable<String>(customerId.value);
+    }
+    if (customerName.present) {
+      map['customer_name'] = Variable<String>(customerName.value);
+    }
+    if (cartDiscountType.present) {
+      map['cart_discount_type'] = Variable<String>(cartDiscountType.value);
+    }
+    if (cartDiscountValue.present) {
+      map['cart_discount_value'] = Variable<String>(cartDiscountValue.value);
+    }
+    if (itemCount.present) {
+      map['item_count'] = Variable<int>(itemCount.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<String>(totalAmount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeldOrdersTableCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cartItemsJson: $cartItemsJson, ')
+          ..write('customerId: $customerId, ')
+          ..write('customerName: $customerName, ')
+          ..write('cartDiscountType: $cartDiscountType, ')
+          ..write('cartDiscountValue: $cartDiscountValue, ')
+          ..write('itemCount: $itemCount, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CustomersTableTable extends CustomersTable
     with TableInfo<$CustomersTableTable, CustomersTableData> {
   @override
@@ -3760,6 +4405,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SalesTableTable salesTable = $SalesTableTable(this);
   late final $PendingSalesTableTable pendingSalesTable =
       $PendingSalesTableTable(this);
+  late final $HeldOrdersTableTable heldOrdersTable = $HeldOrdersTableTable(
+    this,
+  );
   late final $CustomersTableTable customersTable = $CustomersTableTable(this);
   late final $UsersTableTable usersTable = $UsersTableTable(this);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
@@ -3771,6 +4419,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final PendingSalesDao pendingSalesDao = PendingSalesDao(
     this as AppDatabase,
   );
+  late final HeldOrdersDao heldOrdersDao = HeldOrdersDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3781,6 +4430,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     masterDataCacheTable,
     salesTable,
     pendingSalesTable,
+    heldOrdersTable,
     customersTable,
     usersTable,
   ];
@@ -5194,6 +5844,323 @@ typedef $$PendingSalesTableTableProcessedTableManager =
       PendingSalesTableData,
       PrefetchHooks Function()
     >;
+typedef $$HeldOrdersTableTableCreateCompanionBuilder =
+    HeldOrdersTableCompanion Function({
+      required String id,
+      required String label,
+      required DateTime createdAt,
+      required String cartItemsJson,
+      Value<String?> customerId,
+      Value<String?> customerName,
+      Value<String?> cartDiscountType,
+      Value<String?> cartDiscountValue,
+      required int itemCount,
+      required String totalAmount,
+      Value<int> rowid,
+    });
+typedef $$HeldOrdersTableTableUpdateCompanionBuilder =
+    HeldOrdersTableCompanion Function({
+      Value<String> id,
+      Value<String> label,
+      Value<DateTime> createdAt,
+      Value<String> cartItemsJson,
+      Value<String?> customerId,
+      Value<String?> customerName,
+      Value<String?> cartDiscountType,
+      Value<String?> cartDiscountValue,
+      Value<int> itemCount,
+      Value<String> totalAmount,
+      Value<int> rowid,
+    });
+
+class $$HeldOrdersTableTableFilterComposer
+    extends Composer<_$AppDatabase, $HeldOrdersTableTable> {
+  $$HeldOrdersTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cartItemsJson => $composableBuilder(
+    column: $table.cartItemsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cartDiscountType => $composableBuilder(
+    column: $table.cartDiscountType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cartDiscountValue => $composableBuilder(
+    column: $table.cartDiscountValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get itemCount => $composableBuilder(
+    column: $table.itemCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HeldOrdersTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $HeldOrdersTableTable> {
+  $$HeldOrdersTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cartItemsJson => $composableBuilder(
+    column: $table.cartItemsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cartDiscountType => $composableBuilder(
+    column: $table.cartDiscountType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cartDiscountValue => $composableBuilder(
+    column: $table.cartDiscountValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get itemCount => $composableBuilder(
+    column: $table.itemCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HeldOrdersTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HeldOrdersTableTable> {
+  $$HeldOrdersTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get cartItemsJson => $composableBuilder(
+    column: $table.cartItemsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cartDiscountType => $composableBuilder(
+    column: $table.cartDiscountType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cartDiscountValue => $composableBuilder(
+    column: $table.cartDiscountValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get itemCount =>
+      $composableBuilder(column: $table.itemCount, builder: (column) => column);
+
+  GeneratedColumn<String> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => column,
+  );
+}
+
+class $$HeldOrdersTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HeldOrdersTableTable,
+          HeldOrdersTableData,
+          $$HeldOrdersTableTableFilterComposer,
+          $$HeldOrdersTableTableOrderingComposer,
+          $$HeldOrdersTableTableAnnotationComposer,
+          $$HeldOrdersTableTableCreateCompanionBuilder,
+          $$HeldOrdersTableTableUpdateCompanionBuilder,
+          (
+            HeldOrdersTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $HeldOrdersTableTable,
+              HeldOrdersTableData
+            >,
+          ),
+          HeldOrdersTableData,
+          PrefetchHooks Function()
+        > {
+  $$HeldOrdersTableTableTableManager(
+    _$AppDatabase db,
+    $HeldOrdersTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HeldOrdersTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HeldOrdersTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HeldOrdersTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> cartItemsJson = const Value.absent(),
+                Value<String?> customerId = const Value.absent(),
+                Value<String?> customerName = const Value.absent(),
+                Value<String?> cartDiscountType = const Value.absent(),
+                Value<String?> cartDiscountValue = const Value.absent(),
+                Value<int> itemCount = const Value.absent(),
+                Value<String> totalAmount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HeldOrdersTableCompanion(
+                id: id,
+                label: label,
+                createdAt: createdAt,
+                cartItemsJson: cartItemsJson,
+                customerId: customerId,
+                customerName: customerName,
+                cartDiscountType: cartDiscountType,
+                cartDiscountValue: cartDiscountValue,
+                itemCount: itemCount,
+                totalAmount: totalAmount,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String label,
+                required DateTime createdAt,
+                required String cartItemsJson,
+                Value<String?> customerId = const Value.absent(),
+                Value<String?> customerName = const Value.absent(),
+                Value<String?> cartDiscountType = const Value.absent(),
+                Value<String?> cartDiscountValue = const Value.absent(),
+                required int itemCount,
+                required String totalAmount,
+                Value<int> rowid = const Value.absent(),
+              }) => HeldOrdersTableCompanion.insert(
+                id: id,
+                label: label,
+                createdAt: createdAt,
+                cartItemsJson: cartItemsJson,
+                customerId: customerId,
+                customerName: customerName,
+                cartDiscountType: cartDiscountType,
+                cartDiscountValue: cartDiscountValue,
+                itemCount: itemCount,
+                totalAmount: totalAmount,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HeldOrdersTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HeldOrdersTableTable,
+      HeldOrdersTableData,
+      $$HeldOrdersTableTableFilterComposer,
+      $$HeldOrdersTableTableOrderingComposer,
+      $$HeldOrdersTableTableAnnotationComposer,
+      $$HeldOrdersTableTableCreateCompanionBuilder,
+      $$HeldOrdersTableTableUpdateCompanionBuilder,
+      (
+        HeldOrdersTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $HeldOrdersTableTable,
+          HeldOrdersTableData
+        >,
+      ),
+      HeldOrdersTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$CustomersTableTableCreateCompanionBuilder =
     CustomersTableCompanion Function({
       required String id,
@@ -5730,6 +6697,8 @@ class $AppDatabaseManager {
       $$SalesTableTableTableManager(_db, _db.salesTable);
   $$PendingSalesTableTableTableManager get pendingSalesTable =>
       $$PendingSalesTableTableTableManager(_db, _db.pendingSalesTable);
+  $$HeldOrdersTableTableTableManager get heldOrdersTable =>
+      $$HeldOrdersTableTableTableManager(_db, _db.heldOrdersTable);
   $$CustomersTableTableTableManager get customersTable =>
       $$CustomersTableTableTableManager(_db, _db.customersTable);
   $$UsersTableTableTableManager get usersTable =>

@@ -47,6 +47,8 @@ mixin _$PosState {
   String? get cashierName => throw _privateConstructorUsedError;
   String? get branchId => throw _privateConstructorUsedError;
   String? get businessName => throw _privateConstructorUsedError;
+  List<HeldOrderModel> get heldOrders => throw _privateConstructorUsedError;
+  bool get isHoldingSale => throw _privateConstructorUsedError;
 
   /// Create a copy of PosState
   /// with the given fields replaced by the non-null parameter values.
@@ -90,6 +92,8 @@ abstract class $PosStateCopyWith<$Res> {
     String? cashierName,
     String? branchId,
     String? businessName,
+    List<HeldOrderModel> heldOrders,
+    bool isHoldingSale,
   });
 
   $RegisterShiftModelCopyWith<$Res>? get activeShift;
@@ -142,6 +146,8 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
     Object? cashierName = freezed,
     Object? branchId = freezed,
     Object? businessName = freezed,
+    Object? heldOrders = null,
+    Object? isHoldingSale = null,
   }) {
     return _then(
       _value.copyWith(
@@ -261,6 +267,14 @@ class _$PosStateCopyWithImpl<$Res, $Val extends PosState>
                 ? _value.businessName
                 : businessName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            heldOrders: null == heldOrders
+                ? _value.heldOrders
+                : heldOrders // ignore: cast_nullable_to_non_nullable
+                      as List<HeldOrderModel>,
+            isHoldingSale: null == isHoldingSale
+                ? _value.isHoldingSale
+                : isHoldingSale // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -362,6 +376,8 @@ abstract class _$$PosStateImplCopyWith<$Res>
     String? cashierName,
     String? branchId,
     String? businessName,
+    List<HeldOrderModel> heldOrders,
+    bool isHoldingSale,
   });
 
   @override
@@ -417,6 +433,8 @@ class __$$PosStateImplCopyWithImpl<$Res>
     Object? cashierName = freezed,
     Object? branchId = freezed,
     Object? businessName = freezed,
+    Object? heldOrders = null,
+    Object? isHoldingSale = null,
   }) {
     return _then(
       _$PosStateImpl(
@@ -536,6 +554,14 @@ class __$$PosStateImplCopyWithImpl<$Res>
             ? _value.businessName
             : businessName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        heldOrders: null == heldOrders
+            ? _value._heldOrders
+            : heldOrders // ignore: cast_nullable_to_non_nullable
+                  as List<HeldOrderModel>,
+        isHoldingSale: null == isHoldingSale
+            ? _value.isHoldingSale
+            : isHoldingSale // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -574,6 +600,8 @@ class _$PosStateImpl extends _PosState {
     this.cashierName,
     this.branchId,
     this.businessName,
+    final List<HeldOrderModel> heldOrders = const [],
+    this.isHoldingSale = false,
   }) : _registers = registers,
        _products = products,
        _categories = categories,
@@ -582,6 +610,7 @@ class _$PosStateImpl extends _PosState {
        _priceCache = priceCache,
        _stockCache = stockCache,
        _productDetailsCache = productDetailsCache,
+       _heldOrders = heldOrders,
        super._();
 
   @override
@@ -706,10 +735,22 @@ class _$PosStateImpl extends _PosState {
   final String? branchId;
   @override
   final String? businessName;
+  final List<HeldOrderModel> _heldOrders;
+  @override
+  @JsonKey()
+  List<HeldOrderModel> get heldOrders {
+    if (_heldOrders is EqualUnmodifiableListView) return _heldOrders;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_heldOrders);
+  }
+
+  @override
+  @JsonKey()
+  final bool isHoldingSale;
 
   @override
   String toString() {
-    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName)';
+    return 'PosState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache, isSubmittingSale: $isSubmittingSale, isOffline: $isOffline, cashierName: $cashierName, branchId: $branchId, businessName: $businessName, heldOrders: $heldOrders, isHoldingSale: $isHoldingSale)';
   }
 
   @override
@@ -784,7 +825,13 @@ class _$PosStateImpl extends _PosState {
             (identical(other.branchId, branchId) ||
                 other.branchId == branchId) &&
             (identical(other.businessName, businessName) ||
-                other.businessName == businessName));
+                other.businessName == businessName) &&
+            const DeepCollectionEquality().equals(
+              other._heldOrders,
+              _heldOrders,
+            ) &&
+            (identical(other.isHoldingSale, isHoldingSale) ||
+                other.isHoldingSale == isHoldingSale));
   }
 
   @override
@@ -819,6 +866,8 @@ class _$PosStateImpl extends _PosState {
     cashierName,
     branchId,
     businessName,
+    const DeepCollectionEquality().hash(_heldOrders),
+    isHoldingSale,
   ]);
 
   /// Create a copy of PosState
@@ -861,6 +910,8 @@ abstract class _PosState extends PosState {
     final String? cashierName,
     final String? branchId,
     final String? businessName,
+    final List<HeldOrderModel> heldOrders,
+    final bool isHoldingSale,
   }) = _$PosStateImpl;
   const _PosState._() : super._();
 
@@ -922,6 +973,10 @@ abstract class _PosState extends PosState {
   String? get branchId;
   @override
   String? get businessName;
+  @override
+  List<HeldOrderModel> get heldOrders;
+  @override
+  bool get isHoldingSale;
 
   /// Create a copy of PosState
   /// with the given fields replaced by the non-null parameter values.

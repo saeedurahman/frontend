@@ -76,6 +76,8 @@ abstract final class ApiJsonUtils {
       } else {
         m['line_total'] = stringValue(m['line_total']);
       }
+      m['product_name'] ??= nestedName(m['product']);
+      m['variation_name'] ??= nestedName(m['variation']);
       return m;
     }).toList();
 
@@ -90,5 +92,13 @@ abstract final class ApiJsonUtils {
     }).toList();
 
     return json;
+  }
+
+  static String? nestedName(dynamic raw) {
+    if (raw is! Map) return null;
+    final name = raw['name'];
+    if (name == null) return null;
+    final value = name.toString().trim();
+    return value.isEmpty ? null : value;
   }
 }

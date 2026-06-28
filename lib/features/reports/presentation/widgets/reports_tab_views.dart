@@ -2,8 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/router/route_names.dart';
-import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_state.dart';
+import 'package:frantend/features/reports/presentation/widgets/report_summary_cards.dart';
+import 'package:frantend/features/reports/presentation/widgets/reports_data_tables.dart';
 import 'package:frantend/features/reports/presentation/widgets/report_widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,9 +22,13 @@ class ReportsSalesTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (data.summary != null) _SalesSummarySection(summary: data.summary!),
+          if (data.summary != null)
+            SalesSummarySection(
+              summary: data.summary!,
+              comparison: data.todayVsYesterday,
+            ),
           if (data.todayVsYesterday != null)
-            _TodayVsYesterdaySection(data: data.todayVsYesterday!),
+            TodayVsYesterdaySection(data: data.todayVsYesterday!),
           ReportSectionCard(
             title: 'Sales Trend',
             child: _SalesTrendChart(points: data.salesTrend),
@@ -34,26 +39,7 @@ class ReportsSalesTab extends StatelessWidget {
           ),
           ReportSectionCard(
             title: 'Cashier Performance',
-            child: ReportDataTable(
-              columns: const [
-                'Cashier',
-                'Transactions',
-                'Revenue',
-                'Avg Sale',
-                'Returns',
-              ],
-              rows: data.cashierPerformance
-                  .map(
-                    (c) => [
-                      c.userName,
-                      '${c.totalSales}',
-                      money(c.totalRevenue),
-                      money(c.avgOrderValue),
-                      '${c.totalReturns}',
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: CashierPerformanceTable(items: data.cashierPerformance),
           ),
           if (data.branchComparison.length > 1)
             ReportSectionCard(
@@ -92,138 +78,26 @@ class ReportsProductsTab extends StatelessWidget {
       child: Column(
         children: [
           if (data.inventoryInsights != null)
-            ReportSectionCard(
-              title: 'Inventory Overview',
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  ReportKpiTile(
-                    label: 'Total Products',
-                    value: '${data.inventoryInsights!.totalProducts}',
-                  ),
-                  ReportKpiTile(
-                    label: 'Stock Value',
-                    value: money(data.inventoryInsights!.totalStockValue),
-                  ),
-                  ReportKpiTile(
-                    label: 'Low Stock',
-                    value: '${data.inventoryInsights!.lowStockCount}',
-                  ),
-                  ReportKpiTile(
-                    label: 'Out of Stock',
-                    value: '${data.inventoryInsights!.outOfStockCount}',
-                  ),
-                ],
-              ),
-            ),
+            InventoryOverviewSection(insights: data.inventoryInsights!),
           ReportSectionCard(
             title: 'Top Products',
-            child: ReportDataTable(
-              columns: const ['#', 'Product', 'Units', 'Revenue', 'Profit'],
-              rows: data.topProducts
-                  .map(
-                    (p) => [
-                      '${p.rank}',
-                      p.variationName != null
-                          ? '${p.productName} (${p.variationName})'
-                          : p.productName,
-                      p.totalQtySold,
-                      money(p.totalRevenue),
-                      money(p.grossProfit),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: TopProductsTable(items: data.topProducts),
           ),
           ReportSectionCard(
             title: 'Category Performance',
-            child: ReportDataTable(
-              columns: const ['Category', 'Revenue', 'Transactions', '% of Total'],
-              rows: data.categoryPerformance
-                  .map(
-                    (c) => [
-                      c.categoryName,
-                      money(c.totalRevenue),
-                      '${c.totalTransactions}',
-                      pct(c.percentageOfTotal),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: CategoryPerformanceTable(items: data.categoryPerformance),
           ),
           ReportSectionCard(
             title: 'Product Movement',
-            child: ReportDataTable(
-              columns: const ['Product', 'Category', 'Qty Sold', 'Revenue'],
-              rows: data.productMovement
-                  .map(
-                    (p) => [
-                      p.variationName != null
-                          ? '${p.productName} (${p.variationName})'
-                          : p.productName,
-                      _movementBadgeLabel(p.movementCategory),
-                      p.totalQtySold,
-                      money(p.totalRevenue),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: ProductMovementTable(items: data.productMovement),
           ),
           ReportSectionCard(
             title: 'Dead Stock',
-            child: ReportDataTable(
-              columns: const [
-                'Product',
-                'Branch',
-                'Qty',
-                'Days Idle',
-                'Stock Value',
-              ],
-              rows: data.deadStock
-                  .map(
-                    (d) => [
-                      d.productName,
-                      d.branchName,
-                      d.currentQty,
-                      '${d.daysSinceLastSale}',
-                      money(d.stockValue),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: DeadStockTable(items: data.deadStock),
           ),
-          ReportSectionCard(
-            title: 'Stock Valuation',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total inventory value: ${formatPKR(stockTotal)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ReportDataTable(
-                  columns: const ['Product', 'Branch', 'Qty', 'Avg Cost', 'Value'],
-                  rows: data.stockValuation
-                      .take(20)
-                      .map(
-                        (s) => [
-                          s.productName,
-                          s.branchName,
-                          s.currentQty,
-                          money(s.avgCost),
-                          money(s.totalValue),
-                        ],
-                      )
-                      .toList(),
-                ),
-              ],
-            ),
+          StockValuationSection(
+            items: data.stockValuation,
+            stockTotal: stockTotal,
           ),
           ModuleLinkCard(
             title: 'Per-Product Stock Levels',
@@ -254,47 +128,15 @@ class ReportsFinancialTab extends StatelessWidget {
           if (data.profitLoss != null)
             ReportSectionCard(
               title: 'Profit & Loss Statement',
-              child: _ProfitLossStatement(pl: data.profitLoss!),
+              child: ProfitLossStatementSection(pl: data.profitLoss!),
             ),
           ReportSectionCard(
             title: 'Top Customers',
-            child: ReportDataTable(
-              columns: const [
-                'Customer',
-                'Purchases',
-                'Total Spent',
-                'Outstanding',
-                'Avg Order',
-              ],
-              rows: data.customerInsights
-                  .take(15)
-                  .map(
-                    (c) => [
-                      c.customerName,
-                      '${c.totalPurchases}',
-                      money(c.totalSpent),
-                      money(c.outstandingBalance),
-                      money(c.avgOrderValue),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: TopCustomersTable(items: data.customerInsights),
           ),
           ReportSectionCard(
             title: 'Expense Summary',
-            child: ReportDataTable(
-              columns: const ['Category', 'Amount', 'Count', '% of Total'],
-              rows: data.expenseSummary
-                  .map(
-                    (e) => [
-                      e.categoryName,
-                      money(e.totalAmount),
-                      '${e.transactionCount}',
-                      pct(e.percentageOfTotal),
-                    ],
-                  )
-                  .toList(),
-            ),
+            child: ExpenseSummaryTable(items: data.expenseSummary),
           ),
           if (data.taxSummary != null)
             ReportSectionCard(
@@ -312,19 +154,7 @@ class ReportsFinancialTab extends StatelessWidget {
                     value: money(data.taxSummary!.totalTaxPaid),
                   ),
                   const SizedBox(height: 12),
-                  ReportDataTable(
-                    columns: const ['Rate %', 'Taxable Sales', 'Tax Amount', 'Count'],
-                    rows: data.taxSummary!.taxByRate
-                        .map(
-                          (t) => [
-                            pct(t.taxRate),
-                            money(t.totalSalesAmount),
-                            money(t.totalTaxAmount),
-                            '${t.transactionCount}',
-                          ],
-                        )
-                        .toList(),
-                  ),
+                  TaxByRateTable(items: data.taxSummary!.taxByRate),
                 ],
               ),
             ),
@@ -405,154 +235,7 @@ class ReportsSecurityTab extends StatelessWidget {
         title: 'Fraud Alerts',
         child: data.fraudAlerts.isEmpty
             ? const Text('No fraud alerts for the selected period.')
-            : ReportDataTable(
-                columns: const [
-                  'Severity',
-                  'Type',
-                  'User',
-                  'Count',
-                  'Amount',
-                  'Description',
-                ],
-                rows: data.fraudAlerts
-                    .map(
-                      (a) => [
-                        a.severity.toUpperCase(),
-                        a.alertType,
-                        a.userName,
-                        '${a.count}',
-                        money(a.totalAmount),
-                        a.description,
-                      ],
-                    )
-                    .toList(),
-              ),
-      ),
-    );
-  }
-}
-
-class _SalesSummarySection extends StatelessWidget {
-  const _SalesSummarySection({required this.summary});
-  final dynamic summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return ReportSectionCard(
-      title: 'Sales Summary',
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          ReportKpiTile(label: 'Net Revenue', value: money(summary.netRevenue)),
-          ReportKpiTile(
-            label: 'Transactions',
-            value: '${summary.totalTransactions}',
-          ),
-          ReportKpiTile(
-            label: 'Avg Order Value',
-            value: money(summary.avgOrderValue),
-          ),
-          ReportKpiTile(
-            label: 'Tax Collected',
-            value: money(summary.totalTax),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TodayVsYesterdaySection extends StatelessWidget {
-  const _TodayVsYesterdaySection({required this.data});
-  final dynamic data;
-
-  @override
-  Widget build(BuildContext context) {
-    return ReportSectionCard(
-      title: 'Today vs Yesterday',
-      child: Row(
-        children: [
-          Expanded(
-            child: ReportKpiTile(
-              label: 'Today Revenue',
-              value: money(data.todayRevenue),
-              subtitle: '${pct(data.revenueChangePct)} vs yesterday',
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ReportKpiTile(
-              label: 'Yesterday Revenue',
-              value: money(data.yesterdayRevenue),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ReportKpiTile(
-              label: 'Today Profit',
-              value: money(data.todayProfit),
-              subtitle: '${pct(data.profitChangePct)} vs yesterday',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfitLossStatement extends StatelessWidget {
-  const _ProfitLossStatement({required this.pl});
-  final dynamic pl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _plRow('Revenue', money(pl.totalRevenue), bold: true),
-        _plRow('Cost of Goods Sold', money(pl.totalCogs)),
-        const Divider(),
-        _plRow('Gross Profit', money(pl.grossProfit), bold: true),
-        _plRow('Gross Margin', pct(pl.grossMarginPct)),
-        const Divider(),
-        _plRow('Operating Expenses', money(pl.totalExpenses)),
-        if (pl.expenseBreakdown.isNotEmpty)
-          ...pl.expenseBreakdown.map<Widget>(
-            (e) => Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: _plRow('  ${e.categoryName}', money(e.totalAmount)),
-            ),
-          ),
-        const Divider(thickness: 2),
-        _plRow('Net Profit', money(pl.netProfit), bold: true, large: true),
-        _plRow('Net Margin', pct(pl.netMarginPct)),
-      ],
-    );
-  }
-
-  Widget _plRow(String label, String value, {bool bold = false, bool large = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
-                fontSize: large ? 16 : 14,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-              fontSize: large ? 20 : 14,
-              color: large ? AppColors.primary : AppColors.textPrimary,
-            ),
-          ),
-        ],
+            : FraudAlertsTable(items: data.fraudAlerts),
       ),
     );
   }
@@ -775,15 +458,6 @@ class _BarChartSimple extends StatelessWidget {
       ),
     );
   }
-}
-
-String _movementBadgeLabel(String category) {
-  return switch (category.toLowerCase()) {
-    'fast' => 'Fast',
-    'slow' => 'Slow',
-    'dead' => 'Dead',
-    _ => category,
-  };
 }
 
 String formatCompact(double value) {

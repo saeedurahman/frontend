@@ -4,16 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/sales/domain/usecases/sales_usecases.dart';
 import 'package:frantend/features/sales/presentation/cubit/sales_list_state.dart';
+import 'package:frantend/features/sales/presentation/utils/sale_product_enrichment.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class SalesListCubit extends Cubit<SalesListState> {
   SalesListCubit({
     required GetSalesUseCase getSalesUseCase,
+    required GetSaleByIdUseCase getSaleByIdUseCase,
+    required GetProductByIdUseCase getProductByIdUseCase,
     required AuthLocalDataSource authLocalDataSource,
   })  : _getSales = getSalesUseCase,
+        _getSaleById = getSaleByIdUseCase,
+        _getProductById = getProductByIdUseCase,
         _authLocal = authLocalDataSource,
         super(const SalesListState.initial());
 
@@ -21,6 +27,8 @@ class SalesListCubit extends Cubit<SalesListState> {
   int _pageSize = _defaultPageSize;
 
   final GetSalesUseCase _getSales;
+  final GetSaleByIdUseCase _getSaleById;
+  final GetProductByIdUseCase _getProductById;
   final AuthLocalDataSource _authLocal;
 
   Timer? _searchDebounce;
@@ -114,7 +122,47 @@ class SalesListCubit extends Cubit<SalesListState> {
             ),
           );
         }
+        _enrichProductNamesAsync();
       },
+    );
+  }
+
+  Future<void> _enrichProductNamesAsync() async {
+    final current = state;
+    if (current is! SalesListLoaded) return;
+
+    final targets =
+        current.items.where((item) => item.productNames.isEmpty).toList();
+    if (targets.isEmpty) return;
+
+    final enrichedById = <String, List<String>>{};
+    await Future.wait(
+      targets.map((item) async {
+        final result = await _getSaleById(item.id);
+        await result.fold((_) async {}, (sale) async {
+          final names = await SaleProductEnrichment.productNamesForSale(
+            sale,
+            _getProductById.call,
+          );
+          if (names.isNotEmpty) enrichedById[item.id] = names;
+        });
+      }),
+    );
+
+    if (isClosed) return;
+    final latest = state;
+    if (latest is! SalesListLoaded) return;
+
+    emit(
+      latest.copyWith(
+        items: latest.items
+            .map(
+              (item) => enrichedById.containsKey(item.id)
+                  ? item.copyWith(productNames: enrichedById[item.id]!)
+                  : item,
+            )
+            .toList(),
+      ),
     );
   }
 
@@ -172,6 +220,7 @@ class SalesListCubit extends Cubit<SalesListState> {
             hasActiveFilters: hasFilters,
           ),
         );
+        _enrichProductNamesAsync();
       },
     );
   }

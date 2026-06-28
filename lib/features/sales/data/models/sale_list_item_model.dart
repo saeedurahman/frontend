@@ -21,6 +21,7 @@ class SaleListItemModel with _$SaleListItemModel {
     @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'cashier_name') String? cashierName,
     @JsonKey(name: 'item_count') int? itemCount,
+    @JsonKey(name: 'product_names') @Default([]) List<String> productNames,
     @JsonKey(name: 'payment_methods') @Default([]) List<String> paymentMethods,
   }) = _SaleListItemModel;
 
@@ -34,6 +35,39 @@ class SaleListItemModel with _$SaleListItemModel {
         normalized[key] = ApiJsonUtils.stringValue(normalized[key]);
       }
     }
+    normalized['product_names'] = _extractProductNames(json);
     return normalized;
+  }
+
+  static List<String> _extractProductNames(Map<String, dynamic> json) {
+    final direct = json['product_names'];
+    if (direct is List) {
+      return direct
+          .map((e) => e.toString().trim())
+          .where((name) => name.isNotEmpty)
+          .toList();
+    }
+
+    final summary = json['product_summary'] ?? json['items_summary'];
+    if (summary is String && summary.trim().isNotEmpty) {
+      return summary
+          .split(',')
+          .map((part) => part.trim())
+          .where((part) => part.isNotEmpty)
+          .toList();
+    }
+
+    final lines = json['lines'];
+    if (lines is! List) return const [];
+
+    final names = <String>[];
+    for (final line in lines) {
+      if (line is! Map) continue;
+      final map = Map<String, dynamic>.from(line);
+      final name = map['product_name'] ?? ApiJsonUtils.nestedName(map['product']);
+      if (name == null || name.isEmpty) continue;
+      if (!names.contains(name)) names.add(name);
+    }
+    return names;
   }
 }

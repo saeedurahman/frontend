@@ -15,8 +15,9 @@ import 'package:frantend/features/products/presentation/cubit/categories_cubit.d
 import 'package:frantend/features/products/presentation/cubit/categories_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
-import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
+import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -222,70 +223,27 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _StockTable extends StatefulWidget {
+class _StockTable extends StatelessWidget {
   const _StockTable({required this.rows});
 
   final List<StockDisplayRow> rows;
 
-  @override
-  State<_StockTable> createState() => _StockTableState();
-}
-
-class _StockTableState extends State<_StockTable> {
-  int? _sortColumn;
-  bool _sortAscending = true;
-
-  Color _stockColor(StockDisplayRow row) {
+  static Color _stockColor(StockDisplayRow row) {
     if (row.isOutOfStock) return AppColors.error;
     if (row.isLowStock) return AppColors.warning;
     return AppColors.success;
   }
 
-  String _stockLabel(StockDisplayRow row) {
+  static String _stockLabel(StockDisplayRow row) {
     if (row.isOutOfStock) return 'Out of Stock';
     if (row.isLowStock) return 'Low Stock';
     return 'In Stock';
   }
 
-  List<StockDisplayRow> get _sortedRows {
-    final rows = [...widget.rows];
-    final column = _sortColumn;
-    if (column == null) return rows;
+  static String _rowId(StockDisplayRow row) =>
+      '${row.product.id}:${row.balance.variationId ?? 'default'}';
 
-    int compare<T extends Comparable<T>>(T a, T b) =>
-        _sortAscending ? a.compareTo(b) : b.compareTo(a);
-
-    rows.sort((a, b) {
-      return switch (column) {
-        0 => compare(a.product.name.toLowerCase(), b.product.name.toLowerCase()),
-        1 => compare(
-            (a.variationName ?? '').toLowerCase(),
-            (b.variationName ?? '').toLowerCase(),
-          ),
-        2 => compare(
-            (a.product.categoryName ?? '').toLowerCase(),
-            (b.product.categoryName ?? '').toLowerCase(),
-          ),
-        3 => compare(a.currentQty, b.currentQty),
-        4 => compare(
-            double.tryParse(a.minStockLevel ?? '') ?? 0,
-            double.tryParse(b.minStockLevel ?? '') ?? 0,
-          ),
-        5 => compare(
-            (a.unitName ?? '').toLowerCase(),
-            (b.unitName ?? '').toLowerCase(),
-          ),
-        6 => compare(
-            (a.balance.lastMovementAt ?? '').toLowerCase(),
-            (b.balance.lastMovementAt ?? '').toLowerCase(),
-          ),
-        _ => 0,
-      };
-    });
-    return rows;
-  }
-
-  String? _categoryName(BuildContext context, String? categoryId) {
+  static String? _categoryName(BuildContext context, String? categoryId) {
     if (categoryId == null) return null;
     final catState = context.read<CategoriesCubit>().state;
     if (catState is CategoriesLoaded) {
@@ -296,36 +254,51 @@ class _StockTableState extends State<_StockTable> {
     return null;
   }
 
-  String _rowId(StockDisplayRow row) =>
-      '${row.product.id}:${row.balance.variationId ?? 'default'}';
+  static int _sortCompare(StockDisplayRow a, StockDisplayRow b, int column) {
+    int compare<T extends Comparable<T>>(T x, T y) => x.compareTo(y);
+
+    return switch (column) {
+      0 => compare(
+          a.product.name.toLowerCase(),
+          b.product.name.toLowerCase(),
+        ),
+      1 => compare(
+          (a.variationName ?? '').toLowerCase(),
+          (b.variationName ?? '').toLowerCase(),
+        ),
+      2 => compare(
+          (a.product.categoryName ?? '').toLowerCase(),
+          (b.product.categoryName ?? '').toLowerCase(),
+        ),
+      3 => compare(a.currentQty, b.currentQty),
+      4 => compare(
+          double.tryParse(a.minStockLevel ?? '') ?? 0,
+          double.tryParse(b.minStockLevel ?? '') ?? 0,
+        ),
+      5 => compare(
+          (a.unitName ?? '').toLowerCase(),
+          (b.unitName ?? '').toLowerCase(),
+        ),
+      6 => compare(
+          (a.balance.lastMovementAt ?? '').toLowerCase(),
+          (b.balance.lastMovementAt ?? '').toLowerCase(),
+        ),
+      _ => 0,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<InventoryStockCubit>();
-    final rows = _sortedRows;
-    final total = rows.length;
 
-    return AppDataTable<StockDisplayRow>(
+    return AppPaginatedDataTable<StockDisplayRow>(
       columns: _inventoryTableColumns,
       items: rows,
       itemId: _rowId,
+      itemLabel: 'items',
       actionsWidth: 88,
-      onColumnSort: (index) {
-        setState(() {
-          if (_sortColumn == index) {
-            _sortAscending = !_sortAscending;
-          } else {
-            _sortColumn = index;
-            _sortAscending = true;
-          }
-        });
-      },
-      pagination: AppDataTablePaginationData(
-        from: total == 0 ? 0 : 1,
-        to: total,
-        total: total,
-        itemLabel: 'items',
-      ),
+      paginationMode: AppTablePaginationMode.summary,
+      sortCompare: _sortCompare,
       rowBuilder: (context, row, {required selected, required onSelected}) {
         final categoryName = _categoryName(context, row.product.categoryId) ??
             row.product.categoryName;

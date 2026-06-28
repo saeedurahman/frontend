@@ -1,4 +1,5 @@
 import 'package:frantend/core/database/app_database.dart';
+import 'package:frantend/core/database/daos/held_orders_dao.dart';
 import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
 import 'package:frantend/core/database/daos/pending_sales_dao.dart';
 import 'package:frantend/core/database/daos/products_dao.dart';
@@ -23,4 +24,7 @@ abstract class DatabaseModule {
 
   @lazySingleton
   PendingSalesDao pendingSalesDao(AppDatabase db) => db.pendingSalesDao;
+
+  @lazySingleton
+  HeldOrdersDao heldOrdersDao(AppDatabase db) => db.heldOrdersDao;
 }

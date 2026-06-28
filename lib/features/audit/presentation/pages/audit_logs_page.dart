@@ -3,14 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
-import 'package:frantend/features/audit/data/models/audit_log_model.dart';
 import 'package:frantend/features/audit/presentation/cubit/audit_logs_cubit.dart';
 import 'package:frantend/features/audit/presentation/cubit/audit_logs_state.dart';
-import 'package:frantend/features/audit/presentation/widgets/audit_action_chip.dart';
 import 'package:frantend/features/audit/presentation/widgets/audit_filter_bar.dart';
-import 'package:frantend/features/audit/presentation/widgets/audit_log_detail_dialog.dart';
+import 'package:frantend/features/audit/presentation/widgets/audit_logs_table.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
-import 'package:intl/intl.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AuditLogsPage extends StatelessWidget {
   const AuditLogsPage({super.key});
@@ -24,37 +23,8 @@ class AuditLogsPage extends StatelessWidget {
   }
 }
 
-class _AuditLogsView extends StatefulWidget {
+class _AuditLogsView extends StatelessWidget {
   const _AuditLogsView();
-
-  @override
-  State<_AuditLogsView> createState() => _AuditLogsViewState();
-}
-
-class _AuditLogsViewState extends State<_AuditLogsView> {
-  final _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final max = _scrollController.position.maxScrollExtent;
-    if (_scrollController.position.pixels >= max - 200) {
-      context.read<AuditLogsCubit>().loadMore();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,119 +85,26 @@ class _AuditLogsViewState extends State<_AuditLogsView> {
               ),
             Expanded(
               child: switch (state) {
-                AuditLogsLoading() => const Center(
-                    child: CircularProgressIndicator(),
+                AuditLogsLoading() => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: const AppDataTableShimmer(),
                   ),
-                AuditLogsLoaded(:final logs, :final isLoadingMore) =>
-                  logs.isEmpty
-                      ? const EmptyState(
-                          icon: Icons.history,
-                          message: 'No audit entries match your filters',
-                        )
-                      : _AuditLogTable(
-                          logs: logs,
-                          scrollController: _scrollController,
-                          isLoadingMore: isLoadingMore,
-                        ),
+                AuditLogsLoaded(:final logs, :final filters) => logs.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.history,
+                        message: 'No audit entries match your filters',
+                      )
+                    : AuditLogsTable(
+                        key: ValueKey(filters),
+                        state: state,
+                      ),
                 _ => const SizedBox.shrink(),
               },
             ),
           ],
         );
       },
-    );
-  }
-}
-
-class _AuditLogTable extends StatelessWidget {
-  const _AuditLogTable({
-    required this.logs,
-    required this.scrollController,
-    required this.isLoadingMore,
-  });
-
-  final List<AuditLogModel> logs;
-  final ScrollController scrollController;
-  final bool isLoadingMore;
-
-  static final _tsFormat = DateFormat('dd MMM yyyy  HH:mm:ss');
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            controller: scrollController,
-            scrollDirection: Axis.vertical,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: WidgetStateProperty.all(
-                  AppColors.primary.withValues(alpha: 0.06),
-                ),
-                columns: const [
-                  DataColumn(label: Text('Timestamp')),
-                  DataColumn(label: Text('User')),
-                  DataColumn(label: Text('Action')),
-                  DataColumn(label: Text('Table')),
-                  DataColumn(label: Text('Record')),
-                  DataColumn(label: Text('IP Address')),
-                ],
-                rows: logs
-                    .map(
-                      (log) => DataRow(
-                        onSelectChanged: (_) =>
-                            AuditLogDetailDialog.show(context, log),
-                        cells: [
-                          DataCell(
-                            Text(
-                              _tsFormat.format(log.createdAt.toLocal()),
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                          ),
-                          DataCell(Text(log.userName ?? '—')),
-                          DataCell(AuditActionChip(action: log.action)),
-                          DataCell(Text(log.tableName)),
-                          DataCell(
-                            Tooltip(
-                              message: log.recordId,
-                              child: Text(
-                                log.shortRecordId,
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Text(
-                              log.ipAddress ?? '—',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ),
-        ),
-        if (isLoadingMore)
-          const Padding(
-            padding: EdgeInsets.all(12),
-            child: SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-      ],
     );
   }
 }

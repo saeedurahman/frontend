@@ -33,6 +33,7 @@ class AppDataTable<T> extends StatefulWidget {
     this.pagination,
     this.onColumnSort,
     this.showSelection = true,
+    this.showActions = true,
     this.actionsHeader = 'Actions',
     this.actionsWidth = 88,
     this.onRowTap,
@@ -45,6 +46,7 @@ class AppDataTable<T> extends StatefulWidget {
   final AppDataTablePaginationData? pagination;
   final void Function(int columnIndex)? onColumnSort;
   final bool showSelection;
+  final bool showActions;
   final String actionsHeader;
   final double actionsWidth;
   final void Function(T item)? onRowTap;
@@ -99,6 +101,7 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -140,10 +143,11 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
                   }
                   return Expanded(flex: column.flex, child: header);
                 }),
-                SizedBox(
-                  width: widget.actionsWidth,
-                  child: Text(
-                    widget.actionsHeader,
+                if (widget.showActions)
+                  SizedBox(
+                    width: widget.actionsWidth,
+                    child: Text(
+                      widget.actionsHeader,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -310,7 +314,8 @@ class AppDataTableRowLayout extends StatelessWidget {
             }
             return Expanded(flex: column.flex, child: cell);
           }),
-          SizedBox(width: actionsWidth, child: actions),
+          if (actionsWidth > 0)
+            SizedBox(width: actionsWidth, child: actions),
         ],
       ),
     );

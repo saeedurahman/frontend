@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
+import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/sales/domain/usecases/sales_usecases.dart';
 import 'package:frantend/features/sales/presentation/cubit/sale_detail_state.dart';
+import 'package:frantend/features/sales/presentation/utils/sale_product_enrichment.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -10,14 +12,17 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
     required GetSaleByIdUseCase getSaleByIdUseCase,
     required CancelSaleUseCase cancelSaleUseCase,
     required GetCustomerUseCase getCustomerUseCase,
+    required GetProductByIdUseCase getProductByIdUseCase,
   })  : _getSale = getSaleByIdUseCase,
         _cancelSale = cancelSaleUseCase,
         _getCustomer = getCustomerUseCase,
+        _getProductById = getProductByIdUseCase,
         super(const SaleDetailState.initial());
 
   final GetSaleByIdUseCase _getSale;
   final CancelSaleUseCase _cancelSale;
   final GetCustomerUseCase _getCustomer;
+  final GetProductByIdUseCase _getProductById;
 
   Future<void> load(String saleId) async {
     emit(const SaleDetailState.loading());
@@ -32,7 +37,11 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
           final customerResult = await _getCustomer(customerId);
           customerResult.fold((_) {}, (c) => customer = c);
         }
-        emit(SaleDetailState.loaded(sale: sale, customer: customer));
+        final enrichedSale = await SaleProductEnrichment.enrichSale(
+          sale,
+          _getProductById.call,
+        );
+        emit(SaleDetailState.loaded(sale: enrichedSale, customer: customer));
       },
     );
   }

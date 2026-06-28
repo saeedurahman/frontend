@@ -17,8 +17,9 @@ import 'package:frantend/features/products/presentation/cubit/products_list_stat
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
-import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
+import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -407,95 +408,99 @@ const _productTableColumns = [
   AppDataTableColumn(label: 'Status', flex: 2, sortable: true),
 ];
 
-enum _ProductSortColumn { product, category, brand, type, status }
-
-class _ProductsTable extends StatefulWidget {
+class _ProductsTable extends StatelessWidget {
   const _ProductsTable({required this.state});
 
   final ProductsListLoaded state;
 
-  @override
-  State<_ProductsTable> createState() => _ProductsTableState();
-}
+  static int _sortCompare(
+    ProductListItemModel a,
+    ProductListItemModel b,
+    int column,
+  ) {
+    int compare<T extends Comparable<T>>(T x, T y) => x.compareTo(y);
 
-class _ProductsTableState extends State<_ProductsTable> {
-  _ProductSortColumn? _sortColumn;
-  bool _sortAscending = true;
-
-  ProductsListLoaded get state => widget.state;
-
-  List<ProductListItemModel> get _sortedItems {
-    final items = [...state.items];
-    final column = _sortColumn;
-    if (column == null) return items;
-
-    int compare<T extends Comparable<T>>(T a, T b) =>
-        _sortAscending ? a.compareTo(b) : b.compareTo(a);
-
-    items.sort((a, b) {
-      return switch (column) {
-        _ProductSortColumn.product =>
-          compare(a.name.toLowerCase(), b.name.toLowerCase()),
-        _ProductSortColumn.category => compare(
-            (a.categoryName ?? '').toLowerCase(),
-            (b.categoryName ?? '').toLowerCase(),
-          ),
-        _ProductSortColumn.brand => compare(
-            (a.brandName ?? '').toLowerCase(),
-            (b.brandName ?? '').toLowerCase(),
-          ),
-        _ProductSortColumn.type => compare(
-            a.productType.toLowerCase(),
-            b.productType.toLowerCase(),
-          ),
-        _ProductSortColumn.status => compare(
-            a.isActive ? 1 : 0,
-            b.isActive ? 1 : 0,
-          ),
-      };
-    });
-    return items;
+    return switch (column) {
+      0 => compare(a.name.toLowerCase(), b.name.toLowerCase()),
+      1 => compare(
+          (a.categoryName ?? '').toLowerCase(),
+          (b.categoryName ?? '').toLowerCase(),
+        ),
+      2 => compare(
+          (a.brandName ?? '').toLowerCase(),
+          (b.brandName ?? '').toLowerCase(),
+        ),
+      3 => compare(
+          a.productType.toLowerCase(),
+          b.productType.toLowerCase(),
+        ),
+      4 => compare(a.isActive ? 1 : 0, b.isActive ? 1 : 0),
+      _ => 0,
+    };
   }
 
-  void _toggleSort(int columnIndex) {
-    final column = _ProductSortColumn.values[columnIndex];
-    setState(() {
-      if (_sortColumn == column) {
-        _sortAscending = !_sortAscending;
-      } else {
-        _sortColumn = column;
-        _sortAscending = true;
+  String? _categoryName(BuildContext context, String? id) {
+    if (id == null) return null;
+    final catState = context.read<CategoriesCubit>().state;
+    if (catState is CategoriesLoaded) {
+      for (final c in flattenCategories(catState.categories)) {
+        if (c.id == id) return c.name;
       }
-    });
+    }
+    return null;
+  }
+
+  String? _brandName(BuildContext context, String? id) {
+    if (id == null) return null;
+    final brandState = context.read<BrandsCubit>().state;
+    if (brandState is BrandsLoaded) {
+      for (final b in brandState.brands) {
+        if (b.id == id) return b.name;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    ProductListItemModel product,
+  ) async {
+    final ok = await ConfirmDialog.show(
+      context,
+      title: 'Delete ${product.name}?',
+      message:
+          'This will also remove its variations and barcodes. This cannot be undone.',
+    );
+    if (ok == true && context.mounted) {
+      final success =
+          await context.read<ProductsListCubit>().deleteProduct(product.id);
+      if (success && context.mounted) {
+        AppAlerts.showSuccessMessage(context, 'Product deleted');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProductsListCubit>();
-    final from = state.total == 0 ? 0 : state.skip + 1;
-    final to = (state.skip + state.items.length).clamp(0, state.total);
 
-    return AppDataTable<ProductListItemModel>(
+    return AppPaginatedDataTable<ProductListItemModel>(
       columns: _productTableColumns,
-      items: _sortedItems,
+      items: state.items,
       itemId: (product) => product.id,
-      onColumnSort: _toggleSort,
+      itemLabel: 'products',
+      paginationMode: AppTablePaginationMode.server,
+      sortCompare: _sortCompare,
+      skip: state.skip,
+      total: state.total,
+      limit: [10, 25, 50].contains(state.limit) ? state.limit : cubit.pageSize,
+      currentPage: cubit.currentPage(state),
+      totalPages: cubit.totalPages(state),
+      onPageSizeChanged: cubit.setPageSize,
+      onGoToPage: cubit.goToPage,
       onRowTap: (product) => openProductForm(
         context,
         '${RouteNames.products}/${product.id}/edit',
-      ),
-      pagination: AppDataTablePaginationData(
-        from: from,
-        to: to,
-        total: state.total,
-        itemLabel: 'products',
-        currentPage: cubit.currentPage(state),
-        totalPages: cubit.totalPages(state),
-        pageSize: [10, 25, 50].contains(state.limit)
-            ? state.limit
-            : cubit.pageSize,
-        onPageSizeChanged: cubit.setPageSize,
-        onGoToPage: cubit.goToPage,
       ),
       rowBuilder: (context, product, {required selected, required onSelected}) {
         final categoryName =
@@ -572,47 +577,6 @@ class _ProductsTableState extends State<_ProductsTable> {
         );
       },
     );
-  }
-
-  String? _categoryName(BuildContext context, String? id) {
-    if (id == null) return null;
-    final catState = context.read<CategoriesCubit>().state;
-    if (catState is CategoriesLoaded) {
-      for (final c in flattenCategories(catState.categories)) {
-        if (c.id == id) return c.name;
-      }
-    }
-    return null;
-  }
-
-  String? _brandName(BuildContext context, String? id) {
-    if (id == null) return null;
-    final brandState = context.read<BrandsCubit>().state;
-    if (brandState is BrandsLoaded) {
-      for (final b in brandState.brands) {
-        if (b.id == id) return b.name;
-      }
-    }
-    return null;
-  }
-
-  Future<void> _confirmDelete(
-    BuildContext context,
-    ProductListItemModel product,
-  ) async {
-    final ok = await ConfirmDialog.show(
-      context,
-      title: 'Delete ${product.name}?',
-      message:
-          'This will also remove its variations and barcodes. This cannot be undone.',
-    );
-    if (ok == true && context.mounted) {
-      final success =
-          await context.read<ProductsListCubit>().deleteProduct(product.id);
-      if (success && context.mounted) {
-        AppAlerts.showSuccessMessage(context, 'Product deleted');
-      }
-    }
   }
 }
 

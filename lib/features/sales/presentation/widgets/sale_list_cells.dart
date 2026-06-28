@@ -5,18 +5,26 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 
-abstract final class SalePaymentMethodIcons {
-  static String emojiFor(String method) => switch (method) {
-        PaymentMethods.cash => '💵',
-        PaymentMethods.card => '💳',
-        PaymentMethods.wallet => '📱',
-        PaymentMethods.bankTransfer => '🏦',
-        PaymentMethods.cheque => '📝',
-        PaymentMethods.credit => '📝',
-        PaymentMethods.upi => '📱',
-        PaymentMethods.other => '•••',
-        _ => '💰',
+abstract final class SalePaymentMethodLabels {
+  static String labelFor(String method) => switch (method) {
+        PaymentMethods.cash => 'Cash',
+        PaymentMethods.card => 'Card',
+        PaymentMethods.wallet => 'Wallet',
+        PaymentMethods.bankTransfer => 'Bank Transfer',
+        PaymentMethods.cheque => 'Cheque',
+        PaymentMethods.credit => 'Credit',
+        PaymentMethods.upi => 'UPI',
+        PaymentMethods.other => 'Other',
+        _ => _titleCase(method),
       };
+
+  static String _titleCase(String raw) {
+    return raw
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
 }
 
 class SaleListPaymentMethodsCell extends StatelessWidget {
@@ -30,43 +38,51 @@ class SaleListPaymentMethodsCell extends StatelessWidget {
       return Text('—', style: AppTextStyles.bodySmall);
     }
 
-    final isSplit = methods.length > 1;
+    final uniqueMethods = <String>[];
+    for (final method in methods) {
+      if (!uniqueMethods.contains(method)) {
+        uniqueMethods.add(method);
+      }
+    }
 
-    return Tooltip(
-      message: isSplit
-          ? 'Split: ${methods.join(', ')}'
-          : methods.first,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ...methods.map(
-            (m) => Padding(
-              padding: const EdgeInsets.only(right: 2),
-              child: Text(
-                SalePaymentMethodIcons.emojiFor(m),
-                style: const TextStyle(fontSize: 16),
-              ),
+    final isSplit = uniqueMethods.length > 1;
+    final labels =
+        uniqueMethods.map(SalePaymentMethodLabels.labelFor).toList();
+    final tooltip =
+        isSplit ? 'Split: ${labels.join(', ')}' : labels.first;
+
+    if (isSplit) {
+      return Tooltip(
+        message: tooltip,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.info.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            'Split · ${uniqueMethods.length}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodySmall.copyWith(
+              fontSize: 11,
+              color: AppColors.info,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          if (isSplit) ...[
-            const SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'Split',
-                style: AppTextStyles.bodySmall.copyWith(
-                  fontSize: 10,
-                  color: AppColors.info,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: Text(
+        labels.first,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.bodySmall.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

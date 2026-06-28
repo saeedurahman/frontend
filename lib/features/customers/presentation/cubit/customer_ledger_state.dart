@@ -24,6 +24,8 @@ sealed class CustomerLedgerState with _$CustomerLedgerState {
     required List<LedgerDisplayRow> entries,
     @Default(false) bool isLoadingMore,
     @Default(true) bool hasMore,
+    @Default(1) int currentPage,
+    @Default(10) int pageSize,
     @Default(false) bool isRecordingPayment,
     String? paymentError,
     @Default(false) bool isCheckingPaymentShift,

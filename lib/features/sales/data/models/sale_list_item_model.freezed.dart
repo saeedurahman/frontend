@@ -47,6 +47,8 @@ mixin _$SaleListItemModel {
   String? get cashierName => throw _privateConstructorUsedError;
   @JsonKey(name: 'item_count')
   int? get itemCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_names')
+  List<String> get productNames => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_methods')
   List<String> get paymentMethods => throw _privateConstructorUsedError;
 
@@ -82,6 +84,7 @@ abstract class $SaleListItemModelCopyWith<$Res> {
     @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'cashier_name') String? cashierName,
     @JsonKey(name: 'item_count') int? itemCount,
+    @JsonKey(name: 'product_names') List<String> productNames,
     @JsonKey(name: 'payment_methods') List<String> paymentMethods,
   });
 }
@@ -115,6 +118,7 @@ class _$SaleListItemModelCopyWithImpl<$Res, $Val extends SaleListItemModel>
     Object? customerName = freezed,
     Object? cashierName = freezed,
     Object? itemCount = freezed,
+    Object? productNames = null,
     Object? paymentMethods = null,
   }) {
     return _then(
@@ -175,6 +179,10 @@ class _$SaleListItemModelCopyWithImpl<$Res, $Val extends SaleListItemModel>
                 ? _value.itemCount
                 : itemCount // ignore: cast_nullable_to_non_nullable
                       as int?,
+            productNames: null == productNames
+                ? _value.productNames
+                : productNames // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             paymentMethods: null == paymentMethods
                 ? _value.paymentMethods
                 : paymentMethods // ignore: cast_nullable_to_non_nullable
@@ -209,6 +217,7 @@ abstract class _$$SaleListItemModelImplCopyWith<$Res>
     @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'cashier_name') String? cashierName,
     @JsonKey(name: 'item_count') int? itemCount,
+    @JsonKey(name: 'product_names') List<String> productNames,
     @JsonKey(name: 'payment_methods') List<String> paymentMethods,
   });
 }
@@ -241,6 +250,7 @@ class __$$SaleListItemModelImplCopyWithImpl<$Res>
     Object? customerName = freezed,
     Object? cashierName = freezed,
     Object? itemCount = freezed,
+    Object? productNames = null,
     Object? paymentMethods = null,
   }) {
     return _then(
@@ -301,6 +311,10 @@ class __$$SaleListItemModelImplCopyWithImpl<$Res>
             ? _value.itemCount
             : itemCount // ignore: cast_nullable_to_non_nullable
                   as int?,
+        productNames: null == productNames
+            ? _value._productNames
+            : productNames // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         paymentMethods: null == paymentMethods
             ? _value._paymentMethods
             : paymentMethods // ignore: cast_nullable_to_non_nullable
@@ -328,9 +342,11 @@ class _$SaleListItemModelImpl implements _SaleListItemModel {
     @JsonKey(name: 'customer_name') this.customerName,
     @JsonKey(name: 'cashier_name') this.cashierName,
     @JsonKey(name: 'item_count') this.itemCount,
+    @JsonKey(name: 'product_names') final List<String> productNames = const [],
     @JsonKey(name: 'payment_methods')
     final List<String> paymentMethods = const [],
-  }) : _paymentMethods = paymentMethods;
+  }) : _productNames = productNames,
+       _paymentMethods = paymentMethods;
 
   factory _$SaleListItemModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SaleListItemModelImplFromJson(json);
@@ -375,6 +391,15 @@ class _$SaleListItemModelImpl implements _SaleListItemModel {
   @override
   @JsonKey(name: 'item_count')
   final int? itemCount;
+  final List<String> _productNames;
+  @override
+  @JsonKey(name: 'product_names')
+  List<String> get productNames {
+    if (_productNames is EqualUnmodifiableListView) return _productNames;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_productNames);
+  }
+
   final List<String> _paymentMethods;
   @override
   @JsonKey(name: 'payment_methods')
@@ -386,7 +411,7 @@ class _$SaleListItemModelImpl implements _SaleListItemModel {
 
   @override
   String toString() {
-    return 'SaleListItemModel(id: $id, businessId: $businessId, branchId: $branchId, customerId: $customerId, saleNumber: $saleNumber, saleType: $saleType, status: $status, soldAt: $soldAt, totalAmount: $totalAmount, totalPaid: $totalPaid, balanceDue: $balanceDue, customerName: $customerName, cashierName: $cashierName, itemCount: $itemCount, paymentMethods: $paymentMethods)';
+    return 'SaleListItemModel(id: $id, businessId: $businessId, branchId: $branchId, customerId: $customerId, saleNumber: $saleNumber, saleType: $saleType, status: $status, soldAt: $soldAt, totalAmount: $totalAmount, totalPaid: $totalPaid, balanceDue: $balanceDue, customerName: $customerName, cashierName: $cashierName, itemCount: $itemCount, productNames: $productNames, paymentMethods: $paymentMethods)';
   }
 
   @override
@@ -420,6 +445,10 @@ class _$SaleListItemModelImpl implements _SaleListItemModel {
             (identical(other.itemCount, itemCount) ||
                 other.itemCount == itemCount) &&
             const DeepCollectionEquality().equals(
+              other._productNames,
+              _productNames,
+            ) &&
+            const DeepCollectionEquality().equals(
               other._paymentMethods,
               _paymentMethods,
             ));
@@ -443,6 +472,7 @@ class _$SaleListItemModelImpl implements _SaleListItemModel {
     customerName,
     cashierName,
     itemCount,
+    const DeepCollectionEquality().hash(_productNames),
     const DeepCollectionEquality().hash(_paymentMethods),
   );
 
@@ -479,6 +509,7 @@ abstract class _SaleListItemModel implements SaleListItemModel {
     @JsonKey(name: 'customer_name') final String? customerName,
     @JsonKey(name: 'cashier_name') final String? cashierName,
     @JsonKey(name: 'item_count') final int? itemCount,
+    @JsonKey(name: 'product_names') final List<String> productNames,
     @JsonKey(name: 'payment_methods') final List<String> paymentMethods,
   }) = _$SaleListItemModelImpl;
 
@@ -525,6 +556,9 @@ abstract class _SaleListItemModel implements SaleListItemModel {
   @override
   @JsonKey(name: 'item_count')
   int? get itemCount;
+  @override
+  @JsonKey(name: 'product_names')
+  List<String> get productNames;
   @override
   @JsonKey(name: 'payment_methods')
   List<String> get paymentMethods;

@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/domain/utils/pos_calculations.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
@@ -45,6 +46,8 @@ class PosState with _$PosState {
     String? cashierName,
     String? branchId,
     String? businessName,
+    @Default([]) List<HeldOrderModel> heldOrders,
+    @Default(false) bool isHoldingSale,
   }) = _PosState;
 
   Decimal get cartDiscountDecimal =>

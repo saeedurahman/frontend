@@ -104,13 +104,13 @@ class _DashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _KpiSection(summary: summary),
-              const SizedBox(height: 18),
+              const SizedBox(height: 28),
               _ChartsSection(
                 salesTrend: data.salesTrend,
                 paymentBreakdown: data.paymentBreakdown,
                 trendDays: loaded.trendDays,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 28),
               _ThreeColumnSection(data: data),
             ],
           ),
@@ -208,8 +208,8 @@ class _KpiSection extends StatelessWidget {
         : (summary.todayProfit / summary.todayRevenue) * 100;
 
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 26,
+      runSpacing: 26,
       children: [
         _StatCard(
           title: 'Today Revenue',
@@ -292,7 +292,7 @@ class _ChartsSection extends StatelessWidget {
             selectedDays: trendDays,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
           flex: 2,
           child: _PaymentMethodsCard(paymentBreakdown: paymentBreakdown),
@@ -805,7 +805,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 200,
-      height: 130,
+      height: 150,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),

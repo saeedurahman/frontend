@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/shared/widgets/tables/app_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
+import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
 
 class ReportSectionCard extends StatelessWidget {
   const ReportSectionCard({
@@ -135,41 +138,90 @@ class ModuleLinkCard extends StatelessWidget {
   }
 }
 
-class ReportDataTable extends StatelessWidget {
-  const ReportDataTable({
+/// Embedded report table with green header, sort, and client pagination.
+class ReportPaginatedTable<T> extends StatelessWidget {
+  const ReportPaginatedTable({
     super.key,
     required this.columns,
-    required this.rows,
+    required this.items,
+    required this.itemId,
+    required this.rowBuilder,
+    this.sortCompare,
+    this.itemLabel = 'rows',
+    this.initialPageSize = 10,
   });
 
-  final List<String> columns;
-  final List<List<String>> rows;
+  final List<AppDataTableColumn> columns;
+  final List<T> items;
+  final String Function(T item) itemId;
+  final AppDataTableRowBuilder<T> rowBuilder;
+  final AppDataTableColumnSort<T>? sortCompare;
+  final String itemLabel;
+  final int initialPageSize;
 
   @override
   Widget build(BuildContext context) {
-    if (rows.isEmpty) {
+    if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
-        child: Text('No data for selected period'),
+        child: Text(
+          'No data for selected period',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        headingRowColor: WidgetStateProperty.all(AppColors.background),
-        columns: columns.map((c) => DataColumn(label: Text(c))).toList(),
-        rows: rows
-            .map(
-              (cells) => DataRow(
-                cells: cells.map((c) => DataCell(Text(c))).toList(),
-              ),
-            )
-            .toList(),
-      ),
+    return AppPaginatedDataTable<T>(
+      columns: columns,
+      items: items,
+      itemId: itemId,
+      rowBuilder: rowBuilder,
+      sortCompare: sortCompare,
+      itemLabel: itemLabel,
+      initialPageSize: initialPageSize,
+      paginationMode: AppTablePaginationMode.client,
+      showSelection: false,
+      showActions: false,
+      embedded: true,
     );
   }
 }
+
+Widget reportTableText(
+  String text, {
+  bool secondary = false,
+  FontWeight? fontWeight,
+  Color? color,
+}) {
+  return Text(
+    text,
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    style: TextStyle(
+      fontSize: 13,
+      color: color ??
+          (secondary ? AppColors.textSecondary : AppColors.textPrimary),
+      fontWeight: fontWeight,
+    ),
+  );
+}
+
+AppDataTableRowLayout reportTableRow({
+  required List<AppDataTableColumn> columns,
+  required List<Widget> cells,
+}) {
+  return AppDataTableRowLayout(
+    columns: columns,
+    showSelection: false,
+    selected: false,
+    onSelected: (_) {},
+    actionsWidth: 0,
+    actions: const SizedBox.shrink(),
+    cells: cells,
+  );
+}
+
+double reportMoneySortKey(String? raw) => double.tryParse(raw ?? '') ?? 0;
 
 String money(String? raw) {
   final v = double.tryParse(raw ?? '') ?? 0;

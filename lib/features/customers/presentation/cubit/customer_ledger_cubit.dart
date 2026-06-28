@@ -10,6 +10,7 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_s
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
+import 'package:frantend/shared/widgets/tables/client_table_pagination.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -31,7 +32,10 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         _authLocal = authLocalDataSource,
         super(const CustomerLedgerState.initial());
 
-  static const _pageSize = 50;
+  static const _defaultPageSize = 10;
+  static const _fetchSize = 50;
+
+  int _pageSize = _defaultPageSize;
 
   final GetCustomerUseCase _getCustomer;
   final GetCustomerBalanceUseCase _getBalance;
@@ -43,6 +47,52 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
 
   String? _customerId;
   List<CustomerLedgerEntryModel> _allEntries = [];
+
+  int paginationTotal(CustomerLedgerLoaded state) {
+    if (state.hasMore) {
+      return state.entries.length + state.pageSize;
+    }
+    return state.entries.length;
+  }
+
+  int totalPages(CustomerLedgerLoaded state) {
+    return ClientTablePagination.totalPages(
+      paginationTotal(state),
+      state.pageSize,
+    );
+  }
+
+  Future<void> setPageSize(int size) async {
+    if (size < 1) return;
+    final current = state;
+    if (current is! CustomerLedgerLoaded || current.pageSize == size) return;
+    _pageSize = size;
+    emit(current.copyWith(pageSize: size, currentPage: 1));
+  }
+
+  Future<void> goToPage(int page) async {
+    final current = state;
+    if (current is! CustomerLedgerLoaded) return;
+
+    final target = page.clamp(1, totalPages(current));
+    if (target == current.currentPage) return;
+
+    final needed = target * _pageSize;
+    while (_allEntries.length < needed) {
+      final latest = state;
+      if (latest is! CustomerLedgerLoaded ||
+          !latest.hasMore ||
+          latest.isLoadingMore) {
+        break;
+      }
+      await _fetchMore();
+    }
+
+    final updated = state;
+    if (updated is CustomerLedgerLoaded) {
+      emit(updated.copyWith(currentPage: target));
+    }
+  }
 
   void clearPaymentError() {
     final current = state;
@@ -94,6 +144,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   Future<void> load(String customerId) async {
     _customerId = customerId;
     _allEntries = [];
+    _pageSize = _defaultPageSize;
     emit(const CustomerLedgerState.loading());
 
     final customerResult = await _getCustomer(customerId);
@@ -102,7 +153,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       (customer) async {
         final balanceResult = await _getBalance(customerId);
         final ledgerResult =
-            await _getLedger(customerId, skip: 0, limit: _pageSize);
+            await _getLedger(customerId, skip: 0, limit: _fetchSize);
 
         balanceResult.fold(
           (failure) => emit(CustomerLedgerState.error(failure.message)),
@@ -116,7 +167,9 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
                     customer: customer,
                     balance: balance.balance,
                     entries: _computeDisplayRows(_allEntries),
-                    hasMore: page.length >= _pageSize,
+                    hasMore: page.length >= _fetchSize,
+                    currentPage: 1,
+                    pageSize: _pageSize,
                   ),
                 );
               },
@@ -170,7 +223,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       (response) async {
         _allEntries = [];
         final ledgerResult =
-            await _getLedger(_customerId!, skip: 0, limit: _pageSize);
+            await _getLedger(_customerId!, skip: 0, limit: _fetchSize);
 
         ledgerResult.fold(
           (failure) {
@@ -188,10 +241,12 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
               current.copyWith(
                 balance: response.newBalance,
                 entries: _computeDisplayRows(_allEntries),
-                hasMore: page.length >= _pageSize,
+                hasMore: page.length >= _fetchSize,
                 isRecordingPayment: false,
                 paymentError: null,
                 activePaymentShiftId: registerShiftId,
+                currentPage: 1,
+                pageSize: _pageSize,
               ),
             );
           },
@@ -209,13 +264,24 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         _customerId == null) {
       return;
     }
+    await _fetchMore();
+  }
+
+  Future<void> _fetchMore() async {
+    final current = state;
+    if (current is! CustomerLedgerLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore ||
+        _customerId == null) {
+      return;
+    }
 
     emit(current.copyWith(isLoadingMore: true));
 
     final result = await _getLedger(
       _customerId!,
       skip: _allEntries.length,
-      limit: _pageSize,
+      limit: _fetchSize,
     );
 
     result.fold(
@@ -229,7 +295,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
           current.copyWith(
             entries: _computeDisplayRows(_allEntries),
             isLoadingMore: false,
-            hasMore: page.length >= _pageSize,
+            hasMore: page.length >= _fetchSize,
           ),
         );
       },

@@ -23,6 +23,11 @@ _$SaleListItemModelImpl _$$SaleListItemModelImplFromJson(
   customerName: json['customer_name'] as String?,
   cashierName: json['cashier_name'] as String?,
   itemCount: (json['item_count'] as num?)?.toInt(),
+  productNames:
+      (json['product_names'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   paymentMethods:
       (json['payment_methods'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -47,5 +52,6 @@ Map<String, dynamic> _$$SaleListItemModelImplToJson(
   'customer_name': instance.customerName,
   'cashier_name': instance.cashierName,
   'item_count': instance.itemCount,
+  'product_names': instance.productNames,
   'payment_methods': instance.paymentMethods,
 };

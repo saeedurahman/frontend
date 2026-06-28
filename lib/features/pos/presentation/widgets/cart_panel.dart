@@ -8,6 +8,7 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/payment_modal.dart';
+import 'package:frantend/features/pos/presentation/widgets/held_orders_dialog.dart';
 import 'package:frantend/features/pos/presentation/widgets/pos_dialogs.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
@@ -49,6 +50,34 @@ class CartPanel extends StatelessWidget {
                         '${state.cartItems.length} items',
                         style: const TextStyle(fontSize: 12),
                       ),
+                    ),
+                    TextButton.icon(
+                      onPressed: state.cartItems.isEmpty || state.isHoldingSale
+                          ? null
+                          : () async {
+                              final defaultLabel =
+                                  'Order #${state.heldOrders.length + 1}';
+                              final label = await HoldSaleDialog.show(
+                                context,
+                                defaultLabel: defaultLabel,
+                              );
+                              if (label == null) return;
+                              final ok = await cubit.holdCurrentSale(
+                                customLabel:
+                                    label.isEmpty ? null : label,
+                              );
+                              if (ok && context.mounted) {
+                                final heldLabel =
+                                    label.isEmpty ? defaultLabel : label;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Order held — $heldLabel'),
+                                  ),
+                                );
+                              }
+                            },
+                      icon: const Icon(Icons.pause, size: 18),
+                      label: const Text('Hold'),
                     ),
                     TextButton.icon(
                       onPressed: state.cartItems.isEmpty

@@ -11,11 +11,14 @@ import 'package:frantend/features/sales/data/models/sale_list_item_model.dart';
 import 'package:frantend/features/sales/presentation/cubit/sales_list_cubit.dart';
 import 'package:frantend/features/sales/presentation/cubit/sales_list_state.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
+import 'package:frantend/features/sales/presentation/utils/sale_line_display.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dart';
+import 'package:frantend/features/sales/presentation/widgets/sale_list_products_cell.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
-import 'package:frantend/shared/widgets/tables/app_data_table_pagination.dart';
+import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
+import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -25,8 +28,8 @@ const _salesTableColumns = [
   AppDataTableColumn(label: 'Date/Time', flex: 2, sortable: true),
   AppDataTableColumn(label: 'Customer', flex: 2, sortable: true),
   AppDataTableColumn(label: 'Cashier', flex: 1, sortable: true),
-  AppDataTableColumn(label: 'Items', flex: 1, sortable: true),
-  AppDataTableColumn(label: 'Payment', flex: 1, sortable: false),
+  AppDataTableColumn(label: 'Products', flex: 3, sortable: true),
+  AppDataTableColumn(label: 'Payment', flex: 2, sortable: false),
   AppDataTableColumn(label: 'Total', flex: 2, sortable: true),
   AppDataTableColumn(label: 'Status', flex: 1, sortable: true),
 ];
@@ -237,20 +240,12 @@ class _FilterBar extends StatelessWidget {
       a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
-class _SalesTable extends StatefulWidget {
+class _SalesTable extends StatelessWidget {
   const _SalesTable({required this.state});
 
   final SalesListLoaded state;
 
-  @override
-  State<_SalesTable> createState() => _SalesTableState();
-}
-
-class _SalesTableState extends State<_SalesTable> {
-  int? _sortColumn;
-  bool _sortAscending = true;
-
-  String _formatDate(String soldAt) {
+  static String _formatDate(String soldAt) {
     try {
       return DateFormatter.formatDateTime(DateTime.parse(soldAt));
     } catch (_) {
@@ -258,44 +253,39 @@ class _SalesTableState extends State<_SalesTable> {
     }
   }
 
-  String _formatAmount(String? amount) {
+  static String _formatAmount(String? amount) {
     if (amount == null || amount.isEmpty) return '—';
     return formatPKR(double.tryParse(amount) ?? 0);
   }
 
-  List<SaleListItemModel> get _sortedItems {
-    final items = [...widget.state.items];
-    final column = _sortColumn;
-    if (column == null) return items;
+  static int _sortCompare(SaleListItemModel a, SaleListItemModel b, int column) {
+    int compare<T extends Comparable<T>>(T x, T y) => x.compareTo(y);
 
-    int compare<T extends Comparable<T>>(T a, T b) =>
-        _sortAscending ? a.compareTo(b) : b.compareTo(a);
-
-    items.sort((a, b) {
-      return switch (column) {
-        0 => compare(
-            a.saleNumber.toLowerCase(),
-            b.saleNumber.toLowerCase(),
-          ),
-        1 => compare(a.soldAt.toLowerCase(), b.soldAt.toLowerCase()),
-        2 => compare(
-            (a.customerName ?? '').toLowerCase(),
-            (b.customerName ?? '').toLowerCase(),
-          ),
-        3 => compare(
-            (a.cashierName ?? '').toLowerCase(),
-            (b.cashierName ?? '').toLowerCase(),
-          ),
-        4 => compare(a.itemCount ?? 0, b.itemCount ?? 0),
-        6 => compare(
-            double.tryParse(a.totalAmount ?? '0') ?? 0,
-            double.tryParse(b.totalAmount ?? '0') ?? 0,
-          ),
-        7 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
-        _ => 0,
-      };
-    });
-    return items;
+    return switch (column) {
+      0 => compare(
+          a.saleNumber.toLowerCase(),
+          b.saleNumber.toLowerCase(),
+        ),
+      1 => compare(a.soldAt.toLowerCase(), b.soldAt.toLowerCase()),
+      2 => compare(
+          (a.customerName ?? '').toLowerCase(),
+          (b.customerName ?? '').toLowerCase(),
+        ),
+      3 => compare(
+          (a.cashierName ?? '').toLowerCase(),
+          (b.cashierName ?? '').toLowerCase(),
+        ),
+      4 => compare(
+          SaleLineDisplay.summaryFromNames(a.productNames).toLowerCase(),
+          SaleLineDisplay.summaryFromNames(b.productNames).toLowerCase(),
+        ),
+      6 => compare(
+          double.tryParse(a.totalAmount ?? '0') ?? 0,
+          double.tryParse(b.totalAmount ?? '0') ?? 0,
+        ),
+      7 => compare(a.status.toLowerCase(), b.status.toLowerCase()),
+      _ => 0,
+    };
   }
 
   void _openSale(BuildContext context, SaleListItemModel item) {
@@ -305,42 +295,24 @@ class _SalesTableState extends State<_SalesTable> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<SalesListCubit>();
-    final state = widget.state;
-    final from = state.total == 0 ? 0 : state.skip + 1;
-    final to = (state.skip + state.items.length).clamp(0, state.total);
 
-    return AppDataTable<SaleListItemModel>(
+    return AppPaginatedDataTable<SaleListItemModel>(
       columns: _salesTableColumns,
-      items: _sortedItems,
+      items: state.items,
       itemId: (item) => item.id,
-      onColumnSort: (index) {
-        setState(() {
-          if (_sortColumn == index) {
-            _sortAscending = !_sortAscending;
-          } else {
-            _sortColumn = index;
-            _sortAscending = true;
-          }
-        });
-      },
+      itemLabel: 'sales',
+      paginationMode: AppTablePaginationMode.server,
+      sortCompare: _sortCompare,
+      skip: state.skip,
+      total: state.total,
+      limit: [10, 25, 50].contains(state.limit) ? state.limit : cubit.pageSize,
+      currentPage: cubit.currentPage(state),
+      totalPages: cubit.totalPages(state),
+      onPageSizeChanged: cubit.setPageSize,
+      onGoToPage: cubit.goToPage,
       onRowTap: (item) => _openSale(context, item),
-      pagination: AppDataTablePaginationData(
-        from: from,
-        to: to,
-        total: state.total,
-        itemLabel: 'sales',
-        currentPage: cubit.currentPage(state),
-        totalPages: cubit.totalPages(state),
-        pageSize: [10, 25, 50].contains(state.limit)
-            ? state.limit
-            : cubit.pageSize,
-        onPageSizeChanged: cubit.setPageSize,
-        onGoToPage: cubit.goToPage,
-      ),
       rowBuilder: (context, item, {required selected, required onSelected}) {
         final customerLabel = item.customerName ?? 'Walk-in Customer';
-        final itemCountLabel =
-            item.itemCount != null ? '${item.itemCount} items' : '—';
 
         return AppDataTableRowLayout(
           columns: _salesTableColumns,
@@ -382,12 +354,9 @@ class _SalesTableState extends State<_SalesTable> {
                 color: AppColors.textSecondary,
               ),
             ),
-            Text(
-              itemCountLabel,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textPrimary,
-              ),
+            SaleListProductsCell(
+              productNames: item.productNames,
+              itemCount: item.itemCount,
             ),
             SaleListPaymentMethodsCell(methods: item.paymentMethods),
             SaleListTotalCell(

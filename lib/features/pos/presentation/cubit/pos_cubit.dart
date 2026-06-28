@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/database/daos/held_orders_dao.dart';
 import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
@@ -49,6 +51,7 @@ class PosCubit extends Cubit<PosState> {
     required GetSettingsUseCase getSettingsUseCase,
     required AuthLocalDataSource authLocalDataSource,
     required NetworkInfo networkInfo,
+    required HeldOrdersDao heldOrdersDao,
   })  : _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
@@ -66,6 +69,7 @@ class PosCubit extends Cubit<PosState> {
         _getSettings = getSettingsUseCase,
         _authLocal = authLocalDataSource,
         _networkInfo = networkInfo,
+        _heldOrdersDao = heldOrdersDao,
         super(const PosState());
 
   final GetProductsUseCase _getProducts;
@@ -85,6 +89,7 @@ class PosCubit extends Cubit<PosState> {
   final GetSettingsUseCase _getSettings;
   final AuthLocalDataSource _authLocal;
   final NetworkInfo _networkInfo;
+  final HeldOrdersDao _heldOrdersDao;
 
   Timer? _searchDebounce;
 
@@ -114,6 +119,7 @@ class PosCubit extends Cubit<PosState> {
       _loadCategories(),
       _loadTaxData(),
       checkActiveShift(),
+      loadHeldOrders(),
     ]);
     await _loadStockBalances();
   }
@@ -703,6 +709,91 @@ class PosCubit extends Cubit<PosState> {
       cartDiscountValue: null,
       cartNote: null,
     ));
+  }
+
+  Future<void> loadHeldOrders() async {
+    final orders = await _heldOrdersDao.getAllHeldOrders();
+    if (isClosed) return;
+    _safeEmit(state.copyWith(heldOrders: orders));
+  }
+
+  Future<bool> holdCurrentSale({String? customLabel}) async {
+    if (state.cartItems.isEmpty) return false;
+
+    _safeEmit(state.copyWith(isHoldingSale: true));
+    try {
+      final orderNumber = state.heldOrders.length + 1;
+      final label = customLabel?.trim().isNotEmpty == true
+          ? customLabel!.trim()
+          : 'Order #$orderNumber';
+
+      final order = HeldOrderModel(
+        id: UuidUtils.v4(),
+        label: label,
+        createdAt: DateTime.now(),
+        cartItems: List<CartItemModel>.from(state.cartItems),
+        customerId: state.selectedCustomer?.id,
+        customerName: state.selectedCustomer?.name,
+        cartDiscountType: state.cartDiscountType,
+        cartDiscountValue: state.cartDiscountDecimal > Decimal.zero
+            ? state.cartDiscountDecimal
+            : null,
+        itemCount: state.cartItems.length,
+        totalAmount: state.grandTotal,
+      );
+
+      await _heldOrdersDao.saveHeldOrder(order);
+      clearCart();
+      await loadHeldOrders();
+      return true;
+    } finally {
+      if (!isClosed) {
+        _safeEmit(state.copyWith(isHoldingSale: false));
+      }
+    }
+  }
+
+  Future<bool> resumeHeldOrder(
+    String heldOrderId, {
+    bool forceOverwrite = false,
+  }) async {
+    if (state.cartItems.isNotEmpty && !forceOverwrite) return false;
+
+    final held = await _heldOrdersDao.getHeldOrderById(heldOrderId);
+    if (held == null) return false;
+
+    final activeTaxIds = state.taxRates.map((t) => t.id).toSet();
+    final restoredItems = held.cartItems.map((item) {
+      if (item.taxRateId != null && !activeTaxIds.contains(item.taxRateId)) {
+        return item.copyWith(clearTax: true);
+      }
+      return item;
+    }).toList();
+
+    CustomerModel? customer;
+    if (held.customerId != null) {
+      customer = CustomerModel(
+        id: held.customerId!,
+        businessId: '',
+        name: held.customerName ?? 'Customer',
+      );
+    }
+
+    _safeEmit(state.copyWith(
+      cartItems: restoredItems,
+      selectedCustomer: customer,
+      cartDiscountType: held.cartDiscountType,
+      cartDiscountValue: held.cartDiscountValue?.toString(),
+    ));
+
+    await _heldOrdersDao.deleteHeldOrder(heldOrderId);
+    await loadHeldOrders();
+    return true;
+  }
+
+  Future<void> discardHeldOrder(String heldOrderId) async {
+    await _heldOrdersDao.deleteHeldOrder(heldOrderId);
+    await loadHeldOrders();
   }
 
   Future<SaleResponseModel> submitSale(List<PaymentLineModel> payments) async {

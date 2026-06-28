@@ -11,6 +11,7 @@ import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/payment_modal.dart';
 import 'package:frantend/features/pos/presentation/widgets/cart_panel.dart';
 import 'package:frantend/features/pos/presentation/widgets/customer_picker_dialog.dart';
+import 'package:frantend/features/pos/presentation/widgets/held_orders_dialog.dart';
 import 'package:frantend/features/pos/presentation/utils/pos_product_actions.dart';
 import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
@@ -104,6 +105,7 @@ class _PosPageState extends State<PosPage> {
                       },
                       onCustomerTap: () => _openCustomerPicker(context),
                       onShiftTap: () => _showShiftSummary(context, state),
+                      onHeldOrdersTap: () => HeldOrdersDialog.show(context),
                     ),
                     Expanded(
                       child: state.isShiftReady
@@ -283,6 +285,7 @@ class _PosHeader extends StatelessWidget {
     required this.onSearchChanged,
     required this.onCustomerTap,
     required this.onShiftTap,
+    required this.onHeldOrdersTap,
   });
 
   final PosState state;
@@ -292,6 +295,7 @@ class _PosHeader extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onCustomerTap;
   final VoidCallback onShiftTap;
+  final VoidCallback onHeldOrdersTap;
 
   @override
   Widget build(BuildContext context) {
@@ -328,6 +332,32 @@ class _PosHeader extends StatelessWidget {
                   ),
             ),
           ),
+          if (state.heldOrders.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: onHeldOrdersTap,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.warning.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  '📋 Held Orders (${state.heldOrders.length})',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.warning,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
           InkWell(
             onTap: onCustomerTap,
