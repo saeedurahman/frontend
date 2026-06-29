@@ -13,6 +13,8 @@ abstract class CashRegisterRemoteDataSource {
 
   Future<RegisterShiftModel?> getActiveShift(String registerId);
 
+  Future<RegisterShiftModel?> getMyActiveShift();
+
   Future<RegisterShiftModel> openShift(Map<String, dynamic> body);
 
   Future<ShiftSummaryModel> getShiftSummary(String shiftId);
@@ -65,6 +67,20 @@ class CashRegisterRemoteDataSourceImpl
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         ApiConstants.registerActiveShift(registerId),
+      );
+      if (response.data == null || response.data!.isEmpty) return null;
+      return RegisterShiftModel.fromJson(response.data!);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<RegisterShiftModel?> getMyActiveShift() async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.shiftsMyActive,
       );
       if (response.data == null || response.data!.isEmpty) return null;
       return RegisterShiftModel.fromJson(response.data!);

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/database/daos/held_orders_dao.dart';
 import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -14,6 +15,7 @@ import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
+import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/pos_calculations.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
@@ -40,7 +42,7 @@ class PosCubit extends Cubit<PosState> {
     required LookupBarcodeUseCase lookupBarcodeUseCase,
     required GetProductPriceUseCase getProductPriceUseCase,
     required CreateSaleUseCase createSaleUseCase,
-    required GetActiveShiftUseCase getActiveShiftUseCase,
+    required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
     required OpenShiftUseCase openShiftUseCase,
     required GetShiftSummaryUseCase getShiftSummaryUseCase,
     required GetRegistersUseCase getRegistersUseCase,
@@ -58,7 +60,7 @@ class PosCubit extends Cubit<PosState> {
         _lookupBarcode = lookupBarcodeUseCase,
         _getProductPrice = getProductPriceUseCase,
         _createSale = createSaleUseCase,
-        _getActiveShift = getActiveShiftUseCase,
+        _getMyActiveShift = getMyActiveShiftUseCase,
         _openShift = openShiftUseCase,
         _getShiftSummary = getShiftSummaryUseCase,
         _getRegisters = getRegistersUseCase,
@@ -78,7 +80,7 @@ class PosCubit extends Cubit<PosState> {
   final LookupBarcodeUseCase _lookupBarcode;
   final GetProductPriceUseCase _getProductPrice;
   final CreateSaleUseCase _createSale;
-  final GetActiveShiftUseCase _getActiveShift;
+  final GetMyActiveShiftUseCase _getMyActiveShift;
   final OpenShiftUseCase _openShift;
   final GetShiftSummaryUseCase _getShiftSummary;
   final GetRegistersUseCase _getRegisters;
@@ -225,46 +227,41 @@ class PosCubit extends Cubit<PosState> {
     }
 
     final registersResult = await _getRegisters(branchId: branchId);
+    final shiftResult = await _getMyActiveShift();
     if (isClosed) return;
+
     await registersResult.fold(
-      (failure) async {
+      (Failure failure) async {
         _safeEmit(state.copyWith(
           isCheckingShift: false,
           registersError: failure.message,
         ));
       },
-      (registers) async {
-        if (registers.isEmpty) {
-          _safeEmit(state.copyWith(
-            registers: registers,
-            isCheckingShift: false,
-            activeShift: null,
-            registersError: null,
-          ));
-          return;
-        }
-
-        final registerId = state.selectedRegisterId ?? registers.first.id;
-        _safeEmit(state.copyWith(
-          registers: registers,
-          selectedRegisterId: registerId,
-        ));
-
-        final shiftResult = await _getActiveShift(registerId);
-        if (isClosed) return;
-        shiftResult.fold(
-          (failure) => _safeEmit(state.copyWith(
-            isCheckingShift: false,
-            registersError: failure.message,
-          )),
-          (shift) async {
+      (List<CashRegisterModel> registers) async {
+        await shiftResult.fold(
+          (Failure failure) async {
+            _safeEmit(state.copyWith(
+              registers: registers,
+              isCheckingShift: false,
+              activeShift: null,
+              registersError: failure.message,
+            ));
+          },
+          (RegisterShiftModel? shift) async {
             ShiftSummaryModel? summary;
             if (shift != null) {
               final summaryResult = await _getShiftSummary(shift.id);
               if (isClosed) return;
               summaryResult.fold((_) {}, (s) => summary = s);
             }
+
+            final selectedRegisterId = shift?.cashRegisterId ??
+                state.selectedRegisterId ??
+                (registers.isNotEmpty ? registers.first.id : null);
+
             _safeEmit(state.copyWith(
+              registers: registers,
+              selectedRegisterId: selectedRegisterId,
               activeShift: shift,
               shiftSummary: summary,
               isCheckingShift: false,

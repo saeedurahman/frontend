@@ -5,11 +5,15 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:frantend/utils/app_phone_no_field.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -355,6 +359,8 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                     child: Text(business.currencyCode),
                   ),
                   const SizedBox(height: 20),
+                  const _AccessControlSection(),
+                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,
                     child: PrimaryButton(
@@ -382,6 +388,52 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AccessControlSection extends StatelessWidget {
+  const _AccessControlSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: sl<AuthLocalDataSource>().getCachedUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (!UserRoleUtils.canManageRoles(
+          role: user?.role,
+          permissionKeys: user?.permissionKeys ?? const [],
+        )) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Access Control', style: AppTextStyles.titleMedium),
+            const SizedBox(height: 8),
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.border),
+                ),
+                leading: Icon(Icons.admin_panel_settings_outlined,
+                    color: AppColors.primary),
+                title: const Text('Roles & Permissions'),
+                subtitle: const Text(
+                  'Manage staff roles and what they can access',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(RouteNames.settingsRoles),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

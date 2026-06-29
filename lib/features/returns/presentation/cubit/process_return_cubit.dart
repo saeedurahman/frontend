@@ -1,10 +1,9 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
-import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/returns/data/models/refund_line_model.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
 import 'package:frantend/features/returns/domain/usecases/returns_usecases.dart';
@@ -20,23 +19,17 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
     required GetSaleByIdUseCase getSaleByIdUseCase,
     required GetCustomerUseCase getCustomerUseCase,
     required CreateSaleReturnUseCase createSaleReturnUseCase,
-    required GetActiveShiftUseCase getActiveShiftUseCase,
-    required GetRegistersUseCase getRegistersUseCase,
-    required AuthLocalDataSource authLocalDataSource,
+    required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
   })  : _getSale = getSaleByIdUseCase,
         _getCustomer = getCustomerUseCase,
         _createReturn = createSaleReturnUseCase,
-        _getActiveShift = getActiveShiftUseCase,
-        _getRegisters = getRegistersUseCase,
-        _authLocal = authLocalDataSource,
+        _getMyActiveShift = getMyActiveShiftUseCase,
         super(const ProcessReturnState());
 
   final GetSaleByIdUseCase _getSale;
   final GetCustomerUseCase _getCustomer;
   final CreateSaleReturnUseCase _createReturn;
-  final GetActiveShiftUseCase _getActiveShift;
-  final GetRegistersUseCase _getRegisters;
-  final AuthLocalDataSource _authLocal;
+  final GetMyActiveShiftUseCase _getMyActiveShift;
 
   Future<void> load(String saleId) async {
     emit(state.copyWith(isLoading: true, error: null, submitError: null));
@@ -140,19 +133,8 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
   }
 
   Future<String?> _resolveActiveShiftId() async {
-    final user = await _authLocal.getCachedUser();
-    final branchId = user?.branchId;
-    if (branchId == null) return null;
-
-    final registersResult = await _getRegisters(branchId: branchId);
-    return registersResult.fold(
-      (_) async => null,
-      (registers) async {
-        if (registers.isEmpty) return null;
-        final shiftResult = await _getActiveShift(registers.first.id);
-        return shiftResult.fold((_) => null, (shift) => shift?.id);
-      },
-    );
+    final shiftResult = await _getMyActiveShift();
+    return shiftResult.fold((_) => null, (shift) => shift?.id);
   }
 
   void addRefundLine({

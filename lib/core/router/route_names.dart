@@ -55,6 +55,9 @@ abstract final class RouteNames {
   static const String settingsBusiness = '/settings/business';
   static const String settingsReceipt = '/settings/receipt';
   static const String settingsTax = '/settings/tax';
+  static const String settingsRoles = '/settings/roles';
+  static const String settingsRoleNew = '/settings/roles/new';
+  static String settingsRoleEditPath(String id) => '/settings/roles/$id/edit';
   static const String notifications = '/notifications';
   static const String auditLogs = '/audit-logs';
 }

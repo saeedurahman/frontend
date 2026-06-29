@@ -8,6 +8,8 @@ class User extends Equatable {
     required this.role,
     this.businessId,
     this.branchId,
+    this.roles = const [],
+    this.permissionKeys = const [],
   });
 
   final String id;
@@ -16,7 +18,10 @@ class User extends Equatable {
   final String role;
   final String? businessId;
   final String? branchId;
+  final List<String> roles;
+  final List<String> permissionKeys;
 
   @override
-  List<Object?> get props => [id, email, name, role, businessId, branchId];
+  List<Object?> get props =>
+      [id, email, name, role, businessId, branchId, roles, permissionKeys];
 }

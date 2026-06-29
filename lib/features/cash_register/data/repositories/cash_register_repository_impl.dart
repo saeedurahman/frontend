@@ -53,6 +53,15 @@ class CashRegisterRepositoryImpl implements CashRegisterRepository {
   }
 
   @override
+  Future<Either<Failure, RegisterShiftModel?>> getMyActiveShift() async {
+    try {
+      return Right(await _remote.getMyActiveShift());
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, RegisterShiftModel>> openShift(
     Map<String, dynamic> body,
   ) async {

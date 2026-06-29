@@ -46,6 +46,8 @@ import 'package:frantend/features/settings/presentation/pages/settings_page.dart
 import 'package:frantend/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:frantend/features/audit/presentation/pages/audit_logs_page.dart';
 import 'package:frantend/features/reports/presentation/pages/reports_page.dart';
+import 'package:frantend/features/roles/presentation/pages/role_form_page.dart';
+import 'package:frantend/features/roles/presentation/pages/roles_list_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -330,6 +332,22 @@ class AppRouter {
                 path: 'tax',
                 redirect: (_, __) => RouteNames.settings,
               ),
+              GoRoute(
+                path: 'roles',
+                builder: (_, __) => const RolesListPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (_, __) => const RoleFormPage(),
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    builder: (_, state) => RoleFormPage(
+                      roleId: state.pathParameters['id'],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           GoRoute(
@@ -365,7 +383,12 @@ class AppRouter {
   if (path.startsWith(RouteNames.cashRegister)) return ('Cash Register', 'Home / Finance / Cash Register');
   if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');
   if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
-  if (path.startsWith(RouteNames.settings)) return ('Settings', 'Home / System / Settings');
+  if (path.startsWith(RouteNames.settings)) {
+    if (path.startsWith(RouteNames.settingsRoles)) {
+      return ('Roles & Permissions', 'Home / System / Settings / Roles');
+    }
+    return ('Settings', 'Home / System / Settings');
+  }
   if (path.startsWith(RouteNames.notifications)) {
     return ('Notifications', 'Home / System / Notifications');
   }

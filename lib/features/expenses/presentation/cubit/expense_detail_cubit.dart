@@ -1,11 +1,10 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/expenses/data/models/expense_category_model.dart';
 import 'package:frantend/features/expenses/domain/usecases/expenses_usecases.dart';
 import 'package:frantend/features/expenses/presentation/cubit/expense_detail_state.dart';
-import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:injectable/injectable.dart';
 
@@ -17,17 +16,13 @@ class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
     required GetSupplierUseCase getSupplierUseCase,
     required DeleteExpenseUseCase deleteExpenseUseCase,
     required AddExpensePaymentUseCase addExpensePaymentUseCase,
-    required GetActiveShiftUseCase getActiveShiftUseCase,
-    required GetRegistersUseCase getRegistersUseCase,
-    required AuthLocalDataSource authLocalDataSource,
+    required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
   })  : _getExpense = getExpenseByIdUseCase,
         _getCategories = getExpenseCategoriesUseCase,
         _getSupplier = getSupplierUseCase,
         _deleteExpense = deleteExpenseUseCase,
         _addPayment = addExpensePaymentUseCase,
-        _getActiveShift = getActiveShiftUseCase,
-        _getRegisters = getRegistersUseCase,
-        _authLocal = authLocalDataSource,
+        _getMyActiveShift = getMyActiveShiftUseCase,
         super(const ExpenseDetailState.initial());
 
   final GetExpenseByIdUseCase _getExpense;
@@ -35,9 +30,7 @@ class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
   final GetSupplierUseCase _getSupplier;
   final DeleteExpenseUseCase _deleteExpense;
   final AddExpensePaymentUseCase _addPayment;
-  final GetActiveShiftUseCase _getActiveShift;
-  final GetRegistersUseCase _getRegisters;
-  final AuthLocalDataSource _authLocal;
+  final GetMyActiveShiftUseCase _getMyActiveShift;
 
   String? _expenseId;
 
@@ -115,19 +108,8 @@ class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
   }
 
   Future<String?> _resolveActiveShiftId() async {
-    final user = await _authLocal.getCachedUser();
-    final branchId = user?.branchId;
-    if (branchId == null) return null;
-
-    final registersResult = await _getRegisters(branchId: branchId);
-    return registersResult.fold(
-      (_) async => null,
-      (registers) async {
-        if (registers.isEmpty) return null;
-        final shiftResult = await _getActiveShift(registers.first.id);
-        return shiftResult.fold((_) => null, (shift) => shift?.id);
-      },
-    );
+    final shiftResult = await _getMyActiveShift();
+    return shiftResult.fold((_) => null, (shift) => shift?.id);
   }
 
   Future<bool> recordPayment({

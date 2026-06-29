@@ -25,6 +25,15 @@ class GetActiveRegisterShiftUseCase {
 }
 
 @injectable
+class GetMyActiveShiftUseCase {
+  const GetMyActiveShiftUseCase(this._repository);
+  final CashRegisterRepository _repository;
+
+  Future<Either<Failure, RegisterShiftModel?>> call() =>
+      _repository.getMyActiveShift();
+}
+
+@injectable
 class GetRegisterShiftSummaryUseCase {
   const GetRegisterShiftSummaryUseCase(this._repository);
   final CashRegisterRepository _repository;

@@ -17,6 +17,8 @@ abstract class CashRegisterRepository {
     String registerId,
   );
 
+  Future<Either<Failure, RegisterShiftModel?>> getMyActiveShift();
+
   Future<Either<Failure, RegisterShiftModel>> openShift(
     Map<String, dynamic> body,
   );

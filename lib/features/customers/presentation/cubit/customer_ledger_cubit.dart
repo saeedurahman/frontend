@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
@@ -9,7 +9,6 @@ import 'package:frantend/features/customers/domain/usecases/record_customer_paym
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
-import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/shared/widgets/tables/client_table_pagination.dart';
 import 'package:injectable/injectable.dart';
 
@@ -20,16 +19,12 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     required GetCustomerBalanceUseCase getCustomerBalanceUseCase,
     required GetCustomerLedgerUseCase getCustomerLedgerUseCase,
     required RecordCustomerPaymentUseCase recordCustomerPaymentUseCase,
-    required GetActiveShiftUseCase getActiveShiftUseCase,
-    required GetRegistersUseCase getRegistersUseCase,
-    required AuthLocalDataSource authLocalDataSource,
+    required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
   })  : _getCustomer = getCustomerUseCase,
         _getBalance = getCustomerBalanceUseCase,
         _getLedger = getCustomerLedgerUseCase,
         _recordPayment = recordCustomerPaymentUseCase,
-        _getActiveShift = getActiveShiftUseCase,
-        _getRegisters = getRegistersUseCase,
-        _authLocal = authLocalDataSource,
+        _getMyActiveShift = getMyActiveShiftUseCase,
         super(const CustomerLedgerState.initial());
 
   static const _defaultPageSize = 10;
@@ -41,9 +36,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   final GetCustomerBalanceUseCase _getBalance;
   final GetCustomerLedgerUseCase _getLedger;
   final RecordCustomerPaymentUseCase _recordPayment;
-  final GetActiveShiftUseCase _getActiveShift;
-  final GetRegistersUseCase _getRegisters;
-  final AuthLocalDataSource _authLocal;
+  final GetMyActiveShiftUseCase _getMyActiveShift;
 
   String? _customerId;
   List<CustomerLedgerEntryModel> _allEntries = [];
@@ -126,19 +119,8 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   }
 
   Future<String?> _resolveActiveShiftId() async {
-    final user = await _authLocal.getCachedUser();
-    final branchId = user?.branchId;
-    if (branchId == null) return null;
-
-    final registersResult = await _getRegisters(branchId: branchId);
-    return registersResult.fold(
-      (_) async => null,
-      (registers) async {
-        if (registers.isEmpty) return null;
-        final shiftResult = await _getActiveShift(registers.first.id);
-        return shiftResult.fold((_) => null, (shift) => shift?.id);
-      },
-    );
+    final shiftResult = await _getMyActiveShift();
+    return shiftResult.fold((_) => null, (shift) => shift?.id);
   }
 
   Future<void> load(String customerId) async {

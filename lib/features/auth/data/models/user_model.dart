@@ -15,6 +15,8 @@ class UserModel {
     this.branchId,
     this.businessName,
     this.businessTypeCode,
+    this.roles = const [],
+    this.permissionKeys = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +37,10 @@ class UserModel {
   final String? businessName;
   @JsonKey(name: 'business_type_code')
   final String? businessTypeCode;
+  @JsonKey(name: 'roles')
+  final List<String> roles;
+  @JsonKey(name: 'permission_keys')
+  final List<String> permissionKeys;
 
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
@@ -45,6 +51,8 @@ class UserModel {
         role: role,
         businessId: businessId,
         branchId: branchId,
+        roles: roles,
+        permissionKeys: permissionKeys,
       );
 
   factory UserModel.fromEntity(User user) => UserModel(
@@ -55,5 +63,7 @@ class UserModel {
         role: user.role,
         businessId: user.businessId,
         branchId: user.branchId,
+        roles: user.roles,
+        permissionKeys: user.permissionKeys,
       );
 }

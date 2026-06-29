@@ -221,6 +221,15 @@ import '../../features/returns/domain/repositories/returns_repository.dart'
 import '../../features/returns/domain/usecases/returns_usecases.dart' as _i956;
 import '../../features/returns/presentation/cubit/process_return_cubit.dart'
     as _i125;
+import '../../features/roles/data/datasources/roles_remote_datasource.dart'
+    as _i31;
+import '../../features/roles/data/repositories/roles_repository_impl.dart'
+    as _i655;
+import '../../features/roles/domain/repositories/roles_repository.dart'
+    as _i1024;
+import '../../features/roles/domain/usecases/roles_usecases.dart' as _i473;
+import '../../features/roles/presentation/cubit/role_form_cubit.dart' as _i685;
+import '../../features/roles/presentation/cubit/roles_list_cubit.dart' as _i683;
 import '../../features/sales/data/datasources/sales_remote_datasource.dart'
     as _i1019;
 import '../../features/sales/data/repositories/sales_repository_impl.dart'
@@ -350,6 +359,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i816.SuppliersRemoteDataSource>(
       () => _i816.SuppliersRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
+    gh.lazySingleton<_i31.RolesRemoteDataSource>(
+      () => _i31.RolesRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
     gh.lazySingleton<_i969.CustomersRemoteDataSource>(
       () => _i969.CustomersRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
@@ -452,6 +464,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i422.InventoryRepository>(
       () => _i572.InventoryRepositoryImpl(
         remoteDataSource: gh<_i103.InventoryRemoteDataSource>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
+      ),
+    );
+    gh.lazySingleton<_i1024.RolesRepository>(
+      () => _i655.RolesRepositoryImpl(
+        remoteDataSource: gh<_i31.RolesRemoteDataSource>(),
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
@@ -659,6 +677,27 @@ extension GetItInjectableX on _i174.GetIt {
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
+    gh.factory<_i473.GetPermissionsCatalogUseCase>(
+      () => _i473.GetPermissionsCatalogUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.GetRolesUseCase>(
+      () => _i473.GetRolesUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.GetRoleUseCase>(
+      () => _i473.GetRoleUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.CreateRoleUseCase>(
+      () => _i473.CreateRoleUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.UpdateRoleUseCase>(
+      () => _i473.UpdateRoleUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.DeleteRoleUseCase>(
+      () => _i473.DeleteRoleUseCase(gh<_i1024.RolesRepository>()),
+    );
+    gh.factory<_i473.AssignRolePermissionsUseCase>(
+      () => _i473.AssignRolePermissionsUseCase(gh<_i1024.RolesRepository>()),
+    );
     gh.lazySingleton<_i563.NotificationsRepository>(
       () => _i201.NotificationsRepositoryImpl(
         remoteDataSource: gh<_i937.NotificationsRemoteDataSource>(),
@@ -743,6 +782,13 @@ extension GetItInjectableX on _i174.GetIt {
         createUnitUseCase: gh<_i679.CreateUnitUseCase>(),
       ),
     );
+    gh.factory<_i683.RolesListCubit>(
+      () => _i683.RolesListCubit(
+        getRolesUseCase: gh<_i473.GetRolesUseCase>(),
+        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i245.ReportsUseCases>(
       () => _i245.ReportsUseCases(gh<_i808.ReportsRepository>()),
     );
@@ -766,6 +812,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i950.CashRegisterRepository>(),
       ),
     );
+    gh.factory<_i820.GetMyActiveShiftUseCase>(
+      () => _i820.GetMyActiveShiftUseCase(gh<_i950.CashRegisterRepository>()),
+    );
     gh.factory<_i820.GetRegisterShiftSummaryUseCase>(
       () => _i820.GetRegisterShiftSummaryUseCase(
         gh<_i950.CashRegisterRepository>(),
@@ -788,6 +837,14 @@ extension GetItInjectableX on _i174.GetIt {
         getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
       ),
     );
+    gh.factory<_i125.ProcessReturnCubit>(
+      () => _i125.ProcessReturnCubit(
+        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
+        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
+        createSaleReturnUseCase: gh<_i956.CreateSaleReturnUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+      ),
+    );
     gh.factory<_i146.ProductFormCubit>(
       () => _i146.ProductFormCubit(
         getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
@@ -796,6 +853,15 @@ extension GetItInjectableX on _i174.GetIt {
         addVariationUseCase: gh<_i1053.AddVariationUseCase>(),
         addBarcodeUseCase: gh<_i347.AddBarcodeUseCase>(),
         imageUploadService: gh<_i606.ImageUploadService>(),
+      ),
+    );
+    gh.factory<_i1045.CustomerLedgerCubit>(
+      () => _i1045.CustomerLedgerCubit(
+        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
+        getCustomerBalanceUseCase: gh<_i449.GetCustomerBalanceUseCase>(),
+        getCustomerLedgerUseCase: gh<_i449.GetCustomerLedgerUseCase>(),
+        recordCustomerPaymentUseCase: gh<_i640.RecordCustomerPaymentUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
       ),
     );
     gh.factory<_i804.BrandsCubit>(
@@ -826,6 +892,17 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i563.NotificationsRepository>(),
       ),
     );
+    gh.factory<_i626.ExpenseFormCubit>(
+      () => _i626.ExpenseFormCubit(
+        getExpenseCategoriesUseCase: gh<_i9.GetExpenseCategoriesUseCase>(),
+        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
+        getExpenseByIdUseCase: gh<_i9.GetExpenseByIdUseCase>(),
+        createExpenseUseCase: gh<_i9.CreateExpenseUseCase>(),
+        updateExpenseUseCase: gh<_i9.UpdateExpenseUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.factory<_i792.SettingsCubit>(
       () => _i792.SettingsCubit(
         getBusinessProfileUseCase: gh<_i279.GetBusinessProfileUseCase>(),
@@ -837,6 +914,16 @@ extension GetItInjectableX on _i174.GetIt {
         createTaxRateUseCase: gh<_i279.CreateTaxRateUseCase>(),
         updateTaxRateUseCase: gh<_i279.UpdateTaxRateUseCase>(),
         imageUploadService: gh<_i606.ImageUploadService>(),
+      ),
+    );
+    gh.factory<_i1066.ExpenseDetailCubit>(
+      () => _i1066.ExpenseDetailCubit(
+        getExpenseByIdUseCase: gh<_i9.GetExpenseByIdUseCase>(),
+        getExpenseCategoriesUseCase: gh<_i9.GetExpenseCategoriesUseCase>(),
+        getSupplierUseCase: gh<_i877.GetSupplierUseCase>(),
+        deleteExpenseUseCase: gh<_i9.DeleteExpenseUseCase>(),
+        addExpensePaymentUseCase: gh<_i9.AddExpensePaymentUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
       ),
     );
     gh.factory<_i495.SalesListCubit>(
@@ -930,28 +1017,6 @@ extension GetItInjectableX on _i174.GetIt {
         lineEnricher: gh<_i706.PurchaseOrderLineEnricher>(),
       ),
     );
-    gh.factory<_i312.PosCubit>(
-      () => _i312.PosCubit(
-        getProductsUseCase: gh<_i15.GetProductsUseCase>(),
-        getCategoriesUseCase: gh<_i583.GetCategoriesUseCase>(),
-        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
-        lookupBarcodeUseCase: gh<_i698.LookupBarcodeUseCase>(),
-        getProductPriceUseCase: gh<_i698.GetProductPriceUseCase>(),
-        createSaleUseCase: gh<_i698.CreateSaleUseCase>(),
-        getActiveShiftUseCase: gh<_i698.GetActiveShiftUseCase>(),
-        openShiftUseCase: gh<_i698.OpenShiftUseCase>(),
-        getShiftSummaryUseCase: gh<_i698.GetShiftSummaryUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        createRegisterUseCase: gh<_i698.CreateRegisterUseCase>(),
-        getStockBalanceUseCase: gh<_i380.GetStockBalanceUseCase>(),
-        getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
-        getTaxRatesUseCase: gh<_i279.GetTaxRatesUseCase>(),
-        getSettingsUseCase: gh<_i279.GetSettingsUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
-      ),
-    );
     gh.factory<_i838.GetPurchaseOrdersUseCase>(
       () => _i838.GetPurchaseOrdersUseCase(gh<_i363.PurchasesRepository>()),
     );
@@ -971,6 +1036,16 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i838.GetPurchaseReceiptUseCase>(
       () => _i838.GetPurchaseReceiptUseCase(gh<_i363.PurchasesRepository>()),
+    );
+    gh.factory<_i685.RoleFormCubit>(
+      () => _i685.RoleFormCubit(
+        getPermissionsCatalogUseCase: gh<_i473.GetPermissionsCatalogUseCase>(),
+        getRoleUseCase: gh<_i473.GetRoleUseCase>(),
+        createRoleUseCase: gh<_i473.CreateRoleUseCase>(),
+        updateRoleUseCase: gh<_i473.UpdateRoleUseCase>(),
+        assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
+        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
+      ),
     );
     gh.factory<_i1062.GetDashboardSummaryUseCase>(
       () => _i1062.GetDashboardSummaryUseCase(gh<_i665.DashboardRepository>()),
@@ -1018,18 +1093,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i642.RegisterBusinessUseCase>(
       () => _i642.RegisterBusinessUseCase(gh<_i787.AuthRepository>()),
     );
-    gh.factory<_i1066.ExpenseDetailCubit>(
-      () => _i1066.ExpenseDetailCubit(
-        getExpenseByIdUseCase: gh<_i9.GetExpenseByIdUseCase>(),
-        getExpenseCategoriesUseCase: gh<_i9.GetExpenseCategoriesUseCase>(),
-        getSupplierUseCase: gh<_i877.GetSupplierUseCase>(),
-        deleteExpenseUseCase: gh<_i9.DeleteExpenseUseCase>(),
-        addExpensePaymentUseCase: gh<_i9.AddExpensePaymentUseCase>(),
-        getActiveShiftUseCase: gh<_i698.GetActiveShiftUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
     gh.lazySingleton<_i405.NotificationsCubit>(
       () => _i405.NotificationsCubit(
         getNotificationsUseCase: gh<_i459.GetNotificationsUseCase>(),
@@ -1041,44 +1104,11 @@ extension GetItInjectableX on _i174.GetIt {
             gh<_i459.CheckNotificationAlertsUseCase>(),
       ),
     );
-    gh.factory<_i626.ExpenseFormCubit>(
-      () => _i626.ExpenseFormCubit(
-        getExpenseCategoriesUseCase: gh<_i9.GetExpenseCategoriesUseCase>(),
-        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-        getExpenseByIdUseCase: gh<_i9.GetExpenseByIdUseCase>(),
-        createExpenseUseCase: gh<_i9.CreateExpenseUseCase>(),
-        updateExpenseUseCase: gh<_i9.UpdateExpenseUseCase>(),
-        getActiveShiftUseCase: gh<_i698.GetActiveShiftUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
     gh.factory<_i909.PurchaseOrderDetailCubit>(
       () => _i909.PurchaseOrderDetailCubit(
         getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
         updatePurchaseOrderStatusUseCase:
             gh<_i838.UpdatePurchaseOrderStatusUseCase>(),
-      ),
-    );
-    gh.factory<_i125.ProcessReturnCubit>(
-      () => _i125.ProcessReturnCubit(
-        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
-        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
-        createSaleReturnUseCase: gh<_i956.CreateSaleReturnUseCase>(),
-        getActiveShiftUseCase: gh<_i698.GetActiveShiftUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
-    gh.factory<_i1045.CustomerLedgerCubit>(
-      () => _i1045.CustomerLedgerCubit(
-        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
-        getCustomerBalanceUseCase: gh<_i449.GetCustomerBalanceUseCase>(),
-        getCustomerLedgerUseCase: gh<_i449.GetCustomerLedgerUseCase>(),
-        recordCustomerPaymentUseCase: gh<_i640.RecordCustomerPaymentUseCase>(),
-        getActiveShiftUseCase: gh<_i698.GetActiveShiftUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
     gh.factory<_i266.RegisterCubit>(
@@ -1091,6 +1121,28 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i483.PurchaseOrdersListCubit(
         getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
         getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
+      ),
+    );
+    gh.factory<_i312.PosCubit>(
+      () => _i312.PosCubit(
+        getProductsUseCase: gh<_i15.GetProductsUseCase>(),
+        getCategoriesUseCase: gh<_i583.GetCategoriesUseCase>(),
+        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
+        lookupBarcodeUseCase: gh<_i698.LookupBarcodeUseCase>(),
+        getProductPriceUseCase: gh<_i698.GetProductPriceUseCase>(),
+        createSaleUseCase: gh<_i698.CreateSaleUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+        openShiftUseCase: gh<_i698.OpenShiftUseCase>(),
+        getShiftSummaryUseCase: gh<_i698.GetShiftSummaryUseCase>(),
+        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
+        createRegisterUseCase: gh<_i698.CreateRegisterUseCase>(),
+        getStockBalanceUseCase: gh<_i380.GetStockBalanceUseCase>(),
+        getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
+        getTaxRatesUseCase: gh<_i279.GetTaxRatesUseCase>(),
+        getSettingsUseCase: gh<_i279.GetSettingsUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        networkInfo: gh<_i932.NetworkInfo>(),
+        heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
       ),
     );
     gh.factory<_i117.AuthCubit>(

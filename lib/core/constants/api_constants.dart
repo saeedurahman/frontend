@@ -50,6 +50,7 @@ abstract final class ApiConstants {
   static const String registers = '/registers';
   static const String shiftsOpen = '/shifts/open';
   static const String shifts = '/shifts';
+  static const String shiftsMyActive = '/shifts/my-active';
   static String shiftById(String shiftId) => '/shifts/$shiftId';
   static String shiftClose(String shiftId) => '/shifts/$shiftId/close';
 
@@ -139,6 +140,12 @@ abstract final class ApiConstants {
   static const String auditLogs = '/audit';
   static String auditRecordHistory(String tableName, String recordId) =>
       '/audit/record/$tableName/$recordId';
+
+  // Roles & permissions
+  static const String permissions = '/permissions';
+  static const String roles = '/roles';
+  static String roleById(String id) => '/roles/$id';
+  static String rolePermissions(String id) => '/roles/$id/permissions';
 
   // Headers
   static const String contentType = 'application/json';
