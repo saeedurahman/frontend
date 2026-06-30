@@ -15,6 +15,8 @@ class PosCartState with _$PosCartState {
     @Default([]) List<HeldOrderModel> heldOrders,
     @Default(false) bool isHoldingSale,
     @Default(false) bool isSubmittingSale,
+    @Default(false) bool isFiringTab,
+    @Default(false) bool isRequestingBill,
     String? selectedDiscountSchemeId,
     @Default([]) List<DiscountSchemeModel> discountSchemes,
     SalePricePreviewModel? pricePreview,

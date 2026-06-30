@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/session/business_session_cubit.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
@@ -238,6 +239,20 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.sales,
                     isActive: location.startsWith(RouteNames.sales),
                   ),
+                  if (_showTablesNav(user))
+                    _NavItem(
+                      icon: Icons.table_restaurant_outlined,
+                      label: 'Tables',
+                      routePath: RouteNames.restaurantTables,
+                      isActive: location.startsWith(RouteNames.restaurantTables),
+                    ),
+                  if (_showKitchenNav(user))
+                    _NavItem(
+                      icon: Icons.kitchen_outlined,
+                      label: 'Kitchen',
+                      routePath: RouteNames.kitchen,
+                      isActive: location.startsWith(RouteNames.kitchen),
+                    ),
                   if (UserRoleUtils.canViewReturns(
                     role: user?.role,
                     permissionKeys: user?.permissionKeys ?? const [],
@@ -668,6 +683,10 @@ class _GlobalSearchDelegate extends SearchDelegate<String?> {
           permissionKeys: user?.permissionKeys ?? const [],
         ))
           const _SearchRouteItem('Point of Sale', RouteNames.pos),
+        if (_showTablesNav(user))
+          const _SearchRouteItem('Tables', RouteNames.restaurantTables),
+        if (_showKitchenNav(user))
+          const _SearchRouteItem('Kitchen', RouteNames.kitchen),
         const _SearchRouteItem('Products', RouteNames.products),
         const _SearchRouteItem('Inventory', RouteNames.inventory),
         const _SearchRouteItem('Purchases', RouteNames.purchases),
@@ -750,4 +769,26 @@ String _initials(String name) {
   if (parts.isEmpty) return 'U';
   if (parts.length == 1) return parts.first[0].toUpperCase();
   return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+}
+
+bool _showTablesNav(UserModel? user) {
+  final flags = sl<BusinessSessionCubit>().state.flags;
+  return flags.showTablesNav &&
+      UserRoleUtils.canViewTables(
+        role: user?.role,
+        permissionKeys: user?.permissionKeys ?? const [],
+      );
+}
+
+bool _showKitchenNav(UserModel? user) {
+  final flags = sl<BusinessSessionCubit>().state.flags;
+  return flags.showKitchenNav &&
+      UserRoleUtils.canViewKot(
+        role: user?.role,
+        permissionKeys: user?.permissionKeys ?? const [],
+      ) &&
+      !UserRoleUtils.isKitchenOnlyUser(
+        role: user?.role,
+        permissionKeys: user?.permissionKeys ?? const [],
+      );
 }

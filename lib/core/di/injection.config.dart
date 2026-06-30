@@ -216,6 +216,20 @@ import '../../features/reports/domain/usecases/reports_usecases.dart' as _i245;
 import '../../features/reports/presentation/cubit/reports_cubit.dart' as _i671;
 import '../../features/reports/presentation/cubit/reports_filter_cubit.dart'
     as _i423;
+import '../../features/restaurant/data/datasources/restaurant_remote_datasource.dart'
+    as _i477;
+import '../../features/restaurant/data/repositories/restaurant_repository_impl.dart'
+    as _i35;
+import '../../features/restaurant/domain/repositories/restaurant_repository.dart'
+    as _i554;
+import '../../features/restaurant/domain/usecases/load_business_session_usecase.dart'
+    as _i857;
+import '../../features/restaurant/domain/usecases/restaurant_usecases.dart'
+    as _i767;
+import '../../features/restaurant/presentation/cubit/kitchen_display_cubit.dart'
+    as _i578;
+import '../../features/restaurant/presentation/cubit/tables_floor_cubit.dart'
+    as _i1041;
 import '../../features/returns/data/datasources/returns_remote_datasource.dart'
     as _i745;
 import '../../features/returns/data/repositories/returns_repository_impl.dart'
@@ -293,6 +307,7 @@ import '../network/dio_client.dart' as _i667;
 import '../network/network_info.dart' as _i932;
 import '../router/route_guards.dart' as _i525;
 import '../services/image_upload_service.dart' as _i606;
+import '../session/business_session_cubit.dart' as _i166;
 import '../storage/preferences_storage.dart' as _i574;
 import '../storage/secure_storage.dart' as _i619;
 import '../sync/conflict_resolver.dart' as _i50;
@@ -325,6 +340,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i619.SecureStorage>(() => _i619.SecureStorage());
     gh.lazySingleton<_i50.ConflictResolver>(() => _i50.ConflictResolver());
+    gh.lazySingleton<_i166.BusinessSessionCubit>(
+      () => _i166.BusinessSessionCubit(),
+    );
     gh.lazySingleton<_i574.PreferencesStorage>(
       () => _i574.PreferencesStorage(gh<_i460.SharedPreferences>()),
     );
@@ -562,6 +580,9 @@ extension GetItInjectableX on _i174.GetIt {
         preferencesStorage: gh<_i574.PreferencesStorage>(),
       ),
     );
+    gh.lazySingleton<_i477.RestaurantRemoteDataSource>(
+      () => _i477.RestaurantRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
     gh.lazySingleton<_i449.PosRemoteDataSource>(
       () => _i449.PosRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
@@ -711,6 +732,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i674.SettingsRepository>(),
       ),
     );
+    gh.factory<_i857.LoadBusinessSessionUseCase>(
+      () => _i857.LoadBusinessSessionUseCase(
+        gh<_i279.GetBusinessProfileUseCase>(),
+        gh<_i166.BusinessSessionCubit>(),
+      ),
+    );
     gh.lazySingleton<_i950.CashRegisterRepository>(
       () => _i168.CashRegisterRepositoryImpl(
         remoteDataSource: gh<_i493.CashRegisterRemoteDataSource>(),
@@ -792,6 +819,12 @@ extension GetItInjectableX on _i174.GetIt {
         assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
         deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.lazySingleton<_i554.RestaurantRepository>(
+      () => _i35.RestaurantRepositoryImpl(
+        remoteDataSource: gh<_i477.RestaurantRemoteDataSource>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
     gh.factory<_i9.GetExpenseCategoriesUseCase>(
@@ -1134,29 +1167,55 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i992.AuthLocalDataSource>(),
       ),
     );
-    gh.factory<_i312.PosCubit>(
-      () => _i312.PosCubit(
-        getProductsUseCase: gh<_i15.GetProductsUseCase>(),
-        getCategoriesUseCase: gh<_i583.GetCategoriesUseCase>(),
-        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
-        lookupBarcodeUseCase: gh<_i698.LookupBarcodeUseCase>(),
-        getProductPriceUseCase: gh<_i698.GetProductPriceUseCase>(),
-        createSaleUseCase: gh<_i698.CreateSaleUseCase>(),
-        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
-        openShiftUseCase: gh<_i698.OpenShiftUseCase>(),
-        getShiftSummaryUseCase: gh<_i698.GetShiftSummaryUseCase>(),
-        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
-        createRegisterUseCase: gh<_i698.CreateRegisterUseCase>(),
-        getStockBalanceUseCase: gh<_i380.GetStockBalanceUseCase>(),
-        getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
-        getTaxRatesUseCase: gh<_i279.GetTaxRatesUseCase>(),
-        getSettingsUseCase: gh<_i279.GetSettingsUseCase>(),
-        getDiscountSchemesUseCase: gh<_i698.GetDiscountSchemesUseCase>(),
-        previewSalePriceUseCase: gh<_i698.PreviewSalePriceUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
+    gh.factory<_i767.GetFloorPlansUseCase>(
+      () => _i767.GetFloorPlansUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetFloorLayoutUseCase>(
+      () => _i767.GetFloorLayoutUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetDiningTablesUseCase>(
+      () => _i767.GetDiningTablesUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetDiningTableByIdUseCase>(
+      () => _i767.GetDiningTableByIdUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetModifierGroupsUseCase>(
+      () => _i767.GetModifierGroupsUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetProductModifierGroupsUseCase>(
+      () => _i767.GetProductModifierGroupsUseCase(
+        gh<_i554.RestaurantRepository>(),
       ),
+    );
+    gh.factory<_i767.OpenTabUseCase>(
+      () => _i767.OpenTabUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.AddTabLinesUseCase>(
+      () => _i767.AddTabLinesUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.FireTabUseCase>(
+      () => _i767.FireTabUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.RequestTabBillUseCase>(
+      () => _i767.RequestTabBillUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.CompleteTabUseCase>(
+      () => _i767.CompleteTabUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetTabSaleUseCase>(
+      () => _i767.GetTabSaleUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetActiveKotOrdersUseCase>(
+      () => _i767.GetActiveKotOrdersUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetKotOrdersByTableUseCase>(
+      () => _i767.GetKotOrdersByTableUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.GetKotOrderByIdUseCase>(
+      () => _i767.GetKotOrderByIdUseCase(gh<_i554.RestaurantRepository>()),
+    );
+    gh.factory<_i767.UpdateKotStatusUseCase>(
+      () => _i767.UpdateKotStatusUseCase(gh<_i554.RestaurantRepository>()),
     );
     gh.factory<_i220.ShiftHistoryCubit>(
       () => _i220.ShiftHistoryCubit(
@@ -1186,6 +1245,37 @@ extension GetItInjectableX on _i174.GetIt {
         deleteNotificationUseCase: gh<_i459.DeleteNotificationUseCase>(),
         checkNotificationAlertsUseCase:
             gh<_i459.CheckNotificationAlertsUseCase>(),
+      ),
+    );
+    gh.factory<_i312.PosCubit>(
+      () => _i312.PosCubit(
+        getProductsUseCase: gh<_i15.GetProductsUseCase>(),
+        getCategoriesUseCase: gh<_i583.GetCategoriesUseCase>(),
+        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
+        lookupBarcodeUseCase: gh<_i698.LookupBarcodeUseCase>(),
+        getProductPriceUseCase: gh<_i698.GetProductPriceUseCase>(),
+        createSaleUseCase: gh<_i698.CreateSaleUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+        openShiftUseCase: gh<_i698.OpenShiftUseCase>(),
+        getShiftSummaryUseCase: gh<_i698.GetShiftSummaryUseCase>(),
+        getRegistersUseCase: gh<_i698.GetRegistersUseCase>(),
+        createRegisterUseCase: gh<_i698.CreateRegisterUseCase>(),
+        getStockBalanceUseCase: gh<_i380.GetStockBalanceUseCase>(),
+        getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
+        getTaxRatesUseCase: gh<_i279.GetTaxRatesUseCase>(),
+        getSettingsUseCase: gh<_i279.GetSettingsUseCase>(),
+        getDiscountSchemesUseCase: gh<_i698.GetDiscountSchemesUseCase>(),
+        previewSalePriceUseCase: gh<_i698.PreviewSalePriceUseCase>(),
+        openTabUseCase: gh<_i767.OpenTabUseCase>(),
+        addTabLinesUseCase: gh<_i767.AddTabLinesUseCase>(),
+        fireTabUseCase: gh<_i767.FireTabUseCase>(),
+        requestTabBillUseCase: gh<_i767.RequestTabBillUseCase>(),
+        completeTabUseCase: gh<_i767.CompleteTabUseCase>(),
+        getTabSaleUseCase: gh<_i767.GetTabSaleUseCase>(),
+        getKotOrdersByTableUseCase: gh<_i767.GetKotOrdersByTableUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        networkInfo: gh<_i932.NetworkInfo>(),
+        heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
       ),
     );
     gh.factory<_i830.SaleDetailCubit>(
@@ -1225,8 +1315,26 @@ extension GetItInjectableX on _i174.GetIt {
         getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
       ),
     );
+    gh.lazySingleton<_i787.AuthRepository>(
+      () => _i153.AuthRepositoryImpl(
+        remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
+        localDataSource: gh<_i992.AuthLocalDataSource>(),
+        networkInfo: gh<_i932.NetworkInfo>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
+        seedPinDeviceCache: gh<_i338.SeedPinDeviceCacheUseCase>(),
+        loadBusinessSession: gh<_i857.LoadBusinessSessionUseCase>(),
+      ),
+    );
     gh.factory<_i24.DashboardCubit>(
       () => _i24.DashboardCubit(gh<_i1062.GetDashboardSummaryUseCase>()),
+    );
+    gh.factory<_i578.KitchenDisplayCubit>(
+      () => _i578.KitchenDisplayCubit(
+        getActiveKotOrdersUseCase: gh<_i767.GetActiveKotOrdersUseCase>(),
+        updateKotStatusUseCase: gh<_i767.UpdateKotStatusUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        businessSession: gh<_i166.BusinessSessionCubit>(),
+      ),
     );
     gh.factory<_i242.PurchaseOrderFormCubit>(
       () => _i242.PurchaseOrderFormCubit(
@@ -1246,13 +1354,11 @@ extension GetItInjectableX on _i174.GetIt {
         createPurchaseReceiptUseCase: gh<_i838.CreatePurchaseReceiptUseCase>(),
       ),
     );
-    gh.lazySingleton<_i787.AuthRepository>(
-      () => _i153.AuthRepositoryImpl(
-        remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
-        localDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        errorHandler: gh<_i308.ErrorHandler>(),
-        seedPinDeviceCache: gh<_i338.SeedPinDeviceCacheUseCase>(),
+    gh.factory<_i1041.TablesFloorCubit>(
+      () => _i1041.TablesFloorCubit(
+        getFloorLayoutUseCase: gh<_i767.GetFloorLayoutUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        businessSession: gh<_i166.BusinessSessionCubit>(),
       ),
     );
     gh.lazySingleton<_i994.RegisterRepository>(

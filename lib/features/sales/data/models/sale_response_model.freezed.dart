@@ -793,6 +793,8 @@ mixin _$SaleResponseModel {
   String get branchId => throw _privateConstructorUsedError;
   @JsonKey(name: 'customer_id')
   String? get customerId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'table_id')
+  String? get tableId => throw _privateConstructorUsedError;
   @JsonKey(name: 'sale_type')
   String get saleType => throw _privateConstructorUsedError;
   @JsonKey(name: 'sale_status', readValue: _readSaleStatus)
@@ -842,6 +844,7 @@ abstract class $SaleResponseModelCopyWith<$Res> {
     @JsonKey(name: 'sale_number') String? saleNumber,
     @JsonKey(name: 'branch_id') String branchId,
     @JsonKey(name: 'customer_id') String? customerId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'sale_type') String saleType,
     @JsonKey(name: 'sale_status', readValue: _readSaleStatus) String saleStatus,
     @JsonKey(name: 'register_shift_id') String? registerShiftId,
@@ -881,6 +884,7 @@ class _$SaleResponseModelCopyWithImpl<$Res, $Val extends SaleResponseModel>
     Object? saleNumber = freezed,
     Object? branchId = null,
     Object? customerId = freezed,
+    Object? tableId = freezed,
     Object? saleType = null,
     Object? saleStatus = null,
     Object? registerShiftId = freezed,
@@ -914,6 +918,10 @@ class _$SaleResponseModelCopyWithImpl<$Res, $Val extends SaleResponseModel>
             customerId: freezed == customerId
                 ? _value.customerId
                 : customerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            tableId: freezed == tableId
+                ? _value.tableId
+                : tableId // ignore: cast_nullable_to_non_nullable
                       as String?,
             saleType: null == saleType
                 ? _value.saleType
@@ -1009,6 +1017,7 @@ abstract class _$$SaleResponseModelImplCopyWith<$Res>
     @JsonKey(name: 'sale_number') String? saleNumber,
     @JsonKey(name: 'branch_id') String branchId,
     @JsonKey(name: 'customer_id') String? customerId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'sale_type') String saleType,
     @JsonKey(name: 'sale_status', readValue: _readSaleStatus) String saleStatus,
     @JsonKey(name: 'register_shift_id') String? registerShiftId,
@@ -1048,6 +1057,7 @@ class __$$SaleResponseModelImplCopyWithImpl<$Res>
     Object? saleNumber = freezed,
     Object? branchId = null,
     Object? customerId = freezed,
+    Object? tableId = freezed,
     Object? saleType = null,
     Object? saleStatus = null,
     Object? registerShiftId = freezed,
@@ -1081,6 +1091,10 @@ class __$$SaleResponseModelImplCopyWithImpl<$Res>
         customerId: freezed == customerId
             ? _value.customerId
             : customerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        tableId: freezed == tableId
+            ? _value.tableId
+            : tableId // ignore: cast_nullable_to_non_nullable
                   as String?,
         saleType: null == saleType
             ? _value.saleType
@@ -1155,6 +1169,7 @@ class _$SaleResponseModelImpl implements _SaleResponseModel {
     @JsonKey(name: 'sale_number') this.saleNumber,
     @JsonKey(name: 'branch_id') required this.branchId,
     @JsonKey(name: 'customer_id') this.customerId,
+    @JsonKey(name: 'table_id') this.tableId,
     @JsonKey(name: 'sale_type') required this.saleType,
     @JsonKey(name: 'sale_status', readValue: _readSaleStatus)
     required this.saleStatus,
@@ -1188,6 +1203,9 @@ class _$SaleResponseModelImpl implements _SaleResponseModel {
   @override
   @JsonKey(name: 'customer_id')
   final String? customerId;
+  @override
+  @JsonKey(name: 'table_id')
+  final String? tableId;
   @override
   @JsonKey(name: 'sale_type')
   final String saleType;
@@ -1246,7 +1264,7 @@ class _$SaleResponseModelImpl implements _SaleResponseModel {
 
   @override
   String toString() {
-    return 'SaleResponseModel(id: $id, saleNumber: $saleNumber, branchId: $branchId, customerId: $customerId, saleType: $saleType, saleStatus: $saleStatus, registerShiftId: $registerShiftId, subtotal: $subtotal, totalDiscount: $totalDiscount, totalTax: $totalTax, totalAmount: $totalAmount, totalPaid: $totalPaid, notes: $notes, soldAt: $soldAt, createdAt: $createdAt, customer: $customer, lines: $lines, payments: $payments, offline: $offline)';
+    return 'SaleResponseModel(id: $id, saleNumber: $saleNumber, branchId: $branchId, customerId: $customerId, tableId: $tableId, saleType: $saleType, saleStatus: $saleStatus, registerShiftId: $registerShiftId, subtotal: $subtotal, totalDiscount: $totalDiscount, totalTax: $totalTax, totalAmount: $totalAmount, totalPaid: $totalPaid, notes: $notes, soldAt: $soldAt, createdAt: $createdAt, customer: $customer, lines: $lines, payments: $payments, offline: $offline)';
   }
 
   @override
@@ -1261,6 +1279,7 @@ class _$SaleResponseModelImpl implements _SaleResponseModel {
                 other.branchId == branchId) &&
             (identical(other.customerId, customerId) ||
                 other.customerId == customerId) &&
+            (identical(other.tableId, tableId) || other.tableId == tableId) &&
             (identical(other.saleType, saleType) ||
                 other.saleType == saleType) &&
             (identical(other.saleStatus, saleStatus) ||
@@ -1296,6 +1315,7 @@ class _$SaleResponseModelImpl implements _SaleResponseModel {
     saleNumber,
     branchId,
     customerId,
+    tableId,
     saleType,
     saleStatus,
     registerShiftId,
@@ -1336,6 +1356,7 @@ abstract class _SaleResponseModel implements SaleResponseModel {
     @JsonKey(name: 'sale_number') final String? saleNumber,
     @JsonKey(name: 'branch_id') required final String branchId,
     @JsonKey(name: 'customer_id') final String? customerId,
+    @JsonKey(name: 'table_id') final String? tableId,
     @JsonKey(name: 'sale_type') required final String saleType,
     @JsonKey(name: 'sale_status', readValue: _readSaleStatus)
     required final String saleStatus,
@@ -1368,6 +1389,9 @@ abstract class _SaleResponseModel implements SaleResponseModel {
   @override
   @JsonKey(name: 'customer_id')
   String? get customerId;
+  @override
+  @JsonKey(name: 'table_id')
+  String? get tableId;
   @override
   @JsonKey(name: 'sale_type')
   String get saleType;

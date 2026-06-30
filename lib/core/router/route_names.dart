@@ -33,6 +33,8 @@ abstract final class RouteNames {
   static const String returns = '/returns';
   static String returnDetailPath(String id) => '/returns/$id';
   static const String returnDetail = '/returns/:id';
+  static const String restaurantTables = '/restaurant/tables';
+  static const String kitchen = '/kitchen';
   static const String customers = '/customers';
   static const String customerNew = '/customers/new';
   static const String customerEdit = '/customers/:id/edit';

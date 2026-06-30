@@ -17,6 +17,15 @@ class UserRoleUtils {
   static const openShiftPermission = 'shifts.open';
   static const closeShiftPermission = 'shifts.close';
 
+  static const viewTablesPermission = 'restaurant.tables.view';
+  static const updateTableStatusPermission = 'restaurant.tables.update_status';
+  static const viewFloorPlansPermission = 'restaurant.floor_plans.view';
+  static const viewModifiersPermission = 'restaurant.modifiers.view';
+  static const viewKotPermission = 'restaurant.kot.view';
+  static const updateKotPermission = 'restaurant.kot.update_status';
+  static const _legacyUpdateKotPermission = 'restaurant.kot.update';
+  static const fireKotPermission = 'restaurant.kot.fire';
+
   static String _normalize(String? role) =>
       role?.toLowerCase().trim() ?? '';
 
@@ -171,6 +180,54 @@ class UserRoleUtils {
         permissionKeys: permissionKeys,
         permission: closeShiftPermission,
       );
+
+  static bool canViewTables({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewTablesPermission,
+      );
+
+  static bool canViewKot({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewKotPermission,
+      );
+
+  static bool canUpdateKot({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: updateKotPermission,
+      ) ||
+      hasPermission(permissionKeys, _legacyUpdateKotPermission);
+
+  /// Kitchen-only staff: KOT access without POS sales.create.
+  static bool isKitchenOnlyUser({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) {
+    final hasKotAccess = canViewKot(
+          role: role,
+          permissionKeys: permissionKeys,
+        ) ||
+        canUpdateKot(
+          role: role,
+          permissionKeys: permissionKeys,
+        );
+    return hasKotAccess &&
+        !canCreateSales(role: role, permissionKeys: permissionKeys);
+  }
 
   /// Analytics / financial reports require manager or owner.
   static bool canViewReports(String? role) =>

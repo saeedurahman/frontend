@@ -8,6 +8,7 @@ import 'package:frantend/features/auth/data/datasources/auth_remote_datasource.d
 import 'package:frantend/features/auth/domain/entities/user.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:frantend/features/auth/domain/usecases/seed_pin_device_cache_usecase.dart';
+import 'package:frantend/features/restaurant/domain/usecases/load_business_session_usecase.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: AuthRepository)
@@ -18,17 +19,26 @@ class AuthRepositoryImpl implements AuthRepository {
     required NetworkInfo networkInfo,
     required ErrorHandler errorHandler,
     required SeedPinDeviceCacheUseCase seedPinDeviceCache,
+    required LoadBusinessSessionUseCase loadBusinessSession,
   })  : _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _networkInfo = networkInfo,
         _errorHandler = errorHandler,
-        _seedPinDeviceCache = seedPinDeviceCache;
+        _seedPinDeviceCache = seedPinDeviceCache,
+        _loadBusinessSession = loadBusinessSession;
 
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
   final ErrorHandler _errorHandler;
   final SeedPinDeviceCacheUseCase _seedPinDeviceCache;
+  final LoadBusinessSessionUseCase _loadBusinessSession;
+
+  Future<void> _refreshBusinessSession() async {
+    if (await _networkInfo.isConnected) {
+      await _loadBusinessSession();
+    }
+  }
 
   @override
   Future<Either<Failure, User>> login({
@@ -67,6 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       await _seedPinDeviceCache(user);
+      await _refreshBusinessSession();
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
@@ -106,6 +117,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       await _seedPinDeviceCache(user);
+      await _refreshBusinessSession();
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
@@ -139,6 +151,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       await _seedPinDeviceCache(user);
+      await _refreshBusinessSession();
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
@@ -154,9 +167,11 @@ class AuthRepositoryImpl implements AuthRepository {
         await _remoteDataSource.logout();
       }
       await _localDataSource.clearSession();
+      _loadBusinessSession.reset();
       return const Right(null);
     } catch (e) {
       await _localDataSource.clearSession();
+      _loadBusinessSession.reset();
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
   }
@@ -167,6 +182,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (await _networkInfo.isConnected) {
         final remoteUser = await _remoteDataSource.getCurrentUser();
         await _localDataSource.cacheUser(remoteUser);
+        await _refreshBusinessSession();
         return Right(remoteUser.toEntity());
       }
 

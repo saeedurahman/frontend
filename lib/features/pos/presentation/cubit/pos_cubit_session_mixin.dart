@@ -1,8 +1,17 @@
 part of 'pos_cubit.dart';
 
 mixin PosCubitSessionMixin
-    on PosCubitBase, PosCubitShiftMixin, PosCubitCartMixin, PosCubitCatalogMixin {
-  Future<void> init() async {
+    on PosCubitBase,
+        PosCubitShiftMixin,
+        PosCubitCartMixin,
+        PosCubitCatalogMixin,
+        PosCubitDineInMixin {
+  Future<void> init({
+    String? dineInTableId,
+    String? dineInSaleId,
+    String? dineInTableNumber,
+    String? dineInTableStatus,
+  }) async {
     final user = await _authLocal.getCachedUser();
     final permissionKeys = user?.permissionKeys ?? const [];
     final canCreate = UserRoleUtils.canCreateSales(
@@ -51,5 +60,14 @@ mixin PosCubitSessionMixin
       loadHeldOrders(),
     ]);
     await _loadStockBalances();
+
+    if (dineInTableId != null && dineInTableId.isNotEmpty) {
+      await initDineInFromRoute(
+        tableId: dineInTableId,
+        saleId: dineInSaleId,
+        tableNumber: dineInTableNumber,
+        tableStatus: dineInTableStatus,
+      );
+    }
   }
 }

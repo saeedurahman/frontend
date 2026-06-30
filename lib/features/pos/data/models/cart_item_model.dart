@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 
 /// Local cart line — not serialized from API.
@@ -20,6 +20,8 @@ class CartItemModel {
     this.lineNote,
     this.maxAvailableStock,
     this.priceManual = false,
+    this.serverLineId,
+    this.modifiers = const [],
   });
 
   final String productId;
@@ -27,6 +29,7 @@ class CartItemModel {
   final String productName;
   final String? variationName;
   final String? sku;
+  /// Per-unit price including modifier adjustments.
   final Decimal unitPrice;
   final Decimal qty;
   final Decimal? itemDiscountPct;
@@ -37,6 +40,13 @@ class CartItemModel {
   final String? lineNote;
   final Decimal? maxAvailableStock;
   final bool priceManual;
+  /// Set after dine-in line sync (Phase 4).
+  final String? serverLineId;
+  final List<CartLineModifierModel> modifiers;
+
+  Decimal get modifierTotalPerUnit => cartModifierTotalPerUnit(modifiers);
+
+  Decimal get baseUnitPrice => unitPrice - modifierTotalPerUnit;
 
   Decimal get effectiveDiscountPct => itemDiscountPct ?? Decimal.zero;
   Decimal get effectiveDiscountAmount => itemDiscountAmount ?? Decimal.zero;
@@ -93,8 +103,11 @@ class CartItemModel {
     String? lineNote,
     Decimal? maxAvailableStock,
     bool? priceManual,
+    String? serverLineId,
+    List<CartLineModifierModel>? modifiers,
     bool clearLineNote = false,
     bool clearTax = false,
+    bool clearServerLineId = false,
   }) {
     return CartItemModel(
       productId: productId ?? this.productId,
@@ -112,11 +125,17 @@ class CartItemModel {
       lineNote: clearLineNote ? null : (lineNote ?? this.lineNote),
       maxAvailableStock: maxAvailableStock ?? this.maxAvailableStock,
       priceManual: priceManual ?? this.priceManual,
+      serverLineId:
+          clearServerLineId ? null : (serverLineId ?? this.serverLineId),
+      modifiers: modifiers ?? this.modifiers,
     );
   }
 
-  String get cartKey =>
-      variationId != null ? '$productId:$variationId' : productId;
+  String get cartKey => buildCartLineKey(
+        productId: productId,
+        variationId: variationId,
+        modifiers: modifiers,
+      );
 
   Map<String, dynamic> toJson() => {
         'product_id': productId,
@@ -137,9 +156,13 @@ class CartItemModel {
         if (maxAvailableStock != null)
           'max_available_stock': maxAvailableStock!.toString(),
         'price_manual': priceManual,
+        if (serverLineId != null) 'server_line_id': serverLineId,
+        if (modifiers.isNotEmpty)
+          'modifiers': modifiers.map((m) => m.toJson()).toList(),
       };
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    final rawModifiers = json['modifiers'] as List<dynamic>? ?? const [];
     return CartItemModel(
       productId: json['product_id'] as String,
       variationId: json['variation_id'] as String?,
@@ -165,6 +188,15 @@ class CartItemModel {
           ? Decimal.tryParse(json['max_available_stock'].toString())
           : null,
       priceManual: json['price_manual'] as bool? ?? false,
+      serverLineId: json['server_line_id'] as String?,
+      modifiers: rawModifiers
+          .whereType<Map<dynamic, dynamic>>()
+          .map(
+            (entry) => CartLineModifierModel.fromJson(
+              Map<String, dynamic>.from(entry),
+            ),
+          )
+          .toList(),
     );
   }
 }

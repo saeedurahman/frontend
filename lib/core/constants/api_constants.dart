@@ -156,6 +156,37 @@ abstract final class ApiConstants {
   static String userPin(String id) => '/users/$id/pin';
   static String userRoles(String id) => '/users/$id/roles';
 
+  // Restaurant — floor plans & tables
+  static const String restaurantFloorPlans = '/restaurant/floor-plans';
+  static String restaurantFloorPlanById(String id) =>
+      '/restaurant/floor-plans/$id';
+  static const String restaurantFloorLayout = '/restaurant/floor-layout';
+  static const String restaurantTables = '/restaurant/tables';
+  static String restaurantTableById(String id) => '/restaurant/tables/$id';
+  static String restaurantTableStatus(String id) =>
+      '/restaurant/tables/$id/status';
+
+  // Restaurant — modifiers
+  static const String restaurantModifierGroups = '/restaurant/modifier-groups';
+  static String restaurantModifierGroupById(String id) =>
+      '/restaurant/modifier-groups/$id';
+  static String restaurantProductModifierGroups(String productId) =>
+      '/restaurant/products/$productId/modifier-groups';
+
+  // Dine-in tab lifecycle (extends /sales)
+  static const String salesOpenTab = '/sales/open-tab';
+  static String saleAddLines(String saleId) => '/sales/$saleId/lines';
+  static String saleFireTab(String saleId) => '/sales/$saleId/fire';
+  static String saleRequestBill(String saleId) => '/sales/$saleId/request-bill';
+  static String saleCompleteTab(String saleId) => '/sales/$saleId/complete';
+
+  // Restaurant — kitchen KOT
+  static const String restaurantKotActive = '/restaurant/kot/active';
+  static String restaurantKotById(String id) => '/restaurant/kot/$id';
+  static String restaurantKotStatus(String id) => '/restaurant/kot/$id/status';
+  static String restaurantKotByTable(String tableId) =>
+      '/restaurant/kot/by-table/$tableId';
+
   // Headers
   static const String contentType = 'application/json';
   static const String accept = 'application/json';

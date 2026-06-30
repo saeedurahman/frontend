@@ -21,6 +21,8 @@ import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/returns/presentation/pages/process_return_page.dart';
 import 'package:frantend/features/returns/presentation/pages/return_detail_page.dart';
 import 'package:frantend/features/returns/presentation/pages/returns_list_page.dart';
+import 'package:frantend/features/restaurant/presentation/pages/kitchen_display_page.dart';
+import 'package:frantend/features/restaurant/presentation/pages/tables_floor_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sale_detail_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sales_list_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/inventory_stock_page.dart';
@@ -53,6 +55,7 @@ import 'package:frantend/features/roles/presentation/pages/roles_list_page.dart'
 import 'package:frantend/features/users/presentation/pages/user_form_page.dart';
 import 'package:frantend/features/users/presentation/pages/users_list_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
+import 'package:frantend/shared/widgets/layout/kitchen_shell.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
 
@@ -67,7 +70,7 @@ class AppRouter {
     redirect: (context, state) {
       if (state.matchedLocation == RouteNames.root) {
         return _authGuard.isAuthenticated
-            ? RouteNames.dashboard
+            ? _authGuard.homeRoute
             : RouteNames.landing;
       }
       return _authGuard.redirect(state.matchedLocation);
@@ -115,6 +118,15 @@ class AppRouter {
         ],
       ),
       ShellRoute(
+        builder: (context, state, child) => KitchenShell(child: child),
+        routes: [
+          GoRoute(
+            path: RouteNames.kitchen,
+            builder: (_, __) => const KitchenDisplayPage(),
+          ),
+        ],
+      ),
+      ShellRoute(
         builder: (context, state, child) {
           final meta = _metaForPath(state.uri.path);
           return AppShell(
@@ -130,10 +142,19 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.pos,
-            builder: (_, __) => BlocProvider(
-              create: (_) => sl<PosCubit>()..init(),
-              child: const PosPage(),
-            ),
+            builder: (_, state) {
+              final query = state.uri.queryParameters;
+              return BlocProvider(
+                create: (_) => sl<PosCubit>()
+                  ..init(
+                    dineInTableId: query['tableId'],
+                    dineInSaleId: query['saleId'],
+                    dineInTableNumber: query['tableNumber'],
+                    dineInTableStatus: query['tableStatus'],
+                  ),
+                child: const PosPage(),
+              );
+            },
             routes: [
               GoRoute(
                 path: 'receipt',
@@ -229,6 +250,10 @@ class AppRouter {
                 ),
               ),
             ],
+          ),
+          GoRoute(
+            path: RouteNames.restaurantTables,
+            builder: (_, __) => const TablesFloorPage(),
           ),
           GoRoute(
             path: RouteNames.customers,
@@ -409,6 +434,12 @@ class AppRouter {
       return ('Return Detail', 'Home / Sales / Returns / Detail');
     }
     return ('Returns', 'Home / Sales / Returns');
+  }
+  if (path.startsWith(RouteNames.restaurantTables)) {
+    return ('Tables', 'Home / Sales / Tables');
+  }
+  if (path.startsWith(RouteNames.kitchen)) {
+    return ('Kitchen', 'Kitchen Display');
   }
   if (path.startsWith(RouteNames.customers)) return ('Customers', 'Home / Sales / Customers');
   if (path.startsWith(RouteNames.expenses)) return ('Expenses', 'Home / Finance / Expenses');

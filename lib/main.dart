@@ -8,6 +8,7 @@ import 'package:frantend/core/utils/logger.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:frantend/features/restaurant/domain/usecases/load_business_session_usecase.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,8 @@ Future<void> main() async {
     // /auth/me when online. Does not cover mid-session admin changes while the
     // app stays open — those apply on next login or cold start.
     await sl<AuthRepository>().getCurrentUser();
+    await sl<LoadBusinessSessionUseCase>()();
+    await sl<AuthGuard>().refreshSessionContext();
     await sl<NotificationsCubit>().startSession();
     await sl<BranchSelectorCubit>().startSession();
   }

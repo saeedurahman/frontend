@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/settings/data/models/branch_model.dart';
+import 'package:frantend/features/settings/data/models/business_config_model.dart';
 
 part 'business_profile_model.freezed.dart';
 part 'business_profile_model.g.dart';
@@ -36,6 +37,7 @@ class BusinessProfileModel with _$BusinessProfileModel {
     @JsonKey(name: 'subscription_status') String? subscriptionStatus,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'business_type') BusinessTypeModel? businessType,
+    BusinessConfigModel? config,
     @Default([]) List<BranchModel> branches,
   }) = _BusinessProfileModel;
 

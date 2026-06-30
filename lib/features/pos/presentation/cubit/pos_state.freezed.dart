@@ -285,6 +285,7 @@ mixin _$PosSessionState {
   String? get branchId => throw _privateConstructorUsedError;
   String? get businessName => throw _privateConstructorUsedError;
   bool get isOffline => throw _privateConstructorUsedError;
+  PosDineInContext? get dineIn => throw _privateConstructorUsedError;
 
   /// Create a copy of PosSessionState
   /// with the given fields replaced by the non-null parameter values.
@@ -308,7 +309,10 @@ abstract class $PosSessionStateCopyWith<$Res> {
     String? branchId,
     String? businessName,
     bool isOffline,
+    PosDineInContext? dineIn,
   });
+
+  $PosDineInContextCopyWith<$Res>? get dineIn;
 }
 
 /// @nodoc
@@ -333,6 +337,7 @@ class _$PosSessionStateCopyWithImpl<$Res, $Val extends PosSessionState>
     Object? branchId = freezed,
     Object? businessName = freezed,
     Object? isOffline = null,
+    Object? dineIn = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -364,9 +369,27 @@ class _$PosSessionStateCopyWithImpl<$Res, $Val extends PosSessionState>
                 ? _value.isOffline
                 : isOffline // ignore: cast_nullable_to_non_nullable
                       as bool,
+            dineIn: freezed == dineIn
+                ? _value.dineIn
+                : dineIn // ignore: cast_nullable_to_non_nullable
+                      as PosDineInContext?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of PosSessionState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PosDineInContextCopyWith<$Res>? get dineIn {
+    if (_value.dineIn == null) {
+      return null;
+    }
+
+    return $PosDineInContextCopyWith<$Res>(_value.dineIn!, (value) {
+      return _then(_value.copyWith(dineIn: value) as $Val);
+    });
   }
 }
 
@@ -387,7 +410,11 @@ abstract class _$$PosSessionStateImplCopyWith<$Res>
     String? branchId,
     String? businessName,
     bool isOffline,
+    PosDineInContext? dineIn,
   });
+
+  @override
+  $PosDineInContextCopyWith<$Res>? get dineIn;
 }
 
 /// @nodoc
@@ -411,6 +438,7 @@ class __$$PosSessionStateImplCopyWithImpl<$Res>
     Object? branchId = freezed,
     Object? businessName = freezed,
     Object? isOffline = null,
+    Object? dineIn = freezed,
   }) {
     return _then(
       _$PosSessionStateImpl(
@@ -442,6 +470,10 @@ class __$$PosSessionStateImplCopyWithImpl<$Res>
             ? _value.isOffline
             : isOffline // ignore: cast_nullable_to_non_nullable
                   as bool,
+        dineIn: freezed == dineIn
+            ? _value.dineIn
+            : dineIn // ignore: cast_nullable_to_non_nullable
+                  as PosDineInContext?,
       ),
     );
   }
@@ -458,6 +490,7 @@ class _$PosSessionStateImpl implements _PosSessionState {
     this.branchId,
     this.businessName,
     this.isOffline = false,
+    this.dineIn,
   });
 
   @override
@@ -478,10 +511,12 @@ class _$PosSessionStateImpl implements _PosSessionState {
   @override
   @JsonKey()
   final bool isOffline;
+  @override
+  final PosDineInContext? dineIn;
 
   @override
   String toString() {
-    return 'PosSessionState(accessDenied: $accessDenied, canOpenShift: $canOpenShift, canCloseShift: $canCloseShift, cashierName: $cashierName, branchId: $branchId, businessName: $businessName, isOffline: $isOffline)';
+    return 'PosSessionState(accessDenied: $accessDenied, canOpenShift: $canOpenShift, canCloseShift: $canCloseShift, cashierName: $cashierName, branchId: $branchId, businessName: $businessName, isOffline: $isOffline, dineIn: $dineIn)';
   }
 
   @override
@@ -502,7 +537,8 @@ class _$PosSessionStateImpl implements _PosSessionState {
             (identical(other.businessName, businessName) ||
                 other.businessName == businessName) &&
             (identical(other.isOffline, isOffline) ||
-                other.isOffline == isOffline));
+                other.isOffline == isOffline) &&
+            (identical(other.dineIn, dineIn) || other.dineIn == dineIn));
   }
 
   @override
@@ -515,6 +551,7 @@ class _$PosSessionStateImpl implements _PosSessionState {
     branchId,
     businessName,
     isOffline,
+    dineIn,
   );
 
   /// Create a copy of PosSessionState
@@ -538,6 +575,7 @@ abstract class _PosSessionState implements PosSessionState {
     final String? branchId,
     final String? businessName,
     final bool isOffline,
+    final PosDineInContext? dineIn,
   }) = _$PosSessionStateImpl;
 
   @override
@@ -554,12 +592,276 @@ abstract class _PosSessionState implements PosSessionState {
   String? get businessName;
   @override
   bool get isOffline;
+  @override
+  PosDineInContext? get dineIn;
 
   /// Create a copy of PosSessionState
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PosSessionStateImplCopyWith<_$PosSessionStateImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$PosDineInContext {
+  String get saleId => throw _privateConstructorUsedError;
+  String get tableId => throw _privateConstructorUsedError;
+  String get tableLabel => throw _privateConstructorUsedError;
+  DineInTabStatus get tabStatus => throw _privateConstructorUsedError;
+  bool get isSyncingLine => throw _privateConstructorUsedError;
+  String? get syncError => throw _privateConstructorUsedError;
+
+  /// Create a copy of PosDineInContext
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PosDineInContextCopyWith<PosDineInContext> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PosDineInContextCopyWith<$Res> {
+  factory $PosDineInContextCopyWith(
+    PosDineInContext value,
+    $Res Function(PosDineInContext) then,
+  ) = _$PosDineInContextCopyWithImpl<$Res, PosDineInContext>;
+  @useResult
+  $Res call({
+    String saleId,
+    String tableId,
+    String tableLabel,
+    DineInTabStatus tabStatus,
+    bool isSyncingLine,
+    String? syncError,
+  });
+}
+
+/// @nodoc
+class _$PosDineInContextCopyWithImpl<$Res, $Val extends PosDineInContext>
+    implements $PosDineInContextCopyWith<$Res> {
+  _$PosDineInContextCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PosDineInContext
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? saleId = null,
+    Object? tableId = null,
+    Object? tableLabel = null,
+    Object? tabStatus = null,
+    Object? isSyncingLine = null,
+    Object? syncError = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            saleId: null == saleId
+                ? _value.saleId
+                : saleId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            tableId: null == tableId
+                ? _value.tableId
+                : tableId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            tableLabel: null == tableLabel
+                ? _value.tableLabel
+                : tableLabel // ignore: cast_nullable_to_non_nullable
+                      as String,
+            tabStatus: null == tabStatus
+                ? _value.tabStatus
+                : tabStatus // ignore: cast_nullable_to_non_nullable
+                      as DineInTabStatus,
+            isSyncingLine: null == isSyncingLine
+                ? _value.isSyncingLine
+                : isSyncingLine // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            syncError: freezed == syncError
+                ? _value.syncError
+                : syncError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PosDineInContextImplCopyWith<$Res>
+    implements $PosDineInContextCopyWith<$Res> {
+  factory _$$PosDineInContextImplCopyWith(
+    _$PosDineInContextImpl value,
+    $Res Function(_$PosDineInContextImpl) then,
+  ) = __$$PosDineInContextImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String saleId,
+    String tableId,
+    String tableLabel,
+    DineInTabStatus tabStatus,
+    bool isSyncingLine,
+    String? syncError,
+  });
+}
+
+/// @nodoc
+class __$$PosDineInContextImplCopyWithImpl<$Res>
+    extends _$PosDineInContextCopyWithImpl<$Res, _$PosDineInContextImpl>
+    implements _$$PosDineInContextImplCopyWith<$Res> {
+  __$$PosDineInContextImplCopyWithImpl(
+    _$PosDineInContextImpl _value,
+    $Res Function(_$PosDineInContextImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PosDineInContext
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? saleId = null,
+    Object? tableId = null,
+    Object? tableLabel = null,
+    Object? tabStatus = null,
+    Object? isSyncingLine = null,
+    Object? syncError = freezed,
+  }) {
+    return _then(
+      _$PosDineInContextImpl(
+        saleId: null == saleId
+            ? _value.saleId
+            : saleId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        tableId: null == tableId
+            ? _value.tableId
+            : tableId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        tableLabel: null == tableLabel
+            ? _value.tableLabel
+            : tableLabel // ignore: cast_nullable_to_non_nullable
+                  as String,
+        tabStatus: null == tabStatus
+            ? _value.tabStatus
+            : tabStatus // ignore: cast_nullable_to_non_nullable
+                  as DineInTabStatus,
+        isSyncingLine: null == isSyncingLine
+            ? _value.isSyncingLine
+            : isSyncingLine // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        syncError: freezed == syncError
+            ? _value.syncError
+            : syncError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$PosDineInContextImpl extends _PosDineInContext {
+  const _$PosDineInContextImpl({
+    required this.saleId,
+    required this.tableId,
+    required this.tableLabel,
+    this.tabStatus = DineInTabStatus.open,
+    this.isSyncingLine = false,
+    this.syncError,
+  }) : super._();
+
+  @override
+  final String saleId;
+  @override
+  final String tableId;
+  @override
+  final String tableLabel;
+  @override
+  @JsonKey()
+  final DineInTabStatus tabStatus;
+  @override
+  @JsonKey()
+  final bool isSyncingLine;
+  @override
+  final String? syncError;
+
+  @override
+  String toString() {
+    return 'PosDineInContext(saleId: $saleId, tableId: $tableId, tableLabel: $tableLabel, tabStatus: $tabStatus, isSyncingLine: $isSyncingLine, syncError: $syncError)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PosDineInContextImpl &&
+            (identical(other.saleId, saleId) || other.saleId == saleId) &&
+            (identical(other.tableId, tableId) || other.tableId == tableId) &&
+            (identical(other.tableLabel, tableLabel) ||
+                other.tableLabel == tableLabel) &&
+            (identical(other.tabStatus, tabStatus) ||
+                other.tabStatus == tabStatus) &&
+            (identical(other.isSyncingLine, isSyncingLine) ||
+                other.isSyncingLine == isSyncingLine) &&
+            (identical(other.syncError, syncError) ||
+                other.syncError == syncError));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    saleId,
+    tableId,
+    tableLabel,
+    tabStatus,
+    isSyncingLine,
+    syncError,
+  );
+
+  /// Create a copy of PosDineInContext
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PosDineInContextImplCopyWith<_$PosDineInContextImpl> get copyWith =>
+      __$$PosDineInContextImplCopyWithImpl<_$PosDineInContextImpl>(
+        this,
+        _$identity,
+      );
+}
+
+abstract class _PosDineInContext extends PosDineInContext {
+  const factory _PosDineInContext({
+    required final String saleId,
+    required final String tableId,
+    required final String tableLabel,
+    final DineInTabStatus tabStatus,
+    final bool isSyncingLine,
+    final String? syncError,
+  }) = _$PosDineInContextImpl;
+  const _PosDineInContext._() : super._();
+
+  @override
+  String get saleId;
+  @override
+  String get tableId;
+  @override
+  String get tableLabel;
+  @override
+  DineInTabStatus get tabStatus;
+  @override
+  bool get isSyncingLine;
+  @override
+  String? get syncError;
+
+  /// Create a copy of PosDineInContext
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PosDineInContextImplCopyWith<_$PosDineInContextImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -1301,6 +1603,8 @@ mixin _$PosCartState {
   List<HeldOrderModel> get heldOrders => throw _privateConstructorUsedError;
   bool get isHoldingSale => throw _privateConstructorUsedError;
   bool get isSubmittingSale => throw _privateConstructorUsedError;
+  bool get isFiringTab => throw _privateConstructorUsedError;
+  bool get isRequestingBill => throw _privateConstructorUsedError;
   String? get selectedDiscountSchemeId => throw _privateConstructorUsedError;
   List<DiscountSchemeModel> get discountSchemes =>
       throw _privateConstructorUsedError;
@@ -1333,6 +1637,8 @@ abstract class $PosCartStateCopyWith<$Res> {
     List<HeldOrderModel> heldOrders,
     bool isHoldingSale,
     bool isSubmittingSale,
+    bool isFiringTab,
+    bool isRequestingBill,
     String? selectedDiscountSchemeId,
     List<DiscountSchemeModel> discountSchemes,
     SalePricePreviewModel? pricePreview,
@@ -1370,6 +1676,8 @@ class _$PosCartStateCopyWithImpl<$Res, $Val extends PosCartState>
     Object? heldOrders = null,
     Object? isHoldingSale = null,
     Object? isSubmittingSale = null,
+    Object? isFiringTab = null,
+    Object? isRequestingBill = null,
     Object? selectedDiscountSchemeId = freezed,
     Object? discountSchemes = null,
     Object? pricePreview = freezed,
@@ -1417,6 +1725,14 @@ class _$PosCartStateCopyWithImpl<$Res, $Val extends PosCartState>
             isSubmittingSale: null == isSubmittingSale
                 ? _value.isSubmittingSale
                 : isSubmittingSale // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isFiringTab: null == isFiringTab
+                ? _value.isFiringTab
+                : isFiringTab // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isRequestingBill: null == isRequestingBill
+                ? _value.isRequestingBill
+                : isRequestingBill // ignore: cast_nullable_to_non_nullable
                       as bool,
             selectedDiscountSchemeId: freezed == selectedDiscountSchemeId
                 ? _value.selectedDiscountSchemeId
@@ -1506,6 +1822,8 @@ abstract class _$$PosCartStateImplCopyWith<$Res>
     List<HeldOrderModel> heldOrders,
     bool isHoldingSale,
     bool isSubmittingSale,
+    bool isFiringTab,
+    bool isRequestingBill,
     String? selectedDiscountSchemeId,
     List<DiscountSchemeModel> discountSchemes,
     SalePricePreviewModel? pricePreview,
@@ -1545,6 +1863,8 @@ class __$$PosCartStateImplCopyWithImpl<$Res>
     Object? heldOrders = null,
     Object? isHoldingSale = null,
     Object? isSubmittingSale = null,
+    Object? isFiringTab = null,
+    Object? isRequestingBill = null,
     Object? selectedDiscountSchemeId = freezed,
     Object? discountSchemes = null,
     Object? pricePreview = freezed,
@@ -1593,6 +1913,14 @@ class __$$PosCartStateImplCopyWithImpl<$Res>
             ? _value.isSubmittingSale
             : isSubmittingSale // ignore: cast_nullable_to_non_nullable
                   as bool,
+        isFiringTab: null == isFiringTab
+            ? _value.isFiringTab
+            : isFiringTab // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isRequestingBill: null == isRequestingBill
+            ? _value.isRequestingBill
+            : isRequestingBill // ignore: cast_nullable_to_non_nullable
+                  as bool,
         selectedDiscountSchemeId: freezed == selectedDiscountSchemeId
             ? _value.selectedDiscountSchemeId
             : selectedDiscountSchemeId // ignore: cast_nullable_to_non_nullable
@@ -1632,6 +1960,8 @@ class _$PosCartStateImpl extends _PosCartState {
     final List<HeldOrderModel> heldOrders = const [],
     this.isHoldingSale = false,
     this.isSubmittingSale = false,
+    this.isFiringTab = false,
+    this.isRequestingBill = false,
     this.selectedDiscountSchemeId,
     final List<DiscountSchemeModel> discountSchemes = const [],
     this.pricePreview,
@@ -1687,6 +2017,12 @@ class _$PosCartStateImpl extends _PosCartState {
   @JsonKey()
   final bool isSubmittingSale;
   @override
+  @JsonKey()
+  final bool isFiringTab;
+  @override
+  @JsonKey()
+  final bool isRequestingBill;
+  @override
   final String? selectedDiscountSchemeId;
   final List<DiscountSchemeModel> _discountSchemes;
   @override
@@ -1707,7 +2043,7 @@ class _$PosCartStateImpl extends _PosCartState {
 
   @override
   String toString() {
-    return 'PosCartState(cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, heldOrders: $heldOrders, isHoldingSale: $isHoldingSale, isSubmittingSale: $isSubmittingSale, selectedDiscountSchemeId: $selectedDiscountSchemeId, discountSchemes: $discountSchemes, pricePreview: $pricePreview, isLoadingPricePreview: $isLoadingPricePreview, pricePreviewError: $pricePreviewError)';
+    return 'PosCartState(cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, heldOrders: $heldOrders, isHoldingSale: $isHoldingSale, isSubmittingSale: $isSubmittingSale, isFiringTab: $isFiringTab, isRequestingBill: $isRequestingBill, selectedDiscountSchemeId: $selectedDiscountSchemeId, discountSchemes: $discountSchemes, pricePreview: $pricePreview, isLoadingPricePreview: $isLoadingPricePreview, pricePreviewError: $pricePreviewError)';
   }
 
   @override
@@ -1738,6 +2074,10 @@ class _$PosCartStateImpl extends _PosCartState {
                 other.isHoldingSale == isHoldingSale) &&
             (identical(other.isSubmittingSale, isSubmittingSale) ||
                 other.isSubmittingSale == isSubmittingSale) &&
+            (identical(other.isFiringTab, isFiringTab) ||
+                other.isFiringTab == isFiringTab) &&
+            (identical(other.isRequestingBill, isRequestingBill) ||
+                other.isRequestingBill == isRequestingBill) &&
             (identical(
                   other.selectedDiscountSchemeId,
                   selectedDiscountSchemeId,
@@ -1768,6 +2108,8 @@ class _$PosCartStateImpl extends _PosCartState {
     const DeepCollectionEquality().hash(_heldOrders),
     isHoldingSale,
     isSubmittingSale,
+    isFiringTab,
+    isRequestingBill,
     selectedDiscountSchemeId,
     const DeepCollectionEquality().hash(_discountSchemes),
     pricePreview,
@@ -1796,6 +2138,8 @@ abstract class _PosCartState extends PosCartState {
     final List<HeldOrderModel> heldOrders,
     final bool isHoldingSale,
     final bool isSubmittingSale,
+    final bool isFiringTab,
+    final bool isRequestingBill,
     final String? selectedDiscountSchemeId,
     final List<DiscountSchemeModel> discountSchemes,
     final SalePricePreviewModel? pricePreview,
@@ -1824,6 +2168,10 @@ abstract class _PosCartState extends PosCartState {
   bool get isHoldingSale;
   @override
   bool get isSubmittingSale;
+  @override
+  bool get isFiringTab;
+  @override
+  bool get isRequestingBill;
   @override
   String? get selectedDiscountSchemeId;
   @override

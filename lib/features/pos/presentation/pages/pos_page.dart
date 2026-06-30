@@ -308,6 +308,7 @@ class _PosHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasCustomer = state.selectedCustomer != null;
+    final dineIn = state.dineIn;
     return Container(
       height: 66,
       decoration: const BoxDecoration(
@@ -340,7 +341,7 @@ class _PosHeader extends StatelessWidget {
                   ),
             ),
           ),
-          if (state.heldOrders.isNotEmpty) ...[
+          if (state.heldOrders.isNotEmpty && !state.isDineIn) ...[
             const SizedBox(width: 8),
             InkWell(
               onTap: onHeldOrdersTap,
@@ -367,32 +368,59 @@ class _PosHeader extends StatelessWidget {
             ),
           ],
           const Spacer(),
-          InkWell(
-            onTap: onCustomerTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
+          if (dineIn != null)
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: hasCustomer
-                    ? AppColors.primary.withValues(alpha: 0.12)
-                    : AppColors.background,
+                color: AppColors.warning.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: hasCustomer ? AppColors.primary : AppColors.border,
+                  color: AppColors.warning.withValues(alpha: 0.4),
                 ),
               ),
               child: Text(
-                hasCustomer
-                    ? '👤 ${state.selectedCustomer!.name}'
-                    : '👤 Walk-in Customer',
-                style: TextStyle(
+                '🍽 Table ${dineIn.tableLabel}',
+                style: const TextStyle(
                   fontSize: 16,
-                  color: hasCustomer ? AppColors.primary : AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.warning,
+                ),
+              ),
+            )
+          else
+            InkWell(
+              onTap: onCustomerTap,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: hasCustomer
+                      ? AppColors.primary.withValues(alpha: 0.12)
+                      : AppColors.background,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: hasCustomer ? AppColors.primary : AppColors.border,
+                  ),
+                ),
+                child: Text(
+                  hasCustomer
+                      ? '👤 ${state.selectedCustomer!.name}'
+                      : '👤 Walk-in Customer',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: hasCustomer ? AppColors.primary : AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-          ),
+          if (dineIn != null) ...[
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => context.read<PosCubit>().exitDineIn(),
+              child: const Text('Exit table'),
+            ),
+          ],
           const SizedBox(width: 26),
           SizedBox(
             width: 250,

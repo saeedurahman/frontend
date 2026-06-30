@@ -49,6 +49,7 @@ class SaleResponseModel with _$SaleResponseModel {
     @JsonKey(name: 'sale_number') String? saleNumber,
     @JsonKey(name: 'branch_id') required String branchId,
     @JsonKey(name: 'customer_id') String? customerId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'sale_type') required String saleType,
     @JsonKey(name: 'sale_status', readValue: _readSaleStatus)
     required String saleStatus,

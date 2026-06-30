@@ -11,6 +11,7 @@ import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
+import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
@@ -18,6 +19,7 @@ import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
+import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_request_builder.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/models/add_to_cart_outcome.dart';
@@ -29,6 +31,8 @@ import 'package:frantend/features/products/domain/usecases/get_categories_usecas
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_products_usecase.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
+import 'package:frantend/features/restaurant/data/models/restaurant_requests.dart';
+import 'package:frantend/features/restaurant/domain/usecases/restaurant_usecases.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:frantend/features/settings/presentation/utils/settings_value_utils.dart';
@@ -38,6 +42,7 @@ part 'pos_cubit_session_mixin.dart';
 part 'pos_cubit_shift_mixin.dart';
 part 'pos_cubit_catalog_mixin.dart';
 part 'pos_cubit_cart_mixin.dart';
+part 'pos_cubit_dine_in_mixin.dart';
 
 const _previewDebounceDuration = Duration(milliseconds: 400);
 
@@ -60,6 +65,13 @@ class PosCubitBase extends Cubit<PosState> {
     required GetSettingsUseCase getSettingsUseCase,
     required GetDiscountSchemesUseCase getDiscountSchemesUseCase,
     required PreviewSalePriceUseCase previewSalePriceUseCase,
+    required OpenTabUseCase openTabUseCase,
+    required AddTabLinesUseCase addTabLinesUseCase,
+    required FireTabUseCase fireTabUseCase,
+    required RequestTabBillUseCase requestTabBillUseCase,
+    required CompleteTabUseCase completeTabUseCase,
+    required GetTabSaleUseCase getTabSaleUseCase,
+    required GetKotOrdersByTableUseCase getKotOrdersByTableUseCase,
     required AuthLocalDataSource authLocalDataSource,
     required NetworkInfo networkInfo,
     required HeldOrdersDao heldOrdersDao,
@@ -80,6 +92,13 @@ class PosCubitBase extends Cubit<PosState> {
         _getSettings = getSettingsUseCase,
         _getDiscountSchemes = getDiscountSchemesUseCase,
         _previewSalePrice = previewSalePriceUseCase,
+        _openTabUseCase = openTabUseCase,
+        _addTabLinesUseCase = addTabLinesUseCase,
+        _fireTabUseCase = fireTabUseCase,
+        _requestBillUseCase = requestTabBillUseCase,
+        _completeTabUseCase = completeTabUseCase,
+        _getTabSaleUseCase = getTabSaleUseCase,
+        _getKotOrdersByTableUseCase = getKotOrdersByTableUseCase,
         _authLocal = authLocalDataSource,
         _networkInfo = networkInfo,
         _heldOrdersDao = heldOrdersDao,
@@ -102,12 +121,20 @@ class PosCubitBase extends Cubit<PosState> {
   final GetSettingsUseCase _getSettings;
   final GetDiscountSchemesUseCase _getDiscountSchemes;
   final PreviewSalePriceUseCase _previewSalePrice;
+  final OpenTabUseCase _openTabUseCase;
+  final AddTabLinesUseCase _addTabLinesUseCase;
+  final FireTabUseCase _fireTabUseCase;
+  final RequestTabBillUseCase _requestBillUseCase;
+  final CompleteTabUseCase _completeTabUseCase;
+  final GetTabSaleUseCase _getTabSaleUseCase;
+  final GetKotOrdersByTableUseCase _getKotOrdersByTableUseCase;
   final AuthLocalDataSource _authLocal;
   final NetworkInfo _networkInfo;
   final HeldOrdersDao _heldOrdersDao;
 
   Timer? _searchDebounce;
   Timer? _previewDebounce;
+  bool skipDineInDelegation = false;
 
   void _safeEmit(PosState newState) {
     if (isClosed) return;
@@ -127,6 +154,7 @@ class PosCubit extends PosCubitBase
     with
         PosCubitShiftMixin,
         PosCubitCartMixin,
+        PosCubitDineInMixin,
         PosCubitCatalogMixin,
         PosCubitSessionMixin {
   PosCubit({
@@ -147,6 +175,13 @@ class PosCubit extends PosCubitBase
     required super.getSettingsUseCase,
     required super.getDiscountSchemesUseCase,
     required super.previewSalePriceUseCase,
+    required super.openTabUseCase,
+    required super.addTabLinesUseCase,
+    required super.fireTabUseCase,
+    required super.requestTabBillUseCase,
+    required super.completeTabUseCase,
+    required super.getTabSaleUseCase,
+    required super.getKotOrdersByTableUseCase,
     required super.authLocalDataSource,
     required super.networkInfo,
     required super.heldOrdersDao,

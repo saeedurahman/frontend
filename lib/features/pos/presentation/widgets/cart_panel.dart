@@ -24,19 +24,42 @@ class CartPanel extends StatelessWidget {
     return BlocBuilder<PosCubit, PosState>(
       builder: (context, state) {
         final cubit = context.read<PosCubit>();
+        final isDineIn = state.isDineIn;
+        final dineIn = state.dineIn;
         return Container(
           color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (dineIn?.syncError != null)
+                MaterialBanner(
+                  content: Text(dineIn!.syncError!),
+                  actions: [
+                    TextButton(
+                      onPressed: () {},
+                      child: const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
                 child: Row(
                   children: [
-                    const Text(
-                      'Current Sale',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Text(
+                      isDineIn ? 'Table Order' : 'Current Sale',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
+                    if (dineIn?.isSyncingLine == true) ...[
+                      const SizedBox(width: 8),
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ],
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -52,34 +75,35 @@ class CartPanel extends StatelessWidget {
                         style: const TextStyle(fontSize: 12),
                       ),
                     ),
-                    TextButton.icon(
-                      onPressed: state.cartItems.isEmpty || state.isHoldingSale
-                          ? null
-                          : () async {
-                              final defaultLabel =
-                                  'Order #${state.heldOrders.length + 1}';
-                              final label = await HoldSaleDialog.show(
-                                context,
-                                defaultLabel: defaultLabel,
-                              );
-                              if (label == null) return;
-                              final ok = await cubit.holdCurrentSale(
-                                customLabel:
-                                    label.isEmpty ? null : label,
-                              );
-                              if (ok && context.mounted) {
-                                final heldLabel =
-                                    label.isEmpty ? defaultLabel : label;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Order held — $heldLabel'),
-                                  ),
+                    if (!isDineIn)
+                      TextButton.icon(
+                        onPressed: state.cartItems.isEmpty || state.isHoldingSale
+                            ? null
+                            : () async {
+                                final defaultLabel =
+                                    'Order #${state.heldOrders.length + 1}';
+                                final label = await HoldSaleDialog.show(
+                                  context,
+                                  defaultLabel: defaultLabel,
                                 );
-                              }
-                            },
-                      icon: const Icon(Icons.pause, size: 18),
-                      label: const Text('Hold'),
-                    ),
+                                if (label == null) return;
+                                final ok = await cubit.holdCurrentSale(
+                                  customLabel:
+                                      label.isEmpty ? null : label,
+                                );
+                                if (ok && context.mounted) {
+                                  final heldLabel =
+                                      label.isEmpty ? defaultLabel : label;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Order held — $heldLabel'),
+                                    ),
+                                  );
+                                }
+                              },
+                        icon: const Icon(Icons.pause, size: 18),
+                        label: const Text('Hold'),
+                      ),
                     TextButton.icon(
                       onPressed: state.cartItems.isEmpty
                           ? null
@@ -119,12 +143,56 @@ class CartPanel extends StatelessWidget {
                   child: _DiscountSchemePicker(state: state),
                 ),
               _CartSummary(state: state),
+              if (isDineIn)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: state.cartItems.isEmpty ||
+                                  state.isFiringTab ||
+                                  dineIn?.isSyncingLine == true
+                              ? null
+                              : () => cubit.fireCurrentTab(),
+                          icon: state.isFiringTab
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.local_fire_department),
+                          label: const Text('Fire'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: state.cartItems.isEmpty ||
+                                  state.isRequestingBill ||
+                                  dineIn?.isSyncingLine == true
+                              ? null
+                              : () => cubit.requestBillForCurrentTab(),
+                          icon: state.isRequestingBill
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.receipt_long),
+                          label: const Text('Bill'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: SizedBox(
                   height: 56,
                   child: FilledButton(
-                    onPressed: state.canProceedToPayment
+                    onPressed: state.canProceedToPayment &&
+                            dineIn?.isSyncingLine != true
                         ? (onPayPressed ?? () => PaymentModal.show(context))
                         : null,
                     style: FilledButton.styleFrom(
@@ -132,7 +200,9 @@ class CartPanel extends StatelessWidget {
                       disabledBackgroundColor: AppColors.border,
                     ),
                     child: Text(
-                      'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
+                      isDineIn
+                          ? 'PAY TABLE — ${formatPKR(state.displayGrandTotal.toDouble())}'
+                          : 'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -240,6 +310,8 @@ class _CartItemCard extends StatelessWidget {
                             children: [
                               if (item.variationName != null)
                                 _VariantBadge(label: item.variationName!),
+                              for (final modifier in item.modifiers)
+                                _VariantBadge(label: modifier.modifierName),
                               if (item.sku != null) ...[
                                 Text(
                                   '•',

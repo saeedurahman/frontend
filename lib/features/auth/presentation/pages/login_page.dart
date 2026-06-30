@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_state.dart';
@@ -35,10 +36,13 @@ class _LoginView extends StatelessWidget {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           state.maybeWhen(
-            authenticated: (_) {
+            authenticated: (_) async {
               sl<NotificationsCubit>().startSession();
               sl<BranchSelectorCubit>().startSession();
-              context.go(RouteNames.dashboard);
+              await sl<AuthGuard>().refreshSessionContext();
+              if (context.mounted) {
+                context.go(sl<AuthGuard>().homeRoute);
+              }
             },
             error: (message) => AppAlerts.showErrorMessage(context, message),
             orElse: () {},

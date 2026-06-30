@@ -48,6 +48,9 @@ _$BusinessProfileModelImpl _$$BusinessProfileModelImplFromJson(
       : BusinessTypeModel.fromJson(
           json['business_type'] as Map<String, dynamic>,
         ),
+  config: json['config'] == null
+      ? null
+      : BusinessConfigModel.fromJson(json['config'] as Map<String, dynamic>),
   branches:
       (json['branches'] as List<dynamic>?)
           ?.map((e) => BranchModel.fromJson(e as Map<String, dynamic>))
@@ -73,5 +76,6 @@ Map<String, dynamic> _$$BusinessProfileModelImplToJson(
   'subscription_status': instance.subscriptionStatus,
   'is_active': instance.isActive,
   'business_type': instance.businessType,
+  'config': instance.config,
   'branches': instance.branches,
 };

@@ -42,10 +42,23 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     ProductListItemModel product, {
     String? variationId,
     Decimal? manualUnitPrice,
+    List<CartLineModifierModel> modifiers = const [],
   }) async {
+    if (!skipDineInDelegation &&
+        this is PosCubitDineInMixin &&
+        (this as PosCubitDineInMixin).isDineIn) {
+      return (this as PosCubitDineInMixin).addToCartDineIn(
+        product,
+        variationId: variationId,
+        manualUnitPrice: manualUnitPrice,
+        modifiers: modifiers,
+      );
+    }
+
     debugPrint(
       '[POS:Cubit] addToCart "${product.name}" variationId=$variationId '
-      'manualPrice=$manualUnitPrice cartSize=${state.cartItems.length}',
+      'manualPrice=$manualUnitPrice modifiers=${modifiers.length} '
+      'cartSize=${state.cartItems.length}',
     );
     ProductModel? details = state.productDetailsCache[product.id];
     if (details == null ||
@@ -121,6 +134,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
           product: product,
           variationId: variationId,
           variationName: variation?.name,
+          modifiers: modifiers,
         ),
       );
     }
@@ -134,12 +148,15 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       ));
     }
 
-    final unitPrice = manualUnitPrice ?? resolvedPrice!;
+    final unitPrice =
+        (manualUnitPrice ?? resolvedPrice!) + cartModifierTotalPerUnit(modifiers);
     final isManualPrice = manualUnitPrice != null;
 
-    final cartKey = variationId != null
-        ? '${product.id}:$variationId'
-        : product.id;
+    final cartKey = buildCartLineKey(
+      productId: product.id,
+      variationId: variationId,
+      modifiers: modifiers,
+    );
     final existingIndex =
         state.cartItems.indexWhere((item) => item.cartKey == cartKey);
     final requestedQty = existingIndex >= 0
@@ -197,6 +214,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         qty: Decimal.one,
         priceManual: isManualPrice,
         maxAvailableStock: availableStock,
+        modifiers: modifiers,
         taxRateId: defaultRate?.id,
         taxRateName:
             defaultRate != null ? taxDisplayLabel(defaultRate) : null,
@@ -465,6 +483,11 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   }
 
   Future<SaleResponseModel> submitSale(List<PaymentLineModel> payments) async {
+    if (this is PosCubitDineInMixin &&
+        (this as PosCubitDineInMixin).isDineIn) {
+      return (this as PosCubitDineInMixin).completeDineInTab(payments);
+    }
+
     if (state.cartItems.isEmpty) {
       throw Exception('Cart is empty');
     }

@@ -298,6 +298,7 @@ mixin _$BusinessProfileModel {
   bool get isActive => throw _privateConstructorUsedError;
   @JsonKey(name: 'business_type')
   BusinessTypeModel? get businessType => throw _privateConstructorUsedError;
+  BusinessConfigModel? get config => throw _privateConstructorUsedError;
   List<BranchModel> get branches => throw _privateConstructorUsedError;
 
   /// Serializes this BusinessProfileModel to a JSON map.
@@ -333,10 +334,12 @@ abstract class $BusinessProfileModelCopyWith<$Res> {
     @JsonKey(name: 'subscription_status') String? subscriptionStatus,
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'business_type') BusinessTypeModel? businessType,
+    BusinessConfigModel? config,
     List<BranchModel> branches,
   });
 
   $BusinessTypeModelCopyWith<$Res>? get businessType;
+  $BusinessConfigModelCopyWith<$Res>? get config;
 }
 
 /// @nodoc
@@ -372,6 +375,7 @@ class _$BusinessProfileModelCopyWithImpl<
     Object? subscriptionStatus = freezed,
     Object? isActive = null,
     Object? businessType = freezed,
+    Object? config = freezed,
     Object? branches = null,
   }) {
     return _then(
@@ -436,6 +440,10 @@ class _$BusinessProfileModelCopyWithImpl<
                 ? _value.businessType
                 : businessType // ignore: cast_nullable_to_non_nullable
                       as BusinessTypeModel?,
+            config: freezed == config
+                ? _value.config
+                : config // ignore: cast_nullable_to_non_nullable
+                      as BusinessConfigModel?,
             branches: null == branches
                 ? _value.branches
                 : branches // ignore: cast_nullable_to_non_nullable
@@ -456,6 +464,20 @@ class _$BusinessProfileModelCopyWithImpl<
 
     return $BusinessTypeModelCopyWith<$Res>(_value.businessType!, (value) {
       return _then(_value.copyWith(businessType: value) as $Val);
+    });
+  }
+
+  /// Create a copy of BusinessProfileModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BusinessConfigModelCopyWith<$Res>? get config {
+    if (_value.config == null) {
+      return null;
+    }
+
+    return $BusinessConfigModelCopyWith<$Res>(_value.config!, (value) {
+      return _then(_value.copyWith(config: value) as $Val);
     });
   }
 }
@@ -485,11 +507,14 @@ abstract class _$$BusinessProfileModelImplCopyWith<$Res>
     @JsonKey(name: 'subscription_status') String? subscriptionStatus,
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'business_type') BusinessTypeModel? businessType,
+    BusinessConfigModel? config,
     List<BranchModel> branches,
   });
 
   @override
   $BusinessTypeModelCopyWith<$Res>? get businessType;
+  @override
+  $BusinessConfigModelCopyWith<$Res>? get config;
 }
 
 /// @nodoc
@@ -521,6 +546,7 @@ class __$$BusinessProfileModelImplCopyWithImpl<$Res>
     Object? subscriptionStatus = freezed,
     Object? isActive = null,
     Object? businessType = freezed,
+    Object? config = freezed,
     Object? branches = null,
   }) {
     return _then(
@@ -585,6 +611,10 @@ class __$$BusinessProfileModelImplCopyWithImpl<$Res>
             ? _value.businessType
             : businessType // ignore: cast_nullable_to_non_nullable
                   as BusinessTypeModel?,
+        config: freezed == config
+            ? _value.config
+            : config // ignore: cast_nullable_to_non_nullable
+                  as BusinessConfigModel?,
         branches: null == branches
             ? _value._branches
             : branches // ignore: cast_nullable_to_non_nullable
@@ -613,6 +643,7 @@ class _$BusinessProfileModelImpl implements _BusinessProfileModel {
     @JsonKey(name: 'subscription_status') this.subscriptionStatus,
     @JsonKey(name: 'is_active') this.isActive = true,
     @JsonKey(name: 'business_type') this.businessType,
+    this.config,
     final List<BranchModel> branches = const [],
   }) : _branches = branches;
 
@@ -659,6 +690,8 @@ class _$BusinessProfileModelImpl implements _BusinessProfileModel {
   @override
   @JsonKey(name: 'business_type')
   final BusinessTypeModel? businessType;
+  @override
+  final BusinessConfigModel? config;
   final List<BranchModel> _branches;
   @override
   @JsonKey()
@@ -670,7 +703,7 @@ class _$BusinessProfileModelImpl implements _BusinessProfileModel {
 
   @override
   String toString() {
-    return 'BusinessProfileModel(id: $id, name: $name, legalName: $legalName, email: $email, phone: $phone, taxId: $taxId, addressLine1: $addressLine1, logoUrl: $logoUrl, city: $city, countryCode: $countryCode, currencyCode: $currencyCode, subscriptionPlan: $subscriptionPlan, subscriptionStatus: $subscriptionStatus, isActive: $isActive, businessType: $businessType, branches: $branches)';
+    return 'BusinessProfileModel(id: $id, name: $name, legalName: $legalName, email: $email, phone: $phone, taxId: $taxId, addressLine1: $addressLine1, logoUrl: $logoUrl, city: $city, countryCode: $countryCode, currencyCode: $currencyCode, subscriptionPlan: $subscriptionPlan, subscriptionStatus: $subscriptionStatus, isActive: $isActive, businessType: $businessType, config: $config, branches: $branches)';
   }
 
   @override
@@ -701,6 +734,7 @@ class _$BusinessProfileModelImpl implements _BusinessProfileModel {
                 other.isActive == isActive) &&
             (identical(other.businessType, businessType) ||
                 other.businessType == businessType) &&
+            (identical(other.config, config) || other.config == config) &&
             const DeepCollectionEquality().equals(other._branches, _branches));
   }
 
@@ -723,6 +757,7 @@ class _$BusinessProfileModelImpl implements _BusinessProfileModel {
     subscriptionStatus,
     isActive,
     businessType,
+    config,
     const DeepCollectionEquality().hash(_branches),
   );
 
@@ -761,6 +796,7 @@ abstract class _BusinessProfileModel implements BusinessProfileModel {
     @JsonKey(name: 'subscription_status') final String? subscriptionStatus,
     @JsonKey(name: 'is_active') final bool isActive,
     @JsonKey(name: 'business_type') final BusinessTypeModel? businessType,
+    final BusinessConfigModel? config,
     final List<BranchModel> branches,
   }) = _$BusinessProfileModelImpl;
 
@@ -807,6 +843,8 @@ abstract class _BusinessProfileModel implements BusinessProfileModel {
   @override
   @JsonKey(name: 'business_type')
   BusinessTypeModel? get businessType;
+  @override
+  BusinessConfigModel? get config;
   @override
   List<BranchModel> get branches;
 

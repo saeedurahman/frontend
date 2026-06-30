@@ -12,6 +12,7 @@ extension PosStateFlatCopy on PosState {
     Object? branchId = _unset,
     Object? businessName = _unset,
     Object? isOffline = _unset,
+    Object? dineIn = _unset,
     Object? activeShift = _unset,
     Object? shiftSummary = _unset,
     Object? registers = _unset,
@@ -39,6 +40,8 @@ extension PosStateFlatCopy on PosState {
     Object? heldOrders = _unset,
     Object? isHoldingSale = _unset,
     Object? isSubmittingSale = _unset,
+    Object? isFiringTab = _unset,
+    Object? isRequestingBill = _unset,
     Object? selectedDiscountSchemeId = _unset,
     Object? discountSchemes = _unset,
     Object? pricePreview = _unset,
@@ -63,6 +66,9 @@ extension PosStateFlatCopy on PosState {
           ? session.businessName
           : businessName as String?,
       isOffline: isOffline == _unset ? session.isOffline : isOffline as bool,
+      dineIn: dineIn == _unset
+          ? session.dineIn
+          : dineIn as PosDineInContext?,
     );
 
     final newShift = shift.copyWith(
@@ -151,6 +157,12 @@ extension PosStateFlatCopy on PosState {
       isSubmittingSale: isSubmittingSale == _unset
           ? cart.isSubmittingSale
           : isSubmittingSale as bool,
+      isFiringTab: isFiringTab == _unset
+          ? cart.isFiringTab
+          : isFiringTab as bool,
+      isRequestingBill: isRequestingBill == _unset
+          ? cart.isRequestingBill
+          : isRequestingBill as bool,
       selectedDiscountSchemeId: selectedDiscountSchemeId == _unset
           ? cart.selectedDiscountSchemeId
           : selectedDiscountSchemeId as String?,

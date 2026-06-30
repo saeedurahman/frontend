@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_state.dart';
@@ -80,10 +81,13 @@ class _PinLoginViewState extends State<_PinLoginView> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           state.maybeWhen(
-            authenticated: (_) {
+            authenticated: (_) async {
               sl<NotificationsCubit>().startSession();
               sl<BranchSelectorCubit>().startSession();
-              context.go(RouteNames.dashboard);
+              await sl<AuthGuard>().refreshSessionContext();
+              if (context.mounted) {
+                context.go(sl<AuthGuard>().homeRoute);
+              }
             },
             error: (message) {
               AppAlerts.showErrorMessage(context, message);

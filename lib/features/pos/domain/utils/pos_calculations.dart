@@ -113,12 +113,17 @@ abstract final class PosCalculations {
         'product_id': item.productId,
         if (item.variationId != null) 'variation_id': item.variationId,
         'qty': DecimalUtils.format(item.qty),
-        'unit_price': DecimalUtils.format(item.unitPrice),
+        'unit_price': DecimalUtils.format(
+          item.modifiers.isEmpty ? item.unitPrice : item.baseUnitPrice,
+        ),
         'discount_pct': DecimalUtils.format(discountPct),
         'discount_amount': DecimalUtils.format(discountAmount),
         'tax_rate': DecimalUtils.format(item.effectiveTaxRate),
         if (item.lineNote != null && item.lineNote!.isNotEmpty)
           'notes': item.lineNote,
+        if (item.modifiers.isNotEmpty)
+          'modifier_ids':
+              item.modifiers.map((modifier) => modifier.modifierId).toList(),
         'line_order': index + 1,
       };
     });

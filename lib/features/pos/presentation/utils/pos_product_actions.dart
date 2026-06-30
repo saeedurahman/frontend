@@ -1,7 +1,9 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/models/add_to_cart_result.dart';
+import 'package:frantend/features/pos/presentation/utils/pos_modifier_actions.dart';
 import 'package:frantend/features/pos/presentation/widgets/manual_price_dialog.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
@@ -15,16 +17,19 @@ Future<bool> addProductWithPricePrompt(
   String? variationId,
   String? variationName,
   Decimal? manualUnitPrice,
+  List<CartLineModifierModel> modifiers = const [],
   bool promptForPrice = true,
 }) async {
   debugPrint(
     '[POS:AddToCart] product="${product.name}" id=${product.id} '
-    'variationId=$variationId manualPrice=$manualUnitPrice',
+    'variationId=$variationId manualPrice=$manualUnitPrice '
+    'modifiers=${modifiers.length}',
   );
   final outcome = await cubit.addToCart(
     product,
     variationId: variationId,
     manualUnitPrice: manualUnitPrice,
+    modifiers: modifiers,
   );
   debugPrint('[POS:AddToCart] outcome=${outcome.result} message=${outcome.message}');
 
@@ -52,9 +57,15 @@ Future<bool> addProductWithPricePrompt(
         product: pending.product,
         variationId: pending.variationId,
         variationName: pending.variationName,
+        modifiers: pending.modifiers,
         manualUnitPrice: price,
       );
     case AddToCartResult.insufficientStock:
+      if (context.mounted && outcome.message != null) {
+        AppAlerts.showErrorMessage(context, outcome.message!);
+      }
+      return false;
+    case AddToCartResult.syncFailed:
       if (context.mounted && outcome.message != null) {
         AppAlerts.showErrorMessage(context, outcome.message!);
       }
@@ -78,6 +89,9 @@ Future<bool> addProductFromGridTap(
   final variationCount = details?.variations.length ?? 0;
   debugPrint('[POS:GridTap] variations=$variationCount');
 
+  String? variationId;
+  String? variationName;
+
   if (details != null && details.variations.length > 1) {
     debugPrint('[POS:GridTap] MULTI-variation → show picker');
     final variation = await showModalBottomSheet<VariationModel>(
@@ -88,22 +102,33 @@ Future<bool> addProductFromGridTap(
       debugPrint('[POS:GridTap] picker cancelled');
       return false;
     }
+    variationId = variation.id;
+    variationName = variation.name;
     debugPrint('[POS:GridTap] picked variation="${variation.name}" id=${variation.id}');
-    return addProductWithPricePrompt(
-      context,
-      cubit,
-      product: product,
-      variationId: variation.id,
-      variationName: variation.name,
-      promptForPrice: promptForPrice,
-    );
   }
 
-  debugPrint('[POS:GridTap] SINGLE/no-variation → add directly');
+  if (!context.mounted) return false;
+
+  final modifiers = await pickProductModifiers(
+    context,
+    productId: product.id,
+    productName: product.name,
+  );
+  if (modifiers == null) {
+    debugPrint('[POS:GridTap] modifier picker cancelled');
+    return false;
+  }
+
+  if (!context.mounted) return false;
+
+  debugPrint('[POS:GridTap] modifiers selected=${modifiers.length}');
   return addProductWithPricePrompt(
     context,
     cubit,
     product: product,
+    variationId: variationId,
+    variationName: variationName,
+    modifiers: modifiers,
     promptForPrice: promptForPrice,
   );
 }
@@ -130,6 +155,13 @@ Future<bool> setProductPriceFromGrid(
     variationName = variation.name;
   }
 
+  final modifiers = await pickProductModifiers(
+    context,
+    productId: product.id,
+    productName: product.name,
+  );
+  if (modifiers == null || !context.mounted) return false;
+
   final price = await ManualPriceDialog.show(
     context,
     productName: product.name,
@@ -143,6 +175,7 @@ Future<bool> setProductPriceFromGrid(
     product: product,
     variationId: variationId,
     variationName: variationName,
+    modifiers: modifiers,
     manualUnitPrice: price,
     promptForPrice: false,
   );

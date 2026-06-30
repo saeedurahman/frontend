@@ -16,6 +16,7 @@ import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 
 part 'pos_session_state.dart';
+part 'pos_dine_in_state.dart';
 part 'pos_shift_state.dart';
 part 'pos_catalog_state.dart';
 part 'pos_cart_state.dart';
@@ -41,6 +42,8 @@ class PosState with _$PosState {
   String? get branchId => session.branchId;
   String? get businessName => session.businessName;
   bool get isOffline => session.isOffline;
+  PosDineInContext? get dineIn => session.dineIn;
+  bool get isDineIn => session.dineIn != null;
 
   // Shift
   RegisterShiftModel? get activeShift => shift.activeShift;
@@ -75,6 +78,8 @@ class PosState with _$PosState {
   List<HeldOrderModel> get heldOrders => cart.heldOrders;
   bool get isHoldingSale => cart.isHoldingSale;
   bool get isSubmittingSale => cart.isSubmittingSale;
+  bool get isFiringTab => cart.isFiringTab;
+  bool get isRequestingBill => cart.isRequestingBill;
   String? get selectedDiscountSchemeId => cart.selectedDiscountSchemeId;
   List<DiscountSchemeModel> get discountSchemes => cart.discountSchemes;
   SalePricePreviewModel? get pricePreview => cart.pricePreview;
