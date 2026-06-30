@@ -1,15 +1,25 @@
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
+import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
+import 'package:frantend/features/pos/domain/utils/pos_calculations.dart';
+import 'package:frantend/features/pos/domain/utils/pos_sale_totals.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
-import 'package:frantend/features/pos/domain/utils/pos_calculations.dart';
+import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 
+part 'pos_session_state.dart';
+part 'pos_shift_state.dart';
+part 'pos_catalog_state.dart';
+part 'pos_cart_state.dart';
+part 'pos_state_mutators.dart';
 part 'pos_state.freezed.dart';
 
 @freezed
@@ -17,41 +27,61 @@ class PosState with _$PosState {
   const PosState._();
 
   const factory PosState({
-    RegisterShiftModel? activeShift,
-    ShiftSummaryModel? shiftSummary,
-    @Default([]) List<CashRegisterModel> registers,
-    String? selectedRegisterId,
-    @Default(true) bool isCheckingShift,
-    @Default(false) bool isOpeningShift,
-    @Default(false) bool isCreatingRegister,
-    String? registersError,
-    @Default([]) List<ProductListItemModel> products,
-    @Default([]) List<CategoryModel> categories,
-    String? selectedCategoryId,
-    @Default('') String productSearchQuery,
-    @Default(true) bool isLoadingProducts,
-    String? productsError,
-    @Default([]) List<CartItemModel> cartItems,
-    @Default([]) List<TaxRateModel> taxRates,
-    TaxRateModel? defaultTaxRate,
-    CustomerModel? selectedCustomer,
-    String? cartDiscountType,
-    String? cartDiscountValue,
-    String? cartNote,
-    @Default({}) Map<String, String> priceCache,
-    @Default({}) Map<String, String> stockCache,
-    @Default({}) Map<String, ProductModel> productDetailsCache,
-    @Default(false) bool isSubmittingSale,
-    @Default(false) bool isOffline,
-    String? cashierName,
-    String? branchId,
-    String? businessName,
-    @Default([]) List<HeldOrderModel> heldOrders,
-    @Default(false) bool isHoldingSale,
+    @Default(PosSessionState()) PosSessionState session,
+    @Default(PosShiftState()) PosShiftState shift,
+    @Default(PosCatalogState()) PosCatalogState catalog,
+    @Default(PosCartState()) PosCartState cart,
   }) = _PosState;
 
-  Decimal get cartDiscountDecimal =>
-      Decimal.tryParse(cartDiscountValue ?? '') ?? Decimal.zero;
+  // Session
+  bool get accessDenied => session.accessDenied;
+  bool get canOpenShift => session.canOpenShift;
+  bool get canCloseShift => session.canCloseShift;
+  String? get cashierName => session.cashierName;
+  String? get branchId => session.branchId;
+  String? get businessName => session.businessName;
+  bool get isOffline => session.isOffline;
+
+  // Shift
+  RegisterShiftModel? get activeShift => shift.activeShift;
+  ShiftSummaryModel? get shiftSummary => shift.shiftSummary;
+  List<CashRegisterModel> get registers => shift.registers;
+  String? get selectedRegisterId => shift.selectedRegisterId;
+  bool get isCheckingShift => shift.isCheckingShift;
+  bool get isOpeningShift => shift.isOpeningShift;
+  bool get isCreatingRegister => shift.isCreatingRegister;
+  String? get registersError => shift.registersError;
+
+  // Catalog
+  List<ProductListItemModel> get products => catalog.products;
+  List<CategoryModel> get categories => catalog.categories;
+  String? get selectedCategoryId => catalog.selectedCategoryId;
+  String get productSearchQuery => catalog.productSearchQuery;
+  bool get isLoadingProducts => catalog.isLoadingProducts;
+  String? get productsError => catalog.productsError;
+  Map<String, String> get priceCache => catalog.priceCache;
+  Map<String, String> get stockCache => catalog.stockCache;
+  Map<String, ProductModel> get productDetailsCache =>
+      catalog.productDetailsCache;
+
+  // Cart
+  List<CartItemModel> get cartItems => cart.cartItems;
+  List<TaxRateModel> get taxRates => cart.taxRates;
+  TaxRateModel? get defaultTaxRate => cart.defaultTaxRate;
+  CustomerModel? get selectedCustomer => cart.selectedCustomer;
+  String? get cartDiscountType => cart.cartDiscountType;
+  String? get cartDiscountValue => cart.cartDiscountValue;
+  String? get cartNote => cart.cartNote;
+  List<HeldOrderModel> get heldOrders => cart.heldOrders;
+  bool get isHoldingSale => cart.isHoldingSale;
+  bool get isSubmittingSale => cart.isSubmittingSale;
+  String? get selectedDiscountSchemeId => cart.selectedDiscountSchemeId;
+  List<DiscountSchemeModel> get discountSchemes => cart.discountSchemes;
+  SalePricePreviewModel? get pricePreview => cart.pricePreview;
+  bool get isLoadingPricePreview => cart.isLoadingPricePreview;
+  String? get pricePreviewError => cart.pricePreviewError;
+
+  Decimal get cartDiscountDecimal => cart.cartDiscountDecimal;
 
   List<ProductListItemModel> get filteredProducts {
     var list = products;
@@ -68,24 +98,18 @@ class PosState with _$PosState {
     return list;
   }
 
-  Decimal get subtotal => PosCalculations.sumSubtotal(cartItems);
-
-  Decimal get totalItemDiscounts => PosCalculations.sumItemDiscounts(cartItems);
-
-  Decimal get totalCartDiscount => PosCalculations.computeCartDiscountAmount(
-        items: cartItems,
-        cartDiscountType: cartDiscountType,
-        cartDiscountValue: cartDiscountDecimal,
-      );
-
-  Decimal get totalDiscount => totalItemDiscounts + totalCartDiscount;
-
-  Decimal get totalTax => PosCalculations.sumTax(cartItems);
-
-  Decimal get grandTotal => PosCalculations.grandTotal(
-        cartItems,
-        cartDiscount: totalCartDiscount,
-      );
+  Decimal get subtotal => cart.subtotal;
+  Decimal get totalDiscount => cart.totalDiscount;
+  Decimal get totalTax => cart.totalTax;
+  Decimal get grandTotal => cart.grandTotal;
+  bool get hasActiveScheme => cart.hasActiveScheme;
+  bool get canProceedToPayment => cart.canProceedToPayment;
+  Decimal get displaySubtotal => cart.displaySubtotal;
+  Decimal get displayTotalDiscount => cart.displayTotalDiscount;
+  Decimal get displayTotalTax => cart.displayTotalTax;
+  Decimal get displayGrandTotal => cart.displayGrandTotal;
+  DiscountSchemeModel? get selectedDiscountScheme =>
+      cart.selectedDiscountScheme;
 
   bool get isShiftReady => activeShift != null && !isCheckingShift;
 }

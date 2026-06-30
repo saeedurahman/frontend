@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/roles/data/models/permission_model.dart';
 import 'package:frantend/features/roles/domain/usecases/roles_usecases.dart';
 import 'package:frantend/features/roles/presentation/cubit/role_form_state.dart';
@@ -13,12 +15,14 @@ class RoleFormCubit extends Cubit<RoleFormState> {
     required UpdateRoleUseCase updateRoleUseCase,
     required AssignRolePermissionsUseCase assignRolePermissionsUseCase,
     required DeleteRoleUseCase deleteRoleUseCase,
+    required AuthLocalDataSource authLocalDataSource,
   })  : _getCatalog = getPermissionsCatalogUseCase,
         _getRole = getRoleUseCase,
         _createRole = createRoleUseCase,
         _updateRole = updateRoleUseCase,
         _assignPermissions = assignRolePermissionsUseCase,
         _deleteRole = deleteRoleUseCase,
+        _authLocal = authLocalDataSource,
         super(const RoleFormState());
 
   final GetPermissionsCatalogUseCase _getCatalog;
@@ -27,8 +31,22 @@ class RoleFormCubit extends Cubit<RoleFormState> {
   final UpdateRoleUseCase _updateRole;
   final AssignRolePermissionsUseCase _assignPermissions;
   final DeleteRoleUseCase _deleteRole;
+  final AuthLocalDataSource _authLocal;
+
+  Future<bool> _ensureCanManageRoles() async {
+    final user = await _authLocal.getCachedUser();
+    return UserRoleUtils.canManageRoles(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    );
+  }
 
   Future<void> initCreate() async {
+    if (!await _ensureCanManageRoles()) {
+      emit(const RoleFormState(mode: 'create', accessDenied: true));
+      return;
+    }
+
     emit(
       const RoleFormState(mode: 'create', isLoading: true),
     );
@@ -47,6 +65,11 @@ class RoleFormCubit extends Cubit<RoleFormState> {
   }
 
   Future<void> loadForEdit(String roleId) async {
+    if (!await _ensureCanManageRoles()) {
+      emit(const RoleFormState(mode: 'edit', accessDenied: true));
+      return;
+    }
+
     emit(
       state.copyWith(
         isLoading: true,

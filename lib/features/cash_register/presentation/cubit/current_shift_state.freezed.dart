@@ -256,6 +256,8 @@ mixin _$CurrentShiftState {
   String? get cashierName => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isRefreshing => throw _privateConstructorUsedError;
+  bool get accessDenied => throw _privateConstructorUsedError;
+  bool get canCloseShift => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
 
   /// Create a copy of CurrentShiftState
@@ -279,6 +281,8 @@ abstract class $CurrentShiftStateCopyWith<$Res> {
     String? cashierName,
     bool isLoading,
     bool isRefreshing,
+    bool accessDenied,
+    bool canCloseShift,
     String? error,
   });
 
@@ -306,6 +310,8 @@ class _$CurrentShiftStateCopyWithImpl<$Res, $Val extends CurrentShiftState>
     Object? cashierName = freezed,
     Object? isLoading = null,
     Object? isRefreshing = null,
+    Object? accessDenied = null,
+    Object? canCloseShift = null,
     Object? error = freezed,
   }) {
     return _then(
@@ -333,6 +339,14 @@ class _$CurrentShiftStateCopyWithImpl<$Res, $Val extends CurrentShiftState>
             isRefreshing: null == isRefreshing
                 ? _value.isRefreshing
                 : isRefreshing // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            accessDenied: null == accessDenied
+                ? _value.accessDenied
+                : accessDenied // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            canCloseShift: null == canCloseShift
+                ? _value.canCloseShift
+                : canCloseShift // ignore: cast_nullable_to_non_nullable
                       as bool,
             error: freezed == error
                 ? _value.error
@@ -374,6 +388,8 @@ abstract class _$$CurrentShiftStateImplCopyWith<$Res>
     String? cashierName,
     bool isLoading,
     bool isRefreshing,
+    bool accessDenied,
+    bool canCloseShift,
     String? error,
   });
 
@@ -401,6 +417,8 @@ class __$$CurrentShiftStateImplCopyWithImpl<$Res>
     Object? cashierName = freezed,
     Object? isLoading = null,
     Object? isRefreshing = null,
+    Object? accessDenied = null,
+    Object? canCloseShift = null,
     Object? error = freezed,
   }) {
     return _then(
@@ -429,6 +447,14 @@ class __$$CurrentShiftStateImplCopyWithImpl<$Res>
             ? _value.isRefreshing
             : isRefreshing // ignore: cast_nullable_to_non_nullable
                   as bool,
+        accessDenied: null == accessDenied
+            ? _value.accessDenied
+            : accessDenied // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        canCloseShift: null == canCloseShift
+            ? _value.canCloseShift
+            : canCloseShift // ignore: cast_nullable_to_non_nullable
+                  as bool,
         error: freezed == error
             ? _value.error
             : error // ignore: cast_nullable_to_non_nullable
@@ -448,6 +474,8 @@ class _$CurrentShiftStateImpl implements _CurrentShiftState {
     this.cashierName,
     this.isLoading = false,
     this.isRefreshing = false,
+    this.accessDenied = false,
+    this.canCloseShift = false,
     this.error,
   }) : _registers = registers,
        _openShifts = openShifts;
@@ -481,11 +509,17 @@ class _$CurrentShiftStateImpl implements _CurrentShiftState {
   @JsonKey()
   final bool isRefreshing;
   @override
+  @JsonKey()
+  final bool accessDenied;
+  @override
+  @JsonKey()
+  final bool canCloseShift;
+  @override
   final String? error;
 
   @override
   String toString() {
-    return 'CurrentShiftState(registers: $registers, openShifts: $openShifts, selectedShift: $selectedShift, cashierName: $cashierName, isLoading: $isLoading, isRefreshing: $isRefreshing, error: $error)';
+    return 'CurrentShiftState(registers: $registers, openShifts: $openShifts, selectedShift: $selectedShift, cashierName: $cashierName, isLoading: $isLoading, isRefreshing: $isRefreshing, accessDenied: $accessDenied, canCloseShift: $canCloseShift, error: $error)';
   }
 
   @override
@@ -509,6 +543,10 @@ class _$CurrentShiftStateImpl implements _CurrentShiftState {
                 other.isLoading == isLoading) &&
             (identical(other.isRefreshing, isRefreshing) ||
                 other.isRefreshing == isRefreshing) &&
+            (identical(other.accessDenied, accessDenied) ||
+                other.accessDenied == accessDenied) &&
+            (identical(other.canCloseShift, canCloseShift) ||
+                other.canCloseShift == canCloseShift) &&
             (identical(other.error, error) || other.error == error));
   }
 
@@ -521,6 +559,8 @@ class _$CurrentShiftStateImpl implements _CurrentShiftState {
     cashierName,
     isLoading,
     isRefreshing,
+    accessDenied,
+    canCloseShift,
     error,
   );
 
@@ -544,6 +584,8 @@ abstract class _CurrentShiftState implements CurrentShiftState {
     final String? cashierName,
     final bool isLoading,
     final bool isRefreshing,
+    final bool accessDenied,
+    final bool canCloseShift,
     final String? error,
   }) = _$CurrentShiftStateImpl;
 
@@ -559,6 +601,10 @@ abstract class _CurrentShiftState implements CurrentShiftState {
   bool get isLoading;
   @override
   bool get isRefreshing;
+  @override
+  bool get accessDenied;
+  @override
+  bool get canCloseShift;
   @override
   String? get error;
 

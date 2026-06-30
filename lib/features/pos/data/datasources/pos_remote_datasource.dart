@@ -4,6 +4,8 @@ import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/utils/api_json_utils.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
+import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
@@ -20,6 +22,8 @@ abstract class PosRemoteDataSource {
   Future<RegisterShiftModel> openShift(Map<String, dynamic> body);
   Future<ShiftSummaryModel> getShiftSummary(String shiftId);
   Future<Decimal?> getProductPrice(String productId, String? variationId);
+  Future<SalePricePreviewModel> previewSalePrice(Map<String, dynamic> body);
+  Future<List<DiscountSchemeModel>> getDiscountSchemes();
 }
 
 @LazySingleton(as: PosRemoteDataSource)
@@ -153,6 +157,24 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
     final price = response.data?['unit_price'];
     if (price == null) return null;
     return Decimal.tryParse(price.toString());
+  }
+
+  @override
+  Future<SalePricePreviewModel> previewSalePrice(Map<String, dynamic> body) async {
+    final response = await _dioClient.dio.post<Map<String, dynamic>>(
+      ApiConstants.salePricePreview,
+      data: body,
+      options: Options(extra: {'skip_offline_queue': true}),
+    );
+    return SalePricePreviewModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<List<DiscountSchemeModel>> getDiscountSchemes() async {
+    final response = await _dioClient.dio.get<dynamic>(
+      ApiConstants.discounts,
+    );
+    return _toModelList(response.data, DiscountSchemeModel.fromJson);
   }
 
   List<T> _toModelList<T>(

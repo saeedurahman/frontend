@@ -14,7 +14,15 @@ sealed class SaleDetailState with _$SaleDetailState {
     required SaleResponseModel sale,
     CustomerModel? customer,
     @Default(false) bool isCancelling,
+    @Default(false) bool isVoiding,
+    bool? registerShiftOpen,
+    @Default(false) bool canCancelSales,
+    @Default(false) bool canCreateReturn,
   }) = SaleDetailLoaded;
 
   const factory SaleDetailState.error(String message) = SaleDetailError;
+}
+
+extension SaleDetailLoadedX on SaleDetailLoaded {
+  bool get canVoid => registerShiftOpen == true;
 }

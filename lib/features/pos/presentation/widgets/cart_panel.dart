@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/payment_modal.dart';
@@ -112,22 +113,26 @@ class CartPanel extends StatelessWidget {
                         ),
                       ),
               ),
+              if (state.discountSchemes.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                  child: _DiscountSchemePicker(state: state),
+                ),
               _CartSummary(state: state),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: SizedBox(
                   height: 56,
                   child: FilledButton(
-                    onPressed: state.cartItems.isEmpty
-                        ? null
-                        : (onPayPressed ??
-                            () => PaymentModal.show(context)),
+                    onPressed: state.canProceedToPayment
+                        ? (onPayPressed ?? () => PaymentModal.show(context))
+                        : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.border,
                     ),
                     child: Text(
-                      'PAY NOW — ${formatPKR(state.grandTotal.toDouble())}',
+                      'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -634,11 +639,61 @@ class _CartSummary extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _SummaryRow('Subtotal', formatPKR(state.subtotal.toDouble())),
+          if (state.selectedDiscountScheme != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      state.selectedDiscountScheme!.summaryLabel,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  if (state.isLoadingPricePreview) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          if (state.pricePreviewError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  state.pricePreviewError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.error,
+                  ),
+                ),
+              ),
+            ),
+          _SummaryRow('Subtotal', formatPKR(state.displaySubtotal.toDouble())),
           Row(
             children: [
               const Expanded(child: Text('Discount')),
-              Text(formatPKR(state.totalDiscount.toDouble())),
+              Text(formatPKR(state.displayTotalDiscount.toDouble())),
               IconButton(
                 iconSize: 14,
                 padding: EdgeInsets.zero,
@@ -648,7 +703,7 @@ class _CartSummary extends StatelessWidget {
                     context,
                     currentType: state.cartDiscountType,
                     currentValue: state.cartDiscountDecimal,
-                    previewSubtotal: state.subtotal,
+                    previewSubtotal: state.displaySubtotal,
                   );
                   if (result != null) {
                     cubit.applyCartDiscount(result.$1, result.$2);
@@ -676,7 +731,7 @@ class _CartSummary extends StatelessWidget {
                 ),
               ],
             ),
-          _SummaryRow('Tax', formatPKR(state.totalTax.toDouble())),
+          _SummaryRow('Tax', formatPKR(state.displayTotalTax.toDouble())),
           const Divider(),
           Row(
             children: [
@@ -687,7 +742,7 @@ class _CartSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                formatPKR(state.grandTotal.toDouble()),
+                formatPKR(state.displayGrandTotal.toDouble()),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
@@ -698,6 +753,40 @@ class _CartSummary extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DiscountSchemePicker extends StatelessWidget {
+  const _DiscountSchemePicker({required this.state});
+
+  final PosState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<PosCubit>();
+    return DropdownButtonFormField<String?>(
+      value: state.selectedDiscountSchemeId,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Discount scheme',
+        isDense: true,
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: [
+        const DropdownMenuItem<String?>(
+          value: null,
+          child: Text('No scheme'),
+        ),
+        ...state.discountSchemes.map(
+          (scheme) => DropdownMenuItem<String?>(
+            value: scheme.id,
+            child: Text(scheme.summaryLabel),
+          ),
+        ),
+      ],
+      onChanged: cubit.selectDiscountScheme,
     );
   }
 }

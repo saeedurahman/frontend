@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:injectable/injectable.dart';
@@ -9,16 +11,28 @@ import 'package:injectable/injectable.dart';
 class CloseShiftCubit extends Cubit<CloseShiftState> {
   CloseShiftCubit({
     required CloseRegisterShiftUseCase closeShiftUseCase,
+    required AuthLocalDataSource authLocalDataSource,
   })  : _closeShift = closeShiftUseCase,
+        _authLocal = authLocalDataSource,
         super(const CloseShiftState());
 
   final CloseRegisterShiftUseCase _closeShift;
+  final AuthLocalDataSource _authLocal;
 
-  void init({
+  Future<void> init({
     required String shiftId,
     required ShiftSummaryModel summary,
     required String registerName,
-  }) {
+  }) async {
+    final user = await _authLocal.getCachedUser();
+    if (!UserRoleUtils.canCloseShift(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    )) {
+      emit(const CloseShiftState(accessDenied: true));
+      return;
+    }
+
     emit(
       CloseShiftState(
         shiftId: shiftId,
@@ -45,7 +59,7 @@ class CloseShiftCubit extends Cubit<CloseShiftState> {
   }
 
   Future<ShiftSummaryModel?> submit() async {
-    if (!state.canSubmit) return null;
+    if (state.accessDenied || !state.canSubmit) return null;
 
     emit(state.copyWith(isSubmitting: true, submitError: null));
 
@@ -89,6 +103,7 @@ class CloseShiftState {
     this.submitError,
     this.closedSummary,
     this.confirmedVariance = false,
+    this.accessDenied = false,
   });
 
   final String? shiftId;
@@ -100,6 +115,7 @@ class CloseShiftState {
   final String? submitError;
   final ShiftSummaryModel? closedSummary;
   final bool confirmedVariance;
+  final bool accessDenied;
 
   Decimal get expectedCash =>
       summary?.expectedCashDecimal ?? Decimal.zero;
@@ -112,6 +128,7 @@ class CloseShiftState {
   bool get hasVariance => variance != Decimal.zero;
 
   bool get canSubmit =>
+      !accessDenied &&
       shiftId != null &&
       summary != null &&
       actualCashParsed >= Decimal.zero &&
@@ -129,6 +146,7 @@ class CloseShiftState {
     String? submitError,
     ShiftSummaryModel? closedSummary,
     bool? confirmedVariance,
+    bool? accessDenied,
   }) {
     return CloseShiftState(
       shiftId: shiftId ?? this.shiftId,
@@ -140,6 +158,7 @@ class CloseShiftState {
       submitError: submitError,
       closedSummary: closedSummary ?? this.closedSummary,
       confirmedVariance: confirmedVariance ?? this.confirmedVariance,
+      accessDenied: accessDenied ?? this.accessDenied,
     );
   }
 }

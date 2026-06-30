@@ -12,8 +12,9 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<TokenModel> pinLogin({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pinCode,
   });
 
   Future<TokenModel> registerBusiness(Map<String, dynamic> data);
@@ -48,13 +49,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<TokenModel> pinLogin({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pinCode,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiConstants.pinLogin,
-        data: {'pin': pin, 'user_id': userId},
+        data: {
+          'business_slug': businessSlug,
+          'user_id': userId,
+          'pin_code': pinCode,
+        },
         options: Options(extra: {'skip_offline_queue': true}),
       );
       return TokenModel.fromJson(response.data!);

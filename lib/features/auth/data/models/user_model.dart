@@ -14,6 +14,7 @@ class UserModel {
     this.businessId,
     this.branchId,
     this.businessName,
+    this.businessSlug,
     this.businessTypeCode,
     this.roles = const [],
     this.permissionKeys = const [],
@@ -35,6 +36,8 @@ class UserModel {
   final String? branchId;
   @JsonKey(name: 'business_name')
   final String? businessName;
+  @JsonKey(name: 'business_slug')
+  final String? businessSlug;
   @JsonKey(name: 'business_type_code')
   final String? businessTypeCode;
   @JsonKey(name: 'roles')
@@ -51,6 +54,7 @@ class UserModel {
         role: role,
         businessId: businessId,
         branchId: branchId,
+        businessSlug: businessSlug,
         roles: roles,
         permissionKeys: permissionKeys,
       );
@@ -63,6 +67,7 @@ class UserModel {
         role: user.role,
         businessId: user.businessId,
         branchId: user.branchId,
+        businessSlug: user.businessSlug,
         roles: user.roles,
         permissionKeys: user.permissionKeys,
       );

@@ -20,6 +20,7 @@ class ShiftHistoryState with _$ShiftHistoryState {
     @Default(false) bool hasMore,
     @Default(false) bool isLoading,
     @Default(false) bool isLoadingMore,
+    @Default(false) bool accessDenied,
     String? error,
   }) = _ShiftHistoryState;
 }

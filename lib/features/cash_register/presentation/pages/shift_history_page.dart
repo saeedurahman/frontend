@@ -8,6 +8,7 @@ import 'package:frantend/features/cash_register/data/models/cash_register_model.
 import 'package:frantend/features/cash_register/presentation/cubit/shift_history_cubit.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/shift_history_state.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_history_table.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -31,6 +32,13 @@ class _ShiftHistoryView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ShiftHistoryCubit, ShiftHistoryState>(
       builder: (context, state) {
+        if (state.accessDenied) {
+          return const EmptyState(
+            icon: Icons.lock_outline,
+            message: "You don't have permission to view shifts",
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

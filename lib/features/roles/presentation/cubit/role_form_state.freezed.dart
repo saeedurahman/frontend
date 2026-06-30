@@ -27,6 +27,7 @@ mixin _$RoleFormState {
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isSubmitting => throw _privateConstructorUsedError;
   bool get isDeleting => throw _privateConstructorUsedError;
+  bool get accessDenied => throw _privateConstructorUsedError;
   Map<String, String> get errors => throw _privateConstructorUsedError;
 
   /// Create a copy of RoleFormState
@@ -54,6 +55,7 @@ abstract class $RoleFormStateCopyWith<$Res> {
     bool isLoading,
     bool isSubmitting,
     bool isDeleting,
+    bool accessDenied,
     Map<String, String> errors,
   });
 
@@ -85,6 +87,7 @@ class _$RoleFormStateCopyWithImpl<$Res, $Val extends RoleFormState>
     Object? isLoading = null,
     Object? isSubmitting = null,
     Object? isDeleting = null,
+    Object? accessDenied = null,
     Object? errors = null,
   }) {
     return _then(
@@ -128,6 +131,10 @@ class _$RoleFormStateCopyWithImpl<$Res, $Val extends RoleFormState>
             isDeleting: null == isDeleting
                 ? _value.isDeleting
                 : isDeleting // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            accessDenied: null == accessDenied
+                ? _value.accessDenied
+                : accessDenied // ignore: cast_nullable_to_non_nullable
                       as bool,
             errors: null == errors
                 ? _value.errors
@@ -173,6 +180,7 @@ abstract class _$$RoleFormStateImplCopyWith<$Res>
     bool isLoading,
     bool isSubmitting,
     bool isDeleting,
+    bool accessDenied,
     Map<String, String> errors,
   });
 
@@ -204,6 +212,7 @@ class __$$RoleFormStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? isSubmitting = null,
     Object? isDeleting = null,
+    Object? accessDenied = null,
     Object? errors = null,
   }) {
     return _then(
@@ -248,6 +257,10 @@ class __$$RoleFormStateImplCopyWithImpl<$Res>
             ? _value.isDeleting
             : isDeleting // ignore: cast_nullable_to_non_nullable
                   as bool,
+        accessDenied: null == accessDenied
+            ? _value.accessDenied
+            : accessDenied // ignore: cast_nullable_to_non_nullable
+                  as bool,
         errors: null == errors
             ? _value._errors
             : errors // ignore: cast_nullable_to_non_nullable
@@ -271,6 +284,7 @@ class _$RoleFormStateImpl implements _RoleFormState {
     this.isLoading = false,
     this.isSubmitting = false,
     this.isDeleting = false,
+    this.accessDenied = false,
     final Map<String, String> errors = const {},
   }) : _selectedPermissionKeys = selectedPermissionKeys,
        _errors = errors;
@@ -310,6 +324,9 @@ class _$RoleFormStateImpl implements _RoleFormState {
   @override
   @JsonKey()
   final bool isDeleting;
+  @override
+  @JsonKey()
+  final bool accessDenied;
   final Map<String, String> _errors;
   @override
   @JsonKey()
@@ -321,7 +338,7 @@ class _$RoleFormStateImpl implements _RoleFormState {
 
   @override
   String toString() {
-    return 'RoleFormState(mode: $mode, roleId: $roleId, name: $name, description: $description, isSystem: $isSystem, catalog: $catalog, selectedPermissionKeys: $selectedPermissionKeys, isLoading: $isLoading, isSubmitting: $isSubmitting, isDeleting: $isDeleting, errors: $errors)';
+    return 'RoleFormState(mode: $mode, roleId: $roleId, name: $name, description: $description, isSystem: $isSystem, catalog: $catalog, selectedPermissionKeys: $selectedPermissionKeys, isLoading: $isLoading, isSubmitting: $isSubmitting, isDeleting: $isDeleting, accessDenied: $accessDenied, errors: $errors)';
   }
 
   @override
@@ -347,6 +364,8 @@ class _$RoleFormStateImpl implements _RoleFormState {
                 other.isSubmitting == isSubmitting) &&
             (identical(other.isDeleting, isDeleting) ||
                 other.isDeleting == isDeleting) &&
+            (identical(other.accessDenied, accessDenied) ||
+                other.accessDenied == accessDenied) &&
             const DeepCollectionEquality().equals(other._errors, _errors));
   }
 
@@ -363,6 +382,7 @@ class _$RoleFormStateImpl implements _RoleFormState {
     isLoading,
     isSubmitting,
     isDeleting,
+    accessDenied,
     const DeepCollectionEquality().hash(_errors),
   );
 
@@ -387,6 +407,7 @@ abstract class _RoleFormState implements RoleFormState {
     final bool isLoading,
     final bool isSubmitting,
     final bool isDeleting,
+    final bool accessDenied,
     final Map<String, String> errors,
   }) = _$RoleFormStateImpl;
 
@@ -410,6 +431,8 @@ abstract class _RoleFormState implements RoleFormState {
   bool get isSubmitting;
   @override
   bool get isDeleting;
+  @override
+  bool get accessDenied;
   @override
   Map<String, String> get errors;
 

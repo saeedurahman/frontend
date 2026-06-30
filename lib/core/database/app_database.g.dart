@@ -3948,6 +3948,39 @@ class $UsersTableTable extends UsersTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _businessSlugMeta = const VerificationMeta(
+    'businessSlug',
+  );
+  @override
+  late final GeneratedColumn<String> businessSlug = GeneratedColumn<String>(
+    'business_slug',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rolesJsonMeta = const VerificationMeta(
+    'rolesJson',
+  );
+  @override
+  late final GeneratedColumn<String> rolesJson = GeneratedColumn<String>(
+    'roles_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _permissionKeysJsonMeta =
+      const VerificationMeta('permissionKeysJson');
+  @override
+  late final GeneratedColumn<String> permissionKeysJson =
+      GeneratedColumn<String>(
+        'permission_keys_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _pinHashMeta = const VerificationMeta(
     'pinHash',
   );
@@ -3978,6 +4011,9 @@ class $UsersTableTable extends UsersTable
     role,
     businessId,
     branchId,
+    businessSlug,
+    rolesJson,
+    permissionKeysJson,
     pinHash,
     updatedAt,
   ];
@@ -4034,6 +4070,30 @@ class $UsersTableTable extends UsersTable
         branchId.isAcceptableOrUnknown(data['branch_id']!, _branchIdMeta),
       );
     }
+    if (data.containsKey('business_slug')) {
+      context.handle(
+        _businessSlugMeta,
+        businessSlug.isAcceptableOrUnknown(
+          data['business_slug']!,
+          _businessSlugMeta,
+        ),
+      );
+    }
+    if (data.containsKey('roles_json')) {
+      context.handle(
+        _rolesJsonMeta,
+        rolesJson.isAcceptableOrUnknown(data['roles_json']!, _rolesJsonMeta),
+      );
+    }
+    if (data.containsKey('permission_keys_json')) {
+      context.handle(
+        _permissionKeysJsonMeta,
+        permissionKeysJson.isAcceptableOrUnknown(
+          data['permission_keys_json']!,
+          _permissionKeysJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('pin_hash')) {
       context.handle(
         _pinHashMeta,
@@ -4081,6 +4141,18 @@ class $UsersTableTable extends UsersTable
         DriftSqlType.string,
         data['${effectivePrefix}branch_id'],
       ),
+      businessSlug: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}business_slug'],
+      ),
+      rolesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}roles_json'],
+      ),
+      permissionKeysJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}permission_keys_json'],
+      ),
       pinHash: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}pin_hash'],
@@ -4105,6 +4177,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
   final String role;
   final String? businessId;
   final String? branchId;
+  final String? businessSlug;
+  final String? rolesJson;
+  final String? permissionKeysJson;
   final String? pinHash;
   final DateTime updatedAt;
   const UsersTableData({
@@ -4114,6 +4189,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     required this.role,
     this.businessId,
     this.branchId,
+    this.businessSlug,
+    this.rolesJson,
+    this.permissionKeysJson,
     this.pinHash,
     required this.updatedAt,
   });
@@ -4129,6 +4207,15 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     }
     if (!nullToAbsent || branchId != null) {
       map['branch_id'] = Variable<String>(branchId);
+    }
+    if (!nullToAbsent || businessSlug != null) {
+      map['business_slug'] = Variable<String>(businessSlug);
+    }
+    if (!nullToAbsent || rolesJson != null) {
+      map['roles_json'] = Variable<String>(rolesJson);
+    }
+    if (!nullToAbsent || permissionKeysJson != null) {
+      map['permission_keys_json'] = Variable<String>(permissionKeysJson);
     }
     if (!nullToAbsent || pinHash != null) {
       map['pin_hash'] = Variable<String>(pinHash);
@@ -4149,6 +4236,15 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
       branchId: branchId == null && nullToAbsent
           ? const Value.absent()
           : Value(branchId),
+      businessSlug: businessSlug == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessSlug),
+      rolesJson: rolesJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rolesJson),
+      permissionKeysJson: permissionKeysJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(permissionKeysJson),
       pinHash: pinHash == null && nullToAbsent
           ? const Value.absent()
           : Value(pinHash),
@@ -4168,6 +4264,11 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
       role: serializer.fromJson<String>(json['role']),
       businessId: serializer.fromJson<String?>(json['businessId']),
       branchId: serializer.fromJson<String?>(json['branchId']),
+      businessSlug: serializer.fromJson<String?>(json['businessSlug']),
+      rolesJson: serializer.fromJson<String?>(json['rolesJson']),
+      permissionKeysJson: serializer.fromJson<String?>(
+        json['permissionKeysJson'],
+      ),
       pinHash: serializer.fromJson<String?>(json['pinHash']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -4182,6 +4283,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
       'role': serializer.toJson<String>(role),
       'businessId': serializer.toJson<String?>(businessId),
       'branchId': serializer.toJson<String?>(branchId),
+      'businessSlug': serializer.toJson<String?>(businessSlug),
+      'rolesJson': serializer.toJson<String?>(rolesJson),
+      'permissionKeysJson': serializer.toJson<String?>(permissionKeysJson),
       'pinHash': serializer.toJson<String?>(pinHash),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -4194,6 +4298,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     String? role,
     Value<String?> businessId = const Value.absent(),
     Value<String?> branchId = const Value.absent(),
+    Value<String?> businessSlug = const Value.absent(),
+    Value<String?> rolesJson = const Value.absent(),
+    Value<String?> permissionKeysJson = const Value.absent(),
     Value<String?> pinHash = const Value.absent(),
     DateTime? updatedAt,
   }) => UsersTableData(
@@ -4203,6 +4310,11 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     role: role ?? this.role,
     businessId: businessId.present ? businessId.value : this.businessId,
     branchId: branchId.present ? branchId.value : this.branchId,
+    businessSlug: businessSlug.present ? businessSlug.value : this.businessSlug,
+    rolesJson: rolesJson.present ? rolesJson.value : this.rolesJson,
+    permissionKeysJson: permissionKeysJson.present
+        ? permissionKeysJson.value
+        : this.permissionKeysJson,
     pinHash: pinHash.present ? pinHash.value : this.pinHash,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -4216,6 +4328,13 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           ? data.businessId.value
           : this.businessId,
       branchId: data.branchId.present ? data.branchId.value : this.branchId,
+      businessSlug: data.businessSlug.present
+          ? data.businessSlug.value
+          : this.businessSlug,
+      rolesJson: data.rolesJson.present ? data.rolesJson.value : this.rolesJson,
+      permissionKeysJson: data.permissionKeysJson.present
+          ? data.permissionKeysJson.value
+          : this.permissionKeysJson,
       pinHash: data.pinHash.present ? data.pinHash.value : this.pinHash,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -4230,6 +4349,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           ..write('role: $role, ')
           ..write('businessId: $businessId, ')
           ..write('branchId: $branchId, ')
+          ..write('businessSlug: $businessSlug, ')
+          ..write('rolesJson: $rolesJson, ')
+          ..write('permissionKeysJson: $permissionKeysJson, ')
           ..write('pinHash: $pinHash, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -4244,6 +4366,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     role,
     businessId,
     branchId,
+    businessSlug,
+    rolesJson,
+    permissionKeysJson,
     pinHash,
     updatedAt,
   );
@@ -4257,6 +4382,9 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           other.role == this.role &&
           other.businessId == this.businessId &&
           other.branchId == this.branchId &&
+          other.businessSlug == this.businessSlug &&
+          other.rolesJson == this.rolesJson &&
+          other.permissionKeysJson == this.permissionKeysJson &&
           other.pinHash == this.pinHash &&
           other.updatedAt == this.updatedAt);
 }
@@ -4268,6 +4396,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
   final Value<String> role;
   final Value<String?> businessId;
   final Value<String?> branchId;
+  final Value<String?> businessSlug;
+  final Value<String?> rolesJson;
+  final Value<String?> permissionKeysJson;
   final Value<String?> pinHash;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -4278,6 +4409,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     this.role = const Value.absent(),
     this.businessId = const Value.absent(),
     this.branchId = const Value.absent(),
+    this.businessSlug = const Value.absent(),
+    this.rolesJson = const Value.absent(),
+    this.permissionKeysJson = const Value.absent(),
     this.pinHash = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4289,6 +4423,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     required String role,
     this.businessId = const Value.absent(),
     this.branchId = const Value.absent(),
+    this.businessSlug = const Value.absent(),
+    this.rolesJson = const Value.absent(),
+    this.permissionKeysJson = const Value.absent(),
     this.pinHash = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -4304,6 +4441,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     Expression<String>? role,
     Expression<String>? businessId,
     Expression<String>? branchId,
+    Expression<String>? businessSlug,
+    Expression<String>? rolesJson,
+    Expression<String>? permissionKeysJson,
     Expression<String>? pinHash,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -4315,6 +4455,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
       if (role != null) 'role': role,
       if (businessId != null) 'business_id': businessId,
       if (branchId != null) 'branch_id': branchId,
+      if (businessSlug != null) 'business_slug': businessSlug,
+      if (rolesJson != null) 'roles_json': rolesJson,
+      if (permissionKeysJson != null)
+        'permission_keys_json': permissionKeysJson,
       if (pinHash != null) 'pin_hash': pinHash,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -4328,6 +4472,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     Value<String>? role,
     Value<String?>? businessId,
     Value<String?>? branchId,
+    Value<String?>? businessSlug,
+    Value<String?>? rolesJson,
+    Value<String?>? permissionKeysJson,
     Value<String?>? pinHash,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -4339,6 +4486,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
       role: role ?? this.role,
       businessId: businessId ?? this.businessId,
       branchId: branchId ?? this.branchId,
+      businessSlug: businessSlug ?? this.businessSlug,
+      rolesJson: rolesJson ?? this.rolesJson,
+      permissionKeysJson: permissionKeysJson ?? this.permissionKeysJson,
       pinHash: pinHash ?? this.pinHash,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -4366,6 +4516,15 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     if (branchId.present) {
       map['branch_id'] = Variable<String>(branchId.value);
     }
+    if (businessSlug.present) {
+      map['business_slug'] = Variable<String>(businessSlug.value);
+    }
+    if (rolesJson.present) {
+      map['roles_json'] = Variable<String>(rolesJson.value);
+    }
+    if (permissionKeysJson.present) {
+      map['permission_keys_json'] = Variable<String>(permissionKeysJson.value);
+    }
     if (pinHash.present) {
       map['pin_hash'] = Variable<String>(pinHash.value);
     }
@@ -4387,6 +4546,9 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
           ..write('role: $role, ')
           ..write('businessId: $businessId, ')
           ..write('branchId: $branchId, ')
+          ..write('businessSlug: $businessSlug, ')
+          ..write('rolesJson: $rolesJson, ')
+          ..write('permissionKeysJson: $permissionKeysJson, ')
           ..write('pinHash: $pinHash, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -6432,6 +6594,9 @@ typedef $$UsersTableTableCreateCompanionBuilder =
       required String role,
       Value<String?> businessId,
       Value<String?> branchId,
+      Value<String?> businessSlug,
+      Value<String?> rolesJson,
+      Value<String?> permissionKeysJson,
       Value<String?> pinHash,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -6444,6 +6609,9 @@ typedef $$UsersTableTableUpdateCompanionBuilder =
       Value<String> role,
       Value<String?> businessId,
       Value<String?> branchId,
+      Value<String?> businessSlug,
+      Value<String?> rolesJson,
+      Value<String?> permissionKeysJson,
       Value<String?> pinHash,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -6485,6 +6653,21 @@ class $$UsersTableTableFilterComposer
 
   ColumnFilters<String> get branchId => $composableBuilder(
     column: $table.branchId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get businessSlug => $composableBuilder(
+    column: $table.businessSlug,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rolesJson => $composableBuilder(
+    column: $table.rolesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get permissionKeysJson => $composableBuilder(
+    column: $table.permissionKeysJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6538,6 +6721,21 @@ class $$UsersTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get businessSlug => $composableBuilder(
+    column: $table.businessSlug,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rolesJson => $composableBuilder(
+    column: $table.rolesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get permissionKeysJson => $composableBuilder(
+    column: $table.permissionKeysJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get pinHash => $composableBuilder(
     column: $table.pinHash,
     builder: (column) => ColumnOrderings(column),
@@ -6577,6 +6775,19 @@ class $$UsersTableTableAnnotationComposer
 
   GeneratedColumn<String> get branchId =>
       $composableBuilder(column: $table.branchId, builder: (column) => column);
+
+  GeneratedColumn<String> get businessSlug => $composableBuilder(
+    column: $table.businessSlug,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rolesJson =>
+      $composableBuilder(column: $table.rolesJson, builder: (column) => column);
+
+  GeneratedColumn<String> get permissionKeysJson => $composableBuilder(
+    column: $table.permissionKeysJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get pinHash =>
       $composableBuilder(column: $table.pinHash, builder: (column) => column);
@@ -6622,6 +6833,9 @@ class $$UsersTableTableTableManager
                 Value<String> role = const Value.absent(),
                 Value<String?> businessId = const Value.absent(),
                 Value<String?> branchId = const Value.absent(),
+                Value<String?> businessSlug = const Value.absent(),
+                Value<String?> rolesJson = const Value.absent(),
+                Value<String?> permissionKeysJson = const Value.absent(),
                 Value<String?> pinHash = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -6632,6 +6846,9 @@ class $$UsersTableTableTableManager
                 role: role,
                 businessId: businessId,
                 branchId: branchId,
+                businessSlug: businessSlug,
+                rolesJson: rolesJson,
+                permissionKeysJson: permissionKeysJson,
                 pinHash: pinHash,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -6644,6 +6861,9 @@ class $$UsersTableTableTableManager
                 required String role,
                 Value<String?> businessId = const Value.absent(),
                 Value<String?> branchId = const Value.absent(),
+                Value<String?> businessSlug = const Value.absent(),
+                Value<String?> rolesJson = const Value.absent(),
+                Value<String?> permissionKeysJson = const Value.absent(),
                 Value<String?> pinHash = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -6654,6 +6874,9 @@ class $$UsersTableTableTableManager
                 role: role,
                 businessId: businessId,
                 branchId: branchId,
+                businessSlug: businessSlug,
+                rolesJson: rolesJson,
+                permissionKeysJson: permissionKeysJson,
                 pinHash: pinHash,
                 updatedAt: updatedAt,
                 rowid: rowid,

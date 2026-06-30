@@ -28,6 +28,7 @@ import '../../features/auth/data/datasources/auth_local_datasource.dart'
     as _i992;
 import '../../features/auth/data/datasources/auth_remote_datasource.dart'
     as _i161;
+import '../../features/auth/data/datasources/pin_device_cache.dart' as _i532;
 import '../../features/auth/data/repositories/auth_repository_impl.dart'
     as _i153;
 import '../../features/auth/domain/repositories/auth_repository.dart' as _i787;
@@ -36,7 +37,10 @@ import '../../features/auth/domain/usecases/logout_usecase.dart' as _i48;
 import '../../features/auth/domain/usecases/pin_login_usecase.dart' as _i564;
 import '../../features/auth/domain/usecases/register_business_usecase.dart'
     as _i642;
+import '../../features/auth/domain/usecases/seed_pin_device_cache_usecase.dart'
+    as _i338;
 import '../../features/auth/presentation/cubit/auth_cubit.dart' as _i117;
+import '../../features/auth/presentation/cubit/pin_login_cubit.dart' as _i73;
 import '../../features/branches/data/datasources/branches_remote_datasource.dart'
     as _i540;
 import '../../features/branches/data/repositories/branches_repository_impl.dart'
@@ -221,6 +225,10 @@ import '../../features/returns/domain/repositories/returns_repository.dart'
 import '../../features/returns/domain/usecases/returns_usecases.dart' as _i956;
 import '../../features/returns/presentation/cubit/process_return_cubit.dart'
     as _i125;
+import '../../features/returns/presentation/cubit/return_detail_cubit.dart'
+    as _i944;
+import '../../features/returns/presentation/cubit/returns_list_cubit.dart'
+    as _i290;
 import '../../features/roles/data/datasources/roles_remote_datasource.dart'
     as _i31;
 import '../../features/roles/data/repositories/roles_repository_impl.dart'
@@ -262,6 +270,16 @@ import '../../features/suppliers/presentation/cubit/supplier_form_cubit.dart'
     as _i591;
 import '../../features/suppliers/presentation/cubit/suppliers_list_cubit.dart'
     as _i507;
+import '../../features/users/data/datasources/users_remote_datasource.dart'
+    as _i88;
+import '../../features/users/data/repositories/users_repository_impl.dart'
+    as _i804;
+import '../../features/users/domain/repositories/users_repository.dart'
+    as _i476;
+import '../../features/users/domain/usecases/users_usecases.dart' as _i961;
+import '../../features/users/presentation/cubit/user_form_cubit.dart' as _i770;
+import '../../features/users/presentation/cubit/users_list_cubit.dart'
+    as _i1011;
 import '../database/app_database.dart' as _i982;
 import '../database/daos/held_orders_dao.dart' as _i1025;
 import '../database/daos/master_data_cache_dao.dart' as _i15;
@@ -328,6 +346,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1025.HeldOrdersDao>(
       () => databaseModule.heldOrdersDao(gh<_i982.AppDatabase>()),
     );
+    gh.lazySingleton<_i532.PinDeviceCache>(
+      () => _i532.PinDeviceCacheImpl(gh<_i619.SecureStorage>()),
+    );
     gh.lazySingleton<_i992.AuthLocalDataSource>(
       () => _i992.AuthLocalDataSourceImpl(
         gh<_i619.SecureStorage>(),
@@ -367,6 +388,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i960.LocaleCubit>(
       () => _i960.LocaleCubit(gh<_i574.PreferencesStorage>()),
+    );
+    gh.factory<_i73.PinLoginCubit>(
+      () => _i73.PinLoginCubit(pinDeviceCache: gh<_i532.PinDeviceCache>()),
     );
     gh.lazySingleton<_i875.CustomersRepository>(
       () => _i948.CustomersRepositoryImpl(
@@ -419,6 +443,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i423.ReportsFilterCubit>(
       () => _i423.ReportsFilterCubit(gh<_i992.AuthLocalDataSource>()),
     );
+    gh.factory<_i944.ReturnDetailCubit>(
+      () => _i944.ReturnDetailCubit(
+        getReturnByIdUseCase: gh<_i956.GetReturnByIdUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i447.ExpensesRemoteDataSource>(
       () => _i447.ExpensesRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
@@ -457,6 +487,12 @@ extension GetItInjectableX on _i174.GetIt {
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
+    gh.factory<_i290.ReturnsListCubit>(
+      () => _i290.ReturnsListCubit(
+        getReturnsUseCase: gh<_i956.GetReturnsUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i1019.SalesRemoteDataSource>(
       () => _i1019.SalesRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
@@ -472,6 +508,9 @@ extension GetItInjectableX on _i174.GetIt {
         remoteDataSource: gh<_i31.RolesRemoteDataSource>(),
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
+    );
+    gh.lazySingleton<_i88.UsersRemoteDataSource>(
+      () => _i88.UsersRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
     gh.lazySingleton<_i674.SettingsRepository>(
       () => _i955.SettingsRepositoryImpl(
@@ -506,6 +545,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i212.PurchasesRemoteDataSource>(
       () => _i212.PurchasesRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i476.UsersRepository>(
+      () => _i804.UsersRepositoryImpl(
+        remoteDataSource: gh<_i88.UsersRemoteDataSource>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
+      ),
     );
     gh.lazySingleton<_i417.SyncManager>(
       () => _i417.SyncManager(
@@ -546,6 +591,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i873.CancelSaleUseCase>(
       () => _i873.CancelSaleUseCase(gh<_i434.SalesRepository>()),
+    );
+    gh.factory<_i873.VoidSaleUseCase>(
+      () => _i873.VoidSaleUseCase(gh<_i434.SalesRepository>()),
     );
     gh.factory<_i347.AddBarcodeUseCase>(
       () => _i347.AddBarcodeUseCase(gh<_i27.ProductsRepository>()),
@@ -588,14 +636,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i73.UpdateProductUseCase>(
       () => _i73.UpdateProductUseCase(gh<_i27.ProductsRepository>()),
-    );
-    gh.factory<_i830.SaleDetailCubit>(
-      () => _i830.SaleDetailCubit(
-        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
-        cancelSaleUseCase: gh<_i873.CancelSaleUseCase>(),
-        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
-        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
-      ),
     );
     gh.factory<_i238.ProductsListCubit>(
       () => _i238.ProductsListCubit(
@@ -743,6 +783,17 @@ extension GetItInjectableX on _i174.GetIt {
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
+    gh.factory<_i685.RoleFormCubit>(
+      () => _i685.RoleFormCubit(
+        getPermissionsCatalogUseCase: gh<_i473.GetPermissionsCatalogUseCase>(),
+        getRoleUseCase: gh<_i473.GetRoleUseCase>(),
+        createRoleUseCase: gh<_i473.CreateRoleUseCase>(),
+        updateRoleUseCase: gh<_i473.UpdateRoleUseCase>(),
+        assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
+        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.factory<_i9.GetExpenseCategoriesUseCase>(
       () => _i9.GetExpenseCategoriesUseCase(gh<_i321.ExpensesRepository>()),
     );
@@ -830,19 +881,20 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i820.GetRegisterShiftByIdUseCase(gh<_i950.CashRegisterRepository>()),
     );
-    gh.factory<_i981.ShiftDetailCubit>(
-      () => _i981.ShiftDetailCubit(
-        getShiftByIdUseCase: gh<_i820.GetRegisterShiftByIdUseCase>(),
-        getShiftSummaryUseCase: gh<_i820.GetRegisterShiftSummaryUseCase>(),
-        getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
-      ),
-    );
     gh.factory<_i125.ProcessReturnCubit>(
       () => _i125.ProcessReturnCubit(
         getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
         getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
         createSaleReturnUseCase: gh<_i956.CreateSaleReturnUseCase>(),
         getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i981.ShiftDetailCubit>(
+      () => _i981.ShiftDetailCubit(
+        getShiftByIdUseCase: gh<_i820.GetRegisterShiftByIdUseCase>(),
+        getShiftSummaryUseCase: gh<_i820.GetRegisterShiftSummaryUseCase>(),
+        getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
       ),
     );
     gh.factory<_i146.ProductFormCubit>(
@@ -863,6 +915,27 @@ extension GetItInjectableX on _i174.GetIt {
         recordCustomerPaymentUseCase: gh<_i640.RecordCustomerPaymentUseCase>(),
         getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
       ),
+    );
+    gh.factory<_i961.GetUsersUseCase>(
+      () => _i961.GetUsersUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.GetUserUseCase>(
+      () => _i961.GetUserUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.CreateUserUseCase>(
+      () => _i961.CreateUserUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.UpdateUserUseCase>(
+      () => _i961.UpdateUserUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.ReplaceUserRolesUseCase>(
+      () => _i961.ReplaceUserRolesUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.DeleteUserUseCase>(
+      () => _i961.DeleteUserUseCase(gh<_i476.UsersRepository>()),
+    );
+    gh.factory<_i961.ResetUserPinUseCase>(
+      () => _i961.ResetUserPinUseCase(gh<_i476.UsersRepository>()),
     );
     gh.factory<_i804.BrandsCubit>(
       () => _i804.BrandsCubit(
@@ -987,16 +1060,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i698.CreateRegisterUseCase>(
       () => _i698.CreateRegisterUseCase(gh<_i511.PosRepository>()),
     );
+    gh.factory<_i698.PreviewSalePriceUseCase>(
+      () => _i698.PreviewSalePriceUseCase(gh<_i511.PosRepository>()),
+    );
+    gh.factory<_i698.GetDiscountSchemesUseCase>(
+      () => _i698.GetDiscountSchemesUseCase(gh<_i511.PosRepository>()),
+    );
     gh.lazySingleton<_i879.BranchesUseCases>(
       () => _i879.BranchesUseCases(gh<_i835.BranchesRepository>()),
-    );
-    gh.lazySingleton<_i787.AuthRepository>(
-      () => _i153.AuthRepositoryImpl(
-        remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
-        localDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        errorHandler: gh<_i308.ErrorHandler>(),
-      ),
     );
     gh.factory<_i296.InventoryStockCubit>(
       () => _i296.InventoryStockCubit(
@@ -1005,16 +1076,18 @@ extension GetItInjectableX on _i174.GetIt {
         getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
       ),
     );
-    gh.factory<_i890.CloseShiftCubit>(
-      () => _i890.CloseShiftCubit(
-        closeShiftUseCase: gh<_i820.CloseRegisterShiftUseCase>(),
-      ),
-    );
     gh.lazySingleton<_i363.PurchasesRepository>(
       () => _i652.PurchasesRepositoryImpl(
         remoteDataSource: gh<_i212.PurchasesRemoteDataSource>(),
         errorHandler: gh<_i308.ErrorHandler>(),
         lineEnricher: gh<_i706.PurchaseOrderLineEnricher>(),
+      ),
+    );
+    gh.factory<_i1011.UsersListCubit>(
+      () => _i1011.UsersListCubit(
+        getUsersUseCase: gh<_i961.GetUsersUseCase>(),
+        deleteUserUseCase: gh<_i961.DeleteUserUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
     gh.factory<_i838.GetPurchaseOrdersUseCase>(
@@ -1036,16 +1109,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i838.GetPurchaseReceiptUseCase>(
       () => _i838.GetPurchaseReceiptUseCase(gh<_i363.PurchasesRepository>()),
-    );
-    gh.factory<_i685.RoleFormCubit>(
-      () => _i685.RoleFormCubit(
-        getPermissionsCatalogUseCase: gh<_i473.GetPermissionsCatalogUseCase>(),
-        getRoleUseCase: gh<_i473.GetRoleUseCase>(),
-        createRoleUseCase: gh<_i473.CreateRoleUseCase>(),
-        updateRoleUseCase: gh<_i473.UpdateRoleUseCase>(),
-        assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
-        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
-      ),
     );
     gh.factory<_i1062.GetDashboardSummaryUseCase>(
       () => _i1062.GetDashboardSummaryUseCase(gh<_i665.DashboardRepository>()),
@@ -1071,58 +1134,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i992.AuthLocalDataSource>(),
       ),
     );
-    gh.lazySingleton<_i994.RegisterRepository>(
-      () => _i68.RegisterRepositoryImpl(gh<_i787.AuthRepository>()),
-    );
-    gh.factory<_i220.ShiftHistoryCubit>(
-      () => _i220.ShiftHistoryCubit(
-        getShiftsUseCase: gh<_i820.GetRegisterShiftsUseCase>(),
-        getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
-    gh.factory<_i188.LoginUseCase>(
-      () => _i188.LoginUseCase(gh<_i787.AuthRepository>()),
-    );
-    gh.factory<_i48.LogoutUseCase>(
-      () => _i48.LogoutUseCase(gh<_i787.AuthRepository>()),
-    );
-    gh.factory<_i564.PinLoginUseCase>(
-      () => _i564.PinLoginUseCase(gh<_i787.AuthRepository>()),
-    );
-    gh.factory<_i642.RegisterBusinessUseCase>(
-      () => _i642.RegisterBusinessUseCase(gh<_i787.AuthRepository>()),
-    );
-    gh.lazySingleton<_i405.NotificationsCubit>(
-      () => _i405.NotificationsCubit(
-        getNotificationsUseCase: gh<_i459.GetNotificationsUseCase>(),
-        markNotificationsReadUseCase: gh<_i459.MarkNotificationsReadUseCase>(),
-        markAllNotificationsReadUseCase:
-            gh<_i459.MarkAllNotificationsReadUseCase>(),
-        deleteNotificationUseCase: gh<_i459.DeleteNotificationUseCase>(),
-        checkNotificationAlertsUseCase:
-            gh<_i459.CheckNotificationAlertsUseCase>(),
-      ),
-    );
-    gh.factory<_i909.PurchaseOrderDetailCubit>(
-      () => _i909.PurchaseOrderDetailCubit(
-        getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
-        updatePurchaseOrderStatusUseCase:
-            gh<_i838.UpdatePurchaseOrderStatusUseCase>(),
-      ),
-    );
-    gh.factory<_i266.RegisterCubit>(
-      () => _i266.RegisterCubit(
-        gh<_i994.RegisterRepository>(),
-        gh<_i525.AuthGuard>(),
-      ),
-    );
-    gh.factory<_i483.PurchaseOrdersListCubit>(
-      () => _i483.PurchaseOrdersListCubit(
-        getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
-        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-      ),
-    );
     gh.factory<_i312.PosCubit>(
       () => _i312.PosCubit(
         getProductsUseCase: gh<_i15.GetProductsUseCase>(),
@@ -1140,19 +1151,78 @@ extension GetItInjectableX on _i174.GetIt {
         getStockBalancesUseCase: gh<_i380.GetStockBalancesUseCase>(),
         getTaxRatesUseCase: gh<_i279.GetTaxRatesUseCase>(),
         getSettingsUseCase: gh<_i279.GetSettingsUseCase>(),
+        getDiscountSchemesUseCase: gh<_i698.GetDiscountSchemesUseCase>(),
+        previewSalePriceUseCase: gh<_i698.PreviewSalePriceUseCase>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
         networkInfo: gh<_i932.NetworkInfo>(),
         heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
       ),
     );
-    gh.factory<_i117.AuthCubit>(
-      () => _i117.AuthCubit(
-        loginUseCase: gh<_i188.LoginUseCase>(),
-        pinLoginUseCase: gh<_i564.PinLoginUseCase>(),
-        registerBusinessUseCase: gh<_i642.RegisterBusinessUseCase>(),
-        logoutUseCase: gh<_i48.LogoutUseCase>(),
-        authRepository: gh<_i787.AuthRepository>(),
-        authGuard: gh<_i525.AuthGuard>(),
+    gh.factory<_i220.ShiftHistoryCubit>(
+      () => _i220.ShiftHistoryCubit(
+        getShiftsUseCase: gh<_i820.GetRegisterShiftsUseCase>(),
+        getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i890.CloseShiftCubit>(
+      () => _i890.CloseShiftCubit(
+        closeShiftUseCase: gh<_i820.CloseRegisterShiftUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i338.SeedPinDeviceCacheUseCase>(
+      () => _i338.SeedPinDeviceCacheUseCase(
+        gh<_i532.PinDeviceCache>(),
+        gh<_i961.GetUsersUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i405.NotificationsCubit>(
+      () => _i405.NotificationsCubit(
+        getNotificationsUseCase: gh<_i459.GetNotificationsUseCase>(),
+        markNotificationsReadUseCase: gh<_i459.MarkNotificationsReadUseCase>(),
+        markAllNotificationsReadUseCase:
+            gh<_i459.MarkAllNotificationsReadUseCase>(),
+        deleteNotificationUseCase: gh<_i459.DeleteNotificationUseCase>(),
+        checkNotificationAlertsUseCase:
+            gh<_i459.CheckNotificationAlertsUseCase>(),
+      ),
+    );
+    gh.factory<_i830.SaleDetailCubit>(
+      () => _i830.SaleDetailCubit(
+        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
+        cancelSaleUseCase: gh<_i873.CancelSaleUseCase>(),
+        voidSaleUseCase: gh<_i873.VoidSaleUseCase>(),
+        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
+        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
+        getRegisterShiftByIdUseCase: gh<_i820.GetRegisterShiftByIdUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i909.PurchaseOrderDetailCubit>(
+      () => _i909.PurchaseOrderDetailCubit(
+        getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
+        updatePurchaseOrderStatusUseCase:
+            gh<_i838.UpdatePurchaseOrderStatusUseCase>(),
+      ),
+    );
+    gh.factory<_i770.UserFormCubit>(
+      () => _i770.UserFormCubit(
+        getUserUseCase: gh<_i961.GetUserUseCase>(),
+        createUserUseCase: gh<_i961.CreateUserUseCase>(),
+        updateUserUseCase: gh<_i961.UpdateUserUseCase>(),
+        replaceUserRolesUseCase: gh<_i961.ReplaceUserRolesUseCase>(),
+        deleteUserUseCase: gh<_i961.DeleteUserUseCase>(),
+        resetUserPinUseCase: gh<_i961.ResetUserPinUseCase>(),
+        getRolesUseCase: gh<_i473.GetRolesUseCase>(),
+        branchesUseCases: gh<_i879.BranchesUseCases>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i483.PurchaseOrdersListCubit>(
+      () => _i483.PurchaseOrdersListCubit(
+        getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
+        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
       ),
     );
     gh.factory<_i24.DashboardCubit>(
@@ -1174,6 +1244,46 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
         getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
         createPurchaseReceiptUseCase: gh<_i838.CreatePurchaseReceiptUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i787.AuthRepository>(
+      () => _i153.AuthRepositoryImpl(
+        remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
+        localDataSource: gh<_i992.AuthLocalDataSource>(),
+        networkInfo: gh<_i932.NetworkInfo>(),
+        errorHandler: gh<_i308.ErrorHandler>(),
+        seedPinDeviceCache: gh<_i338.SeedPinDeviceCacheUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i994.RegisterRepository>(
+      () => _i68.RegisterRepositoryImpl(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i188.LoginUseCase>(
+      () => _i188.LoginUseCase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i48.LogoutUseCase>(
+      () => _i48.LogoutUseCase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i564.PinLoginUseCase>(
+      () => _i564.PinLoginUseCase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i642.RegisterBusinessUseCase>(
+      () => _i642.RegisterBusinessUseCase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i266.RegisterCubit>(
+      () => _i266.RegisterCubit(
+        gh<_i994.RegisterRepository>(),
+        gh<_i525.AuthGuard>(),
+      ),
+    );
+    gh.factory<_i117.AuthCubit>(
+      () => _i117.AuthCubit(
+        loginUseCase: gh<_i188.LoginUseCase>(),
+        pinLoginUseCase: gh<_i564.PinLoginUseCase>(),
+        registerBusinessUseCase: gh<_i642.RegisterBusinessUseCase>(),
+        logoutUseCase: gh<_i48.LogoutUseCase>(),
+        authRepository: gh<_i787.AuthRepository>(),
+        authGuard: gh<_i525.AuthGuard>(),
       ),
     );
     return this;

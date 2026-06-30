@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
+import 'package:frantend/features/pos/domain/utils/pos_sale_totals.dart';
+import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 
 /// Cart-level discount distribution and totals.
 abstract final class PosCalculations {
@@ -37,14 +39,47 @@ abstract final class PosCalculations {
 
   static Decimal grandTotal(
     List<CartItemModel> items, {
+    String? cartDiscountType,
     Decimal? cartDiscount,
+  }) =>
+      computeAuthoritativeTotals(
+        items: items,
+        cartDiscountType: cartDiscountType,
+        cartDiscountValue: cartDiscount ?? Decimal.zero,
+      ).totalAmount;
+
+  /// Authoritative no-scheme totals matching backend pricing_engine + buildSaleLines.
+  static PosSaleTotals computeAuthoritativeTotals({
+    required List<CartItemModel> items,
+    required String? cartDiscountType,
+    required Decimal cartDiscountValue,
   }) {
-    final discount = cartDiscount ?? Decimal.zero;
-    final itemDiscounts = sumItemDiscounts(items);
-    final tax = sumTax(items);
-    final subtotal = sumSubtotal(items);
-    final total = subtotal - itemDiscounts - discount + tax;
-    return total < Decimal.zero ? Decimal.zero : total;
+    if (items.isEmpty) return PosSaleTotals.zero;
+
+    final builtLines = buildSaleLines(
+      items: items,
+      cartDiscountType: cartDiscountType,
+      cartDiscountValue: cartDiscountValue,
+    );
+
+    final lineAmounts = builtLines.map((line) {
+      return PricingEngine.calculateLineTotal(
+        qty: Decimal.tryParse('${line['qty']}') ?? Decimal.zero,
+        unitPrice: Decimal.tryParse('${line['unit_price']}') ?? Decimal.zero,
+        discountPct: Decimal.tryParse('${line['discount_pct']}') ?? Decimal.zero,
+        discountAmount:
+            Decimal.tryParse('${line['discount_amount']}') ?? Decimal.zero,
+        taxRate: Decimal.tryParse('${line['tax_rate']}') ?? Decimal.zero,
+      );
+    }).toList();
+
+    final totals = PricingEngine.calculateSaleTotals(lineAmounts);
+    return PosSaleTotals(
+      subtotal: totals['subtotal']!,
+      totalDiscount: totals['total_discount']!,
+      totalTax: totals['total_tax']!,
+      totalAmount: totals['total_amount']!,
+    );
   }
 
   /// Distributes cart discount into line payloads for API request.

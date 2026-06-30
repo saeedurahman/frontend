@@ -84,9 +84,6 @@ class RegisterCubit extends Cubit<RegisterState> {
 
   Future<void> submitRegistration() async {
     final payload = _collectFormData();
-    final requestBody = payload.toJson();
-    // ignore: avoid_print
-    print('[API Request] /auth/register body: $requestBody');
 
     emit(RegisterLoading(data: payload));
     final result = await _repository.register(payload);

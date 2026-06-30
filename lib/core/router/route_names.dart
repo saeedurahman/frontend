@@ -31,6 +31,8 @@ abstract final class RouteNames {
   static String saleReturnPath(String id) => '/sales/$id/return';
   static const String saleReturn = '/sales/:id/return';
   static const String returns = '/returns';
+  static String returnDetailPath(String id) => '/returns/$id';
+  static const String returnDetail = '/returns/:id';
   static const String customers = '/customers';
   static const String customerNew = '/customers/new';
   static const String customerEdit = '/customers/:id/edit';
@@ -58,6 +60,9 @@ abstract final class RouteNames {
   static const String settingsRoles = '/settings/roles';
   static const String settingsRoleNew = '/settings/roles/new';
   static String settingsRoleEditPath(String id) => '/settings/roles/$id/edit';
+  static const String staff = '/staff';
+  static const String staffNew = '/staff/new';
+  static String staffEditPath(String id) => '/staff/$id/edit';
   static const String notifications = '/notifications';
   static const String auditLogs = '/audit-logs';
 }

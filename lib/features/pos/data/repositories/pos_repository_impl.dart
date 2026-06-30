@@ -16,6 +16,8 @@ import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/pos/data/datasources/pos_remote_datasource.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
+import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/pos/domain/repositories/pos_repository.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
@@ -265,6 +267,26 @@ class PosRepositoryImpl implements PosRepository {
   ) async {
     try {
       return Right(await _remote.getProductPrice(productId, variationId));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SalePricePreviewModel>> previewSalePrice(
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.previewSalePrice(body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DiscountSchemeModel>>> getDiscountSchemes() async {
+    try {
+      return Right(await _remote.getDiscountSchemes());
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

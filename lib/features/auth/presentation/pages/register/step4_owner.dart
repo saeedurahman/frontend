@@ -51,11 +51,6 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
         final isLoading = state is RegisterLoading;
         debugPrint(
           '[Step4] build — state=${state.runtimeType}, isLoading=$isLoading, '
-          'ownerName="${cubit.ownerNameController.text}", '
-          'ownerPhone="${cubit.ownerPhoneController.text}", '
-          'ownerPhoneNumber=${cubit.ownerPhoneNumber?.completeNumber}, '
-          'passwordLen=${cubit.passwordController.text.length}, '
-          'confirmLen=${cubit.confirmPasswordController.text.length}, '
           'plan=${cubit.data.plan.name}, '
           'formKeyAttached=${cubit.step4FormKey.currentState != null}',
         );
@@ -109,7 +104,6 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
                     disableLengthCheck: false,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     onChanged: (v) {
-                      debugPrint('[Step4] ownerPhone onChanged — completeNumber=${v.completeNumber}, number=${v.number}');
                       cubit.ownerPhoneNumber = v;
                     },
                   ),
@@ -258,21 +252,11 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
   void _onSubmit(BuildContext context, RegisterCubit cubit) {
     final ownerName = cubit.ownerNameController.text.trim();
     final ownerPhone = cubit.ownerPhoneController.text.trim();
-    final ownerPhoneComplete = cubit.ownerPhoneNumber?.completeNumber;
     final password = cubit.passwordController.text;
     final confirm = cubit.confirmPasswordController.text;
     final formState = cubit.step4FormKey.currentState;
 
     debugPrint('[Step4] onSubmit tapped — button="Complete Registration"');
-    debugPrint(
-      '[Step4] owner fields — name="$ownerName", '
-      'phoneController="$ownerPhone", '
-      'phoneNumber.completeNumber=$ownerPhoneComplete',
-    );
-    debugPrint(
-      '[Step4] passwords — passwordLen=${password.length}, '
-      'confirmLen=${confirm.length}, match=${password == confirm}',
-    );
     debugPrint(
       '[Step4] wizard — businessName="${cubit.businessNameController.text}", '
       'city=${cubit.selectedCity}, businessType=${cubit.data.businessType}, '
@@ -288,10 +272,7 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
       return;
     }
     if (ownerPhone.isEmpty) {
-      debugPrint(
-        '[Step4] onSubmit BLOCKED — phone controller empty '
-        '(completeNumber=$ownerPhoneComplete)',
-      );
+      debugPrint('[Step4] onSubmit BLOCKED — phone empty');
       AppAlerts.showErrorMessage(context, 'Phone no is required');
       return;
     }

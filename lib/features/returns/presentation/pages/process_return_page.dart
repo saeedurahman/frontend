@@ -13,6 +13,7 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/returns/data/models/refund_line_model.dart';
 import 'package:frantend/features/returns/presentation/cubit/process_return_cubit.dart';
 import 'package:frantend/features/returns/presentation/cubit/process_return_state.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -54,6 +55,13 @@ class _ProcessReturnView extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        if (state.accessDenied) {
+          return const EmptyState(
+            icon: Icons.lock_outline,
+            message: "You don't have permission to process returns",
+          );
+        }
+
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }

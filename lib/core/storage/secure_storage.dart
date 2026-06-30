@@ -15,6 +15,7 @@ class SecureStorage {
   static const String _refreshTokenKey = 'refresh_token';
   static const String _tenantIdKey = 'tenant_id';
   static const String _userIdKey = 'user_id';
+  static const String _pinDeviceCacheKey = 'pin_device_cache';
 
   Future<String?> getAccessToken() => _storage.read(key: _accessTokenKey);
 
@@ -39,6 +40,19 @@ class SecureStorage {
       _storage.write(key: _userIdKey, value: userId);
 
   Future<void> clearAll() => _storage.deleteAll();
+
+  /// Clears auth session keys only; preserves PIN device cache.
+  Future<void> clearAuthSession() async {
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _tenantIdKey);
+    await _storage.delete(key: _userIdKey);
+  }
+
+  Future<String?> getPinDeviceCache() => _storage.read(key: _pinDeviceCacheKey);
+
+  Future<void> savePinDeviceCache(String json) =>
+      _storage.write(key: _pinDeviceCacheKey, value: json);
 
   Future<bool> hasValidSession() async {
     final token = await getAccessToken();

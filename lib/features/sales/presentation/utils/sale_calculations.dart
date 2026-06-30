@@ -48,4 +48,14 @@ abstract final class SaleStatus {
 
   static bool canReturn(String status) =>
       status == completed || status == partiallyPaid;
+
+  static bool hasReturnLines(SaleResponseModel sale) => sale.lines.any(
+        (line) => (Decimal.tryParse(line.returnedQty) ?? Decimal.zero) > Decimal.zero,
+      );
+
+  static bool isVoidCandidate(SaleResponseModel sale) =>
+      sale.saleStatus == completed &&
+      sale.registerShiftId != null &&
+      sale.registerShiftId!.trim().isNotEmpty &&
+      !hasReturnLines(sale);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
@@ -28,8 +29,29 @@ class CurrentShiftCubit extends Cubit<CurrentShiftState> {
   String? _branchId;
 
   Future<void> load() async {
-    emit(state.copyWith(isLoading: true, error: null));
+    emit(state.copyWith(isLoading: true, error: null, accessDenied: false));
     final user = await _authLocal.getCachedUser();
+    final permissionKeys = user?.permissionKeys ?? const [];
+    final canView = UserRoleUtils.canViewShifts(
+      role: user?.role,
+      permissionKeys: permissionKeys,
+    );
+    final canClose = UserRoleUtils.canCloseShift(
+      role: user?.role,
+      permissionKeys: permissionKeys,
+    );
+
+    if (!canView) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          accessDenied: true,
+          canCloseShift: canClose,
+        ),
+      );
+      return;
+    }
+
     _branchId = user?.branchId;
 
     if (_branchId == null) {
@@ -37,6 +59,7 @@ class CurrentShiftCubit extends Cubit<CurrentShiftState> {
         state.copyWith(
           isLoading: false,
           error: 'Branch not configured. Please re-login.',
+          canCloseShift: canClose,
         ),
       );
       return;
@@ -45,7 +68,13 @@ class CurrentShiftCubit extends Cubit<CurrentShiftState> {
     final registersResult = await _getRegisters(branchId: _branchId);
     await registersResult.fold(
       (failure) async {
-        emit(state.copyWith(isLoading: false, error: failure.message));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            error: failure.message,
+            canCloseShift: canClose,
+          ),
+        );
       },
       (registers) async {
         final openShifts = await _loadOpenShifts(registers);
@@ -57,6 +86,7 @@ class CurrentShiftCubit extends Cubit<CurrentShiftState> {
             selectedShift: _pickDefaultShift(openShifts),
             cashierName: user?.name,
             error: null,
+            canCloseShift: canClose,
           ),
         );
       },
@@ -64,6 +94,8 @@ class CurrentShiftCubit extends Cubit<CurrentShiftState> {
   }
 
   Future<void> refresh() async {
+    if (state.accessDenied) return;
+
     if (_branchId == null) {
       await load();
       return;

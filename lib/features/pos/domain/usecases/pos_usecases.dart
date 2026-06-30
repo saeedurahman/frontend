@@ -2,7 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
+import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/pos/domain/repositories/pos_repository.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
@@ -99,4 +101,24 @@ class CreateRegisterUseCase {
 
   Future<Either<Failure, CashRegisterModel>> call(Map<String, dynamic> body) =>
       _repository.createRegister(body);
+}
+
+@injectable
+class PreviewSalePriceUseCase {
+  const PreviewSalePriceUseCase(this._repository);
+  final PosRepository _repository;
+
+  Future<Either<Failure, SalePricePreviewModel>> call(
+    Map<String, dynamic> body,
+  ) =>
+      _repository.previewSalePrice(body);
+}
+
+@injectable
+class GetDiscountSchemesUseCase {
+  const GetDiscountSchemesUseCase(this._repository);
+  final PosRepository _repository;
+
+  Future<Either<Failure, List<DiscountSchemeModel>>> call() =>
+      _repository.getDiscountSchemes();
 }

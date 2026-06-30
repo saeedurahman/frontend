@@ -32,7 +32,10 @@ class _PaymentModalState extends State<PaymentModal> {
   final List<_PaymentLineEntry> _lines = [];
   String? _error;
 
-  Decimal get _grandTotal => context.read<PosCubit>().state.grandTotal;
+  Decimal get _grandTotal =>
+      context.watch<PosCubit>().state.displayGrandTotal;
+
+  bool get _canProceed => context.watch<PosCubit>().state.canProceedToPayment;
 
   Decimal get _enteredTotal => _lines.fold(
         Decimal.zero,
@@ -44,6 +47,7 @@ class _PaymentModalState extends State<PaymentModal> {
       _lines.any((l) => l.method == PaymentMethods.credit);
 
   bool get _canComplete {
+    if (!_canProceed) return false;
     if (_lines.isEmpty) return false;
     if (_hasCredit) return true;
     return _enteredTotal >= _grandTotal;

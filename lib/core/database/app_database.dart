@@ -16,6 +16,7 @@ import 'package:frantend/core/database/tables/products_table.dart';
 import 'package:frantend/core/database/tables/sales_table.dart';
 import 'package:frantend/core/database/tables/sync_queue_table.dart';
 import 'package:frantend/core/database/tables/users_table.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -46,8 +47,12 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// In-memory database for unit tests (migration + cache tests).
+  @visibleForTesting
+  AppDatabase.forTesting(super.executor);
+
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +68,11 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await m.createTable(heldOrdersTable);
+      }
+      if (from < 5) {
+        await m.addColumn(usersTable, usersTable.businessSlug);
+        await m.addColumn(usersTable, usersTable.rolesJson);
+        await m.addColumn(usersTable, usersTable.permissionKeysJson);
       }
     },
   );

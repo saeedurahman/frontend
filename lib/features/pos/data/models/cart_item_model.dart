@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 
 /// Local cart line — not serialized from API.
 class CartItemModel {
@@ -44,23 +45,36 @@ class CartItemModel {
   Decimal get lineSubtotal => unitPrice * qty;
 
   Decimal get lineDiscount {
-    final pctDiscount = DecimalUtils.fromRational(
-      lineSubtotal * effectiveDiscountPct / Decimal.fromInt(100),
+    final amounts = PricingEngine.calculateLineTotal(
+      qty: qty,
+      unitPrice: unitPrice,
+      discountPct: effectiveDiscountPct,
+      discountAmount: effectiveDiscountAmount,
+      taxRate: Decimal.zero,
     );
-    return DecimalUtils.roundMoney(pctDiscount + effectiveDiscountAmount);
+    return amounts.effectiveDiscount;
   }
 
   Decimal get lineTax {
-    final taxable = lineSubtotal - lineDiscount;
-    if (taxable <= Decimal.zero) return Decimal.zero;
-    return DecimalUtils.fromRational(
-      taxable * effectiveTaxRate / Decimal.fromInt(100),
+    final amounts = PricingEngine.calculateLineTotal(
+      qty: qty,
+      unitPrice: unitPrice,
+      discountPct: effectiveDiscountPct,
+      discountAmount: effectiveDiscountAmount,
+      taxRate: effectiveTaxRate,
     );
+    return amounts.taxAmount;
   }
 
   Decimal get lineTotal {
-    final total = lineSubtotal - lineDiscount + lineTax;
-    return total < Decimal.zero ? Decimal.zero : total;
+    final amounts = PricingEngine.calculateLineTotal(
+      qty: qty,
+      unitPrice: unitPrice,
+      discountPct: effectiveDiscountPct,
+      discountAmount: effectiveDiscountAmount,
+      taxRate: effectiveTaxRate,
+    );
+    return amounts.lineTotal;
   }
 
   CartItemModel copyWith({

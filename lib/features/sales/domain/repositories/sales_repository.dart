@@ -19,4 +19,6 @@ abstract class SalesRepository {
   Future<Either<Failure, SaleResponseModel>> getSaleById(String id);
 
   Future<Either<Failure, SaleResponseModel>> cancelSale(String id);
+
+  Future<Either<Failure, SaleResponseModel>> voidSale(String id);
 }

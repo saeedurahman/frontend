@@ -19,6 +19,8 @@ import 'package:frantend/features/pos/presentation/pages/pos_page.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/returns/presentation/pages/process_return_page.dart';
+import 'package:frantend/features/returns/presentation/pages/return_detail_page.dart';
+import 'package:frantend/features/returns/presentation/pages/returns_list_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sale_detail_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sales_list_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/inventory_stock_page.dart';
@@ -48,6 +50,8 @@ import 'package:frantend/features/audit/presentation/pages/audit_logs_page.dart'
 import 'package:frantend/features/reports/presentation/pages/reports_page.dart';
 import 'package:frantend/features/roles/presentation/pages/role_form_page.dart';
 import 'package:frantend/features/roles/presentation/pages/roles_list_page.dart';
+import 'package:frantend/features/users/presentation/pages/user_form_page.dart';
+import 'package:frantend/features/users/presentation/pages/users_list_page.dart';
 import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -216,7 +220,15 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.returns,
-            builder: (_, __) => const FeaturePlaceholderPage(title: 'Returns'),
+            builder: (_, __) => const ReturnsListPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => ReturnDetailPage(
+                  returnId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: RouteNames.customers,
@@ -274,6 +286,22 @@ class AppRouter {
                 path: ':id',
                 builder: (_, state) => ExpenseDetailPage(
                   expenseId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.staff,
+            builder: (_, __) => const UsersListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const UserFormPage(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => UserFormPage(
+                  userId: state.pathParameters['id'],
                 ),
               ),
             ],
@@ -376,7 +404,12 @@ class AppRouter {
   if (path.startsWith(RouteNames.inventory)) return ('Inventory', 'Home / Inventory');
   if (path.startsWith(RouteNames.purchases)) return ('Purchases', 'Home / Inventory / Purchases');
   if (path.startsWith(RouteNames.sales)) return ('Sales', 'Home / Sales');
-  if (path.startsWith(RouteNames.returns)) return ('Returns', 'Home / Sales / Returns');
+  if (path.startsWith(RouteNames.returns)) {
+    if (RegExp(r'^/returns/[^/]+$').hasMatch(path) && path != RouteNames.returns) {
+      return ('Return Detail', 'Home / Sales / Returns / Detail');
+    }
+    return ('Returns', 'Home / Sales / Returns');
+  }
   if (path.startsWith(RouteNames.customers)) return ('Customers', 'Home / Sales / Customers');
   if (path.startsWith(RouteNames.expenses)) return ('Expenses', 'Home / Finance / Expenses');
   if (path.startsWith(RouteNames.suppliers)) return ('Suppliers', 'Home / Finance / Suppliers');
@@ -388,6 +421,15 @@ class AppRouter {
       return ('Roles & Permissions', 'Home / System / Settings / Roles');
     }
     return ('Settings', 'Home / System / Settings');
+  }
+  if (path.startsWith(RouteNames.staff)) {
+    if (path == RouteNames.staffNew) {
+      return ('Add Staff', 'Home / System / Staff / New');
+    }
+    if (path.contains('/edit')) {
+      return ('Edit Staff', 'Home / System / Staff / Edit');
+    }
+    return ('Staff', 'Home / System / Staff');
   }
   if (path.startsWith(RouteNames.notifications)) {
     return ('Notifications', 'Home / System / Notifications');

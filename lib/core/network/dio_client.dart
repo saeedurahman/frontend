@@ -32,7 +32,7 @@ class DioClient {
       secureStorage,
       dio: _dio,
       onUnauthorized: () async {
-        await secureStorage.clearAll();
+        await secureStorage.clearAuthSession();
       },
     );
 

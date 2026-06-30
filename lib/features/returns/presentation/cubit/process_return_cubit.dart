@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
@@ -20,18 +22,30 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
     required GetCustomerUseCase getCustomerUseCase,
     required CreateSaleReturnUseCase createSaleReturnUseCase,
     required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
+    required AuthLocalDataSource authLocalDataSource,
   })  : _getSale = getSaleByIdUseCase,
         _getCustomer = getCustomerUseCase,
         _createReturn = createSaleReturnUseCase,
         _getMyActiveShift = getMyActiveShiftUseCase,
+        _authLocal = authLocalDataSource,
         super(const ProcessReturnState());
 
   final GetSaleByIdUseCase _getSale;
   final GetCustomerUseCase _getCustomer;
   final CreateSaleReturnUseCase _createReturn;
   final GetMyActiveShiftUseCase _getMyActiveShift;
+  final AuthLocalDataSource _authLocal;
 
   Future<void> load(String saleId) async {
+    final user = await _authLocal.getCachedUser();
+    if (!UserRoleUtils.canCreateReturns(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    )) {
+      emit(const ProcessReturnState(accessDenied: true));
+      return;
+    }
+
     emit(state.copyWith(isLoading: true, error: null, submitError: null));
 
     final result = await _getSale(saleId);

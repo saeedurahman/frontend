@@ -28,6 +28,7 @@ mixin _$ShiftHistoryState {
   bool get hasMore => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isLoadingMore => throw _privateConstructorUsedError;
+  bool get accessDenied => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
 
   /// Create a copy of ShiftHistoryState
@@ -56,6 +57,7 @@ abstract class $ShiftHistoryStateCopyWith<$Res> {
     bool hasMore,
     bool isLoading,
     bool isLoadingMore,
+    bool accessDenied,
     String? error,
   });
 }
@@ -86,6 +88,7 @@ class _$ShiftHistoryStateCopyWithImpl<$Res, $Val extends ShiftHistoryState>
     Object? hasMore = null,
     Object? isLoading = null,
     Object? isLoadingMore = null,
+    Object? accessDenied = null,
     Object? error = freezed,
   }) {
     return _then(
@@ -134,6 +137,10 @@ class _$ShiftHistoryStateCopyWithImpl<$Res, $Val extends ShiftHistoryState>
                 ? _value.isLoadingMore
                 : isLoadingMore // ignore: cast_nullable_to_non_nullable
                       as bool,
+            accessDenied: null == accessDenied
+                ? _value.accessDenied
+                : accessDenied // ignore: cast_nullable_to_non_nullable
+                      as bool,
             error: freezed == error
                 ? _value.error
                 : error // ignore: cast_nullable_to_non_nullable
@@ -165,6 +172,7 @@ abstract class _$$ShiftHistoryStateImplCopyWith<$Res>
     bool hasMore,
     bool isLoading,
     bool isLoadingMore,
+    bool accessDenied,
     String? error,
   });
 }
@@ -194,6 +202,7 @@ class __$$ShiftHistoryStateImplCopyWithImpl<$Res>
     Object? hasMore = null,
     Object? isLoading = null,
     Object? isLoadingMore = null,
+    Object? accessDenied = null,
     Object? error = freezed,
   }) {
     return _then(
@@ -242,6 +251,10 @@ class __$$ShiftHistoryStateImplCopyWithImpl<$Res>
             ? _value.isLoadingMore
             : isLoadingMore // ignore: cast_nullable_to_non_nullable
                   as bool,
+        accessDenied: null == accessDenied
+            ? _value.accessDenied
+            : accessDenied // ignore: cast_nullable_to_non_nullable
+                  as bool,
         error: freezed == error
             ? _value.error
             : error // ignore: cast_nullable_to_non_nullable
@@ -266,6 +279,7 @@ class _$ShiftHistoryStateImpl implements _ShiftHistoryState {
     this.hasMore = false,
     this.isLoading = false,
     this.isLoadingMore = false,
+    this.accessDenied = false,
     this.error,
   }) : _shifts = shifts,
        _registers = registers;
@@ -313,11 +327,14 @@ class _$ShiftHistoryStateImpl implements _ShiftHistoryState {
   @JsonKey()
   final bool isLoadingMore;
   @override
+  @JsonKey()
+  final bool accessDenied;
+  @override
   final String? error;
 
   @override
   String toString() {
-    return 'ShiftHistoryState(shifts: $shifts, registers: $registers, selectedRegisterId: $selectedRegisterId, datePreset: $datePreset, customDateFrom: $customDateFrom, customDateTo: $customDateTo, skip: $skip, limit: $limit, hasMore: $hasMore, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error)';
+    return 'ShiftHistoryState(shifts: $shifts, registers: $registers, selectedRegisterId: $selectedRegisterId, datePreset: $datePreset, customDateFrom: $customDateFrom, customDateTo: $customDateTo, skip: $skip, limit: $limit, hasMore: $hasMore, isLoading: $isLoading, isLoadingMore: $isLoadingMore, accessDenied: $accessDenied, error: $error)';
   }
 
   @override
@@ -345,6 +362,8 @@ class _$ShiftHistoryStateImpl implements _ShiftHistoryState {
                 other.isLoading == isLoading) &&
             (identical(other.isLoadingMore, isLoadingMore) ||
                 other.isLoadingMore == isLoadingMore) &&
+            (identical(other.accessDenied, accessDenied) ||
+                other.accessDenied == accessDenied) &&
             (identical(other.error, error) || other.error == error));
   }
 
@@ -362,6 +381,7 @@ class _$ShiftHistoryStateImpl implements _ShiftHistoryState {
     hasMore,
     isLoading,
     isLoadingMore,
+    accessDenied,
     error,
   );
 
@@ -390,6 +410,7 @@ abstract class _ShiftHistoryState implements ShiftHistoryState {
     final bool hasMore,
     final bool isLoading,
     final bool isLoadingMore,
+    final bool accessDenied,
     final String? error,
   }) = _$ShiftHistoryStateImpl;
 
@@ -415,6 +436,8 @@ abstract class _ShiftHistoryState implements ShiftHistoryState {
   bool get isLoading;
   @override
   bool get isLoadingMore;
+  @override
+  bool get accessDenied;
   @override
   String? get error;
 

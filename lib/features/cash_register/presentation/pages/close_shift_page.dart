@@ -11,6 +11,7 @@ import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/close_shift_cubit.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -57,6 +58,17 @@ class _CloseShiftView extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        if (state.accessDenied) {
+          return const EmptyState(
+            icon: Icons.lock_outline,
+            message: "You don't have permission to close shifts",
+          );
+        }
+
+        if (state.shiftId == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         if (state.closedSummary != null) {
           return _ClosedSummaryView(summary: state.closedSummary!);
         }

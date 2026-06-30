@@ -23,6 +23,8 @@ class CurrentShiftState with _$CurrentShiftState {
     String? cashierName,
     @Default(false) bool isLoading,
     @Default(false) bool isRefreshing,
+    @Default(false) bool accessDenied,
+    @Default(false) bool canCloseShift,
     String? error,
   }) = _CurrentShiftState;
 }

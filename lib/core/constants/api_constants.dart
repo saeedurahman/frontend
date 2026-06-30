@@ -9,7 +9,7 @@ abstract final class ApiConstants {
   static const String register = '/auth/register';
   static const String refreshToken = '/auth/refresh';
   static const String logout = '/auth/logout';
-  static const String pinLogin = '/auth/pin-login';
+  static const String pinLogin = '/auth/login/pin';
   static const String me = '/auth/me';
 
   // Business
@@ -37,13 +37,16 @@ abstract final class ApiConstants {
 
   // Sales
   static const String sales = '/sales';
+  static const String salePricePreview = '/sales/price-preview';
   static String saleCancel(String id) => '/sales/$id/cancel';
+  static String saleVoid(String id) => '/sales/$id/void';
   static String invoiceData(String saleId) => '/invoice/$saleId';
   static String invoiceThermal(String saleId) => '/invoice/$saleId/thermal';
   static const String invoiceExportSales = '/invoice/export/sales';
 
   // Returns
   static const String returns = '/returns';
+  static const String discounts = '/discounts';
   static String returnById(String id) => '/returns/$id';
 
   // Registers & Shifts
@@ -146,6 +149,12 @@ abstract final class ApiConstants {
   static const String roles = '/roles';
   static String roleById(String id) => '/roles/$id';
   static String rolePermissions(String id) => '/roles/$id/permissions';
+
+  // Users / staff
+  static const String users = '/users';
+  static String userById(String id) => '/users/$id';
+  static String userPin(String id) => '/users/$id/pin';
+  static String userRoles(String id) => '/users/$id/roles';
 
   // Headers
   static const String contentType = 'application/json';

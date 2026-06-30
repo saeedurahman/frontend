@@ -7,6 +7,7 @@ import 'package:frantend/features/auth/data/datasources/auth_local_datasource.da
 import 'package:frantend/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:frantend/features/auth/domain/entities/user.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frantend/features/auth/domain/usecases/seed_pin_device_cache_usecase.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: AuthRepository)
@@ -16,15 +17,18 @@ class AuthRepositoryImpl implements AuthRepository {
     required AuthLocalDataSource localDataSource,
     required NetworkInfo networkInfo,
     required ErrorHandler errorHandler,
+    required SeedPinDeviceCacheUseCase seedPinDeviceCache,
   })  : _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _networkInfo = networkInfo,
-        _errorHandler = errorHandler;
+        _errorHandler = errorHandler,
+        _seedPinDeviceCache = seedPinDeviceCache;
 
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
   final ErrorHandler _errorHandler;
+  final SeedPinDeviceCacheUseCase _seedPinDeviceCache;
 
   @override
   Future<Either<Failure, User>> login({
@@ -62,6 +66,7 @@ class AuthRepositoryImpl implements AuthRepository {
         user = remoteUser.toEntity();
       }
 
+      await _seedPinDeviceCache(user);
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
@@ -72,11 +77,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, User>> pinLogin({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pinCode,
   }) async {
     try {
-      final token = await _remoteDataSource.pinLogin(pin: pin, userId: userId);
+      final token = await _remoteDataSource.pinLogin(
+        businessSlug: businessSlug,
+        userId: userId,
+        pinCode: pinCode,
+      );
 
       await _localDataSource.saveTokens(
         accessToken: token.accessToken,
@@ -85,14 +95,18 @@ class AuthRepositoryImpl implements AuthRepository {
         userId: token.user?.id ?? userId,
       );
 
+      User user;
       if (token.user != null) {
         await _localDataSource.cacheUser(token.user!);
-        return Right(token.user!.toEntity());
+        user = token.user!.toEntity();
+      } else {
+        final remoteUser = await _remoteDataSource.getCurrentUser();
+        await _localDataSource.cacheUser(remoteUser);
+        user = remoteUser.toEntity();
       }
 
-      final remoteUser = await _remoteDataSource.getCurrentUser();
-      await _localDataSource.cacheUser(remoteUser);
-      return Right(remoteUser.toEntity());
+      await _seedPinDeviceCache(user);
+      return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (e) {
@@ -124,6 +138,7 @@ class AuthRepositoryImpl implements AuthRepository {
         user = remoteUser.toEntity();
       }
 
+      await _seedPinDeviceCache(user);
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));

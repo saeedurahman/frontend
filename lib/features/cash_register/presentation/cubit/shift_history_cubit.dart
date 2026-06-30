@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/shift_history_state.dart';
@@ -26,6 +28,14 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
 
   Future<void> init() async {
     final user = await _authLocal.getCachedUser();
+    if (!UserRoleUtils.canViewShifts(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    )) {
+      emit(state.copyWith(accessDenied: true));
+      return;
+    }
+
     _branchId = user?.branchId;
 
     if (_branchId == null) {

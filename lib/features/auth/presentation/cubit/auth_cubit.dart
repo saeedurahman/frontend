@@ -64,23 +64,12 @@ class AuthCubit extends Cubit<AuthState> {
     final phone = _resolvePhoneForLogin();
     final password = passwordController.text;
 
-    // ignore: avoid_print
-    print(
-      '[Login] submit — phone="$phone", passwordLen=${password.length}, '
-      'phoneNumber=${phoneNumber?.completeNumber}, '
-      'controller="${phoneController.text}"',
-    );
-
     final result = await _loginUseCase(phone: phone, password: password);
     result.fold(
       (failure) {
-        // ignore: avoid_print
-        print('[Login] failure — ${failure.message}');
         emit(AuthState.error(failure.message));
       },
       (user) {
-        // ignore: avoid_print
-        print('[Login] success — userId=${user.id}');
         _authGuard.setAuthenticated(true);
         emit(AuthState.authenticated(user));
       },
@@ -105,11 +94,16 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> pinLogin({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pin,
   }) async {
     emit(const AuthState.loading());
-    final result = await _pinLoginUseCase(pin: pin, userId: userId);
+    final result = await _pinLoginUseCase(
+      businessSlug: businessSlug,
+      userId: userId,
+      pinCode: pin,
+    );
     result.fold(
       (failure) => emit(AuthState.error(failure.message)),
       (user) {

@@ -67,4 +67,14 @@ class SalesRepositoryImpl implements SalesRepository {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
   }
+
+  @override
+  Future<Either<Failure, SaleResponseModel>> voidSale(String id) async {
+    try {
+      final result = await _remote.voidSale(id);
+      return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
 }

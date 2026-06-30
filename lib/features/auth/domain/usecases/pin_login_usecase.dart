@@ -11,8 +11,13 @@ class PinLoginUseCase {
   final AuthRepository _repository;
 
   Future<Either<Failure, User>> call({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pinCode,
   }) =>
-      _repository.pinLogin(pin: pin, userId: userId);
+      _repository.pinLogin(
+        businessSlug: businessSlug,
+        userId: userId,
+        pinCode: pinCode,
+      );
 }

@@ -25,6 +25,10 @@ mixin _$SaleDetailState {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )
     loaded,
     required TResult Function(String message) error,
@@ -37,6 +41,10 @@ mixin _$SaleDetailState {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult? Function(String message)? error,
@@ -49,6 +57,10 @@ mixin _$SaleDetailState {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult Function(String message)? error,
@@ -149,6 +161,10 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )
     loaded,
     required TResult Function(String message) error,
@@ -165,6 +181,10 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult? Function(String message)? error,
@@ -181,6 +201,10 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult Function(String message)? error,
@@ -283,6 +307,10 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )
     loaded,
     required TResult Function(String message) error,
@@ -299,6 +327,10 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult? Function(String message)? error,
@@ -315,6 +347,10 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult Function(String message)? error,
@@ -379,6 +415,10 @@ abstract class _$$SaleDetailLoadedImplCopyWith<$Res> {
     SaleResponseModel sale,
     CustomerModel? customer,
     bool isCancelling,
+    bool isVoiding,
+    bool? registerShiftOpen,
+    bool canCancelSales,
+    bool canCreateReturn,
   });
 
   $SaleResponseModelCopyWith<$Res> get sale;
@@ -402,6 +442,10 @@ class __$$SaleDetailLoadedImplCopyWithImpl<$Res>
     Object? sale = null,
     Object? customer = freezed,
     Object? isCancelling = null,
+    Object? isVoiding = null,
+    Object? registerShiftOpen = freezed,
+    Object? canCancelSales = null,
+    Object? canCreateReturn = null,
   }) {
     return _then(
       _$SaleDetailLoadedImpl(
@@ -416,6 +460,22 @@ class __$$SaleDetailLoadedImplCopyWithImpl<$Res>
         isCancelling: null == isCancelling
             ? _value.isCancelling
             : isCancelling // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isVoiding: null == isVoiding
+            ? _value.isVoiding
+            : isVoiding // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        registerShiftOpen: freezed == registerShiftOpen
+            ? _value.registerShiftOpen
+            : registerShiftOpen // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        canCancelSales: null == canCancelSales
+            ? _value.canCancelSales
+            : canCancelSales // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        canCreateReturn: null == canCreateReturn
+            ? _value.canCreateReturn
+            : canCreateReturn // ignore: cast_nullable_to_non_nullable
                   as bool,
       ),
     );
@@ -453,6 +513,10 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
     required this.sale,
     this.customer,
     this.isCancelling = false,
+    this.isVoiding = false,
+    this.registerShiftOpen,
+    this.canCancelSales = false,
+    this.canCreateReturn = false,
   });
 
   @override
@@ -462,10 +526,21 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
   @override
   @JsonKey()
   final bool isCancelling;
+  @override
+  @JsonKey()
+  final bool isVoiding;
+  @override
+  final bool? registerShiftOpen;
+  @override
+  @JsonKey()
+  final bool canCancelSales;
+  @override
+  @JsonKey()
+  final bool canCreateReturn;
 
   @override
   String toString() {
-    return 'SaleDetailState.loaded(sale: $sale, customer: $customer, isCancelling: $isCancelling)';
+    return 'SaleDetailState.loaded(sale: $sale, customer: $customer, isCancelling: $isCancelling, isVoiding: $isVoiding, registerShiftOpen: $registerShiftOpen, canCancelSales: $canCancelSales, canCreateReturn: $canCreateReturn)';
   }
 
   @override
@@ -477,11 +552,28 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
             (identical(other.customer, customer) ||
                 other.customer == customer) &&
             (identical(other.isCancelling, isCancelling) ||
-                other.isCancelling == isCancelling));
+                other.isCancelling == isCancelling) &&
+            (identical(other.isVoiding, isVoiding) ||
+                other.isVoiding == isVoiding) &&
+            (identical(other.registerShiftOpen, registerShiftOpen) ||
+                other.registerShiftOpen == registerShiftOpen) &&
+            (identical(other.canCancelSales, canCancelSales) ||
+                other.canCancelSales == canCancelSales) &&
+            (identical(other.canCreateReturn, canCreateReturn) ||
+                other.canCreateReturn == canCreateReturn));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, sale, customer, isCancelling);
+  int get hashCode => Object.hash(
+    runtimeType,
+    sale,
+    customer,
+    isCancelling,
+    isVoiding,
+    registerShiftOpen,
+    canCancelSales,
+    canCreateReturn,
+  );
 
   /// Create a copy of SaleDetailState
   /// with the given fields replaced by the non-null parameter values.
@@ -503,11 +595,23 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )
     loaded,
     required TResult Function(String message) error,
   }) {
-    return loaded(sale, customer, isCancelling);
+    return loaded(
+      sale,
+      customer,
+      isCancelling,
+      isVoiding,
+      registerShiftOpen,
+      canCancelSales,
+      canCreateReturn,
+    );
   }
 
   @override
@@ -519,11 +623,23 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult? Function(String message)? error,
   }) {
-    return loaded?.call(sale, customer, isCancelling);
+    return loaded?.call(
+      sale,
+      customer,
+      isCancelling,
+      isVoiding,
+      registerShiftOpen,
+      canCancelSales,
+      canCreateReturn,
+    );
   }
 
   @override
@@ -535,13 +651,25 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
     if (loaded != null) {
-      return loaded(sale, customer, isCancelling);
+      return loaded(
+        sale,
+        customer,
+        isCancelling,
+        isVoiding,
+        registerShiftOpen,
+        canCancelSales,
+        canCreateReturn,
+      );
     }
     return orElse();
   }
@@ -589,11 +717,19 @@ abstract class SaleDetailLoaded implements SaleDetailState {
     required final SaleResponseModel sale,
     final CustomerModel? customer,
     final bool isCancelling,
+    final bool isVoiding,
+    final bool? registerShiftOpen,
+    final bool canCancelSales,
+    final bool canCreateReturn,
   }) = _$SaleDetailLoadedImpl;
 
   SaleResponseModel get sale;
   CustomerModel? get customer;
   bool get isCancelling;
+  bool get isVoiding;
+  bool? get registerShiftOpen;
+  bool get canCancelSales;
+  bool get canCreateReturn;
 
   /// Create a copy of SaleDetailState
   /// with the given fields replaced by the non-null parameter values.
@@ -681,6 +817,10 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )
     loaded,
     required TResult Function(String message) error,
@@ -697,6 +837,10 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult? Function(String message)? error,
@@ -713,6 +857,10 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       SaleResponseModel sale,
       CustomerModel? customer,
       bool isCancelling,
+      bool isVoiding,
+      bool? registerShiftOpen,
+      bool canCancelSales,
+      bool canCreateReturn,
     )?
     loaded,
     TResult Function(String message)? error,

@@ -14,6 +14,7 @@ import 'package:frantend/features/pos/presentation/widgets/customer_picker_dialo
 import 'package:frantend/features/pos/presentation/widgets/held_orders_dialog.dart';
 import 'package:frantend/features/pos/presentation/utils/pos_product_actions.dart';
 import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 
@@ -89,6 +90,13 @@ class _PosPageState extends State<PosPage> {
         autofocus: true,
         child: BlocBuilder<PosCubit, PosState>(
           builder: (context, state) {
+            if (state.accessDenied) {
+              return const EmptyState(
+                icon: Icons.lock_outline,
+                message: "You don't have permission to create sales",
+              );
+            }
+
             return Stack(
               children: [
                 Column(
@@ -228,7 +236,7 @@ class _PosPageState extends State<PosPage> {
             child: const Text('Done'),
           ),
           OutlinedButton(
-            onPressed: shift == null || summary == null
+            onPressed: shift == null || summary == null || !state.canCloseShift
                 ? null
                 : () {
                     dismissPopover(dialogContext);
@@ -573,7 +581,8 @@ class _ShiftGateOverlayState extends State<_ShiftGateOverlay> {
                     width: double.infinity,
                     height: 48,
                     child: FilledButton(
-                      onPressed: widget.state.isOpeningShift ||
+                      onPressed: !widget.state.canOpenShift ||
+                              widget.state.isOpeningShift ||
                               registers.isEmpty ||
                               widget.state.isCreatingRegister
                           ? null

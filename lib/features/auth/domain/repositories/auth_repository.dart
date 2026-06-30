@@ -9,8 +9,9 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, User>> pinLogin({
-    required String pin,
+    required String businessSlug,
     required String userId,
+    required String pinCode,
   });
 
   Future<Either<Failure, User>> registerBusiness(

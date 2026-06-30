@@ -54,3 +54,13 @@ class CancelSaleUseCase {
   Future<Either<Failure, SaleResponseModel>> call(String id) =>
       _repository.cancelSale(id);
 }
+
+@injectable
+class VoidSaleUseCase {
+  const VoidSaleUseCase(this._repository);
+
+  final SalesRepository _repository;
+
+  Future<Either<Failure, SaleResponseModel>> call(String id) =>
+      _repository.voidSale(id);
+}

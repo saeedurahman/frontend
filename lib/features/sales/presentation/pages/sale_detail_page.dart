@@ -19,6 +19,7 @@ import 'package:frantend/features/sales/presentation/utils/sale_line_display.dar
 import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/features/sales/presentation/widgets/void_sale_dialog.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
@@ -84,6 +85,21 @@ class _LoadedView extends StatelessWidget {
     }
   }
 
+  Future<void> _voidSale(BuildContext context) async {
+    final sale = state.sale;
+    final confirmNumber = sale.saleNumber ?? sale.id;
+    final ok = await VoidSaleDialog.show(
+      context,
+      saleNumber: confirmNumber,
+    );
+    if (ok != true || !context.mounted) return;
+
+    final success = await context.read<SaleDetailCubit>().voidSale();
+    if (success && context.mounted) {
+      AppAlerts.showSuccessMessage(context, 'Sale voided');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sale = state.sale;
@@ -91,7 +107,10 @@ class _LoadedView extends StatelessWidget {
         (sale.customerId == null ? 'Walk-in Customer' : 'Customer');
     final balanceDue = SaleCalculations.balanceDue(sale);
     final invoiceLabel = sale.saleNumber ?? sale.id.substring(0, 8);
-    final canCancel = SaleStatus.canCancel(sale.saleStatus);
+    final canCancel = SaleStatus.canCancel(sale.saleStatus) && state.canCancelSales;
+    final canVoid = state.canVoid;
+    final canProcessReturn =
+        SaleStatus.canReturn(sale.saleStatus) && state.canCreateReturn;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: AppDimensions.spacingLg),
@@ -101,8 +120,11 @@ class _LoadedView extends StatelessWidget {
           _SaleDetailTopBar(
             invoiceLabel: invoiceLabel,
             canCancel: canCancel,
+            canVoid: canVoid,
             isCancelling: state.isCancelling,
+            isVoiding: state.isVoiding,
             onCancel: canCancel ? () => _cancelSale(context) : null,
+            onVoid: canVoid ? () => _voidSale(context) : null,
           ),
           const SizedBox(height: AppDimensions.spacingMd),
           LayoutBuilder(
@@ -132,6 +154,8 @@ class _LoadedView extends StatelessWidget {
                   _SaleActionsCard(
                     sale: sale,
                     isCancelling: state.isCancelling,
+                    isVoiding: state.isVoiding,
+                    canVoid: canVoid,
                     onPrint: () => SaleReceiptService.printReceipt(sale),
                     onDownload: () async {
                       final file =
@@ -143,8 +167,11 @@ class _LoadedView extends StatelessWidget {
                         );
                       }
                     },
-                    onReturn: () =>
-                        context.push(RouteNames.saleReturnPath(sale.id)),
+                    onReturn: canProcessReturn
+                        ? () =>
+                            context.push(RouteNames.saleReturnPath(sale.id))
+                        : null,
+                    onVoid: canVoid ? () => _voidSale(context) : null,
                     onCancel: canCancel ? () => _cancelSale(context) : null,
                   ),
                   const SizedBox(height: AppDimensions.spacingMd),
@@ -186,17 +213,26 @@ class _SaleDetailTopBar extends StatelessWidget {
   const _SaleDetailTopBar({
     required this.invoiceLabel,
     required this.canCancel,
+    required this.canVoid,
     required this.isCancelling,
+    required this.isVoiding,
     this.onCancel,
+    this.onVoid,
   });
 
   final String invoiceLabel;
   final bool canCancel;
+  final bool canVoid;
   final bool isCancelling;
+  final bool isVoiding;
   final VoidCallback? onCancel;
+  final VoidCallback? onVoid;
 
   @override
   Widget build(BuildContext context) {
+    final hasMenuActions = canCancel || canVoid;
+    final menuEnabled = !isCancelling && !isVoiding;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -226,17 +262,27 @@ class _SaleDetailTopBar extends StatelessWidget {
             ],
           ),
         ),
-        if (canCancel)
+        if (hasMenuActions)
           PopupMenuButton<String>(
-            enabled: !isCancelling,
+            enabled: menuEnabled,
             onSelected: (value) {
               if (value == 'cancel') onCancel?.call();
+              if (value == 'void') onVoid?.call();
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'cancel',
-                child: Text('Cancel Sale'),
-              ),
+            itemBuilder: (context) => [
+              if (canVoid)
+                const PopupMenuItem(
+                  value: 'void',
+                  child: Text(
+                    'Void Sale',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                ),
+              if (canCancel)
+                const PopupMenuItem(
+                  value: 'cancel',
+                  child: Text('Cancel Sale'),
+                ),
             ],
             child: _OutlinedToolbarButton(
               icon: Icons.more_horiz,
@@ -728,21 +774,30 @@ class _SaleActionsCard extends StatelessWidget {
   const _SaleActionsCard({
     required this.sale,
     required this.isCancelling,
+    required this.isVoiding,
+    required this.canVoid,
     required this.onPrint,
     required this.onDownload,
     required this.onReturn,
+    this.onVoid,
     this.onCancel,
   });
 
   final SaleResponseModel sale;
   final bool isCancelling;
+  final bool isVoiding;
+  final bool canVoid;
   final VoidCallback onPrint;
   final VoidCallback onDownload;
-  final VoidCallback onReturn;
+  final VoidCallback? onReturn;
+  final VoidCallback? onVoid;
   final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
+    final showDangerZone = canVoid || onCancel != null;
+    final actionsLocked = isCancelling || isVoiding;
+
     return Container(
       decoration: _cardDecoration(),
       clipBehavior: Clip.antiAlias,
@@ -774,26 +829,55 @@ class _SaleActionsCard extends StatelessWidget {
                 _ActionListTile(
                   icon: Icons.print_outlined,
                   label: 'Print Receipt',
-                  onTap: onPrint,
+                  onTap: actionsLocked ? null : onPrint,
                 ),
                 const SizedBox(height: 8),
                 _ActionListTile(
                   icon: Icons.download_outlined,
                   label: 'Download PDF',
-                  onTap: onDownload,
+                  onTap: actionsLocked ? null : onDownload,
                 ),
                 const SizedBox(height: 8),
                 _ActionListTile(
                   icon: Icons.undo_outlined,
                   label: 'Process Return',
-                  onTap: SaleStatus.canReturn(sale.saleStatus) ? onReturn : null,
+                  subtitle: 'Refund specific items',
+                  onTap: actionsLocked ||
+                          onReturn == null ||
+                          !SaleStatus.canReturn(sale.saleStatus)
+                      ? null
+                      : onReturn,
                 ),
-                if (onCancel != null) ...[
+                if (showDangerZone) ...[
+                  const SizedBox(height: 12),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Danger zone',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8),
+                ],
+                if (canVoid) ...[
+                  _ActionListTile(
+                    icon: Icons.block,
+                    label: isVoiding ? 'Voiding…' : 'Void Sale',
+                    subtitle: 'Full reversal — irreversible',
+                    onTap: actionsLocked ? null : onVoid,
+                    destructive: true,
+                  ),
+                ],
+                if (onCancel != null) ...[
+                  if (canVoid) const SizedBox(height: 8),
                   _ActionListTile(
                     icon: Icons.cancel_outlined,
                     label: isCancelling ? 'Cancelling…' : 'Cancel Sale',
-                    onTap: isCancelling ? null : onCancel,
+                    onTap: actionsLocked ? null : onCancel,
                     destructive: true,
                   ),
                 ],
@@ -1006,12 +1090,14 @@ class _ActionListTile extends StatelessWidget {
   const _ActionListTile({
     required this.icon,
     required this.label,
+    this.subtitle,
     this.onTap,
     this.destructive = false,
   });
 
   final IconData icon;
   final String label;
+  final String? subtitle;
   final VoidCallback? onTap;
   final bool destructive;
 
@@ -1029,27 +1115,46 @@ class _ActionListTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+              color: destructive && onTap != null
+                  ? AppColors.error.withValues(alpha: 0.35)
+                  : AppColors.border,
+            ),
           ),
           child: Row(
             children: [
               Icon(icon, size: 20, color: color),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: onTap == null ? AppColors.textSecondary : color,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: onTap == null ? AppColors.textSecondary : color,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: onTap == null
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: onTap == null
-                    ? AppColors.textSecondary
-                    : AppColors.textSecondary,
+                color: AppColors.textSecondary,
               ),
             ],
           ),

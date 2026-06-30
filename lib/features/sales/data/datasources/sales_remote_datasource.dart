@@ -22,6 +22,8 @@ abstract class SalesRemoteDataSource {
   Future<SaleResponseModel> getSaleById(String id);
 
   Future<SaleResponseModel> cancelSale(String id);
+
+  Future<SaleResponseModel> voidSale(String id);
 }
 
 @LazySingleton(as: SalesRemoteDataSource)
@@ -81,6 +83,16 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
   Future<SaleResponseModel> cancelSale(String id) async {
     final response = await _dio.put<Map<String, dynamic>>(
       ApiConstants.saleCancel(id),
+    );
+    return SaleResponseModel.fromJson(
+      ApiJsonUtils.normalizeSaleResponse(response.data ?? const {}),
+    );
+  }
+
+  @override
+  Future<SaleResponseModel> voidSale(String id) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.saleVoid(id),
     );
     return SaleResponseModel.fromJson(
       ApiJsonUtils.normalizeSaleResponse(response.data ?? const {}),

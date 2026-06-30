@@ -201,12 +201,16 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.dashboard,
                     isActive: location == RouteNames.dashboard,
                   ),
-                  _NavItem(
-                    icon: Icons.point_of_sale,
-                    label: 'Point of Sale',
-                    routePath: RouteNames.pos,
-                    isActive: location == RouteNames.pos,
-                  ),
+                  if (UserRoleUtils.canCreateSales(
+                    role: user?.role,
+                    permissionKeys: user?.permissionKeys ?? const [],
+                  ))
+                    _NavItem(
+                      icon: Icons.point_of_sale,
+                      label: 'Point of Sale',
+                      routePath: RouteNames.pos,
+                      isActive: location == RouteNames.pos,
+                    ),
                   const _SectionLabel('CATALOG'),
                   _NavItem(
                     icon: Icons.inventory_2_outlined,
@@ -234,12 +238,16 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.sales,
                     isActive: location.startsWith(RouteNames.sales),
                   ),
-                  _NavItem(
-                    icon: Icons.assignment_return_outlined,
-                    label: 'Returns',
-                    routePath: RouteNames.returns,
-                    isActive: location.startsWith(RouteNames.returns),
-                  ),
+                  if (UserRoleUtils.canViewReturns(
+                    role: user?.role,
+                    permissionKeys: user?.permissionKeys ?? const [],
+                  ))
+                    _NavItem(
+                      icon: Icons.assignment_return_outlined,
+                      label: 'Returns',
+                      routePath: RouteNames.returns,
+                      isActive: location.startsWith(RouteNames.returns),
+                    ),
                   _NavItem(
                     icon: Icons.people_outline,
                     label: 'Customers',
@@ -259,12 +267,16 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.suppliers,
                     isActive: location.startsWith(RouteNames.suppliers),
                   ),
-                  _NavItem(
-                    icon: Icons.point_of_sale_outlined,
-                    label: 'Cash Register',
-                    routePath: RouteNames.cashRegister,
-                    isActive: location.startsWith(RouteNames.cashRegister),
-                  ),
+                  if (UserRoleUtils.canViewShifts(
+                    role: user?.role,
+                    permissionKeys: user?.permissionKeys ?? const [],
+                  ))
+                    _NavItem(
+                      icon: Icons.point_of_sale_outlined,
+                      label: 'Cash Register',
+                      routePath: RouteNames.cashRegister,
+                      isActive: location.startsWith(RouteNames.cashRegister),
+                    ),
                   if (UserRoleUtils.canViewReports(user?.role)) ...[
                     const _SectionLabel('REPORTS'),
                     _NavItem(
@@ -275,6 +287,16 @@ class _Sidebar extends StatelessWidget {
                     ),
                   ],
                   const _SectionLabel('SYSTEM'),
+                  if (UserRoleUtils.canViewUsers(
+                    role: user?.role,
+                    permissionKeys: user?.permissionKeys ?? const [],
+                  ))
+                    _NavItem(
+                      icon: Icons.badge_outlined,
+                      label: 'Staff',
+                      routePath: RouteNames.staff,
+                      isActive: location.startsWith(RouteNames.staff),
+                    ),
                   _NavItem(
                     icon: Icons.settings_outlined,
                     label: 'Settings',
@@ -641,16 +663,28 @@ class _GlobalSearchDelegate extends SearchDelegate<String?> {
   _GlobalSearchDelegate({this.user})
     : _items = [
         const _SearchRouteItem('Dashboard', RouteNames.dashboard),
-        const _SearchRouteItem('Point of Sale', RouteNames.pos),
+        if (UserRoleUtils.canCreateSales(
+          role: user?.role,
+          permissionKeys: user?.permissionKeys ?? const [],
+        ))
+          const _SearchRouteItem('Point of Sale', RouteNames.pos),
         const _SearchRouteItem('Products', RouteNames.products),
         const _SearchRouteItem('Inventory', RouteNames.inventory),
         const _SearchRouteItem('Purchases', RouteNames.purchases),
         const _SearchRouteItem('Sales', RouteNames.sales),
-        const _SearchRouteItem('Returns', RouteNames.returns),
+        if (UserRoleUtils.canViewReturns(
+          role: user?.role,
+          permissionKeys: user?.permissionKeys ?? const [],
+        ))
+          const _SearchRouteItem('Returns', RouteNames.returns),
         const _SearchRouteItem('Customers', RouteNames.customers),
         const _SearchRouteItem('Expenses', RouteNames.expenses),
         const _SearchRouteItem('Suppliers', RouteNames.suppliers),
-        const _SearchRouteItem('Cash Register', RouteNames.cashRegister),
+        if (UserRoleUtils.canViewShifts(
+          role: user?.role,
+          permissionKeys: user?.permissionKeys ?? const [],
+        ))
+          const _SearchRouteItem('Cash Register', RouteNames.cashRegister),
         if (UserRoleUtils.canViewReports(user?.role))
           const _SearchRouteItem('Analytics', RouteNames.analytics),
         if (UserRoleUtils.isOwner(user?.role))

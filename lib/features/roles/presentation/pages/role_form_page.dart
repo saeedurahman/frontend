@@ -6,6 +6,7 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/roles/presentation/cubit/role_form_cubit.dart';
 import 'package:frantend/features/roles/presentation/cubit/role_form_state.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/features/roles/presentation/widgets/role_permissions_panel.dart';
 import 'package:frantend/shared/widgets/badges/status_badge.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
@@ -53,6 +54,13 @@ class _RoleFormView extends StatelessWidget {
         if (err != null) AppAlerts.showErrorMessage(context, err);
       },
       builder: (context, state) {
+        if (state.accessDenied) {
+          return const EmptyState(
+            icon: Icons.lock_outline,
+            message: "You don't have permission to manage roles",
+          );
+        }
+
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }

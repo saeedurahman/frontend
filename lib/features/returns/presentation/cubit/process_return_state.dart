@@ -78,6 +78,7 @@ class ProcessReturnState with _$ProcessReturnState {
     @Default(false) bool isLoading,
     @Default(false) bool isCheckingShift,
     @Default(false) bool isSubmitting,
+    @Default(false) bool accessDenied,
     String? error,
     String? submitError,
   }) = _ProcessReturnState;

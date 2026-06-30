@@ -5,6 +5,7 @@ import 'package:frantend/core/network/insecure_http_overrides.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/sync/sync_worker.dart';
 import 'package:frantend/core/utils/logger.dart';
+import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 
@@ -15,6 +16,10 @@ Future<void> main() async {
   await configureDependencies();
   await sl<AuthGuard>().checkAuth();
   if (sl<AuthGuard>().isAuthenticated) {
+    // Cold-start permission refresh: updates cached permission_keys from GET
+    // /auth/me when online. Does not cover mid-session admin changes while the
+    // app stays open — those apply on next login or cold start.
+    await sl<AuthRepository>().getCurrentUser();
     await sl<NotificationsCubit>().startSession();
     await sl<BranchSelectorCubit>().startSession();
   }

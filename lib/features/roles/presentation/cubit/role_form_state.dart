@@ -16,6 +16,7 @@ class RoleFormState with _$RoleFormState {
     @Default(false) bool isLoading,
     @Default(false) bool isSubmitting,
     @Default(false) bool isDeleting,
+    @Default(false) bool accessDenied,
     @Default({}) Map<String, String> errors,
   }) = _RoleFormState;
 }

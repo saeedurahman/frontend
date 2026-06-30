@@ -8,6 +8,7 @@ import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/current_shift_cubit.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/current_shift_state.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
+import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:go_router/go_router.dart';
@@ -31,6 +32,13 @@ class _CurrentShiftView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CurrentShiftCubit, CurrentShiftState>(
       builder: (context, state) {
+        if (state.accessDenied) {
+          return const EmptyState(
+            icon: Icons.lock_outline,
+            message: "You don't have permission to view shifts",
+          );
+        }
+
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -187,7 +195,7 @@ class _ActiveShiftContent extends StatelessWidget {
         PrimaryButton(
           label: 'Close Shift',
           icon: Icons.lock_outline,
-          onPressed: summary == null
+          onPressed: !state.canCloseShift || summary == null
               ? null
               : () => context.push(
                     RouteNames.closeShift,

@@ -13,6 +13,12 @@ class UsersTable extends Table {
 
   TextColumn get branchId => text().nullable()();
 
+  TextColumn get businessSlug => text().nullable()();
+
+  TextColumn get rolesJson => text().nullable()();
+
+  TextColumn get permissionKeysJson => text().nullable()();
+
   TextColumn get pinHash => text().nullable()();
 
   DateTimeColumn get updatedAt => dateTime()();

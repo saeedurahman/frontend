@@ -27,8 +27,6 @@ class Step3BranchPage extends StatelessWidget {
     final cubit = context.read<RegisterCubit>();
     debugPrint(
       '[Step3] build — branchName="${cubit.branchNameController.text}", '
-      'address="${cubit.addressController.text}", '
-      'branchPhone="${cubit.branchPhoneController.text}", '
       'formKeyAttached=${cubit.step3FormKey.currentState != null}',
     );
 
@@ -171,9 +169,7 @@ class Step3BranchPage extends StatelessWidget {
 
     debugPrint('[Step3] onContinue tapped — button="Continue to Step 4"');
     debugPrint(
-      '[Step3] fields — branchName="$branchName", trimmed="$branchNameTrimmed", '
-      'address="${cubit.addressController.text}", '
-      'branchPhone="${cubit.branchPhoneController.text}"',
+      '[Step3] fields — branchName="$branchName", trimmed="$branchNameTrimmed"',
     );
     debugPrint(
       '[Step3] form — currentState=${formState != null ? "attached" : "NULL"}, '

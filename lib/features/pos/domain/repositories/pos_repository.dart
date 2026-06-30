@@ -2,7 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
+import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
+import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 
@@ -41,4 +43,10 @@ abstract class PosRepository {
     String productId,
     String? variationId,
   );
+
+  Future<Either<Failure, SalePricePreviewModel>> previewSalePrice(
+    Map<String, dynamic> body,
+  );
+
+  Future<Either<Failure, List<DiscountSchemeModel>>> getDiscountSchemes();
 }

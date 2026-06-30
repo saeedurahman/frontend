@@ -404,6 +404,7 @@ mixin _$ProcessReturnState {
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isCheckingShift => throw _privateConstructorUsedError;
   bool get isSubmitting => throw _privateConstructorUsedError;
+  bool get accessDenied => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   String? get submitError => throw _privateConstructorUsedError;
 
@@ -432,6 +433,7 @@ abstract class $ProcessReturnStateCopyWith<$Res> {
     bool isLoading,
     bool isCheckingShift,
     bool isSubmitting,
+    bool accessDenied,
     String? error,
     String? submitError,
   });
@@ -465,6 +467,7 @@ class _$ProcessReturnStateCopyWithImpl<$Res, $Val extends ProcessReturnState>
     Object? isLoading = null,
     Object? isCheckingShift = null,
     Object? isSubmitting = null,
+    Object? accessDenied = null,
     Object? error = freezed,
     Object? submitError = freezed,
   }) {
@@ -509,6 +512,10 @@ class _$ProcessReturnStateCopyWithImpl<$Res, $Val extends ProcessReturnState>
             isSubmitting: null == isSubmitting
                 ? _value.isSubmitting
                 : isSubmitting // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            accessDenied: null == accessDenied
+                ? _value.accessDenied
+                : accessDenied // ignore: cast_nullable_to_non_nullable
                       as bool,
             error: freezed == error
                 ? _value.error
@@ -572,6 +579,7 @@ abstract class _$$ProcessReturnStateImplCopyWith<$Res>
     bool isLoading,
     bool isCheckingShift,
     bool isSubmitting,
+    bool accessDenied,
     String? error,
     String? submitError,
   });
@@ -606,6 +614,7 @@ class __$$ProcessReturnStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? isCheckingShift = null,
     Object? isSubmitting = null,
+    Object? accessDenied = null,
     Object? error = freezed,
     Object? submitError = freezed,
   }) {
@@ -651,6 +660,10 @@ class __$$ProcessReturnStateImplCopyWithImpl<$Res>
             ? _value.isSubmitting
             : isSubmitting // ignore: cast_nullable_to_non_nullable
                   as bool,
+        accessDenied: null == accessDenied
+            ? _value.accessDenied
+            : accessDenied // ignore: cast_nullable_to_non_nullable
+                  as bool,
         error: freezed == error
             ? _value.error
             : error // ignore: cast_nullable_to_non_nullable
@@ -678,6 +691,7 @@ class _$ProcessReturnStateImpl extends _ProcessReturnState {
     this.isLoading = false,
     this.isCheckingShift = false,
     this.isSubmitting = false,
+    this.accessDenied = false,
     this.error,
     this.submitError,
   }) : _returnLines = returnLines,
@@ -722,13 +736,16 @@ class _$ProcessReturnStateImpl extends _ProcessReturnState {
   @JsonKey()
   final bool isSubmitting;
   @override
+  @JsonKey()
+  final bool accessDenied;
+  @override
   final String? error;
   @override
   final String? submitError;
 
   @override
   String toString() {
-    return 'ProcessReturnState(originalSale: $originalSale, customer: $customer, returnLines: $returnLines, refundLines: $refundLines, reason: $reason, notes: $notes, activeShiftId: $activeShiftId, isLoading: $isLoading, isCheckingShift: $isCheckingShift, isSubmitting: $isSubmitting, error: $error, submitError: $submitError)';
+    return 'ProcessReturnState(originalSale: $originalSale, customer: $customer, returnLines: $returnLines, refundLines: $refundLines, reason: $reason, notes: $notes, activeShiftId: $activeShiftId, isLoading: $isLoading, isCheckingShift: $isCheckingShift, isSubmitting: $isSubmitting, accessDenied: $accessDenied, error: $error, submitError: $submitError)';
   }
 
   @override
@@ -758,6 +775,8 @@ class _$ProcessReturnStateImpl extends _ProcessReturnState {
                 other.isCheckingShift == isCheckingShift) &&
             (identical(other.isSubmitting, isSubmitting) ||
                 other.isSubmitting == isSubmitting) &&
+            (identical(other.accessDenied, accessDenied) ||
+                other.accessDenied == accessDenied) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.submitError, submitError) ||
                 other.submitError == submitError));
@@ -776,6 +795,7 @@ class _$ProcessReturnStateImpl extends _ProcessReturnState {
     isLoading,
     isCheckingShift,
     isSubmitting,
+    accessDenied,
     error,
     submitError,
   );
@@ -804,6 +824,7 @@ abstract class _ProcessReturnState extends ProcessReturnState {
     final bool isLoading,
     final bool isCheckingShift,
     final bool isSubmitting,
+    final bool accessDenied,
     final String? error,
     final String? submitError,
   }) = _$ProcessReturnStateImpl;
@@ -829,6 +850,8 @@ abstract class _ProcessReturnState extends ProcessReturnState {
   bool get isCheckingShift;
   @override
   bool get isSubmitting;
+  @override
+  bool get accessDenied;
   @override
   String? get error;
   @override
