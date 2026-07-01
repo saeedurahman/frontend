@@ -26,7 +26,7 @@ class KitchenDisplayCubit extends Cubit<KitchenDisplayState> {
         _businessSession = businessSession,
         super(const KitchenDisplayState());
 
-  static const _refreshInterval = Duration(seconds: 30);
+  static const _refreshInterval = Duration(seconds: 10);
 
   final GetActiveKotOrdersUseCase _getActiveKotOrders;
   final UpdateKotStatusUseCase _updateKotStatus;

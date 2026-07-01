@@ -38,7 +38,11 @@ class PriceListItemModel with _$PriceListItemModel {
 @freezed
 class ProductPriceModel with _$ProductPriceModel {
   const factory ProductPriceModel({
+    String? id,
     @JsonKey(name: 'unit_price') String? unitPrice,
+    @JsonKey(name: 'min_qty') String? minQty,
+    @JsonKey(name: 'price_list_id') String? priceListId,
+    @JsonKey(name: 'variation_id') String? variationId,
   }) = _ProductPriceModel;
 
   factory ProductPriceModel.fromJson(Map<String, dynamic> json) =>

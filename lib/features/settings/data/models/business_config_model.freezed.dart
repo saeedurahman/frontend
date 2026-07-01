@@ -28,6 +28,8 @@ mixin _$BusinessConfigModel {
   bool get enableRestaurant => throw _privateConstructorUsedError;
   @JsonKey(name: 'enable_manufacturing')
   bool get enableManufacturing => throw _privateConstructorUsedError;
+  @JsonKey(name: 'enable_accounting')
+  bool get enableAccounting => throw _privateConstructorUsedError;
   @JsonKey(name: 'enable_weight_billing')
   bool get enableWeightBilling => throw _privateConstructorUsedError;
   @JsonKey(name: 'enable_kot')
@@ -61,6 +63,7 @@ abstract class $BusinessConfigModelCopyWith<$Res> {
     @JsonKey(name: 'business_id') String businessId,
     @JsonKey(name: 'enable_restaurant') bool enableRestaurant,
     @JsonKey(name: 'enable_manufacturing') bool enableManufacturing,
+    @JsonKey(name: 'enable_accounting') bool enableAccounting,
     @JsonKey(name: 'enable_weight_billing') bool enableWeightBilling,
     @JsonKey(name: 'enable_kot') bool enableKot,
     @JsonKey(name: 'fifo_costing_enabled') bool fifoCostingEnabled,
@@ -88,6 +91,7 @@ class _$BusinessConfigModelCopyWithImpl<$Res, $Val extends BusinessConfigModel>
     Object? businessId = null,
     Object? enableRestaurant = null,
     Object? enableManufacturing = null,
+    Object? enableAccounting = null,
     Object? enableWeightBilling = null,
     Object? enableKot = null,
     Object? fifoCostingEnabled = null,
@@ -111,6 +115,10 @@ class _$BusinessConfigModelCopyWithImpl<$Res, $Val extends BusinessConfigModel>
             enableManufacturing: null == enableManufacturing
                 ? _value.enableManufacturing
                 : enableManufacturing // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            enableAccounting: null == enableAccounting
+                ? _value.enableAccounting
+                : enableAccounting // ignore: cast_nullable_to_non_nullable
                       as bool,
             enableWeightBilling: null == enableWeightBilling
                 ? _value.enableWeightBilling
@@ -152,6 +160,7 @@ abstract class _$$BusinessConfigModelImplCopyWith<$Res>
     @JsonKey(name: 'business_id') String businessId,
     @JsonKey(name: 'enable_restaurant') bool enableRestaurant,
     @JsonKey(name: 'enable_manufacturing') bool enableManufacturing,
+    @JsonKey(name: 'enable_accounting') bool enableAccounting,
     @JsonKey(name: 'enable_weight_billing') bool enableWeightBilling,
     @JsonKey(name: 'enable_kot') bool enableKot,
     @JsonKey(name: 'fifo_costing_enabled') bool fifoCostingEnabled,
@@ -178,6 +187,7 @@ class __$$BusinessConfigModelImplCopyWithImpl<$Res>
     Object? businessId = null,
     Object? enableRestaurant = null,
     Object? enableManufacturing = null,
+    Object? enableAccounting = null,
     Object? enableWeightBilling = null,
     Object? enableKot = null,
     Object? fifoCostingEnabled = null,
@@ -201,6 +211,10 @@ class __$$BusinessConfigModelImplCopyWithImpl<$Res>
         enableManufacturing: null == enableManufacturing
             ? _value.enableManufacturing
             : enableManufacturing // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        enableAccounting: null == enableAccounting
+            ? _value.enableAccounting
+            : enableAccounting // ignore: cast_nullable_to_non_nullable
                   as bool,
         enableWeightBilling: null == enableWeightBilling
             ? _value.enableWeightBilling
@@ -235,6 +249,7 @@ class _$BusinessConfigModelImpl implements _BusinessConfigModel {
     @JsonKey(name: 'business_id') required this.businessId,
     @JsonKey(name: 'enable_restaurant') this.enableRestaurant = false,
     @JsonKey(name: 'enable_manufacturing') this.enableManufacturing = false,
+    @JsonKey(name: 'enable_accounting') this.enableAccounting = false,
     @JsonKey(name: 'enable_weight_billing') this.enableWeightBilling = false,
     @JsonKey(name: 'enable_kot') this.enableKot = false,
     @JsonKey(name: 'fifo_costing_enabled') this.fifoCostingEnabled = true,
@@ -258,6 +273,9 @@ class _$BusinessConfigModelImpl implements _BusinessConfigModel {
   @JsonKey(name: 'enable_manufacturing')
   final bool enableManufacturing;
   @override
+  @JsonKey(name: 'enable_accounting')
+  final bool enableAccounting;
+  @override
   @JsonKey(name: 'enable_weight_billing')
   final bool enableWeightBilling;
   @override
@@ -280,7 +298,7 @@ class _$BusinessConfigModelImpl implements _BusinessConfigModel {
 
   @override
   String toString() {
-    return 'BusinessConfigModel(id: $id, businessId: $businessId, enableRestaurant: $enableRestaurant, enableManufacturing: $enableManufacturing, enableWeightBilling: $enableWeightBilling, enableKot: $enableKot, fifoCostingEnabled: $fifoCostingEnabled, allowNegativeStock: $allowNegativeStock, configJson: $configJson)';
+    return 'BusinessConfigModel(id: $id, businessId: $businessId, enableRestaurant: $enableRestaurant, enableManufacturing: $enableManufacturing, enableAccounting: $enableAccounting, enableWeightBilling: $enableWeightBilling, enableKot: $enableKot, fifoCostingEnabled: $fifoCostingEnabled, allowNegativeStock: $allowNegativeStock, configJson: $configJson)';
   }
 
   @override
@@ -295,6 +313,8 @@ class _$BusinessConfigModelImpl implements _BusinessConfigModel {
                 other.enableRestaurant == enableRestaurant) &&
             (identical(other.enableManufacturing, enableManufacturing) ||
                 other.enableManufacturing == enableManufacturing) &&
+            (identical(other.enableAccounting, enableAccounting) ||
+                other.enableAccounting == enableAccounting) &&
             (identical(other.enableWeightBilling, enableWeightBilling) ||
                 other.enableWeightBilling == enableWeightBilling) &&
             (identical(other.enableKot, enableKot) ||
@@ -317,6 +337,7 @@ class _$BusinessConfigModelImpl implements _BusinessConfigModel {
     businessId,
     enableRestaurant,
     enableManufacturing,
+    enableAccounting,
     enableWeightBilling,
     enableKot,
     fifoCostingEnabled,
@@ -347,6 +368,7 @@ abstract class _BusinessConfigModel implements BusinessConfigModel {
     @JsonKey(name: 'business_id') required final String businessId,
     @JsonKey(name: 'enable_restaurant') final bool enableRestaurant,
     @JsonKey(name: 'enable_manufacturing') final bool enableManufacturing,
+    @JsonKey(name: 'enable_accounting') final bool enableAccounting,
     @JsonKey(name: 'enable_weight_billing') final bool enableWeightBilling,
     @JsonKey(name: 'enable_kot') final bool enableKot,
     @JsonKey(name: 'fifo_costing_enabled') final bool fifoCostingEnabled,
@@ -368,6 +390,9 @@ abstract class _BusinessConfigModel implements BusinessConfigModel {
   @override
   @JsonKey(name: 'enable_manufacturing')
   bool get enableManufacturing;
+  @override
+  @JsonKey(name: 'enable_accounting')
+  bool get enableAccounting;
   @override
   @JsonKey(name: 'enable_weight_billing')
   bool get enableWeightBilling;

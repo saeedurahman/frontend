@@ -5,6 +5,7 @@ import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
@@ -50,6 +51,17 @@ abstract class ProductsRemoteDataSource {
 
   Future<List<UnitModel>> getUnits();
   Future<UnitModel> createUnit(Map<String, dynamic> body);
+
+  Future<List<PriceListModel>> getPriceLists();
+  Future<ProductPriceModel?> getProductPrice(
+    String productId, {
+    String? variationId,
+  });
+  Future<ProductPriceModel> setProductPrice(
+    String productId,
+    String priceListId,
+    Map<String, dynamic> body,
+  );
 }
 
 @LazySingleton(as: ProductsRemoteDataSource)
@@ -230,6 +242,47 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
       data: body,
     );
     return UnitModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<List<PriceListModel>> getPriceLists() async {
+    final response = await _dio.get<dynamic>(ApiConstants.priceLists);
+    return _toModelList(response.data, PriceListModel.fromJson);
+  }
+
+  @override
+  Future<ProductPriceModel?> getProductPrice(
+    String productId, {
+    String? variationId,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.productPrice(productId),
+        queryParameters:
+            variationId == null ? null : {'variation_id': variationId},
+      );
+      final data = response.data;
+      if (data == null || data.isEmpty) return null;
+      final model = ProductPriceModel.fromJson(data);
+      if (model.unitPrice == null || model.unitPrice!.isEmpty) return null;
+      return model;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ProductPriceModel> setProductPrice(
+    String productId,
+    String priceListId,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      ApiConstants.productPriceInList(productId, priceListId),
+      data: body,
+    );
+    return ProductPriceModel.fromJson(response.data ?? const {});
   }
 
   List<T> _toModelList<T>(

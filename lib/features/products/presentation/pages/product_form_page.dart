@@ -58,60 +58,329 @@ class ProductFormPage extends StatelessWidget {
   }
 }
 
-class _ProductFormView extends StatelessWidget {
+class _ProductFormView extends StatefulWidget {
   const _ProductFormView({required this.isEdit});
 
   final bool isEdit;
 
   @override
+  State<_ProductFormView> createState() => _ProductFormViewState();
+}
+
+class _ProductFormViewState extends State<_ProductFormView>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+  int _tabCount = 3;
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  int _tabCountFor(ProductFormState state) {
+    if (!widget.isEdit || !state.canManagePrices) return 3;
+    return 4;
+  }
+
+  void _syncTabController(int count) {
+    if (_tabController != null && _tabCount == count) return;
+    _tabController?.dispose();
+    _tabCount = count;
+    _tabController = TabController(length: count, vsync: this);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProductFormCubit, ProductFormState>(
-      listenWhen: (p, c) => c.errors.containsKey('_general'),
+      listenWhen: (p, c) =>
+          c.errors.containsKey('_general') || c.priceSaveSuccess,
       listener: (context, state) {
+        _syncTabController(_tabCountFor(state));
+
         final err = state.errors['_general'];
         if (err != null) AppAlerts.showErrorMessage(context, err);
+
+        if (state.priceSaveSuccess) {
+          AppAlerts.showSuccessMessage(context, 'Price saved successfully');
+          context.read<ProductFormCubit>().clearPriceSaveSuccess();
+        }
       },
       builder: (context, state) {
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Stack(
+        _syncTabController(_tabCountFor(state));
+        final tabController = _tabController!;
+        final showPricing = widget.isEdit && state.canManagePrices;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 80),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 900),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        isEdit ? 'Edit Product' : 'Add New Product',
-                        style: AppTextStyles.headlineMedium,
-                      ),
-                      const SizedBox(height: AppDimensions.spacingLg),
-                      _BasicInfoCard(state: state),
-                      const SizedBox(height: AppDimensions.spacingMd),
-                      _StockCard(state: state, isEdit: isEdit),
-                      const SizedBox(height: AppDimensions.spacingMd),
-                      _VariationsCard(state: state),
-                      const SizedBox(height: AppDimensions.spacingMd),
-                      _BarcodesCard(state: state),
-                    ],
-                  ),
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMd,
+              ),
+              child: Text(
+                widget.isEdit ? 'Edit Product' : 'Add New Product',
+                style: AppTextStyles.headlineMedium,
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _BottomBar(state: state, isEdit: isEdit),
+            const SizedBox(height: AppDimensions.spacingSm),
+            TabBar(
+              controller: tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              isScrollable: true,
+              tabs: [
+                const Tab(text: 'Details'),
+                const Tab(text: 'Variations'),
+                const Tab(text: 'Barcodes'),
+                if (showPricing) const Tab(text: 'Pricing'),
+              ],
             ),
+            Expanded(
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _BasicInfoCard(state: state),
+                            const SizedBox(height: AppDimensions.spacingMd),
+                            _StockCard(
+                              state: state,
+                              isEdit: widget.isEdit,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        child: _VariationsCard(state: state),
+                      ),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        child: _BarcodesCard(state: state),
+                      ),
+                    ),
+                  ),
+                  if (showPricing)
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 900),
+                          child: _PricingTab(state: state),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            _BottomBar(state: state, isEdit: widget.isEdit),
           ],
         );
       },
+    );
+  }
+}
+
+class _PricingTab extends StatefulWidget {
+  const _PricingTab({required this.state});
+
+  final ProductFormState state;
+
+  @override
+  State<_PricingTab> createState() => _PricingTabState();
+}
+
+class _PricingTabState extends State<_PricingTab> {
+  late final TextEditingController _priceController;
+  late final TextEditingController _minQtyController;
+  String? _lastSyncedPrice;
+  String? _lastSyncedMinQty;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceController = TextEditingController(
+      text: widget.state.retailUnitPrice ?? '',
+    );
+    _minQtyController = TextEditingController(
+      text: widget.state.minQty ?? '',
+    );
+    _lastSyncedPrice = widget.state.retailUnitPrice;
+    _lastSyncedMinQty = widget.state.minQty;
+  }
+
+  @override
+  void didUpdateWidget(covariant _PricingTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final price = widget.state.retailUnitPrice;
+    final minQty = widget.state.minQty;
+    if (price != _lastSyncedPrice) {
+      _lastSyncedPrice = price;
+      _priceController.text = price ?? '';
+    }
+    if (minQty != _lastSyncedMinQty) {
+      _lastSyncedMinQty = minQty;
+      _minQtyController.text = minQty ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    _minQtyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ProductFormCubit>();
+    final state = widget.state;
+    final hasPrice =
+        state.retailUnitPrice != null && state.retailUnitPrice!.isNotEmpty;
+
+    if (state.isLoadingPrice) {
+      return const _FormCard(
+        title: 'Retail Pricing',
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return _FormCard(
+      title: 'Retail Pricing',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasPrice)
+            Container(
+              padding: const EdgeInsets.all(AppDimensions.spacingMd),
+              decoration: BoxDecoration(
+                color: AppColors.inputFill,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.sell_outlined, color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Current retail price',
+                          style: AppTextStyles.bodySmall,
+                        ),
+                        Text(
+                          'Rs. ${state.retailUnitPrice}',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (state.minQty != null && state.minQty!.isNotEmpty)
+                          Text(
+                            'Min qty: ${state.minQty}',
+                            style: AppTextStyles.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(AppDimensions.spacingMd),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No price configured — cashier will be prompted to '
+                      'enter price manually in POS',
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: AppDimensions.spacingLg),
+          if (state.priceError != null) ...[
+            Text(
+              state.priceError!,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+            ),
+            const SizedBox(height: 12),
+          ],
+          TextField(
+            controller: _priceController,
+            decoration: const InputDecoration(
+              labelText: 'Price *',
+              prefixText: 'Rs. ',
+              helperText: 'Retail price on the default price list',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _minQtyController,
+            decoration: const InputDecoration(
+              labelText: 'Min Qty (optional)',
+              helperText: 'Minimum quantity for this price tier',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          const SizedBox(height: AppDimensions.spacingLg),
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: 160,
+              child: PrimaryButton(
+                label: 'Set Price',
+                isLoading: state.isSavingPrice,
+                onPressed: state.isSavingPrice
+                    ? null
+                    : () async {
+                        await cubit.saveProductPrice(
+                          unitPrice: _priceController.text,
+                          minQty: _minQtyController.text,
+                        );
+                      },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -46,9 +46,16 @@ class _SaleDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SaleDetailCubit, SaleDetailState>(
+      listenWhen: (previous, current) =>
+          current is SaleDetailError ||
+          (current is SaleDetailLoaded && current.voidError != null),
       listener: (context, state) {
         if (state is SaleDetailError) {
           AppAlerts.showErrorMessage(context, state.message);
+        }
+        if (state is SaleDetailLoaded && state.voidError != null) {
+          AppAlerts.showErrorMessage(context, state.voidError!);
+          context.read<SaleDetailCubit>().clearVoidError();
         }
       },
       builder: (context, state) {

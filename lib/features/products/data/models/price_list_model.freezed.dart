@@ -653,8 +653,15 @@ ProductPriceModel _$ProductPriceModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ProductPriceModel {
+  String? get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'unit_price')
   String? get unitPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'min_qty')
+  String? get minQty => throw _privateConstructorUsedError;
+  @JsonKey(name: 'price_list_id')
+  String? get priceListId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'variation_id')
+  String? get variationId => throw _privateConstructorUsedError;
 
   /// Serializes this ProductPriceModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -673,7 +680,13 @@ abstract class $ProductPriceModelCopyWith<$Res> {
     $Res Function(ProductPriceModel) then,
   ) = _$ProductPriceModelCopyWithImpl<$Res, ProductPriceModel>;
   @useResult
-  $Res call({@JsonKey(name: 'unit_price') String? unitPrice});
+  $Res call({
+    String? id,
+    @JsonKey(name: 'unit_price') String? unitPrice,
+    @JsonKey(name: 'min_qty') String? minQty,
+    @JsonKey(name: 'price_list_id') String? priceListId,
+    @JsonKey(name: 'variation_id') String? variationId,
+  });
 }
 
 /// @nodoc
@@ -690,12 +703,34 @@ class _$ProductPriceModelCopyWithImpl<$Res, $Val extends ProductPriceModel>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? unitPrice = freezed}) {
+  $Res call({
+    Object? id = freezed,
+    Object? unitPrice = freezed,
+    Object? minQty = freezed,
+    Object? priceListId = freezed,
+    Object? variationId = freezed,
+  }) {
     return _then(
       _value.copyWith(
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String?,
             unitPrice: freezed == unitPrice
                 ? _value.unitPrice
                 : unitPrice // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            minQty: freezed == minQty
+                ? _value.minQty
+                : minQty // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            priceListId: freezed == priceListId
+                ? _value.priceListId
+                : priceListId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            variationId: freezed == variationId
+                ? _value.variationId
+                : variationId // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -712,7 +747,13 @@ abstract class _$$ProductPriceModelImplCopyWith<$Res>
   ) = __$$ProductPriceModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(name: 'unit_price') String? unitPrice});
+  $Res call({
+    String? id,
+    @JsonKey(name: 'unit_price') String? unitPrice,
+    @JsonKey(name: 'min_qty') String? minQty,
+    @JsonKey(name: 'price_list_id') String? priceListId,
+    @JsonKey(name: 'variation_id') String? variationId,
+  });
 }
 
 /// @nodoc
@@ -728,12 +769,34 @@ class __$$ProductPriceModelImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? unitPrice = freezed}) {
+  $Res call({
+    Object? id = freezed,
+    Object? unitPrice = freezed,
+    Object? minQty = freezed,
+    Object? priceListId = freezed,
+    Object? variationId = freezed,
+  }) {
     return _then(
       _$ProductPriceModelImpl(
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String?,
         unitPrice: freezed == unitPrice
             ? _value.unitPrice
             : unitPrice // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        minQty: freezed == minQty
+            ? _value.minQty
+            : minQty // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        priceListId: freezed == priceListId
+            ? _value.priceListId
+            : priceListId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        variationId: freezed == variationId
+            ? _value.variationId
+            : variationId // ignore: cast_nullable_to_non_nullable
                   as String?,
       ),
     );
@@ -743,18 +806,35 @@ class __$$ProductPriceModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$ProductPriceModelImpl implements _ProductPriceModel {
-  const _$ProductPriceModelImpl({@JsonKey(name: 'unit_price') this.unitPrice});
+  const _$ProductPriceModelImpl({
+    this.id,
+    @JsonKey(name: 'unit_price') this.unitPrice,
+    @JsonKey(name: 'min_qty') this.minQty,
+    @JsonKey(name: 'price_list_id') this.priceListId,
+    @JsonKey(name: 'variation_id') this.variationId,
+  });
 
   factory _$ProductPriceModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductPriceModelImplFromJson(json);
 
   @override
+  final String? id;
+  @override
   @JsonKey(name: 'unit_price')
   final String? unitPrice;
+  @override
+  @JsonKey(name: 'min_qty')
+  final String? minQty;
+  @override
+  @JsonKey(name: 'price_list_id')
+  final String? priceListId;
+  @override
+  @JsonKey(name: 'variation_id')
+  final String? variationId;
 
   @override
   String toString() {
-    return 'ProductPriceModel(unitPrice: $unitPrice)';
+    return 'ProductPriceModel(id: $id, unitPrice: $unitPrice, minQty: $minQty, priceListId: $priceListId, variationId: $variationId)';
   }
 
   @override
@@ -762,13 +842,20 @@ class _$ProductPriceModelImpl implements _ProductPriceModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ProductPriceModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.unitPrice, unitPrice) ||
-                other.unitPrice == unitPrice));
+                other.unitPrice == unitPrice) &&
+            (identical(other.minQty, minQty) || other.minQty == minQty) &&
+            (identical(other.priceListId, priceListId) ||
+                other.priceListId == priceListId) &&
+            (identical(other.variationId, variationId) ||
+                other.variationId == variationId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, unitPrice);
+  int get hashCode =>
+      Object.hash(runtimeType, id, unitPrice, minQty, priceListId, variationId);
 
   /// Create a copy of ProductPriceModel
   /// with the given fields replaced by the non-null parameter values.
@@ -789,15 +876,30 @@ class _$ProductPriceModelImpl implements _ProductPriceModel {
 
 abstract class _ProductPriceModel implements ProductPriceModel {
   const factory _ProductPriceModel({
+    final String? id,
     @JsonKey(name: 'unit_price') final String? unitPrice,
+    @JsonKey(name: 'min_qty') final String? minQty,
+    @JsonKey(name: 'price_list_id') final String? priceListId,
+    @JsonKey(name: 'variation_id') final String? variationId,
   }) = _$ProductPriceModelImpl;
 
   factory _ProductPriceModel.fromJson(Map<String, dynamic> json) =
       _$ProductPriceModelImpl.fromJson;
 
   @override
+  String? get id;
+  @override
   @JsonKey(name: 'unit_price')
   String? get unitPrice;
+  @override
+  @JsonKey(name: 'min_qty')
+  String? get minQty;
+  @override
+  @JsonKey(name: 'price_list_id')
+  String? get priceListId;
+  @override
+  @JsonKey(name: 'variation_id')
+  String? get variationId;
 
   /// Create a copy of ProductPriceModel
   /// with the given fields replaced by the non-null parameter values.

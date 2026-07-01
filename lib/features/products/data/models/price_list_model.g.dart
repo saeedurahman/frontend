@@ -55,8 +55,20 @@ Map<String, dynamic> _$$PriceListItemModelImplToJson(
 
 _$ProductPriceModelImpl _$$ProductPriceModelImplFromJson(
   Map<String, dynamic> json,
-) => _$ProductPriceModelImpl(unitPrice: json['unit_price'] as String?);
+) => _$ProductPriceModelImpl(
+  id: json['id'] as String?,
+  unitPrice: json['unit_price'] as String?,
+  minQty: json['min_qty'] as String?,
+  priceListId: json['price_list_id'] as String?,
+  variationId: json['variation_id'] as String?,
+);
 
 Map<String, dynamic> _$$ProductPriceModelImplToJson(
   _$ProductPriceModelImpl instance,
-) => <String, dynamic>{'unit_price': instance.unitPrice};
+) => <String, dynamic>{
+  'id': instance.id,
+  'unit_price': instance.unitPrice,
+  'min_qty': instance.minQty,
+  'price_list_id': instance.priceListId,
+  'variation_id': instance.variationId,
+};

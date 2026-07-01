@@ -563,6 +563,15 @@ mixin _$ProductFormState {
   bool get isSubmitting => throw _privateConstructorUsedError;
   bool get isUploadingImage => throw _privateConstructorUsedError;
   String? get imageUploadError => throw _privateConstructorUsedError;
+  bool get canManagePrices => throw _privateConstructorUsedError;
+  String? get retailUnitPrice => throw _privateConstructorUsedError;
+  String? get minQty => throw _privateConstructorUsedError;
+  String? get defaultPriceListId => throw _privateConstructorUsedError;
+  String? get priceListItemId => throw _privateConstructorUsedError;
+  bool get isLoadingPrice => throw _privateConstructorUsedError;
+  bool get isSavingPrice => throw _privateConstructorUsedError;
+  String? get priceError => throw _privateConstructorUsedError;
+  bool get priceSaveSuccess => throw _privateConstructorUsedError;
   Map<String, String> get errors => throw _privateConstructorUsedError;
 
   /// Create a copy of ProductFormState
@@ -604,6 +613,15 @@ abstract class $ProductFormStateCopyWith<$Res> {
     bool isSubmitting,
     bool isUploadingImage,
     String? imageUploadError,
+    bool canManagePrices,
+    String? retailUnitPrice,
+    String? minQty,
+    String? defaultPriceListId,
+    String? priceListItemId,
+    bool isLoadingPrice,
+    bool isSavingPrice,
+    String? priceError,
+    bool priceSaveSuccess,
     Map<String, String> errors,
   });
 }
@@ -647,6 +665,15 @@ class _$ProductFormStateCopyWithImpl<$Res, $Val extends ProductFormState>
     Object? isSubmitting = null,
     Object? isUploadingImage = null,
     Object? imageUploadError = freezed,
+    Object? canManagePrices = null,
+    Object? retailUnitPrice = freezed,
+    Object? minQty = freezed,
+    Object? defaultPriceListId = freezed,
+    Object? priceListItemId = freezed,
+    Object? isLoadingPrice = null,
+    Object? isSavingPrice = null,
+    Object? priceError = freezed,
+    Object? priceSaveSuccess = null,
     Object? errors = null,
   }) {
     return _then(
@@ -747,6 +774,42 @@ class _$ProductFormStateCopyWithImpl<$Res, $Val extends ProductFormState>
                 ? _value.imageUploadError
                 : imageUploadError // ignore: cast_nullable_to_non_nullable
                       as String?,
+            canManagePrices: null == canManagePrices
+                ? _value.canManagePrices
+                : canManagePrices // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            retailUnitPrice: freezed == retailUnitPrice
+                ? _value.retailUnitPrice
+                : retailUnitPrice // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            minQty: freezed == minQty
+                ? _value.minQty
+                : minQty // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            defaultPriceListId: freezed == defaultPriceListId
+                ? _value.defaultPriceListId
+                : defaultPriceListId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            priceListItemId: freezed == priceListItemId
+                ? _value.priceListItemId
+                : priceListItemId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isLoadingPrice: null == isLoadingPrice
+                ? _value.isLoadingPrice
+                : isLoadingPrice // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isSavingPrice: null == isSavingPrice
+                ? _value.isSavingPrice
+                : isSavingPrice // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            priceError: freezed == priceError
+                ? _value.priceError
+                : priceError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            priceSaveSuccess: null == priceSaveSuccess
+                ? _value.priceSaveSuccess
+                : priceSaveSuccess // ignore: cast_nullable_to_non_nullable
+                      as bool,
             errors: null == errors
                 ? _value.errors
                 : errors // ignore: cast_nullable_to_non_nullable
@@ -791,6 +854,15 @@ abstract class _$$ProductFormStateImplCopyWith<$Res>
     bool isSubmitting,
     bool isUploadingImage,
     String? imageUploadError,
+    bool canManagePrices,
+    String? retailUnitPrice,
+    String? minQty,
+    String? defaultPriceListId,
+    String? priceListItemId,
+    bool isLoadingPrice,
+    bool isSavingPrice,
+    String? priceError,
+    bool priceSaveSuccess,
     Map<String, String> errors,
   });
 }
@@ -833,6 +905,15 @@ class __$$ProductFormStateImplCopyWithImpl<$Res>
     Object? isSubmitting = null,
     Object? isUploadingImage = null,
     Object? imageUploadError = freezed,
+    Object? canManagePrices = null,
+    Object? retailUnitPrice = freezed,
+    Object? minQty = freezed,
+    Object? defaultPriceListId = freezed,
+    Object? priceListItemId = freezed,
+    Object? isLoadingPrice = null,
+    Object? isSavingPrice = null,
+    Object? priceError = freezed,
+    Object? priceSaveSuccess = null,
     Object? errors = null,
   }) {
     return _then(
@@ -933,6 +1014,42 @@ class __$$ProductFormStateImplCopyWithImpl<$Res>
             ? _value.imageUploadError
             : imageUploadError // ignore: cast_nullable_to_non_nullable
                   as String?,
+        canManagePrices: null == canManagePrices
+            ? _value.canManagePrices
+            : canManagePrices // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        retailUnitPrice: freezed == retailUnitPrice
+            ? _value.retailUnitPrice
+            : retailUnitPrice // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        minQty: freezed == minQty
+            ? _value.minQty
+            : minQty // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        defaultPriceListId: freezed == defaultPriceListId
+            ? _value.defaultPriceListId
+            : defaultPriceListId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        priceListItemId: freezed == priceListItemId
+            ? _value.priceListItemId
+            : priceListItemId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isLoadingPrice: null == isLoadingPrice
+            ? _value.isLoadingPrice
+            : isLoadingPrice // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isSavingPrice: null == isSavingPrice
+            ? _value.isSavingPrice
+            : isSavingPrice // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        priceError: freezed == priceError
+            ? _value.priceError
+            : priceError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        priceSaveSuccess: null == priceSaveSuccess
+            ? _value.priceSaveSuccess
+            : priceSaveSuccess // ignore: cast_nullable_to_non_nullable
+                  as bool,
         errors: null == errors
             ? _value._errors
             : errors // ignore: cast_nullable_to_non_nullable
@@ -970,6 +1087,15 @@ class _$ProductFormStateImpl implements _ProductFormState {
     this.isSubmitting = false,
     this.isUploadingImage = false,
     this.imageUploadError,
+    this.canManagePrices = false,
+    this.retailUnitPrice,
+    this.minQty,
+    this.defaultPriceListId,
+    this.priceListItemId,
+    this.isLoadingPrice = false,
+    this.isSavingPrice = false,
+    this.priceError,
+    this.priceSaveSuccess = false,
     final Map<String, String> errors = const {},
   }) : _variations = variations,
        _barcodes = barcodes,
@@ -1047,6 +1173,28 @@ class _$ProductFormStateImpl implements _ProductFormState {
   final bool isUploadingImage;
   @override
   final String? imageUploadError;
+  @override
+  @JsonKey()
+  final bool canManagePrices;
+  @override
+  final String? retailUnitPrice;
+  @override
+  final String? minQty;
+  @override
+  final String? defaultPriceListId;
+  @override
+  final String? priceListItemId;
+  @override
+  @JsonKey()
+  final bool isLoadingPrice;
+  @override
+  @JsonKey()
+  final bool isSavingPrice;
+  @override
+  final String? priceError;
+  @override
+  @JsonKey()
+  final bool priceSaveSuccess;
   final Map<String, String> _errors;
   @override
   @JsonKey()
@@ -1058,7 +1206,7 @@ class _$ProductFormStateImpl implements _ProductFormState {
 
   @override
   String toString() {
-    return 'ProductFormState(mode: $mode, productId: $productId, name: $name, sku: $sku, description: $description, imageUrl: $imageUrl, localImagePath: $localImagePath, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedBaseUnitId: $selectedBaseUnitId, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, shelfLifeDays: $shelfLifeDays, minStockLevel: $minStockLevel, maxStockLevel: $maxStockLevel, variations: $variations, barcodes: $barcodes, isLoading: $isLoading, isSubmitting: $isSubmitting, isUploadingImage: $isUploadingImage, imageUploadError: $imageUploadError, errors: $errors)';
+    return 'ProductFormState(mode: $mode, productId: $productId, name: $name, sku: $sku, description: $description, imageUrl: $imageUrl, localImagePath: $localImagePath, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedBaseUnitId: $selectedBaseUnitId, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, shelfLifeDays: $shelfLifeDays, minStockLevel: $minStockLevel, maxStockLevel: $maxStockLevel, variations: $variations, barcodes: $barcodes, isLoading: $isLoading, isSubmitting: $isSubmitting, isUploadingImage: $isUploadingImage, imageUploadError: $imageUploadError, canManagePrices: $canManagePrices, retailUnitPrice: $retailUnitPrice, minQty: $minQty, defaultPriceListId: $defaultPriceListId, priceListItemId: $priceListItemId, isLoadingPrice: $isLoadingPrice, isSavingPrice: $isSavingPrice, priceError: $priceError, priceSaveSuccess: $priceSaveSuccess, errors: $errors)';
   }
 
   @override
@@ -1112,6 +1260,23 @@ class _$ProductFormStateImpl implements _ProductFormState {
                 other.isUploadingImage == isUploadingImage) &&
             (identical(other.imageUploadError, imageUploadError) ||
                 other.imageUploadError == imageUploadError) &&
+            (identical(other.canManagePrices, canManagePrices) ||
+                other.canManagePrices == canManagePrices) &&
+            (identical(other.retailUnitPrice, retailUnitPrice) ||
+                other.retailUnitPrice == retailUnitPrice) &&
+            (identical(other.minQty, minQty) || other.minQty == minQty) &&
+            (identical(other.defaultPriceListId, defaultPriceListId) ||
+                other.defaultPriceListId == defaultPriceListId) &&
+            (identical(other.priceListItemId, priceListItemId) ||
+                other.priceListItemId == priceListItemId) &&
+            (identical(other.isLoadingPrice, isLoadingPrice) ||
+                other.isLoadingPrice == isLoadingPrice) &&
+            (identical(other.isSavingPrice, isSavingPrice) ||
+                other.isSavingPrice == isSavingPrice) &&
+            (identical(other.priceError, priceError) ||
+                other.priceError == priceError) &&
+            (identical(other.priceSaveSuccess, priceSaveSuccess) ||
+                other.priceSaveSuccess == priceSaveSuccess) &&
             const DeepCollectionEquality().equals(other._errors, _errors));
   }
 
@@ -1142,6 +1307,15 @@ class _$ProductFormStateImpl implements _ProductFormState {
     isSubmitting,
     isUploadingImage,
     imageUploadError,
+    canManagePrices,
+    retailUnitPrice,
+    minQty,
+    defaultPriceListId,
+    priceListItemId,
+    isLoadingPrice,
+    isSavingPrice,
+    priceError,
+    priceSaveSuccess,
     const DeepCollectionEquality().hash(_errors),
   ]);
 
@@ -1183,6 +1357,15 @@ abstract class _ProductFormState implements ProductFormState {
     final bool isSubmitting,
     final bool isUploadingImage,
     final String? imageUploadError,
+    final bool canManagePrices,
+    final String? retailUnitPrice,
+    final String? minQty,
+    final String? defaultPriceListId,
+    final String? priceListItemId,
+    final bool isLoadingPrice,
+    final bool isSavingPrice,
+    final String? priceError,
+    final bool priceSaveSuccess,
     final Map<String, String> errors,
   }) = _$ProductFormStateImpl;
 
@@ -1234,6 +1417,24 @@ abstract class _ProductFormState implements ProductFormState {
   bool get isUploadingImage;
   @override
   String? get imageUploadError;
+  @override
+  bool get canManagePrices;
+  @override
+  String? get retailUnitPrice;
+  @override
+  String? get minQty;
+  @override
+  String? get defaultPriceListId;
+  @override
+  String? get priceListItemId;
+  @override
+  bool get isLoadingPrice;
+  @override
+  bool get isSavingPrice;
+  @override
+  String? get priceError;
+  @override
+  bool get priceSaveSuccess;
   @override
   Map<String, String> get errors;
 

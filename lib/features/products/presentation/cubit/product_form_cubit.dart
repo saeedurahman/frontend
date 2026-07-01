@@ -1,13 +1,17 @@
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_config.dart';
 import 'package:frantend/core/services/image_upload_service.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
 import 'package:frantend/features/products/domain/usecases/add_barcode_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/add_variation_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/create_product_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
+import 'package:frantend/features/products/domain/usecases/product_pricing_usecases.dart';
 import 'package:frantend/features/products/domain/usecases/update_product_usecase.dart';
 import 'package:frantend/features/products/presentation/cubit/product_form_state.dart';
 import 'package:frantend/features/products/presentation/utils/variation_utils.dart';
@@ -22,13 +26,21 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     required UpdateProductUseCase updateProductUseCase,
     required AddVariationUseCase addVariationUseCase,
     required AddBarcodeUseCase addBarcodeUseCase,
+    required GetPriceListsUseCase getPriceListsUseCase,
+    required GetProductPriceUseCase getProductPriceUseCase,
+    required SetProductPriceUseCase setProductPriceUseCase,
     required ImageUploadService imageUploadService,
+    required AuthLocalDataSource authLocalDataSource,
   })  : _getProductById = getProductByIdUseCase,
         _createProduct = createProductUseCase,
         _updateProduct = updateProductUseCase,
         _addVariation = addVariationUseCase,
         _addBarcode = addBarcodeUseCase,
+        _getPriceLists = getPriceListsUseCase,
+        _getProductPrice = getProductPriceUseCase,
+        _setProductPrice = setProductPriceUseCase,
         _imageUpload = imageUploadService,
+        _authLocal = authLocalDataSource,
         super(const ProductFormState());
 
   final GetProductByIdUseCase _getProductById;
@@ -36,8 +48,153 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   final UpdateProductUseCase _updateProduct;
   final AddVariationUseCase _addVariation;
   final AddBarcodeUseCase _addBarcode;
+  final GetPriceListsUseCase _getPriceLists;
+  final GetProductPriceUseCase _getProductPrice;
+  final SetProductPriceUseCase _setProductPrice;
   final ImageUploadService _imageUpload;
+  final AuthLocalDataSource _authLocal;
   final ImagePicker _imagePicker = ImagePicker();
+
+  Future<bool> _canManagePrices() async {
+    final user = await _authLocal.getCachedUser();
+    return UserRoleUtils.canManagePrices(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    );
+  }
+
+  String? _defaultVariationId() {
+    final withId = state.variations.where((v) => v.id != null).toList();
+    if (withId.isEmpty) return null;
+    final defaultVar = withId.cast<VariationFormItem?>().firstWhere(
+          (v) => v!.isDefault,
+          orElse: () => withId.first,
+        );
+    return defaultVar?.id;
+  }
+
+  Future<String?> _resolveDefaultPriceListId() async {
+    if (state.defaultPriceListId != null) return state.defaultPriceListId;
+
+    final listsResult = await _getPriceLists();
+    return listsResult.fold((_) => null, (lists) {
+      if (lists.isEmpty) return null;
+      return lists
+          .firstWhere(
+            (l) => l.isDefault,
+            orElse: () => lists.first,
+          )
+          .id;
+    });
+  }
+
+  void clearPriceSaveSuccess() =>
+      emit(state.copyWith(priceSaveSuccess: false));
+
+  Future<void> loadProductPrice() async {
+    final productId = state.productId;
+    if (productId == null) return;
+
+    emit(state.copyWith(isLoadingPrice: true, priceError: null));
+
+    final variationId = _defaultVariationId();
+    final priceResult = await _getProductPrice(
+      productId,
+      variationId: variationId,
+    );
+
+    await priceResult.fold(
+      (failure) async {
+        emit(
+          state.copyWith(
+            isLoadingPrice: false,
+            priceError: failure.message,
+          ),
+        );
+      },
+      (price) async {
+        final listId = price?.priceListId ?? await _resolveDefaultPriceListId();
+        emit(
+          state.copyWith(
+            isLoadingPrice: false,
+            retailUnitPrice: price?.unitPrice,
+            minQty: price?.minQty,
+            defaultPriceListId: listId,
+            priceListItemId: price?.id,
+            priceError: null,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<bool> saveProductPrice({
+    required String unitPrice,
+    String? minQty,
+  }) async {
+    final productId = state.productId;
+    if (productId == null) return false;
+
+    final trimmed = unitPrice.trim();
+    final parsed = Decimal.tryParse(trimmed);
+    if (parsed == null || parsed <= Decimal.zero) {
+      emit(
+        state.copyWith(
+          priceError: 'Enter a valid price greater than 0',
+          priceSaveSuccess: false,
+        ),
+      );
+      return false;
+    }
+
+    final listId = await _resolveDefaultPriceListId();
+    if (listId == null) {
+      emit(
+        state.copyWith(
+          priceError: 'No price list configured for this business',
+          priceSaveSuccess: false,
+        ),
+      );
+      return false;
+    }
+
+    emit(state.copyWith(isSavingPrice: true, priceError: null));
+
+    final variationId = _defaultVariationId();
+    final body = <String, dynamic>{
+      'unit_price': trimmed,
+      if (minQty != null && minQty.trim().isNotEmpty) 'min_qty': minQty.trim(),
+      if (variationId != null) 'variation_id': variationId,
+    };
+
+    final result = await _setProductPrice(productId, listId, body);
+    return result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            isSavingPrice: false,
+            priceError: failure.message,
+            priceSaveSuccess: false,
+          ),
+        );
+        return false;
+      },
+      (saved) {
+        emit(
+          state.copyWith(
+            isSavingPrice: false,
+            retailUnitPrice: saved.unitPrice ?? trimmed,
+            minQty: saved.minQty ?? minQty?.trim(),
+            defaultPriceListId: saved.priceListId ?? listId,
+            priceListItemId: saved.id,
+            priceError: null,
+            priceSaveSuccess: true,
+          ),
+        );
+        return true;
+      },
+    );
+  }
 
   void initCreate() {
     emit(const ProductFormState(mode: 'create'));
@@ -47,11 +204,17 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     emit(state.copyWith(isLoading: true, mode: 'edit', productId: productId));
 
     final result = await _getProductById(productId);
-    result.fold(
-      (failure) => emit(
-        state.copyWith(isLoading: false, errors: {'_general': failure.message}),
-      ),
-      (product) {
+    await result.fold(
+      (failure) async {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errors: {'_general': failure.message},
+          ),
+        );
+      },
+      (product) async {
+        final canManagePrices = await _canManagePrices();
         emit(
           ProductFormState(
             mode: 'edit',
@@ -71,6 +234,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
             shelfLifeDays: product.shelfLifeDays,
             minStockLevel: product.minStockLevel,
             maxStockLevel: product.maxStockLevel,
+            canManagePrices: canManagePrices,
             variations: product.variations
                 .map(
                   (v) => VariationFormItem(
@@ -97,6 +261,9 @@ class ProductFormCubit extends Cubit<ProductFormState> {
             ],
           ),
         );
+        if (canManagePrices) {
+          await loadProductPrice();
+        }
       },
     );
   }

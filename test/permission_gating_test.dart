@@ -29,6 +29,15 @@ const _managerExtraKeys = [
   'users.roles.manage',
 ];
 
+const _manufacturingKeys = [
+  'manufacturing.bom.view',
+  'manufacturing.bom.manage',
+  'manufacturing.production.view',
+  'manufacturing.production.create',
+  'manufacturing.production.complete',
+  'manufacturing.production.cancel',
+];
+
 void main() {
   group('cashier permission seed', () {
     test('cashier can create sales and open/close shifts', () {
@@ -63,6 +72,69 @@ void main() {
         UserRoleUtils.canManageRoles(role: 'cashier', permissionKeys: _cashierKeys),
         isFalse,
       );
+      expect(
+        UserRoleUtils.canAccessManufacturing(
+          role: 'cashier',
+          permissionKeys: _cashierKeys,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('manufacturing permissions', () {
+    test('cashier seed has zero manufacturing access', () {
+      expect(
+        UserRoleUtils.canViewBom(role: 'cashier', permissionKeys: _cashierKeys),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canManageBom(role: 'cashier', permissionKeys: _cashierKeys),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canViewProduction(
+          role: 'cashier',
+          permissionKeys: _cashierKeys,
+        ),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canCompleteProduction(
+          role: 'cashier',
+          permissionKeys: _cashierKeys,
+        ),
+        isFalse,
+      );
+    });
+
+    test('manager with manufacturing keys can access module', () {
+      final keys = [..._cashierKeys, ..._managerExtraKeys, ..._manufacturingKeys];
+
+      expect(
+        UserRoleUtils.canAccessManufacturing(
+          role: 'manager',
+          permissionKeys: keys,
+        ),
+        isTrue,
+      );
+      expect(
+        UserRoleUtils.canManageBom(role: 'manager', permissionKeys: keys),
+        isTrue,
+      );
+      expect(
+        UserRoleUtils.canCompleteProduction(
+          role: 'manager',
+          permissionKeys: keys,
+        ),
+        isTrue,
+      );
+    });
+
+    test('owner passes manufacturing checks when permission_keys empty', () {
+      expect(UserRoleUtils.canAccessManufacturing(role: 'owner'), isTrue);
+      expect(UserRoleUtils.canManageBom(role: 'owner'), isTrue);
+      expect(UserRoleUtils.canCompleteProduction(role: 'owner'), isTrue);
     });
   });
 

@@ -95,7 +95,7 @@ class _KitchenToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final refreshedLabel = lastRefreshedAt == null
-        ? 'Auto-refresh every 30s'
+        ? 'Auto-refresh every 10s'
         : 'Updated ${_formatTime(lastRefreshedAt!)}';
 
     return Padding(

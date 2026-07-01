@@ -9,6 +9,7 @@ import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
@@ -308,6 +309,46 @@ class ProductsRepositoryImpl implements ProductsRepository {
   ) async {
     try {
       final result = await _remote.createUnit(body);
+      return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<PriceListModel>>> getPriceLists() async {
+    try {
+      final result = await _remote.getPriceLists();
+      return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProductPriceModel?>> getProductPrice(
+    String productId, {
+    String? variationId,
+  }) async {
+    try {
+      final result = await _remote.getProductPrice(
+        productId,
+        variationId: variationId,
+      );
+      return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProductPriceModel>> setProductPrice(
+    String productId,
+    String priceListId,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final result = await _remote.setProductPrice(productId, priceListId, body);
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

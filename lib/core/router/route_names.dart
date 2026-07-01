@@ -20,6 +20,16 @@ abstract final class RouteNames {
   static const String productDetail = '/products/:id';
   static const String productNew = '/products/new';
   static const String inventory = '/inventory';
+  static const String manufacturing = '/manufacturing';
+  static const String manufacturingProductionNew = '/manufacturing/new';
+  static const String manufacturingProductionDetail = '/manufacturing/:orderId';
+  static String manufacturingProductionDetailPath(String id) => '/manufacturing/$id';
+
+  static const String manufacturingBoms = '/manufacturing/boms';
+  static const String manufacturingBomNew = '/manufacturing/boms/new';
+  static const String manufacturingBomDetail = '/manufacturing/boms/:bomId';
+  static String manufacturingBomDetailPath(String id) => '/manufacturing/boms/$id';
+
   static const String purchases = '/purchases';
   static const String purchaseOrderNew = '/purchases/new';
   static const String purchaseOrderDetail = '/purchases/:id';
@@ -55,6 +65,18 @@ abstract final class RouteNames {
   static const String shifts = '/cash-register/shifts';
   static const String analytics = '/analytics';
   static const String reports = '/reports';
+  static const String accounting = '/accounting';
+  static const String accountingJournalNew = '/accounting/new';
+  static const String accountingJournalDetail = '/accounting/:entryId';
+  static const String accountingJournalEdit = '/accounting/:entryId/edit';
+  static String accountingJournalDetailPath(String id) => '/accounting/$id';
+  static String accountingJournalEditPath(String id) => '/accounting/$id/edit';
+
+  static const String accountingCoaList = '/accounting/coa';
+  static const String accountingCoaNew = '/accounting/coa/new';
+  static const String accountingCoaDetail = '/accounting/coa/:accountId';
+  static String accountingCoaDetailPath(String id) => '/accounting/coa/$id';
+
   static const String settings = '/settings';
   static const String settingsBusiness = '/settings/business';
   static const String settingsReceipt = '/settings/receipt';

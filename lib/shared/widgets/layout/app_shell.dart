@@ -232,6 +232,13 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.purchases,
                     isActive: location.startsWith(RouteNames.purchases),
                   ),
+                  if (_showManufacturingNav(user))
+                    _NavItem(
+                      icon: Icons.precision_manufacturing_outlined,
+                      label: 'Manufacturing',
+                      routePath: RouteNames.manufacturing,
+                      isActive: location.startsWith(RouteNames.manufacturing),
+                    ),
                   const _SectionLabel('SALES'),
                   _NavItem(
                     icon: Icons.receipt_long_outlined,
@@ -282,6 +289,13 @@ class _Sidebar extends StatelessWidget {
                     routePath: RouteNames.suppliers,
                     isActive: location.startsWith(RouteNames.suppliers),
                   ),
+                  if (_showAccountingNav(user))
+                    _NavItem(
+                      icon: Icons.account_balance_outlined,
+                      label: 'Accounting',
+                      routePath: RouteNames.accounting,
+                      isActive: location.startsWith(RouteNames.accounting),
+                    ),
                   if (UserRoleUtils.canViewShifts(
                     role: user?.role,
                     permissionKeys: user?.permissionKeys ?? const [],
@@ -690,6 +704,8 @@ class _GlobalSearchDelegate extends SearchDelegate<String?> {
         const _SearchRouteItem('Products', RouteNames.products),
         const _SearchRouteItem('Inventory', RouteNames.inventory),
         const _SearchRouteItem('Purchases', RouteNames.purchases),
+        if (_showManufacturingNav(user))
+          const _SearchRouteItem('Manufacturing', RouteNames.manufacturing),
         const _SearchRouteItem('Sales', RouteNames.sales),
         if (UserRoleUtils.canViewReturns(
           role: user?.role,
@@ -699,6 +715,8 @@ class _GlobalSearchDelegate extends SearchDelegate<String?> {
         const _SearchRouteItem('Customers', RouteNames.customers),
         const _SearchRouteItem('Expenses', RouteNames.expenses),
         const _SearchRouteItem('Suppliers', RouteNames.suppliers),
+        if (_showAccountingNav(user))
+          const _SearchRouteItem('Accounting', RouteNames.accounting),
         if (UserRoleUtils.canViewShifts(
           role: user?.role,
           permissionKeys: user?.permissionKeys ?? const [],
@@ -788,6 +806,24 @@ bool _showKitchenNav(UserModel? user) {
         permissionKeys: user?.permissionKeys ?? const [],
       ) &&
       !UserRoleUtils.isKitchenOnlyUser(
+        role: user?.role,
+        permissionKeys: user?.permissionKeys ?? const [],
+      );
+}
+
+bool _showManufacturingNav(UserModel? user) {
+  final flags = sl<BusinessSessionCubit>().state.flags;
+  return flags.showManufacturingNav &&
+      UserRoleUtils.canAccessManufacturing(
+        role: user?.role,
+        permissionKeys: user?.permissionKeys ?? const [],
+      );
+}
+
+bool _showAccountingNav(UserModel? user) {
+  final flags = sl<BusinessSessionCubit>().state.flags;
+  return flags.showAccountingNav &&
+      UserRoleUtils.canAccessAccounting(
         role: user?.role,
         permissionKeys: user?.permissionKeys ?? const [],
       );

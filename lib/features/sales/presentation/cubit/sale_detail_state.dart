@@ -15,6 +15,7 @@ sealed class SaleDetailState with _$SaleDetailState {
     CustomerModel? customer,
     @Default(false) bool isCancelling,
     @Default(false) bool isVoiding,
+    String? voidError,
     bool? registerShiftOpen,
     @Default(false) bool canCancelSales,
     @Default(false) bool canCreateReturn,

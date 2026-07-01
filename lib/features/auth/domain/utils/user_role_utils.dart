@@ -9,6 +9,7 @@ class UserRoleUtils {
   static const createUsersPermission = 'users.create';
   static const updateUsersPermission = 'users.update';
   static const deleteUsersPermission = 'users.delete';
+  static const managePricesPermission = 'products.manage_prices';
   static const viewReturnsPermission = 'sales.returns.view';
   static const createReturnsPermission = 'sales.returns.create';
   static const cancelSalesPermission = 'sales.cancel';
@@ -25,6 +26,19 @@ class UserRoleUtils {
   static const updateKotPermission = 'restaurant.kot.update_status';
   static const _legacyUpdateKotPermission = 'restaurant.kot.update';
   static const fireKotPermission = 'restaurant.kot.fire';
+
+  static const viewBomPermission = 'manufacturing.bom.view';
+  static const manageBomPermission = 'manufacturing.bom.manage';
+  static const viewProductionPermission = 'manufacturing.production.view';
+  static const createProductionPermission = 'manufacturing.production.create';
+  static const completeProductionPermission = 'manufacturing.production.complete';
+  static const cancelProductionPermission = 'manufacturing.production.cancel';
+
+  static const viewCoaPermission = 'accounting.coa.view';
+  static const manageCoaPermission = 'accounting.coa.manage';
+  static const viewJournalPermission = 'accounting.journal.view';
+  static const createJournalPermission = 'accounting.journal.create';
+  static const postJournalPermission = 'accounting.journal.post';
 
   static String _normalize(String? role) =>
       role?.toLowerCase().trim() ?? '';
@@ -110,6 +124,15 @@ class UserRoleUtils {
         permissionKeys: permissionKeys,
         permission: deleteUsersPermission,
       );
+
+  /// Retail price on default price list — owner/manager or explicit permission.
+  static bool canManagePrices({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      isOwner(role) ||
+      isManager(role) ||
+      hasPermission(permissionKeys, managePricesPermission);
 
   static bool canViewReturns({
     String? role,
@@ -232,4 +255,130 @@ class UserRoleUtils {
   /// Analytics / financial reports require manager or owner.
   static bool canViewReports(String? role) =>
       isOwner(role) || isManager(role);
+
+  static bool canViewBom({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewBomPermission,
+      );
+
+  static bool canManageBom({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: manageBomPermission,
+      );
+
+  static bool canViewProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewProductionPermission,
+      );
+
+  static bool canCreateProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: createProductionPermission,
+      );
+
+  static bool canCompleteProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: completeProductionPermission,
+      );
+
+  static bool canCancelProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: cancelProductionPermission,
+      );
+
+  /// Sidebar manufacturing section: any manufacturing view permission.
+  static bool canAccessManufacturing({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      canViewProduction(role: role, permissionKeys: permissionKeys) ||
+      canViewBom(role: role, permissionKeys: permissionKeys);
+
+  static bool canViewCoa({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewCoaPermission,
+      );
+
+  static bool canManageCoa({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: manageCoaPermission,
+      );
+
+  static bool canViewJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: viewJournalPermission,
+      );
+
+  static bool canCreateJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: createJournalPermission,
+      );
+
+  static bool canPostJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: postJournalPermission,
+      );
+
+  /// Sidebar accounting section: any accounting view permission.
+  static bool canAccessAccounting({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      canViewCoa(role: role, permissionKeys: permissionKeys) ||
+      canViewJournal(role: role, permissionKeys: permissionKeys);
 }

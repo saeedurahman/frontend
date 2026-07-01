@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/session/business_session_cubit.dart';
 import 'package:frantend/features/auth/presentation/pages/landing_page.dart';
 import 'package:frantend/features/auth/presentation/pages/login_page.dart';
 import 'package:frantend/features/auth/presentation/pages/pin_login_page.dart';
@@ -33,6 +34,16 @@ import 'package:frantend/features/purchases/presentation/pages/goods_receipt_pag
 import 'package:frantend/features/purchases/presentation/pages/purchase_order_detail_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/purchase_order_form_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/purchase_orders_list_page.dart';
+import 'package:frantend/features/accounting/presentation/pages/coa_form_page.dart';
+import 'package:frantend/features/accounting/presentation/pages/coa_list_page.dart';
+import 'package:frantend/features/accounting/presentation/pages/journal_entries_list_page.dart';
+import 'package:frantend/features/accounting/presentation/pages/journal_entry_detail_page.dart';
+import 'package:frantend/features/accounting/presentation/pages/journal_entry_form_page.dart';
+import 'package:frantend/features/manufacturing/presentation/pages/bom_form_page.dart';
+import 'package:frantend/features/manufacturing/presentation/pages/boms_list_page.dart';
+import 'package:frantend/features/manufacturing/presentation/pages/production_order_detail_page.dart';
+import 'package:frantend/features/manufacturing/presentation/pages/production_order_form_page.dart';
+import 'package:frantend/features/manufacturing/presentation/pages/production_orders_list_page.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/presentation/pages/close_shift_page.dart';
 import 'package:frantend/features/cash_register/presentation/pages/current_shift_page.dart';
@@ -54,7 +65,6 @@ import 'package:frantend/features/roles/presentation/pages/role_form_page.dart';
 import 'package:frantend/features/roles/presentation/pages/roles_list_page.dart';
 import 'package:frantend/features/users/presentation/pages/user_form_page.dart';
 import 'package:frantend/features/users/presentation/pages/users_list_page.dart';
-import 'package:frantend/shared/widgets/feature_placeholder_page.dart';
 import 'package:frantend/shared/widgets/layout/kitchen_shell.dart';
 import 'package:frantend/shared/widgets/layout/app_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -122,6 +132,11 @@ class AppRouter {
         routes: [
           GoRoute(
             path: RouteNames.kitchen,
+            redirect: (_, __) {
+              final flags = sl<BusinessSessionCubit>().state.flags;
+              if (!flags.showKitchenNav) return RouteNames.dashboard;
+              return null;
+            },
             builder: (_, __) => const KitchenDisplayPage(),
           ),
         ],
@@ -220,6 +235,43 @@ class AppRouter {
             ],
           ),
           GoRoute(
+            path: RouteNames.manufacturing,
+            redirect: (_, __) {
+              final flags = sl<BusinessSessionCubit>().state.flags;
+              if (!flags.showManufacturingNav) return RouteNames.dashboard;
+              return null;
+            },
+            builder: (_, __) => const ProductionOrdersListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const ProductionOrderFormPage(),
+              ),
+              GoRoute(
+                path: 'boms',
+                builder: (_, __) => const BomsListPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (_, __) => const BomFormPage(),
+                  ),
+                  GoRoute(
+                    path: ':bomId',
+                    builder: (_, state) => BomFormPage(
+                      bomId: state.pathParameters['bomId'],
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: ':orderId',
+                builder: (_, state) => ProductionOrderDetailPage(
+                  orderId: state.pathParameters['orderId']!,
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
             path: RouteNames.sales,
             builder: (_, __) => const SalesListPage(),
             routes: [
@@ -253,6 +305,11 @@ class AppRouter {
           ),
           GoRoute(
             path: RouteNames.restaurantTables,
+            redirect: (_, __) {
+              final flags = sl<BusinessSessionCubit>().state.flags;
+              if (!flags.showTablesNav) return RouteNames.dashboard;
+              return null;
+            },
             builder: (_, __) => const TablesFloorPage(),
           ),
           GoRoute(
@@ -312,6 +369,51 @@ class AppRouter {
                 builder: (_, state) => ExpenseDetailPage(
                   expenseId: state.pathParameters['id']!,
                 ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.accounting,
+            redirect: (_, __) {
+              final flags = sl<BusinessSessionCubit>().state.flags;
+              if (!flags.showAccountingNav) return RouteNames.dashboard;
+              return null;
+            },
+            builder: (_, __) => const JournalEntriesListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, __) => const JournalEntryFormPage(),
+              ),
+              GoRoute(
+                path: 'coa',
+                builder: (_, __) => const CoaListPage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (_, __) => const CoaFormPage(),
+                  ),
+                  GoRoute(
+                    path: ':accountId',
+                    builder: (_, state) => CoaFormPage(
+                      accountId: state.pathParameters['accountId'],
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: ':entryId',
+                builder: (_, state) => JournalEntryDetailPage(
+                  entryId: state.pathParameters['entryId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, state) => JournalEntryFormPage(
+                      entryId: state.pathParameters['entryId'],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -428,6 +530,31 @@ class AppRouter {
   if (path.startsWith(RouteNames.products)) return ('Products', 'Home / Catalog / Products');
   if (path.startsWith(RouteNames.inventory)) return ('Inventory', 'Home / Inventory');
   if (path.startsWith(RouteNames.purchases)) return ('Purchases', 'Home / Inventory / Purchases');
+  if (path.startsWith(RouteNames.manufacturing)) {
+    if (path.endsWith('/new') && !path.contains('/boms')) {
+      return (
+        'New Production Order',
+        'Home / Inventory / Manufacturing / New'
+      );
+    }
+    if (RegExp(r'^/manufacturing/[^/]+$').hasMatch(path) &&
+        !path.startsWith(RouteNames.manufacturingBoms)) {
+      return (
+        'Production Detail',
+        'Home / Inventory / Manufacturing / Detail'
+      );
+    }
+    if (path.contains('/boms/') && path.endsWith('/new')) {
+      return ('New BOM', 'Home / Inventory / Manufacturing / BOMs / New');
+    }
+    if (RegExp(r'^/manufacturing/boms/[^/]+$').hasMatch(path)) {
+      return ('Edit BOM', 'Home / Inventory / Manufacturing / BOMs / Edit');
+    }
+    if (path.startsWith(RouteNames.manufacturingBoms)) {
+      return ('BOMs', 'Home / Inventory / Manufacturing / BOMs');
+    }
+    return ('Manufacturing', 'Home / Inventory / Manufacturing');
+  }
   if (path.startsWith(RouteNames.sales)) return ('Sales', 'Home / Sales');
   if (path.startsWith(RouteNames.returns)) {
     if (RegExp(r'^/returns/[^/]+$').hasMatch(path) && path != RouteNames.returns) {
@@ -443,6 +570,28 @@ class AppRouter {
   }
   if (path.startsWith(RouteNames.customers)) return ('Customers', 'Home / Sales / Customers');
   if (path.startsWith(RouteNames.expenses)) return ('Expenses', 'Home / Finance / Expenses');
+  if (path.startsWith(RouteNames.accounting)) {
+    if (path.endsWith('/new') && !path.contains('/coa')) {
+      return ('New Journal Entry', 'Home / Finance / Accounting / New');
+    }
+    if (RegExp(r'^/accounting/[^/]+/edit$').hasMatch(path)) {
+      return ('Edit Journal Entry', 'Home / Finance / Accounting / Edit');
+    }
+    if (RegExp(r'^/accounting/[^/]+$').hasMatch(path) &&
+        !path.startsWith(RouteNames.accountingCoaList)) {
+      return ('Journal Entry Detail', 'Home / Finance / Accounting / Detail');
+    }
+    if (path.contains('/coa/') && path.endsWith('/new')) {
+      return ('New Account', 'Home / Finance / Accounting / CoA / New');
+    }
+    if (RegExp(r'^/accounting/coa/[^/]+$').hasMatch(path)) {
+      return ('Account Detail', 'Home / Finance / Accounting / CoA / Edit');
+    }
+    if (path.startsWith(RouteNames.accountingCoaList)) {
+      return ('Chart of Accounts', 'Home / Finance / Accounting / CoA');
+    }
+    return ('Journal Entries', 'Home / Finance / Accounting');
+  }
   if (path.startsWith(RouteNames.suppliers)) return ('Suppliers', 'Home / Finance / Suppliers');
   if (path.startsWith(RouteNames.cashRegister)) return ('Cash Register', 'Home / Finance / Cash Register');
   if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');

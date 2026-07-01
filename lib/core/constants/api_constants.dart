@@ -64,6 +64,9 @@ abstract final class ApiConstants {
 
   static String productPrice(String productId) => '/prices/product/$productId';
 
+  static String productPriceInList(String productId, String priceListId) =>
+      '/prices/product/$productId/list/$priceListId';
+
   // Customers
   static const String customers = '/customers';
   static String customerBalance(String id) => '/customers/$id/balance';
@@ -179,6 +182,34 @@ abstract final class ApiConstants {
   static String saleFireTab(String saleId) => '/sales/$saleId/fire';
   static String saleRequestBill(String saleId) => '/sales/$saleId/request-bill';
   static String saleCompleteTab(String saleId) => '/sales/$saleId/complete';
+
+  // Manufacturing — BOM & production orders
+  static const String manufacturingBoms = '/manufacturing/boms';
+  static const String manufacturingBomsPreview = '/manufacturing/boms/preview';
+  static String manufacturingBom(String id) => '/manufacturing/boms/$id';
+  static String manufacturingBomsByProduct(String productId) =>
+      '/manufacturing/boms/by-product/$productId';
+
+  static const String manufacturingProductionOrders =
+      '/manufacturing/production-orders';
+  static String manufacturingProductionOrder(String id) =>
+      '/manufacturing/production-orders/$id';
+  static String manufacturingProductionOrderStart(String id) =>
+      '/manufacturing/production-orders/$id/start';
+  static String manufacturingProductionOrderCancel(String id) =>
+      '/manufacturing/production-orders/$id/cancel';
+  static String manufacturingProductionOrderComplete(String id) =>
+      '/manufacturing/production-orders/$id/complete';
+
+  // Accounting — chart of accounts & journal entries
+  static const String accountingCoa = '/accounting/coa';
+  static String accountingCoaById(String id) => '/accounting/coa/$id';
+
+  static const String accountingJournalEntries = '/accounting/journal-entries';
+  static String accountingJournalEntry(String id) =>
+      '/accounting/journal-entries/$id';
+  static String accountingJournalEntryPost(String id) =>
+      '/accounting/journal-entries/$id/post';
 
   // Restaurant — kitchen KOT
   static const String restaurantKotActive = '/restaurant/kot/active';

@@ -53,6 +53,15 @@ class ProductFormState with _$ProductFormState {
     @Default(false) bool isSubmitting,
     @Default(false) bool isUploadingImage,
     String? imageUploadError,
+    @Default(false) bool canManagePrices,
+    String? retailUnitPrice,
+    String? minQty,
+    String? defaultPriceListId,
+    String? priceListItemId,
+    @Default(false) bool isLoadingPrice,
+    @Default(false) bool isSavingPrice,
+    String? priceError,
+    @Default(false) bool priceSaveSuccess,
     @Default({}) Map<String, String> errors,
   }) = _ProductFormState;
 }

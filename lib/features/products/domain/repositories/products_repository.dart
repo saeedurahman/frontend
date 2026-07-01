@@ -4,6 +4,7 @@ import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
@@ -52,4 +53,15 @@ abstract class ProductsRepository {
 
   Future<Either<Failure, List<UnitModel>>> getUnits();
   Future<Either<Failure, UnitModel>> createUnit(Map<String, dynamic> body);
+
+  Future<Either<Failure, List<PriceListModel>>> getPriceLists();
+  Future<Either<Failure, ProductPriceModel?>> getProductPrice(
+    String productId, {
+    String? variationId,
+  });
+  Future<Either<Failure, ProductPriceModel>> setProductPrice(
+    String productId,
+    String priceListId,
+    Map<String, dynamic> body,
+  );
 }

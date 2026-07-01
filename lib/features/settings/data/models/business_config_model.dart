@@ -13,6 +13,9 @@ class BusinessConfigModel with _$BusinessConfigModel {
     @JsonKey(name: 'enable_manufacturing')
     @Default(false)
     bool enableManufacturing,
+    @JsonKey(name: 'enable_accounting')
+    @Default(false)
+    bool enableAccounting,
     @JsonKey(name: 'enable_weight_billing')
     @Default(false)
     bool enableWeightBilling,

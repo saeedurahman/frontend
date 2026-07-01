@@ -136,8 +136,12 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
     final result = await _voidSale(current.sale.id);
     return result.fold(
       (failure) {
-        emit(current.copyWith(isVoiding: false));
-        emit(SaleDetailState.error(failure.message));
+        emit(
+          current.copyWith(
+            isVoiding: false,
+            voidError: failure.message,
+          ),
+        );
         return false;
       },
       (sale) async {
@@ -153,5 +157,12 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
         return true;
       },
     );
+  }
+
+  void clearVoidError() {
+    final current = state;
+    if (current is SaleDetailLoaded && current.voidError != null) {
+      emit(current.copyWith(voidError: null));
+    }
   }
 }

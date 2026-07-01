@@ -26,6 +26,7 @@ mixin _$SaleDetailState {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -42,6 +43,7 @@ mixin _$SaleDetailState {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -58,6 +60,7 @@ mixin _$SaleDetailState {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -162,6 +165,7 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -182,6 +186,7 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -202,6 +207,7 @@ class _$SaleDetailInitialImpl implements SaleDetailInitial {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -308,6 +314,7 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -328,6 +335,7 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -348,6 +356,7 @@ class _$SaleDetailLoadingImpl implements SaleDetailLoading {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -416,6 +425,7 @@ abstract class _$$SaleDetailLoadedImplCopyWith<$Res> {
     CustomerModel? customer,
     bool isCancelling,
     bool isVoiding,
+    String? voidError,
     bool? registerShiftOpen,
     bool canCancelSales,
     bool canCreateReturn,
@@ -443,6 +453,7 @@ class __$$SaleDetailLoadedImplCopyWithImpl<$Res>
     Object? customer = freezed,
     Object? isCancelling = null,
     Object? isVoiding = null,
+    Object? voidError = freezed,
     Object? registerShiftOpen = freezed,
     Object? canCancelSales = null,
     Object? canCreateReturn = null,
@@ -465,6 +476,10 @@ class __$$SaleDetailLoadedImplCopyWithImpl<$Res>
             ? _value.isVoiding
             : isVoiding // ignore: cast_nullable_to_non_nullable
                   as bool,
+        voidError: freezed == voidError
+            ? _value.voidError
+            : voidError // ignore: cast_nullable_to_non_nullable
+                  as String?,
         registerShiftOpen: freezed == registerShiftOpen
             ? _value.registerShiftOpen
             : registerShiftOpen // ignore: cast_nullable_to_non_nullable
@@ -514,6 +529,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
     this.customer,
     this.isCancelling = false,
     this.isVoiding = false,
+    this.voidError,
     this.registerShiftOpen,
     this.canCancelSales = false,
     this.canCreateReturn = false,
@@ -530,6 +546,8 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
   @JsonKey()
   final bool isVoiding;
   @override
+  final String? voidError;
+  @override
   final bool? registerShiftOpen;
   @override
   @JsonKey()
@@ -540,7 +558,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
 
   @override
   String toString() {
-    return 'SaleDetailState.loaded(sale: $sale, customer: $customer, isCancelling: $isCancelling, isVoiding: $isVoiding, registerShiftOpen: $registerShiftOpen, canCancelSales: $canCancelSales, canCreateReturn: $canCreateReturn)';
+    return 'SaleDetailState.loaded(sale: $sale, customer: $customer, isCancelling: $isCancelling, isVoiding: $isVoiding, voidError: $voidError, registerShiftOpen: $registerShiftOpen, canCancelSales: $canCancelSales, canCreateReturn: $canCreateReturn)';
   }
 
   @override
@@ -555,6 +573,8 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
                 other.isCancelling == isCancelling) &&
             (identical(other.isVoiding, isVoiding) ||
                 other.isVoiding == isVoiding) &&
+            (identical(other.voidError, voidError) ||
+                other.voidError == voidError) &&
             (identical(other.registerShiftOpen, registerShiftOpen) ||
                 other.registerShiftOpen == registerShiftOpen) &&
             (identical(other.canCancelSales, canCancelSales) ||
@@ -570,6 +590,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
     customer,
     isCancelling,
     isVoiding,
+    voidError,
     registerShiftOpen,
     canCancelSales,
     canCreateReturn,
@@ -596,6 +617,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -608,6 +630,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       customer,
       isCancelling,
       isVoiding,
+      voidError,
       registerShiftOpen,
       canCancelSales,
       canCreateReturn,
@@ -624,6 +647,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -636,6 +660,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       customer,
       isCancelling,
       isVoiding,
+      voidError,
       registerShiftOpen,
       canCancelSales,
       canCreateReturn,
@@ -652,6 +677,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -666,6 +692,7 @@ class _$SaleDetailLoadedImpl implements SaleDetailLoaded {
         customer,
         isCancelling,
         isVoiding,
+        voidError,
         registerShiftOpen,
         canCancelSales,
         canCreateReturn,
@@ -718,6 +745,7 @@ abstract class SaleDetailLoaded implements SaleDetailState {
     final CustomerModel? customer,
     final bool isCancelling,
     final bool isVoiding,
+    final String? voidError,
     final bool? registerShiftOpen,
     final bool canCancelSales,
     final bool canCreateReturn,
@@ -727,6 +755,7 @@ abstract class SaleDetailLoaded implements SaleDetailState {
   CustomerModel? get customer;
   bool get isCancelling;
   bool get isVoiding;
+  String? get voidError;
   bool? get registerShiftOpen;
   bool get canCancelSales;
   bool get canCreateReturn;
@@ -818,6 +847,7 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -838,6 +868,7 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
@@ -858,6 +889,7 @@ class _$SaleDetailErrorImpl implements SaleDetailError {
       CustomerModel? customer,
       bool isCancelling,
       bool isVoiding,
+      String? voidError,
       bool? registerShiftOpen,
       bool canCancelSales,
       bool canCreateReturn,
