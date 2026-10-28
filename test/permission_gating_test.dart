@@ -161,6 +161,48 @@ void main() {
     });
   });
 
+  group('void / notifications / reset-password gating', () {
+    test('sales.cancel alone does not allow voiding', () {
+      final keys = [..._cashierKeys, 'sales.cancel'];
+      expect(
+        UserRoleUtils.canVoidSales(role: 'manager', permissionKeys: keys),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canVoidSales(
+          role: 'manager',
+          permissionKeys: [...keys, 'sales.void'],
+        ),
+        isTrue,
+      );
+    });
+
+    test('cashier cannot void or run notification alert checks', () {
+      expect(
+        UserRoleUtils.canVoidSales(
+            role: 'cashier', permissionKeys: _cashierKeys),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canManageNotifications(
+            role: 'cashier', permissionKeys: _cashierKeys),
+        isFalse,
+      );
+      expect(
+        UserRoleUtils.canManageNotifications(
+          role: 'manager',
+          permissionKeys: [..._cashierKeys, 'notifications.manage'],
+        ),
+        isTrue,
+      );
+    });
+
+    test('legacy owner cache (no keys) keeps access', () {
+      expect(UserRoleUtils.canVoidSales(role: 'owner'), isTrue);
+      expect(UserRoleUtils.canManageNotifications(role: 'owner'), isTrue);
+    });
+  });
+
   group('empty permission keys owner fallback', () {
     test('owner role passes when permission_keys empty (legacy cache)', () {
       expect(UserRoleUtils.canCreateSales(role: 'owner'), isTrue);

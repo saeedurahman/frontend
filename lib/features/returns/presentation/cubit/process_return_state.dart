@@ -109,6 +109,6 @@ class ProcessReturnState with _$ProcessReturnState {
       reason != null &&
       reason!.isNotEmpty &&
       (reason != 'Other' || (notes != null && notes!.trim().isNotEmpty)) &&
-      totalRefundEntered >= totalReturnAmount &&
+      totalRefundEntered == totalReturnAmount &&
       totalReturnAmount > Decimal.zero;
 }

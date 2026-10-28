@@ -100,3 +100,15 @@ class ResetUserPinUseCase {
         currentPin: currentPin,
       );
 }
+
+@injectable
+class ResetUserPasswordUseCase {
+  const ResetUserPasswordUseCase(this._repository);
+  final UsersRepository _repository;
+
+  Future<Either<Failure, void>> call({
+    required String id,
+    required String newPassword,
+  }) =>
+      _repository.resetUserPassword(id: id, newPassword: newPassword);
+}

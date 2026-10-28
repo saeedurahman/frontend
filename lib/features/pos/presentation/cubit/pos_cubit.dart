@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/database/daos/held_orders_dao.dart';
+import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
+import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart'
+    as customers_uc;
+import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
+import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
+import 'package:frantend/features/pos/presentation/models/held_resume_result.dart';
 import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
@@ -75,6 +82,9 @@ class PosCubitBase extends Cubit<PosState> {
     required AuthLocalDataSource authLocalDataSource,
     required NetworkInfo networkInfo,
     required HeldOrdersDao heldOrdersDao,
+    required customers_uc.GetCustomerUseCase getCustomerUseCase,
+    required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
+    required MasterDataCacheDao masterDataCacheDao,
   })  : _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
@@ -102,6 +112,9 @@ class PosCubitBase extends Cubit<PosState> {
         _authLocal = authLocalDataSource,
         _networkInfo = networkInfo,
         _heldOrdersDao = heldOrdersDao,
+        _getCustomer = getCustomerUseCase,
+        _getCustomerBalance = getCustomerBalanceUseCase,
+        _barcodeCache = masterDataCacheDao,
         super(const PosState());
 
   final GetProductsUseCase _getProducts;
@@ -131,6 +144,22 @@ class PosCubitBase extends Cubit<PosState> {
   final AuthLocalDataSource _authLocal;
   final NetworkInfo _networkInfo;
   final HeldOrdersDao _heldOrdersDao;
+  final customers_uc.GetCustomerUseCase _getCustomer;
+  final customers_uc.GetCustomerBalanceUseCase _getCustomerBalance;
+  final MasterDataCacheDao _barcodeCache;
+
+  /// A failed sale attempt keeps its id so tapping "Complete Sale" again for
+  /// the same cart + payments re-sends the same sale (the API dedupes on it).
+  String? _pendingSaleFingerprint;
+  String? _pendingSaleId;
+
+  /// Guards against out-of-order catalog responses.
+  int _productsRequestId = 0;
+  String _loadedProductsQuery = '';
+  String? _loadedProductsCategory;
+  bool _stockLoaded = false;
+
+  static const productPageSize = 60;
 
   Timer? _searchDebounce;
   Timer? _previewDebounce;
@@ -185,5 +214,8 @@ class PosCubit extends PosCubitBase
     required super.authLocalDataSource,
     required super.networkInfo,
     required super.heldOrdersDao,
+    required super.getCustomerUseCase,
+    required super.getCustomerBalanceUseCase,
+    required super.masterDataCacheDao,
   });
 }

@@ -37,6 +37,12 @@ abstract class UsersRemoteDataSource {
     required String currentPassword,
     String? currentPin,
   });
+
+  /// Owner/manager reset of a staff member's password.
+  Future<void> resetUserPassword({
+    required String id,
+    required String newPassword,
+  });
 }
 
 @LazySingleton(as: UsersRemoteDataSource)
@@ -136,6 +142,17 @@ class UsersRemoteDataSourceImpl implements UsersRemoteDataSource {
         'current_password': currentPassword,
         if (currentPin != null) 'current_pin': currentPin,
       },
+    );
+  }
+
+  @override
+  Future<void> resetUserPassword({
+    required String id,
+    required String newPassword,
+  }) async {
+    await _dio.put<void>(
+      ApiConstants.userPassword(id),
+      data: {'new_password': newPassword},
     );
   }
 

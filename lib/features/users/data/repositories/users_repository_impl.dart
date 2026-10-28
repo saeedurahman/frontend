@@ -122,4 +122,17 @@ class UsersRepositoryImpl implements UsersRepository {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> resetUserPassword({
+    required String id,
+    required String newPassword,
+  }) async {
+    try {
+      await _remote.resetUserPassword(id: id, newPassword: newPassword);
+      return const Right(null);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
 }

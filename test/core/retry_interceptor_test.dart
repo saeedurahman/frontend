@@ -95,6 +95,117 @@ void main() {
     );
   });
 
+  group('same logical money action reuses its key', () {
+    Future<List<Object?>> keysFor(
+      Dio dio,
+      FakeAdapter adapter,
+      String path,
+      List<Map<String, dynamic>> bodies,
+    ) async {
+      for (final body in bodies) {
+        try {
+          await dio.post<dynamic>(path, data: body);
+        } on DioException {
+          // expected for failing adapters
+        }
+      }
+      return adapter.requests.map((r) => r.headers['Idempotency-Key']).toList();
+    }
+
+    for (final path in [
+      '/sales',
+      '/returns',
+      '/expenses',
+      '/expenses/e1/payments',
+      '/customers/c1/payments',
+      '/sales/s1/payments',
+    ]) {
+      test('POST $path: re-tap after a 500 sends the SAME key', () async {
+        final adapter = FakeAdapter(
+          (o) => jsonResponse({'detail': 'boom'}, status: 500),
+        );
+        final dio = build(adapter);
+        final keys = await keysFor(dio, adapter, path, [
+          {'amount': '10.00'},
+          {'amount': '10.00'},
+        ]);
+        expect(keys, hasLength(2));
+        expect(keys[0], keys[1]);
+      });
+    }
+
+    test('a different body is a NEW action with a new key', () async {
+      final adapter = FakeAdapter(
+        (o) => jsonResponse({'detail': 'boom'}, status: 500),
+      );
+      final dio = build(adapter);
+      final keys = await keysFor(dio, adapter, '/sales', [
+        {'amount': '10.00'},
+        {'amount': '12.00'},
+      ]);
+      expect(keys.toSet(), hasLength(2));
+    });
+
+    test('after success the same body gets a fresh key', () async {
+      final adapter = FakeAdapter((o) => jsonResponse({'ok': true}));
+      final dio = build(adapter);
+      final keys = await keysFor(dio, adapter, '/expenses', [
+        {'amount': '5.00'},
+        {'amount': '5.00'},
+      ]);
+      expect(keys.toSet(), hasLength(2));
+    });
+
+    test('after a 422 rejection the same body gets a fresh key', () async {
+      final adapter = FakeAdapter(
+        (o) => jsonResponse({'detail': 'invalid'}, status: 422),
+      );
+      final dio = build(adapter);
+      final keys = await keysFor(dio, adapter, '/returns', [
+        {'qty': '1'},
+        {'qty': '1'},
+      ]);
+      expect(keys.toSet(), hasLength(2));
+    });
+
+    test('a timeout keeps the key (server may have committed)', () async {
+      final adapter = FakeAdapter((o) {
+        throw DioException(
+            requestOptions: o, type: DioExceptionType.receiveTimeout);
+      });
+      final dio = build(adapter);
+      final keys = await keysFor(dio, adapter, '/sales', [
+        {'amount': '1.00'},
+        {'amount': '1.00'},
+      ]);
+      expect(keys[0], keys[1]);
+    });
+
+    test('non-money POSTs keep a fresh key per request', () async {
+      final adapter = FakeAdapter(
+        (o) => jsonResponse({'detail': 'boom'}, status: 500),
+      );
+      final dio = build(adapter);
+      final keys = await keysFor(dio, adapter, '/customers', [
+        {'name': 'a'},
+        {'name': 'a'},
+      ]);
+      expect(keys.toSet(), hasLength(2));
+    });
+
+    test('registry forgets keys after the TTL', () {
+      var now = DateTime(2026, 1, 1);
+      final registry = IdempotencyKeyRegistry(
+        ttl: const Duration(minutes: 15),
+        clock: () => now,
+      );
+      final first = registry.keyFor('POST /sales {}');
+      expect(registry.keyFor('POST /sales {}'), first);
+      now = now.add(const Duration(minutes: 16));
+      expect(registry.keyFor('POST /sales {}'), isNot(first));
+    });
+  });
+
   for (final path in ['/sales', '/payments', '/expenses']) {
     for (final type in [
       DioExceptionType.receiveTimeout,

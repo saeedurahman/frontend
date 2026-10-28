@@ -26,6 +26,10 @@ mixin PosCubitSessionMixin
       role: user?.role,
       permissionKeys: permissionKeys,
     );
+    final canEditTax = UserRoleUtils.canEditLineTax(
+      role: user?.role,
+      permissionKeys: permissionKeys,
+    );
 
     if (!canCreate) {
       if (isClosed) return;
@@ -47,6 +51,9 @@ mixin PosCubitSessionMixin
       cashierName: user?.name ?? 'Cashier',
       branchId: user?.branchId,
       businessName: user?.businessName,
+      userId: user?.id,
+      businessId: user?.businessId,
+      canEditLineTax: canEditTax,
       isOffline: offline,
       canOpenShift: canOpen,
       canCloseShift: canClose,

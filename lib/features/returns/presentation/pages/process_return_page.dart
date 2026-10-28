@@ -347,7 +347,7 @@ class _ReturnLineRow extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  'Line Refund: ${formatPKR(line.lineRefundAmount.toDouble())}',
+                  'Est. refund: ${formatPKR(line.lineRefundAmount.toDouble())}',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isActive
@@ -440,7 +440,8 @@ class _RefundSummaryCard extends StatelessWidget {
       title: 'Refund Summary',
       child: Row(
         children: [
-          const Text('Total Return Amount:', style: AppTextStyles.titleMedium),
+          const Text('Estimated Return Amount:',
+              style: AppTextStyles.titleMedium),
           const Spacer(),
           Text(
             formatPKR(state.totalReturnAmount.toDouble()),
@@ -612,9 +613,15 @@ class _BottomBar extends StatelessWidget {
     if (!context.mounted) return;
 
     if (response != null) {
+      // Amounts below come from the server, not from the on-screen estimate.
+      final refunded = response.payments.fold(
+        Decimal.zero,
+        (sum, p) => sum + (Decimal.tryParse(p.amount) ?? Decimal.zero),
+      );
       AppAlerts.showSuccessMessage(
         context,
-        'Return ${response.returnNumber} processed successfully',
+        'Return ${response.returnNumber} processed. Refunded '
+        '${formatPKR(refunded.toDouble())}',
       );
       context.go('/sales/$saleId');
     }

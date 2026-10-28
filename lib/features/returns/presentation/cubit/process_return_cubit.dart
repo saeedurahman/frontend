@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
@@ -121,7 +122,28 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
     lines[lineIndex] = line.copyWith(
       returnQty: DecimalUtils.format(clamped),
     );
-    emit(state.copyWith(returnLines: lines, submitError: null));
+    final updated = state.copyWith(returnLines: lines, submitError: null);
+    // A smaller return can leave refund lines above the new total.
+    emit(updated.copyWith(
+      refundLines: capRefundLines(updated.refundLines, updated.totalReturnAmount),
+    ));
+  }
+
+  /// Refund payments can never add up to more than [total]: later lines are
+  /// reduced (or zeroed) first.
+  @visibleForTesting
+  static List<RefundLineModel> capRefundLines(
+    List<RefundLineModel> lines,
+    Decimal total,
+  ) {
+    var room = total > Decimal.zero ? total : Decimal.zero;
+    final capped = <RefundLineModel>[];
+    for (final line in lines) {
+      final amount = line.amount < room ? line.amount : room;
+      capped.add(amount == line.amount ? line : line.copyWith(amount: amount));
+      room -= amount;
+    }
+    return capped;
   }
 
   void returnAll(int lineIndex) {
@@ -173,9 +195,16 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
   void updateRefundLineAmount(int index, Decimal amount) {
     final lines = [...state.refundLines];
     if (index < 0 || index >= lines.length) return;
-    lines[index] = lines[index].copyWith(
-      amount: amount < Decimal.zero ? Decimal.zero : amount,
-    );
+    // Room = total minus every OTHER line, so this line cannot overshoot.
+    var otherLines = Decimal.zero;
+    for (var i = 0; i < lines.length; i++) {
+      if (i != index) otherLines += lines[i].amount;
+    }
+    var room = state.totalReturnAmount - otherLines;
+    if (room < Decimal.zero) room = Decimal.zero;
+    var next = amount < Decimal.zero ? Decimal.zero : amount;
+    if (next > room) next = room;
+    lines[index] = lines[index].copyWith(amount: next);
     emit(state.copyWith(refundLines: lines, submitError: null));
   }
 
@@ -188,35 +217,17 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
 
   Map<String, dynamic> _buildRequestBody() {
     final sale = state.originalSale!;
-    final requestLines = <Map<String, dynamic>>[];
-
-    for (final line in state.returnLines) {
-      if (line.returnQtyDecimal <= Decimal.zero) continue;
-
-      final netBeforeTax = (line.originalQtyDecimal * line.unitPriceDecimal) -
-          line.originalDiscountAmountDecimal;
-      final effectiveUnitPrice = line.originalQtyDecimal > Decimal.zero
-          ? DecimalUtils.fromRational(
-              netBeforeTax / line.originalQtyDecimal,
-              fractionDigits: 4,
-            )
-          : line.unitPriceDecimal;
-      final proratedTax = DecimalUtils.fromRational(
-        line.originalTaxAmountDecimal *
-            line.returnQtyDecimal /
-            line.originalQtyDecimal,
-        fractionDigits: 2,
-      );
-
-      requestLines.add({
-        'product_id': line.productId,
-        if (line.variationId != null) 'variation_id': line.variationId,
-        'sale_line_id': line.originalSaleLineId,
-        'qty': line.returnQty,
-        'unit_price': DecimalUtils.format(effectiveUnitPrice),
-        'tax_amount': DecimalUtils.format(proratedTax),
-      });
-    }
+    // The server prices the return from the original sale line, so the client
+    // sends only which line and how many. Prices and tax are never trusted
+    // from the client.
+    final requestLines = <Map<String, dynamic>>[
+      for (final line in state.returnLines)
+        if (line.returnQtyDecimal > Decimal.zero)
+          {
+            'sale_line_id': line.originalSaleLineId,
+            'qty': line.returnQty,
+          },
+    ];
 
     final refundPayments = state.refundLines
         .where((line) => line.amount > Decimal.zero)

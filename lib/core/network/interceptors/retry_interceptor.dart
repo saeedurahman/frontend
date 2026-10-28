@@ -1,5 +1,65 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
+
+/// Hands out one `Idempotency-Key` per *logical* money action.
+///
+/// A user who taps "Pay" again after a failed attempt sends the same
+/// method + path + body; that must reuse the key of the earlier attempt (the
+/// server may already have committed it). A different body is a new action and
+/// gets a new key. The key is forgotten once the action definitively finished.
+class IdempotencyKeyRegistry {
+  IdempotencyKeyRegistry({
+    this.ttl = const Duration(minutes: 15),
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
+
+  final Duration ttl;
+  final DateTime Function() _clock;
+  final Map<String, ({String key, DateTime issuedAt})> _issued = {};
+
+  /// POSTs whose retry must not create a second record.
+  static final _moneyPaths = <RegExp>[
+    RegExp(r'^/sales$'),
+    RegExp(r'^/sales/[^/]+/(payments|complete)$'),
+    RegExp(r'^/returns$'),
+    RegExp(r'^/expenses$'),
+    RegExp(r'^/expenses/[^/]+/payments$'),
+    RegExp(r'^/customers/[^/]+/payments$'),
+  ];
+
+  static bool tracksPath(String path) {
+    final clean = Uri.tryParse(path)?.path ?? path;
+    return _moneyPaths.any((r) => r.hasMatch(clean));
+  }
+
+  /// Stable fingerprint of a request, or null if it cannot be fingerprinted.
+  static String? fingerprint(RequestOptions options) {
+    try {
+      final path = Uri.tryParse(options.path)?.path ?? options.path;
+      return '${options.method.toUpperCase()} $path ${jsonEncode(options.data)}';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String keyFor(String fingerprint) {
+    final now = _clock();
+    final existing = _issued[fingerprint];
+    if (existing != null && now.difference(existing.issuedAt) < ttl) {
+      return existing.key;
+    }
+    final key = UuidUtils.v4();
+    _issued[fingerprint] = (key: key, issuedAt: now);
+    _issued.removeWhere((_, v) => now.difference(v.issuedAt) >= ttl);
+    return key;
+  }
+
+  void release(String fingerprint) => _issued.remove(fingerprint);
+
+  int get pending => _issued.length;
+}
 
 /// Retries transient failures and stamps POSTs with an idempotency key.
 ///
@@ -16,7 +76,12 @@ class RetryInterceptor extends Interceptor {
     required Dio dio,
     this.retries = 3,
     this.retryDelay = const Duration(seconds: 1),
-  }) : _dio = dio;
+    IdempotencyKeyRegistry? registry,
+  })  : _dio = dio,
+        registry = registry ?? IdempotencyKeyRegistry();
+
+  final IdempotencyKeyRegistry registry;
+  static const _fingerprintExtra = 'idempotency_fingerprint';
 
   static const idempotencyHeader = 'Idempotency-Key';
   static const _idempotentMethods = {'GET', 'HEAD', 'PUT', 'DELETE'};
@@ -28,9 +93,23 @@ class RetryInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.method.toUpperCase() == 'POST' && !_hasKey(options.headers)) {
-      options.headers[idempotencyHeader] = UuidUtils.v4();
+      final fp = IdempotencyKeyRegistry.tracksPath(options.path)
+          ? IdempotencyKeyRegistry.fingerprint(options)
+          : null;
+      if (fp != null) {
+        options.extra[_fingerprintExtra] = fp;
+        options.headers[idempotencyHeader] = registry.keyFor(fp);
+      } else {
+        options.headers[idempotencyHeader] = UuidUtils.v4();
+      }
     }
     handler.next(options);
+  }
+
+  @override
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+    _releaseKey(response.requestOptions);
+    handler.next(response);
   }
 
   @override
@@ -42,6 +121,18 @@ class RetryInterceptor extends Interceptor {
     final attempt = (extra['retry_attempt'] as int?) ?? 0;
 
     if (!shouldRetry(err) || attempt >= retries) {
+      // A definite client-side rejection means the action did not happen, so
+      // the next tap is a new attempt. Timeouts/5xx stay ambiguous: keep the
+      // key so a re-tap dedupes against a possible earlier commit.
+      final status = err.response?.statusCode;
+      if (status != null &&
+          status >= 400 &&
+          status < 500 &&
+          status != 408 &&
+          status != 409 &&
+          status != 429) {
+        _releaseKey(err.requestOptions);
+      }
       return handler.next(err);
     }
 
@@ -57,6 +148,11 @@ class RetryInterceptor extends Interceptor {
     } on DioException catch (e) {
       return handler.next(e);
     }
+  }
+
+  void _releaseKey(RequestOptions options) {
+    final fp = options.extra[_fingerprintExtra];
+    if (fp is String) registry.release(fp);
   }
 
   bool shouldRetry(DioException err) {

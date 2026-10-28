@@ -37,10 +37,14 @@ mixin PosCubitShiftMixin on PosCubitBase {
           },
           (RegisterShiftModel? shift) async {
             ShiftSummaryModel? summary;
+            String? summaryError;
             if (shift != null) {
               final summaryResult = await _getShiftSummary(shift.id);
               if (isClosed) return;
-              summaryResult.fold((_) {}, (s) => summary = s);
+              summaryResult.fold(
+                (failure) => summaryError = failure.message,
+                (s) => summary = s,
+              );
             }
 
             final selectedRegisterId = shift?.cashRegisterId ??
@@ -52,6 +56,7 @@ mixin PosCubitShiftMixin on PosCubitBase {
               selectedRegisterId: selectedRegisterId,
               activeShift: shift,
               shiftSummary: summary,
+              shiftSummaryError: summaryError,
               isCheckingShift: false,
               registersError: null,
             ));
@@ -96,18 +101,38 @@ mixin PosCubitShiftMixin on PosCubitBase {
     if (shift == null) return;
     final result = await _getShiftSummary(shift.id);
     if (isClosed) return;
-    result.fold((_) {}, (summary) {
-      _safeEmit(state.patch(shiftSummary: summary));
-    });
+    result.fold(
+      (failure) => _safeEmit(
+        state.patch(shiftSummaryError: failure.message),
+      ),
+      (summary) => _safeEmit(
+        state.patch(shiftSummary: summary, shiftSummaryError: null),
+      ),
+    );
   }
 
+  /// Retry button for the shift summary banner.
+  Future<void> retryShiftSummary() => refreshShiftSummary();
+
+  /// Opens a shift. On failure [PosState.openShiftError] carries the real
+  /// reason (server message, missing permission, no register selected).
   Future<bool> openShift(Decimal openingFloat, String? notes) async {
-    if (!state.canOpenShift) return false;
+    if (!state.canOpenShift) {
+      _safeEmit(state.patch(
+        openShiftError: 'You do not have permission to open a shift.',
+      ));
+      return false;
+    }
 
     final registerId = state.selectedRegisterId;
-    if (registerId == null) return false;
+    if (registerId == null) {
+      _safeEmit(state.patch(
+        openShiftError: 'Select a cash register to open a shift.',
+      ));
+      return false;
+    }
 
-    _safeEmit(state.patch(isOpeningShift: true));
+    _safeEmit(state.patch(isOpeningShift: true, openShiftError: null));
     final result = await _openShift({
       'cash_register_id': registerId,
       'opening_float': DecimalUtils.format(openingFloat),
@@ -116,8 +141,11 @@ mixin PosCubitShiftMixin on PosCubitBase {
     if (isClosed) return false;
 
     return result.fold(
-      (_) {
-        _safeEmit(state.patch(isOpeningShift: false));
+      (failure) {
+        _safeEmit(state.patch(
+          isOpeningShift: false,
+          openShiftError: failure.message,
+        ));
         return false;
       },
       (shift) {
@@ -125,6 +153,7 @@ mixin PosCubitShiftMixin on PosCubitBase {
           activeShift: shift,
           isOpeningShift: false,
           isCheckingShift: false,
+          openShiftError: null,
         ));
         refreshShiftSummary();
         return true;

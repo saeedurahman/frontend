@@ -10,6 +10,9 @@ class PosSessionState with _$PosSessionState {
     String? branchId,
     String? businessName,
     @Default(false) bool isOffline,
+    String? userId,
+    String? businessId,
+    @Default(false) bool canEditLineTax,
     PosDineInContext? dineIn,
   }) = _PosSessionState;
 }

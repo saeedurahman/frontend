@@ -68,7 +68,39 @@ void main() {
     expect(refreshCalls, 1);
     expect(response.requestOptions.extra['retried'], isTrue);
     expect(await storage.getAccessToken(), 'new');
+    expect(await storage.getRefreshToken(), 'r2',
+        reason: 'rotated refresh token must be persisted');
     expect(expiredCalls, 0);
+  });
+
+  test('the next refresh sends the rotated refresh token, not the old one',
+      () async {
+    final sentRefreshTokens = <String>[];
+    var accessGen = 0;
+    final dio = buildDio((o) {
+      if (o.path == '/auth/refresh') {
+        final sent = (o.data as Map)['refresh_token'] as String;
+        sentRefreshTokens.add(sent);
+        accessGen++;
+        return jsonResponse({
+          'access_token': 'a$accessGen',
+          'refresh_token': 'r${accessGen + 1}',
+        });
+      }
+      // Only the most recent access token is accepted.
+      return o.headers['Authorization'] == 'Bearer a$accessGen' && accessGen > 0
+          ? jsonResponse({'ok': true})
+          : jsonResponse({'detail': 'expired'}, status: 401);
+    });
+
+    await dio.get<dynamic>('/products'); // refresh #1 with r1 -> r2
+    // Server expires the access token again.
+    accessGen++;
+    await dio.get<dynamic>('/products'); // refresh #2 must use r2
+
+    expect(sentRefreshTokens.first, 'r1');
+    expect(sentRefreshTokens.last, 'r2');
+    expect(await storage.getRefreshToken(), 'r4');
   });
 
   test('concurrent 401s share ONE refresh and all complete', () async {

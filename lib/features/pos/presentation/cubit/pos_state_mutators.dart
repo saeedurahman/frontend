@@ -21,6 +21,17 @@ extension PosStateFlatCopy on PosState {
     Object? isOpeningShift = _unset,
     Object? isCreatingRegister = _unset,
     Object? registersError = _unset,
+    Object? openShiftError = _unset,
+    Object? shiftSummaryError = _unset,
+    Object? userId = _unset,
+    Object? businessId = _unset,
+    Object? canEditLineTax = _unset,
+    Object? hasMoreProducts = _unset,
+    Object? isLoadingMoreProducts = _unset,
+    Object? productsTotal = _unset,
+    Object? stockError = _unset,
+    Object? categoriesError = _unset,
+    Object? taxError = _unset,
     Object? products = _unset,
     Object? categories = _unset,
     Object? selectedCategoryId = _unset,
@@ -69,6 +80,12 @@ extension PosStateFlatCopy on PosState {
       dineIn: dineIn == _unset
           ? session.dineIn
           : dineIn as PosDineInContext?,
+      userId: userId == _unset ? session.userId : userId as String?,
+      businessId:
+          businessId == _unset ? session.businessId : businessId as String?,
+      canEditLineTax: canEditLineTax == _unset
+          ? session.canEditLineTax
+          : canEditLineTax as bool,
     );
 
     final newShift = shift.copyWith(
@@ -96,6 +113,12 @@ extension PosStateFlatCopy on PosState {
       registersError: registersError == _unset
           ? shift.registersError
           : registersError as String?,
+      openShiftError: openShiftError == _unset
+          ? shift.openShiftError
+          : openShiftError as String?,
+      shiftSummaryError: shiftSummaryError == _unset
+          ? shift.shiftSummaryError
+          : shiftSummaryError as String?,
     );
 
     final newCatalog = catalog.copyWith(
@@ -126,6 +149,21 @@ extension PosStateFlatCopy on PosState {
       productDetailsCache: productDetailsCache == _unset
           ? catalog.productDetailsCache
           : productDetailsCache as Map<String, ProductModel>,
+      hasMoreProducts: hasMoreProducts == _unset
+          ? catalog.hasMoreProducts
+          : hasMoreProducts as bool,
+      isLoadingMoreProducts: isLoadingMoreProducts == _unset
+          ? catalog.isLoadingMoreProducts
+          : isLoadingMoreProducts as bool,
+      productsTotal: productsTotal == _unset
+          ? catalog.productsTotal
+          : productsTotal as int,
+      stockError:
+          stockError == _unset ? catalog.stockError : stockError as String?,
+      categoriesError: categoriesError == _unset
+          ? catalog.categoriesError
+          : categoriesError as String?,
+      taxError: taxError == _unset ? catalog.taxError : taxError as String?,
     );
 
     final newCart = cart.copyWith(

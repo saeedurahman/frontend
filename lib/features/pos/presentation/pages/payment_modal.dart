@@ -6,7 +6,9 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
+import 'package:frantend/features/pos/domain/utils/payment_allocator.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
+import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
 
 class PaymentModal extends StatefulWidget {
@@ -31,34 +33,68 @@ class _PaymentModalState extends State<PaymentModal> {
   final List<_PaymentLineEntry> _lines = [];
   String? _error;
 
-  Decimal get _grandTotal =>
-      context.watch<PosCubit>().state.displayGrandTotal;
-
-  bool get _canProceed => context.watch<PosCubit>().state.canProceedToPayment;
-
-  Decimal get _enteredTotal => _lines.fold(
-        Decimal.zero,
-        (sum, line) =>
-            sum + (Decimal.tryParse(line.amountController.text) ?? Decimal.zero),
-      );
-
-  bool get _hasCredit =>
-      _lines.any((l) => l.method == PaymentMethods.credit);
-
-  bool get _canComplete {
-    if (!_canProceed) return false;
-    if (_lines.isEmpty) return false;
-    if (_hasCredit) return true;
-    return _enteredTotal >= _grandTotal;
+  @override
+  void initState() {
+    super.initState();
+    // Credit decisions need the customer's real limit and balance.
+    context.read<PosCubit>().refreshSelectedCustomer();
   }
 
-  void _addMethod(_PaymentMethodOption option) {
-    if (option.method == PaymentMethods.credit &&
-        context.read<PosCubit>().state.selectedCustomer == null) {
+  @override
+  void dispose() {
+    for (final line in _lines) {
+      line.dispose();
+    }
+    super.dispose();
+  }
+
+  Decimal _entered(_PaymentLineEntry line) =>
+      Decimal.tryParse(line.amountController.text) ?? Decimal.zero;
+
+  CreditContext _creditContext(PosState state) {
+    final customer = state.selectedCustomer;
+    if (customer == null) return CreditContext.none;
+    return CreditContext(
+      hasCustomer: true,
+      creditLimit: Decimal.tryParse(customer.creditLimit),
+      balance: Decimal.tryParse(customer.balance ?? ''),
+    );
+  }
+
+  PaymentAllocation _allocation(PosState state) => PaymentAllocator.allocate(
+        total: state.displayGrandTotal,
+        inputs: [
+          for (final line in _lines)
+            PaymentInput(
+              method: line.method,
+              entered: _entered(line),
+              referenceNo: line.referenceController.text,
+              walletLabel: line.walletLabel,
+            ),
+        ],
+        credit: _creditContext(state),
+      );
+
+  /// What is still unpaid by every line except [except].
+  Decimal _dueExcluding(PosState state, _PaymentLineEntry except) {
+    var due = state.displayGrandTotal;
+    for (final line in _lines) {
+      if (identical(line, except) || line.method == PaymentMethods.credit) {
+        continue;
+      }
+      due -= _entered(line);
+    }
+    return due > Decimal.zero ? due : Decimal.zero;
+  }
+
+  void _addMethod(PosState state, _PaymentMethodOption option) {
+    final isCredit = option.method == PaymentMethods.credit;
+    if (isCredit && state.selectedCustomer == null) return;
+    if (isCredit && _lines.any((l) => l.method == PaymentMethods.credit)) {
       return;
     }
     setState(() {
-      final remaining = _grandTotal - _enteredTotal;
+      final remaining = _allocation(state).remaining;
       final prefill = remaining > Decimal.zero ? remaining : Decimal.zero;
       _lines.add(_PaymentLineEntry(
         method: option.method,
@@ -66,56 +102,83 @@ class _PaymentModalState extends State<PaymentModal> {
         icon: option.icon,
         walletLabel: option.walletLabel,
         amountController: TextEditingController(
-          text: prefill > Decimal.zero ? DecimalUtils.format(prefill) : '',
+          text: !isCredit && prefill > Decimal.zero
+              ? DecimalUtils.format(prefill)
+              : '',
         ),
         referenceController: TextEditingController(),
       ));
     });
   }
 
-  Future<void> _completeSale() async {
-    setState(() => _error = null);
-    final payments = _lines
-        .map((l) {
-          final amount =
-              Decimal.tryParse(l.amountController.text) ?? Decimal.zero;
-          if (amount <= Decimal.zero) return null;
-          return PaymentLineModel(
-            paymentMethod: l.method,
-            amount: amount,
-            referenceNo: l.referenceController.text.trim().isEmpty
-                ? null
-                : l.referenceController.text.trim(),
-            walletLabel: l.walletLabel,
-          );
-        })
-        .whereType<PaymentLineModel>()
-        .toList();
-
-    if (payments.isEmpty) {
-      setState(() => _error = 'Add at least one payment');
-      return;
+  Future<void> _openShift() async {
+    final cubit = context.read<PosCubit>();
+    final ok = await cubit.openShift(Decimal.zero, null);
+    if (!ok && mounted) {
+      setState(() => _error = cubit.state.openShiftError ??
+          'Could not open a shift');
     }
+  }
+
+  Future<void> _completeSale(PosState state) async {
+    setState(() => _error = null);
+    final allocation = _allocation(state);
+    if (!allocation.canComplete) return;
 
     try {
-      final sale = await context.read<PosCubit>().submitSale(payments);
+      final sale = await context.read<PosCubit>().submitSale(allocation.lines);
       if (!mounted) return;
       Navigator.pop(context);
+      if (allocation.hasChange) {
+        await _showChangeDialog(allocation.change);
+      }
+      if (!mounted) return;
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
           builder: (_) => ReceiptPreviewPage(sale: sale),
         ),
       );
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      }
     }
+  }
+
+  Future<void> _showChangeDialog(Decimal change) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Give change'),
+        content: Text(
+          formatPKR(change.toDouble()),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+            color: AppColors.success,
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<PosCubit>().state;
-    final difference = _enteredTotal - _grandTotal;
+    final allocation = _allocation(state);
     final hasCustomer = state.selectedCustomer != null;
+    final hasShift = state.activeShift != null;
+    final canComplete = hasShift &&
+        state.canProceedToPayment &&
+        !state.isSubmittingSale &&
+        allocation.canComplete;
 
     return Dialog(
       insetPadding: const EdgeInsets.all(40),
@@ -133,28 +196,42 @@ class _PaymentModalState extends State<PaymentModal> {
               ),
               const SizedBox(height: 8),
               Text(
-                formatPKR(_grandTotal.toDouble()),
+                formatPKR(state.displayGrandTotal.toDouble()),
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
               ),
+              if (!hasShift) ...[
+                const SizedBox(height: 12),
+                _ShiftRequiredBanner(
+                  isOpening: state.isOpeningShift,
+                  canOpen: state.canOpenShift,
+                  onOpen: _openShift,
+                ),
+              ],
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: _methodOptions.map((option) {
-                  final disabled = option.method == PaymentMethods.credit &&
-                      !hasCustomer;
+                  final isCredit = option.method == PaymentMethods.credit;
+                  final disabled = isCredit && !hasCustomer;
                   return SizedBox(
                     width: 140,
                     child: OutlinedButton(
-                      onPressed: disabled ? null : () => _addMethod(option),
+                      onPressed:
+                          disabled ? null : () => _addMethod(state, option),
                       child: Column(
                         children: [
                           Text(option.icon, style: const TextStyle(fontSize: 20)),
                           Text(option.label, textAlign: TextAlign.center),
+                          if (disabled)
+                            const Text(
+                              'needs customer',
+                              style: TextStyle(fontSize: 10),
+                            ),
                         ],
                       ),
                     ),
@@ -167,9 +244,10 @@ class _PaymentModalState extends State<PaymentModal> {
                 final line = entry.value;
                 return _PaymentLineEditor(
                   line: line,
+                  capped: allocation.cappedInputIndexes.contains(i),
+                  creditAmount: allocation.creditAmount,
                   onRemove: () => setState(() {
-                    line.amountController.dispose();
-                    line.referenceController.dispose();
+                    line.dispose();
                     _lines.removeAt(i);
                   }),
                   onAmountChanged: () => setState(() {}),
@@ -179,36 +257,67 @@ class _PaymentModalState extends State<PaymentModal> {
                                 DecimalUtils.format(amount);
                           })
                       : null,
-                  grandTotal: _grandTotal,
+                  exactAmount: _dueExcluding(state, line),
                 );
               }),
-              _SummaryRow('Total Due', formatPKR(_grandTotal.toDouble())),
               _SummaryRow(
-                'Amount Entered',
-                formatPKR(_enteredTotal.toDouble()),
+                'Total Due',
+                formatPKR(state.displayGrandTotal.toDouble()),
               ),
               _SummaryRow(
-                _enteredTotal >= _grandTotal ? 'Change Due' : 'Remaining',
-                formatPKR(difference.abs().toDouble()),
-                valueColor: _enteredTotal >= _grandTotal
-                    ? AppColors.success
-                    : AppColors.warning,
+                'Paid',
+                formatPKR(allocation.applied.toDouble()),
               ),
-              if (_error != null)
+              if (allocation.remaining > Decimal.zero)
+                _SummaryRow(
+                  'Remaining',
+                  formatPKR(allocation.remaining.toDouble()),
+                  valueColor: AppColors.warning,
+                ),
+              if (allocation.creditAmount > Decimal.zero)
+                _SummaryRow(
+                  'On customer account',
+                  formatPKR(allocation.creditAmount.toDouble()),
+                ),
+              if (allocation.hasChange) ...[
+                const SizedBox(height: 8),
+                _ChangeBanner(change: allocation.change),
+              ],
+              if (allocation.error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  allocation.error!,
+                  style: const TextStyle(color: AppColors.error),
+                ),
+                if (allocation.error!.contains('balance'))
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => context
+                          .read<PosCubit>()
+                          .refreshSelectedCustomer(),
+                      child: const Text('Retry'),
+                    ),
+                  ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 8),
                 Text(_error!, style: const TextStyle(color: AppColors.error)),
+              ],
               const SizedBox(height: 16),
               Row(
                 children: [
                   OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: state.isSubmittingSale
+                        ? null
+                        : () => Navigator.pop(context),
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: state.isSubmittingSale || !_canComplete
-                          ? null
-                          : _completeSale,
+                      onPressed:
+                          canComplete ? () => _completeSale(state) : null,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         minimumSize: const Size.fromHeight(48),
@@ -232,6 +341,87 @@ class _PaymentModalState extends State<PaymentModal> {
   }
 }
 
+class _ShiftRequiredBanner extends StatelessWidget {
+  const _ShiftRequiredBanner({
+    required this.isOpening,
+    required this.canOpen,
+    required this.onOpen,
+  });
+
+  final bool isOpening;
+  final bool canOpen;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_clock, color: AppColors.warning),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Open shift first. Sales need an open register shift.',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          FilledButton(
+            onPressed: canOpen && !isOpening ? onOpen : null,
+            child: isOpening
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Open shift'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChangeBanner extends StatelessWidget {
+  const _ChangeBanner({required this.change});
+
+  final Decimal change;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.success),
+      ),
+      child: Row(
+        children: [
+          const Text(
+            'Change',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const Spacer(),
+          Text(
+            formatPKR(change.toDouble()),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.success,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PaymentLineEntry {
   _PaymentLineEntry({
     required this.method,
@@ -248,6 +438,11 @@ class _PaymentLineEntry {
   final String? walletLabel;
   final TextEditingController amountController;
   final TextEditingController referenceController;
+
+  void dispose() {
+    amountController.dispose();
+    referenceController.dispose();
+  }
 }
 
 class _PaymentMethodOption {
@@ -296,7 +491,9 @@ class _PaymentLineEditor extends StatelessWidget {
     required this.line,
     required this.onRemove,
     required this.onAmountChanged,
-    required this.grandTotal,
+    required this.exactAmount,
+    required this.capped,
+    required this.creditAmount,
     this.onQuickCash,
   });
 
@@ -304,10 +501,19 @@ class _PaymentLineEditor extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onAmountChanged;
   final void Function(Decimal amount)? onQuickCash;
-  final Decimal grandTotal;
+
+  /// What this line would have to be to settle the sale exactly.
+  final Decimal exactAmount;
+
+  /// The typed amount was reduced to the amount due (non-cash overpayment).
+  final bool capped;
+
+  /// Computed credit (udhaar) amount; the credit line has no input.
+  final Decimal creditAmount;
 
   @override
   Widget build(BuildContext context) {
+    final isCredit = line.method == PaymentMethods.credit;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -325,19 +531,29 @@ class _PaymentLineEditor extends StatelessWidget {
                 ),
               ],
             ),
-            TextField(
-              controller: line.amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-              ],
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
+            if (isCredit)
+              Text(
+                'Remainder goes on the customer\'s account: '
+                '${formatPKR(creditAmount.toDouble())}',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              )
+            else
+              TextField(
+                controller: line.amountController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+                decoration: InputDecoration(
+                  labelText: line.method == PaymentMethods.cash
+                      ? 'Cash received'
+                      : 'Amount',
+                  helperText: capped ? 'Reduced to the amount due' : null,
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (_) => onAmountChanged(),
               ),
-              onChanged: (_) => onAmountChanged(),
-            ),
             if (line.method == PaymentMethods.wallet ||
                 line.method == PaymentMethods.card ||
                 line.method == PaymentMethods.bankTransfer) ...[
@@ -350,6 +566,7 @@ class _PaymentLineEditor extends StatelessWidget {
                       : 'Reference No.',
                   border: const OutlineInputBorder(),
                 ),
+                onChanged: (_) => onAmountChanged(),
               ),
             ],
             if (onQuickCash != null) ...[
@@ -359,7 +576,7 @@ class _PaymentLineEditor extends StatelessWidget {
                 children: [
                   ActionChip(
                     label: const Text('Exact'),
-                    onPressed: () => onQuickCash!(grandTotal),
+                    onPressed: () => onQuickCash!(exactAmount),
                   ),
                   for (final amount in [500, 1000, 5000])
                     ActionChip(

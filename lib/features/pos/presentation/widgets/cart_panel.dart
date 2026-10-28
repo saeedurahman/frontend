@@ -333,7 +333,11 @@ class _CartItemCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           GestureDetector(
-                            onTap: () async {
+                            // Only roles allowed to change tax can open the
+                            // picker; everyone else sees the product's tax.
+                            onTap: !state.canEditLineTax
+                                ? null
+                                : () async {
                               final result = await LineTaxRateDialog.show(
                                 context,
                                 taxRates: state.taxRates,

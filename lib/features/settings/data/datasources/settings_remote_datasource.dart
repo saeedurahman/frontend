@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
@@ -68,7 +69,7 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
         if (branchId != null) 'branch_id': branchId,
       },
     );
-    return _toModelList(response.data, AppSettingModel.fromJson);
+    return parseSettingsList(response.data);
   }
 
   @override
@@ -129,6 +130,24 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       data: body,
     );
     return TaxRateModel.fromJson(response.data ?? const {});
+  }
+
+  /// `/settings` is permission-filtered (a cashier only receives `receipt.*`,
+  /// `tax.*`, `business.*`, `sale.*`), so the payload may be partial or hold
+  /// entries this client cannot parse. One bad entry never fails the read.
+  @visibleForTesting
+  static List<AppSettingModel> parseSettingsList(dynamic payload) {
+    if (payload is! List) return const [];
+    final settings = <AppSettingModel>[];
+    for (final item in payload) {
+      if (item is! Map) continue;
+      try {
+        settings.add(AppSettingModel.fromJson(Map<String, dynamic>.from(item)));
+      } catch (_) {
+        continue;
+      }
+    }
+    return settings;
   }
 
   List<T> _toModelList<T>(

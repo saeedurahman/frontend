@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frantend/features/pos/presentation/models/held_resume_result.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -178,20 +179,54 @@ class _HeldOrderTile extends StatelessWidget {
       );
       if (ok != true) return;
       if (!context.mounted) return;
-      final resumed = await cubit.resumeHeldOrder(
+      final result = await cubit.resumeHeldOrder(
         order.id,
         forceOverwrite: true,
       );
-      if (resumed && context.mounted) {
-        Navigator.pop(context);
-      }
+      if (context.mounted) await _finishResume(context, result);
       return;
     }
 
-    final resumed = await cubit.resumeHeldOrder(order.id);
-    if (resumed && context.mounted) {
-      Navigator.pop(context);
+    final result = await cubit.resumeHeldOrder(order.id);
+    if (context.mounted) await _finishResume(context, result);
+  }
+
+  /// Warns about price/tax changes found while refreshing the held order,
+  /// then closes the list.
+  Future<void> _finishResume(
+    BuildContext context,
+    HeldResumeResult result,
+  ) async {
+    if (!result.resumed) return;
+    if (result.hasChanges) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Prices or tax changed'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'This held order was updated to current prices and tax. '
+                  'Please review the total before taking payment.',
+                ),
+                const SizedBox(height: 12),
+                for (final change in result.changes) Text('• $change'),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
+    if (context.mounted) Navigator.pop(context);
   }
 
   Future<void> _discard(BuildContext context, PosCubit cubit) async {

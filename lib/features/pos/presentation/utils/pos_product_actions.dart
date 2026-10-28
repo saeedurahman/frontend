@@ -35,6 +35,10 @@ Future<bool> addProductWithPricePrompt(
 
   switch (outcome.result) {
     case AddToCartResult.added:
+      // Added, but the shelf is nearly empty: tell the cashier.
+      if (outcome.message != null && context.mounted) {
+        AppAlerts.showInfoMessage(context, outcome.message!);
+      }
       return true;
     case AddToCartResult.needsVariation:
       return false;

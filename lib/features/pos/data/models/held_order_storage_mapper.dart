@@ -6,9 +6,58 @@ import 'package:frantend/core/database/app_database.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_model.dart';
 
+/// Who parked a held order: business (tenant) + branch + cashier.
+class HeldOrderScope {
+  const HeldOrderScope({
+    required this.tenantId,
+    required this.branchId,
+    required this.userId,
+  });
+
+  final String tenantId;
+  final String branchId;
+  final String userId;
+
+  Map<String, dynamic> toJson() => {
+        'tenantId': tenantId,
+        'branchId': branchId,
+        'userId': userId,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is HeldOrderScope &&
+      other.tenantId == tenantId &&
+      other.branchId == branchId &&
+      other.userId == userId;
+
+  @override
+  int get hashCode => Object.hash(tenantId, branchId, userId);
+}
+
 abstract final class HeldOrderStorageMapper {
+  /// Scope stored in the row, or null for legacy rows parked before scoping.
+  static HeldOrderScope? scopeOf(HeldOrdersTableData row) {
+    final decoded = jsonDecode(row.cartItemsJson);
+    if (decoded is! Map || decoded['scope'] is! Map) return null;
+    final scope = Map<String, dynamic>.from(decoded['scope'] as Map);
+    final tenantId = scope['tenantId'] as String?;
+    final branchId = scope['branchId'] as String?;
+    final userId = scope['userId'] as String?;
+    if (tenantId == null || branchId == null || userId == null) return null;
+    return HeldOrderScope(
+      tenantId: tenantId,
+      branchId: branchId,
+      userId: userId,
+    );
+  }
+
   static HeldOrderModel fromRow(HeldOrdersTableData row) {
-    final itemsJson = jsonDecode(row.cartItemsJson) as List<dynamic>;
+    // Envelope v2: {"v":2,"scope":{...},"items":[...]}. Legacy rows hold the
+    // bare items list and have no scope (so they are never shown).
+    final decoded = jsonDecode(row.cartItemsJson);
+    final itemsJson =
+        (decoded is Map ? decoded['items'] : decoded) as List<dynamic>;
     final cartItems = itemsJson
         .map((e) => CartItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
@@ -29,12 +78,19 @@ abstract final class HeldOrderStorageMapper {
     );
   }
 
-  static HeldOrdersTableCompanion toCompanion(HeldOrderModel order) {
+  static HeldOrdersTableCompanion toCompanion(
+    HeldOrderModel order, {
+    HeldOrderScope? scope,
+  }) {
     return HeldOrdersTableCompanion.insert(
       id: order.id,
       label: order.label,
       createdAt: order.createdAt,
-      cartItemsJson: jsonEncode(order.cartItems.map((e) => e.toJson()).toList()),
+      cartItemsJson: jsonEncode({
+        'v': 2,
+        if (scope != null) 'scope': scope.toJson(),
+        'items': order.cartItems.map((e) => e.toJson()).toList(),
+      }),
       customerId: Value(order.customerId),
       customerName: Value(order.customerName),
       cartDiscountType: Value(order.cartDiscountType),

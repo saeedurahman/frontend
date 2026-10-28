@@ -158,6 +158,7 @@ abstract final class ApiConstants {
   static const String users = '/users';
   static String userById(String id) => '/users/$id';
   static String userPin(String id) => '/users/$id/pin';
+  static String userPassword(String id) => '/users/$id/password';
   static String userRoles(String id) => '/users/$id/roles';
 
   // Restaurant — floor plans & tables

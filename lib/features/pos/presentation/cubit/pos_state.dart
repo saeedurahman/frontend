@@ -42,6 +42,9 @@ class PosState with _$PosState {
   String? get branchId => session.branchId;
   String? get businessName => session.businessName;
   bool get isOffline => session.isOffline;
+  String? get userId => session.userId;
+  String? get businessId => session.businessId;
+  bool get canEditLineTax => session.canEditLineTax;
   PosDineInContext? get dineIn => session.dineIn;
   bool get isDineIn => session.dineIn != null;
 
@@ -54,6 +57,8 @@ class PosState with _$PosState {
   bool get isOpeningShift => shift.isOpeningShift;
   bool get isCreatingRegister => shift.isCreatingRegister;
   String? get registersError => shift.registersError;
+  String? get openShiftError => shift.openShiftError;
+  String? get shiftSummaryError => shift.shiftSummaryError;
 
   // Catalog
   List<ProductListItemModel> get products => catalog.products;
@@ -62,6 +67,12 @@ class PosState with _$PosState {
   String get productSearchQuery => catalog.productSearchQuery;
   bool get isLoadingProducts => catalog.isLoadingProducts;
   String? get productsError => catalog.productsError;
+  bool get hasMoreProducts => catalog.hasMoreProducts;
+  bool get isLoadingMoreProducts => catalog.isLoadingMoreProducts;
+  int get productsTotal => catalog.productsTotal;
+  String? get stockError => catalog.stockError;
+  String? get categoriesError => catalog.categoriesError;
+  String? get taxError => catalog.taxError;
   Map<String, String> get priceCache => catalog.priceCache;
   Map<String, String> get stockCache => catalog.stockCache;
   Map<String, ProductModel> get productDetailsCache =>
@@ -88,20 +99,9 @@ class PosState with _$PosState {
 
   Decimal get cartDiscountDecimal => cart.cartDiscountDecimal;
 
-  List<ProductListItemModel> get filteredProducts {
-    var list = products;
-    if (selectedCategoryId != null) {
-      list = list.where((p) => p.categoryId == selectedCategoryId).toList();
-    }
-    if (productSearchQuery.isNotEmpty) {
-      final q = productSearchQuery.toLowerCase();
-      list = list.where((p) {
-        return p.name.toLowerCase().contains(q) ||
-            (p.sku?.toLowerCase().contains(q) ?? false);
-      }).toList();
-    }
-    return list;
-  }
+  /// Search and category filtering are done by the server (see the catalog
+  /// mixin), so the loaded page is already the filtered list.
+  List<ProductListItemModel> get filteredProducts => products;
 
   Decimal get subtotal => cart.subtotal;
   Decimal get totalDiscount => cart.totalDiscount;

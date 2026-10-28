@@ -20,7 +20,12 @@ abstract final class DecimalUtils {
     return Decimal.parse(value.toStringAsFixed(fractionDigits));
   }
 
+  /// Exact rational -> fixed-scale decimal, rounding half away from zero
+  /// (Python `ROUND_HALF_UP`). Never goes through `double`, so ties such as
+  /// 1.005 round to 1.01 exactly like the backend pricing engine.
   static Decimal fromRational(Rational value, {int fractionDigits = 2}) {
-    return Decimal.parse(value.toDouble().toStringAsFixed(fractionDigits));
+    final factor = BigInt.from(10).pow(fractionDigits);
+    final scaled = (value * Rational(factor)).round();
+    return Rational(scaled, factor).toDecimal();
   }
 }

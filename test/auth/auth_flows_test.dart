@@ -138,6 +138,30 @@ void main() {
       expect(repo.lastSlug, 'my-shop');
       await cubit.close();
     });
+
+    test('409 without a slug asks for the Business ID and focuses the field',
+        () async {
+      final repo = _FakeAuthRepository()
+        ..loginResult = const Left(ConflictFailure('multiple businesses'));
+      final cubit = _cubit(repo);
+      await cubit.login();
+      expect(
+        cubit.state,
+        const AuthState.error(AuthCubit.businessSlugRequiredMessage),
+      );
+      expect(cubit.isCoolingDown, isFalse);
+      await cubit.close();
+    });
+
+    test('409 with a slug already typed shows the server message', () async {
+      final repo = _FakeAuthRepository()
+        ..loginResult = const Left(ConflictFailure('slug mismatch'));
+      final cubit = _cubit(repo);
+      cubit.businessSlugController.text = 'my-shop';
+      await cubit.login();
+      expect(cubit.state, const AuthState.error('slug mismatch'));
+      await cubit.close();
+    });
   });
 
   group('wrong password', () {

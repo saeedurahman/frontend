@@ -35,4 +35,9 @@ abstract class UsersRepository {
     required String currentPassword,
     String? currentPin,
   });
+
+  Future<Either<Failure, void>> resetUserPassword({
+    required String id,
+    required String newPassword,
+  });
 }

@@ -16,6 +16,7 @@ class UserFormCubit extends Cubit<UserFormState> {
     required ReplaceUserRolesUseCase replaceUserRolesUseCase,
     required DeleteUserUseCase deleteUserUseCase,
     required ResetUserPinUseCase resetUserPinUseCase,
+    required ResetUserPasswordUseCase resetUserPasswordUseCase,
     required GetRolesUseCase getRolesUseCase,
     required BranchesUseCases branchesUseCases,
     required AuthLocalDataSource authLocalDataSource,
@@ -25,6 +26,7 @@ class UserFormCubit extends Cubit<UserFormState> {
         _replaceRoles = replaceUserRolesUseCase,
         _deleteUser = deleteUserUseCase,
         _resetPin = resetUserPinUseCase,
+        _resetPassword = resetUserPasswordUseCase,
         _getRoles = getRolesUseCase,
         _branches = branchesUseCases,
         _authLocal = authLocalDataSource,
@@ -36,6 +38,7 @@ class UserFormCubit extends Cubit<UserFormState> {
   final ReplaceUserRolesUseCase _replaceRoles;
   final DeleteUserUseCase _deleteUser;
   final ResetUserPinUseCase _resetPin;
+  final ResetUserPasswordUseCase _resetPassword;
   final GetRolesUseCase _getRoles;
   final BranchesUseCases _branches;
   final AuthLocalDataSource _authLocal;
@@ -395,6 +398,34 @@ class UserFormCubit extends Cubit<UserFormState> {
           state.copyWith(
             isResettingPin: false,
             errors: {'_pin': failure.message},
+          ),
+        );
+        return false;
+      },
+      (_) {
+        emit(state.copyWith(isResettingPin: false));
+        return true;
+      },
+    );
+  }
+
+  /// Owner/manager sets a new password for the staff member being edited.
+  Future<bool> resetPassword(String newPassword) async {
+    if (!state.isEdit || !state.canUpdateProfile || state.userId == null) {
+      return false;
+    }
+
+    emit(state.copyWith(isResettingPin: true, errors: {}));
+    final result = await _resetPassword(
+      id: state.userId!,
+      newPassword: newPassword,
+    );
+    return result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            isResettingPin: false,
+            errors: {'_password': failure.message},
           ),
         );
         return false;

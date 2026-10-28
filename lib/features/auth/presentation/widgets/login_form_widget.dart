@@ -76,9 +76,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           ),
           const SizedBox(height: AppDimensions.spacingMd),
           AppTextField(
-            labelText: 'Business ID (optional)',
-            hintText: 'e.g. my-shop',
+            labelText: 'Business ID / Slug',
+            hintText: 'e.g. my-shop (needed if your phone is in several businesses)',
             controller: cubit.businessSlugController,
+            focusNode: cubit.businessSlugFocusNode,
             enableBorder: true,
             maxLine: 1,
           ),

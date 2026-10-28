@@ -40,8 +40,14 @@ class AuthCubit extends Cubit<AuthState> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
 
-  /// Optional until the backend makes login business-scoped.
+  /// Sent as `business_slug`. Optional unless the phone number belongs to more
+  /// than one business (the server then answers 409).
   final businessSlugController = TextEditingController();
+  final businessSlugFocusNode = FocusNode();
+
+  static const businessSlugRequiredMessage =
+      'This phone number is used by more than one business. '
+      'Enter your Business ID / Slug to continue.';
   final formKey = GlobalKey<FormState>();
   PhoneNumber? phoneNumber;
   bool rememberMe = false;
@@ -100,7 +106,15 @@ class AuthCubit extends Cubit<AuthState> {
       businessSlug: businessSlugController.text,
     );
     result.fold(
-      _onFailure,
+      (failure) {
+        if (failure is ConflictFailure &&
+            businessSlugController.text.trim().isEmpty) {
+          businessSlugFocusNode.requestFocus();
+          emit(const AuthState.error(businessSlugRequiredMessage));
+          return;
+        }
+        _onFailure(failure);
+      },
       (user) {
         _authGuard.setAuthenticated(true);
         emit(AuthState.authenticated(user));
@@ -177,6 +191,7 @@ class AuthCubit extends Cubit<AuthState> {
     phoneController.dispose();
     passwordController.dispose();
     businessSlugController.dispose();
+    businessSlugFocusNode.dispose();
     return super.close();
   }
 }

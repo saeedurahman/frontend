@@ -47,6 +47,12 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
       role: user?.role,
       permissionKeys: permissionKeys,
     );
+    // Voiding is gated by `sales.void`, not `sales.cancel`. Without it the
+    // register-shift probe is skipped, so `canVoid` (shift open) stays false.
+    final canVoidSales = UserRoleUtils.canVoidSales(
+      role: user?.role,
+      permissionKeys: permissionKeys,
+    );
     final canCreateReturn = UserRoleUtils.canCreateReturns(
       role: user?.role,
       permissionKeys: permissionKeys,
@@ -67,7 +73,7 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
           _getProductById.call,
         );
 
-        final registerShiftOpen = canCancelSales
+        final registerShiftOpen = canVoidSales
             ? await _resolveRegisterShiftOpen(enrichedSale)
             : null;
 

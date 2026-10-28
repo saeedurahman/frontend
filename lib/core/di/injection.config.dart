@@ -1124,6 +1124,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i961.DeleteUserUseCase>(
       () => _i961.DeleteUserUseCase(gh<_i476.UsersRepository>()),
     );
+    gh.factory<_i961.ResetUserPasswordUseCase>(
+      () => _i961.ResetUserPasswordUseCase(gh<_i476.UsersRepository>()),
+    );
     gh.factory<_i961.ResetUserPinUseCase>(
       () => _i961.ResetUserPinUseCase(gh<_i476.UsersRepository>()),
     );
@@ -1473,6 +1476,7 @@ extension GetItInjectableX on _i174.GetIt {
         deleteNotificationUseCase: gh<_i459.DeleteNotificationUseCase>(),
         checkNotificationAlertsUseCase:
             gh<_i459.CheckNotificationAlertsUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
     gh.factory<_i312.PosCubit>(
@@ -1504,6 +1508,9 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
         networkInfo: gh<_i932.NetworkInfo>(),
         heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
+        getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
+        getCustomerBalanceUseCase: gh<_i449.GetCustomerBalanceUseCase>(),
+        masterDataCacheDao: gh<_i15.MasterDataCacheDao>(),
       ),
     );
     gh.factory<_i830.SaleDetailCubit>(
@@ -1532,6 +1539,7 @@ extension GetItInjectableX on _i174.GetIt {
         replaceUserRolesUseCase: gh<_i961.ReplaceUserRolesUseCase>(),
         deleteUserUseCase: gh<_i961.DeleteUserUseCase>(),
         resetUserPinUseCase: gh<_i961.ResetUserPinUseCase>(),
+        resetUserPasswordUseCase: gh<_i961.ResetUserPasswordUseCase>(),
         getRolesUseCase: gh<_i473.GetRolesUseCase>(),
         branchesUseCases: gh<_i879.BranchesUseCases>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),

@@ -285,6 +285,12 @@ mixin _$PosSessionState {
   String? get branchId => throw _privateConstructorUsedError;
   String? get businessName => throw _privateConstructorUsedError;
   bool get isOffline => throw _privateConstructorUsedError;
+
+  String? get userId => throw _privateConstructorUsedError;
+
+  String? get businessId => throw _privateConstructorUsedError;
+
+  bool get canEditLineTax => throw _privateConstructorUsedError;
   PosDineInContext? get dineIn => throw _privateConstructorUsedError;
 
   /// Create a copy of PosSessionState
@@ -309,6 +315,9 @@ abstract class $PosSessionStateCopyWith<$Res> {
     String? branchId,
     String? businessName,
     bool isOffline,
+    String? userId,
+    String? businessId,
+    bool canEditLineTax,
     PosDineInContext? dineIn,
   });
 
@@ -337,6 +346,9 @@ class _$PosSessionStateCopyWithImpl<$Res, $Val extends PosSessionState>
     Object? branchId = freezed,
     Object? businessName = freezed,
     Object? isOffline = null,
+    Object? userId = freezed,
+    Object? businessId = freezed,
+    Object? canEditLineTax = null,
     Object? dineIn = freezed,
   }) {
     return _then(
@@ -368,6 +380,18 @@ class _$PosSessionStateCopyWithImpl<$Res, $Val extends PosSessionState>
             isOffline: null == isOffline
                 ? _value.isOffline
                 : isOffline // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            userId: freezed == userId
+                ? _value.userId
+                : userId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            businessId: freezed == businessId
+                ? _value.businessId
+                : businessId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            canEditLineTax: null == canEditLineTax
+                ? _value.canEditLineTax
+                : canEditLineTax // ignore: cast_nullable_to_non_nullable
                       as bool,
             dineIn: freezed == dineIn
                 ? _value.dineIn
@@ -410,6 +434,9 @@ abstract class _$$PosSessionStateImplCopyWith<$Res>
     String? branchId,
     String? businessName,
     bool isOffline,
+    String? userId,
+    String? businessId,
+    bool canEditLineTax,
     PosDineInContext? dineIn,
   });
 
@@ -438,6 +465,9 @@ class __$$PosSessionStateImplCopyWithImpl<$Res>
     Object? branchId = freezed,
     Object? businessName = freezed,
     Object? isOffline = null,
+    Object? userId = freezed,
+    Object? businessId = freezed,
+    Object? canEditLineTax = null,
     Object? dineIn = freezed,
   }) {
     return _then(
@@ -470,6 +500,18 @@ class __$$PosSessionStateImplCopyWithImpl<$Res>
             ? _value.isOffline
             : isOffline // ignore: cast_nullable_to_non_nullable
                   as bool,
+        userId: freezed == userId
+            ? _value.userId
+            : userId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        businessId: freezed == businessId
+            ? _value.businessId
+            : businessId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        canEditLineTax: null == canEditLineTax
+            ? _value.canEditLineTax
+            : canEditLineTax // ignore: cast_nullable_to_non_nullable
+                  as bool,
         dineIn: freezed == dineIn
             ? _value.dineIn
             : dineIn // ignore: cast_nullable_to_non_nullable
@@ -490,6 +532,9 @@ class _$PosSessionStateImpl implements _PosSessionState {
     this.branchId,
     this.businessName,
     this.isOffline = false,
+    this.userId,
+    this.businessId,
+    this.canEditLineTax = false,
     this.dineIn,
   });
 
@@ -512,11 +557,18 @@ class _$PosSessionStateImpl implements _PosSessionState {
   @JsonKey()
   final bool isOffline;
   @override
+  final String? userId;
+  @override
+  final String? businessId;
+  @override
+  @JsonKey()
+  final bool canEditLineTax;
+  @override
   final PosDineInContext? dineIn;
 
   @override
   String toString() {
-    return 'PosSessionState(accessDenied: $accessDenied, canOpenShift: $canOpenShift, canCloseShift: $canCloseShift, cashierName: $cashierName, branchId: $branchId, businessName: $businessName, isOffline: $isOffline, dineIn: $dineIn)';
+    return 'PosSessionState(accessDenied: $accessDenied, canOpenShift: $canOpenShift, canCloseShift: $canCloseShift, cashierName: $cashierName, branchId: $branchId, businessName: $businessName, isOffline: $isOffline, userId: $userId, businessId: $businessId, canEditLineTax: $canEditLineTax, dineIn: $dineIn)';
   }
 
   @override
@@ -538,6 +590,12 @@ class _$PosSessionStateImpl implements _PosSessionState {
                 other.businessName == businessName) &&
             (identical(other.isOffline, isOffline) ||
                 other.isOffline == isOffline) &&
+            (identical(other.userId, userId) ||
+                other.userId == userId) &&
+            (identical(other.businessId, businessId) ||
+                other.businessId == businessId) &&
+            (identical(other.canEditLineTax, canEditLineTax) ||
+                other.canEditLineTax == canEditLineTax) &&
             (identical(other.dineIn, dineIn) || other.dineIn == dineIn));
   }
 
@@ -551,6 +609,9 @@ class _$PosSessionStateImpl implements _PosSessionState {
     branchId,
     businessName,
     isOffline,
+    userId,
+    businessId,
+    canEditLineTax,
     dineIn,
   );
 
@@ -575,6 +636,9 @@ abstract class _PosSessionState implements PosSessionState {
     final String? branchId,
     final String? businessName,
     final bool isOffline,
+    final String? userId,
+    final String? businessId,
+    final bool canEditLineTax,
     final PosDineInContext? dineIn,
   }) = _$PosSessionStateImpl;
 
@@ -592,6 +656,12 @@ abstract class _PosSessionState implements PosSessionState {
   String? get businessName;
   @override
   bool get isOffline;
+  @override
+  String? get userId;
+  @override
+  String? get businessId;
+  @override
+  bool get canEditLineTax;
   @override
   PosDineInContext? get dineIn;
 
@@ -876,6 +946,10 @@ mixin _$PosShiftState {
   bool get isCreatingRegister => throw _privateConstructorUsedError;
   String? get registersError => throw _privateConstructorUsedError;
 
+  String? get openShiftError => throw _privateConstructorUsedError;
+
+  String? get shiftSummaryError => throw _privateConstructorUsedError;
+
   /// Create a copy of PosShiftState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -899,6 +973,8 @@ abstract class $PosShiftStateCopyWith<$Res> {
     bool isOpeningShift,
     bool isCreatingRegister,
     String? registersError,
+    String? openShiftError,
+    String? shiftSummaryError,
   });
 
   $RegisterShiftModelCopyWith<$Res>? get activeShift;
@@ -928,6 +1004,8 @@ class _$PosShiftStateCopyWithImpl<$Res, $Val extends PosShiftState>
     Object? isOpeningShift = null,
     Object? isCreatingRegister = null,
     Object? registersError = freezed,
+    Object? openShiftError = freezed,
+    Object? shiftSummaryError = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -962,6 +1040,14 @@ class _$PosShiftStateCopyWithImpl<$Res, $Val extends PosShiftState>
             registersError: freezed == registersError
                 ? _value.registersError
                 : registersError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            openShiftError: freezed == openShiftError
+                ? _value.openShiftError
+                : openShiftError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            shiftSummaryError: freezed == shiftSummaryError
+                ? _value.shiftSummaryError
+                : shiftSummaryError // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -1015,6 +1101,8 @@ abstract class _$$PosShiftStateImplCopyWith<$Res>
     bool isOpeningShift,
     bool isCreatingRegister,
     String? registersError,
+    String? openShiftError,
+    String? shiftSummaryError,
   });
 
   @override
@@ -1045,6 +1133,8 @@ class __$$PosShiftStateImplCopyWithImpl<$Res>
     Object? isOpeningShift = null,
     Object? isCreatingRegister = null,
     Object? registersError = freezed,
+    Object? openShiftError = freezed,
+    Object? shiftSummaryError = freezed,
   }) {
     return _then(
       _$PosShiftStateImpl(
@@ -1080,6 +1170,14 @@ class __$$PosShiftStateImplCopyWithImpl<$Res>
             ? _value.registersError
             : registersError // ignore: cast_nullable_to_non_nullable
                   as String?,
+        openShiftError: freezed == openShiftError
+            ? _value.openShiftError
+            : openShiftError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        shiftSummaryError: freezed == shiftSummaryError
+            ? _value.shiftSummaryError
+            : shiftSummaryError // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1097,6 +1195,8 @@ class _$PosShiftStateImpl implements _PosShiftState {
     this.isOpeningShift = false,
     this.isCreatingRegister = false,
     this.registersError,
+    this.openShiftError,
+    this.shiftSummaryError,
   }) : _registers = registers;
 
   @override
@@ -1125,10 +1225,14 @@ class _$PosShiftStateImpl implements _PosShiftState {
   final bool isCreatingRegister;
   @override
   final String? registersError;
+  @override
+  final String? openShiftError;
+  @override
+  final String? shiftSummaryError;
 
   @override
   String toString() {
-    return 'PosShiftState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError)';
+    return 'PosShiftState(activeShift: $activeShift, shiftSummary: $shiftSummary, registers: $registers, selectedRegisterId: $selectedRegisterId, isCheckingShift: $isCheckingShift, isOpeningShift: $isOpeningShift, isCreatingRegister: $isCreatingRegister, registersError: $registersError, openShiftError: $openShiftError, shiftSummaryError: $shiftSummaryError)';
   }
 
   @override
@@ -1153,7 +1257,11 @@ class _$PosShiftStateImpl implements _PosShiftState {
             (identical(other.isCreatingRegister, isCreatingRegister) ||
                 other.isCreatingRegister == isCreatingRegister) &&
             (identical(other.registersError, registersError) ||
-                other.registersError == registersError));
+                other.registersError == registersError) &&
+            (identical(other.openShiftError, openShiftError) ||
+                other.openShiftError == openShiftError) &&
+            (identical(other.shiftSummaryError, shiftSummaryError) ||
+                other.shiftSummaryError == shiftSummaryError));
   }
 
   @override
@@ -1167,6 +1275,8 @@ class _$PosShiftStateImpl implements _PosShiftState {
     isOpeningShift,
     isCreatingRegister,
     registersError,
+    openShiftError,
+    shiftSummaryError,
   );
 
   /// Create a copy of PosShiftState
@@ -1188,6 +1298,8 @@ abstract class _PosShiftState implements PosShiftState {
     final bool isOpeningShift,
     final bool isCreatingRegister,
     final String? registersError,
+    final String? openShiftError,
+    final String? shiftSummaryError,
   }) = _$PosShiftStateImpl;
 
   @override
@@ -1206,6 +1318,10 @@ abstract class _PosShiftState implements PosShiftState {
   bool get isCreatingRegister;
   @override
   String? get registersError;
+  @override
+  String? get openShiftError;
+  @override
+  String? get shiftSummaryError;
 
   /// Create a copy of PosShiftState
   /// with the given fields replaced by the non-null parameter values.
@@ -1223,6 +1339,18 @@ mixin _$PosCatalogState {
   String get productSearchQuery => throw _privateConstructorUsedError;
   bool get isLoadingProducts => throw _privateConstructorUsedError;
   String? get productsError => throw _privateConstructorUsedError;
+
+  bool get hasMoreProducts => throw _privateConstructorUsedError;
+
+  bool get isLoadingMoreProducts => throw _privateConstructorUsedError;
+
+  int get productsTotal => throw _privateConstructorUsedError;
+
+  String? get stockError => throw _privateConstructorUsedError;
+
+  String? get categoriesError => throw _privateConstructorUsedError;
+
+  String? get taxError => throw _privateConstructorUsedError;
   Map<String, String> get priceCache => throw _privateConstructorUsedError;
   Map<String, String> get stockCache => throw _privateConstructorUsedError;
   Map<String, ProductModel> get productDetailsCache =>
@@ -1249,6 +1377,12 @@ abstract class $PosCatalogStateCopyWith<$Res> {
     String productSearchQuery,
     bool isLoadingProducts,
     String? productsError,
+    bool hasMoreProducts,
+    bool isLoadingMoreProducts,
+    int productsTotal,
+    String? stockError,
+    String? categoriesError,
+    String? taxError,
     Map<String, String> priceCache,
     Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
@@ -1276,6 +1410,12 @@ class _$PosCatalogStateCopyWithImpl<$Res, $Val extends PosCatalogState>
     Object? productSearchQuery = null,
     Object? isLoadingProducts = null,
     Object? productsError = freezed,
+    Object? hasMoreProducts = null,
+    Object? isLoadingMoreProducts = null,
+    Object? productsTotal = null,
+    Object? stockError = freezed,
+    Object? categoriesError = freezed,
+    Object? taxError = freezed,
     Object? priceCache = null,
     Object? stockCache = null,
     Object? productDetailsCache = null,
@@ -1305,6 +1445,30 @@ class _$PosCatalogStateCopyWithImpl<$Res, $Val extends PosCatalogState>
             productsError: freezed == productsError
                 ? _value.productsError
                 : productsError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            hasMoreProducts: null == hasMoreProducts
+                ? _value.hasMoreProducts
+                : hasMoreProducts // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isLoadingMoreProducts: null == isLoadingMoreProducts
+                ? _value.isLoadingMoreProducts
+                : isLoadingMoreProducts // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            productsTotal: null == productsTotal
+                ? _value.productsTotal
+                : productsTotal // ignore: cast_nullable_to_non_nullable
+                      as int,
+            stockError: freezed == stockError
+                ? _value.stockError
+                : stockError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            categoriesError: freezed == categoriesError
+                ? _value.categoriesError
+                : categoriesError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            taxError: freezed == taxError
+                ? _value.taxError
+                : taxError // ignore: cast_nullable_to_non_nullable
                       as String?,
             priceCache: null == priceCache
                 ? _value.priceCache
@@ -1340,6 +1504,12 @@ abstract class _$$PosCatalogStateImplCopyWith<$Res>
     String productSearchQuery,
     bool isLoadingProducts,
     String? productsError,
+    bool hasMoreProducts,
+    bool isLoadingMoreProducts,
+    int productsTotal,
+    String? stockError,
+    String? categoriesError,
+    String? taxError,
     Map<String, String> priceCache,
     Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
@@ -1366,6 +1536,12 @@ class __$$PosCatalogStateImplCopyWithImpl<$Res>
     Object? productSearchQuery = null,
     Object? isLoadingProducts = null,
     Object? productsError = freezed,
+    Object? hasMoreProducts = null,
+    Object? isLoadingMoreProducts = null,
+    Object? productsTotal = null,
+    Object? stockError = freezed,
+    Object? categoriesError = freezed,
+    Object? taxError = freezed,
     Object? priceCache = null,
     Object? stockCache = null,
     Object? productDetailsCache = null,
@@ -1396,6 +1572,30 @@ class __$$PosCatalogStateImplCopyWithImpl<$Res>
             ? _value.productsError
             : productsError // ignore: cast_nullable_to_non_nullable
                   as String?,
+        hasMoreProducts: null == hasMoreProducts
+            ? _value.hasMoreProducts
+            : hasMoreProducts // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isLoadingMoreProducts: null == isLoadingMoreProducts
+            ? _value.isLoadingMoreProducts
+            : isLoadingMoreProducts // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        productsTotal: null == productsTotal
+            ? _value.productsTotal
+            : productsTotal // ignore: cast_nullable_to_non_nullable
+                  as int,
+        stockError: freezed == stockError
+            ? _value.stockError
+            : stockError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        categoriesError: freezed == categoriesError
+            ? _value.categoriesError
+            : categoriesError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        taxError: freezed == taxError
+            ? _value.taxError
+            : taxError // ignore: cast_nullable_to_non_nullable
+                  as String?,
         priceCache: null == priceCache
             ? _value._priceCache
             : priceCache // ignore: cast_nullable_to_non_nullable
@@ -1423,6 +1623,12 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
     this.productSearchQuery = '',
     this.isLoadingProducts = true,
     this.productsError,
+    this.hasMoreProducts = false,
+    this.isLoadingMoreProducts = false,
+    this.productsTotal = 0,
+    this.stockError,
+    this.categoriesError,
+    this.taxError,
     final Map<String, String> priceCache = const {},
     final Map<String, String> stockCache = const {},
     final Map<String, ProductModel> productDetailsCache = const {},
@@ -1460,6 +1666,21 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
   final bool isLoadingProducts;
   @override
   final String? productsError;
+  @override
+  @JsonKey()
+  final bool hasMoreProducts;
+  @override
+  @JsonKey()
+  final bool isLoadingMoreProducts;
+  @override
+  @JsonKey()
+  final int productsTotal;
+  @override
+  final String? stockError;
+  @override
+  final String? categoriesError;
+  @override
+  final String? taxError;
   final Map<String, String> _priceCache;
   @override
   @JsonKey()
@@ -1490,7 +1711,7 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
 
   @override
   String toString() {
-    return 'PosCatalogState(products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache)';
+    return 'PosCatalogState(products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, hasMoreProducts: $hasMoreProducts, isLoadingMoreProducts: $isLoadingMoreProducts, productsTotal: $productsTotal, stockError: $stockError, categoriesError: $categoriesError, taxError: $taxError, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache)';
   }
 
   @override
@@ -1511,6 +1732,18 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
                 other.isLoadingProducts == isLoadingProducts) &&
             (identical(other.productsError, productsError) ||
                 other.productsError == productsError) &&
+            (identical(other.hasMoreProducts, hasMoreProducts) ||
+                other.hasMoreProducts == hasMoreProducts) &&
+            (identical(other.isLoadingMoreProducts, isLoadingMoreProducts) ||
+                other.isLoadingMoreProducts == isLoadingMoreProducts) &&
+            (identical(other.productsTotal, productsTotal) ||
+                other.productsTotal == productsTotal) &&
+            (identical(other.stockError, stockError) ||
+                other.stockError == stockError) &&
+            (identical(other.categoriesError, categoriesError) ||
+                other.categoriesError == categoriesError) &&
+            (identical(other.taxError, taxError) ||
+                other.taxError == taxError) &&
             const DeepCollectionEquality().equals(
               other._priceCache,
               _priceCache,
@@ -1534,6 +1767,12 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
     productSearchQuery,
     isLoadingProducts,
     productsError,
+    hasMoreProducts,
+    isLoadingMoreProducts,
+    productsTotal,
+    stockError,
+    categoriesError,
+    taxError,
     const DeepCollectionEquality().hash(_priceCache),
     const DeepCollectionEquality().hash(_stockCache),
     const DeepCollectionEquality().hash(_productDetailsCache),
@@ -1559,6 +1798,12 @@ abstract class _PosCatalogState implements PosCatalogState {
     final String productSearchQuery,
     final bool isLoadingProducts,
     final String? productsError,
+    final bool hasMoreProducts,
+    final bool isLoadingMoreProducts,
+    final int productsTotal,
+    final String? stockError,
+    final String? categoriesError,
+    final String? taxError,
     final Map<String, String> priceCache,
     final Map<String, String> stockCache,
     final Map<String, ProductModel> productDetailsCache,
@@ -1576,6 +1821,18 @@ abstract class _PosCatalogState implements PosCatalogState {
   bool get isLoadingProducts;
   @override
   String? get productsError;
+  @override
+  bool get hasMoreProducts;
+  @override
+  bool get isLoadingMoreProducts;
+  @override
+  int get productsTotal;
+  @override
+  String? get stockError;
+  @override
+  String? get categoriesError;
+  @override
+  String? get taxError;
   @override
   Map<String, String> get priceCache;
   @override

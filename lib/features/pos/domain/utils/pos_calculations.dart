@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_totals.dart';
@@ -105,6 +106,8 @@ abstract final class PosCalculations {
 
       if (cartDiscountType == 'percentage' && cartDiscountValue > Decimal.zero) {
         discountPct = discountPct + cartDiscountValue;
+        final hundred = Decimal.fromInt(100);
+        if (discountPct > hundred) discountPct = hundred;
       } else if (cartDiscountType == 'fixed' && cartDiscountValue > Decimal.zero) {
         discountAmount = discountAmount + distributedAmounts[index];
       }
@@ -129,33 +132,87 @@ abstract final class PosCalculations {
     });
   }
 
+  /// Splits a fixed cart discount across lines, pro-rata by line subtotal.
+  ///
+  /// Decimal-only (no `double`). Each line's total discount (its own fixed
+  /// discount plus its share) never exceeds its subtotal, shares are never
+  /// negative, and the shares add up to the requested discount (capped by the
+  /// room the lines have): rounding leftovers are handed to lines with room.
+  @visibleForTesting
+  static List<Decimal> distributeFixedCartDiscount({
+    required List<CartItemModel> items,
+    required String? cartDiscountType,
+    required Decimal cartDiscountValue,
+  }) =>
+      _distributeFixedCartDiscount(
+        items: items,
+        cartDiscountType: cartDiscountType,
+        cartDiscountValue: cartDiscountValue,
+        subtotal: sumSubtotal(items),
+      );
+
   static List<Decimal> _distributeFixedCartDiscount({
     required List<CartItemModel> items,
     required String? cartDiscountType,
     required Decimal cartDiscountValue,
     required Decimal subtotal,
   }) {
-    final result = List<Decimal>.filled(items.length, Decimal.zero);
+    final shares = List<Decimal>.filled(items.length, Decimal.zero);
     if (cartDiscountType != 'fixed' ||
         cartDiscountValue <= Decimal.zero ||
         subtotal <= Decimal.zero) {
-      return result;
+      return shares;
     }
 
-    var distributed = Decimal.zero;
+    // Room left on each line once its own fixed discount is accounted for.
+    final room = <Decimal>[
+      for (final item in items)
+        _nonNegative(
+          PricingEngine.round2(item.lineSubtotal) -
+              PricingEngine.round2(item.effectiveDiscountAmount),
+        ),
+    ];
+    final totalRoom = room.fold(Decimal.zero, (a, b) => a + b);
+    final target = PricingEngine.round2(
+      cartDiscountValue < totalRoom ? cartDiscountValue : totalRoom,
+    );
+    if (target <= Decimal.zero) return shares;
+
+    var allocated = Decimal.zero;
     for (var i = 0; i < items.length; i++) {
-      if (i == items.length - 1) {
-        result[i] = cartDiscountValue - distributed;
-      } else {
-        final lineSubtotal = items[i].lineSubtotal;
-        final share = lineSubtotal.toDouble() / subtotal.toDouble();
-        final lineDiscount = Decimal.parse(
-          (cartDiscountValue.toDouble() * share).toStringAsFixed(2),
-        );
-        result[i] = lineDiscount;
-        distributed = distributed + lineDiscount;
+      if (items[i].lineSubtotal <= Decimal.zero) continue;
+      final raw = DecimalUtils.fromRational(
+        target * items[i].lineSubtotal / subtotal,
+      );
+      final share = raw < room[i] ? raw : room[i];
+      shares[i] = share;
+      allocated += share;
+    }
+
+    var leftover = target - allocated;
+    if (leftover > Decimal.zero) {
+      for (var i = 0; i < items.length && leftover > Decimal.zero; i++) {
+        final free = room[i] - shares[i];
+        if (free <= Decimal.zero) continue;
+        final add = free < leftover ? free : leftover;
+        shares[i] += add;
+        leftover -= add;
+      }
+    } else if (leftover < Decimal.zero) {
+      // Rounding overshoot: take it back from the largest shares first.
+      var excess = -leftover;
+      final order = List<int>.generate(items.length, (i) => i)
+        ..sort((a, b) => shares[b].compareTo(shares[a]));
+      for (final i in order) {
+        if (excess <= Decimal.zero) break;
+        if (shares[i] <= Decimal.zero) continue;
+        final take = shares[i] < excess ? shares[i] : excess;
+        shares[i] -= take;
+        excess -= take;
       }
     }
-    return result;
+    return shares;
   }
+
+  static Decimal _nonNegative(Decimal v) => v < Decimal.zero ? Decimal.zero : v;
 }

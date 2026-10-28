@@ -11,5 +11,9 @@ class PosShiftState with _$PosShiftState {
     @Default(false) bool isOpeningShift,
     @Default(false) bool isCreatingRegister,
     String? registersError,
+    /// Real failure message from the last `openShift` attempt.
+    String? openShiftError,
+    /// Set when the shift summary could not be loaded (retry offered).
+    String? shiftSummaryError,
   }) = _PosShiftState;
 }

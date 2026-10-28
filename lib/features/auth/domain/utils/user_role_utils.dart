@@ -13,6 +13,10 @@ class UserRoleUtils {
   static const viewReturnsPermission = 'sales.returns.view';
   static const createReturnsPermission = 'sales.returns.create';
   static const cancelSalesPermission = 'sales.cancel';
+  static const voidSalesPermission = 'sales.void';
+  static const overridePricePermission = 'sales.override_price';
+  static const manageTaxPermission = 'tax.manage';
+  static const manageNotificationsPermission = 'notifications.manage';
   static const createSalesPermission = 'sales.create';
   static const viewShiftsPermission = 'shifts.view';
   static const openShiftPermission = 'shifts.open';
@@ -142,6 +146,41 @@ class UserRoleUtils {
         role: role,
         permissionKeys: permissionKeys,
         permission: viewReturnsPermission,
+      );
+
+  /// Change the tax rate of a cart line. Cashiers use the product/default tax;
+  /// only roles that may override prices or manage tax rates can edit it.
+  static bool canEditLineTax({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) {
+    if (permissionKeys.isNotEmpty) {
+      return hasPermission(permissionKeys, overridePricePermission) ||
+          hasPermission(permissionKeys, manageTaxPermission);
+    }
+    return isOwner(role);
+  }
+
+  /// Void a completed sale (`sales.void`). Cancel-only roles cannot void.
+  static bool canVoidSales({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: voidSalesPermission,
+      );
+
+  /// `/notifications/check-alerts` needs `notifications.manage`.
+  static bool canManageNotifications({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      _permissionOrOwnerFallback(
+        role: role,
+        permissionKeys: permissionKeys,
+        permission: manageNotificationsPermission,
       );
 
   static bool canCancelSales({

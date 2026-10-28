@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/notifications/data/models/notification_model.dart';
 import 'package:frantend/features/notifications/domain/usecases/notifications_usecases.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_state.dart';
@@ -19,11 +21,13 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     required MarkAllNotificationsReadUseCase markAllNotificationsReadUseCase,
     required DeleteNotificationUseCase deleteNotificationUseCase,
     required CheckNotificationAlertsUseCase checkNotificationAlertsUseCase,
+    required AuthLocalDataSource authLocalDataSource,
   })  : _getNotifications = getNotificationsUseCase,
         _markRead = markNotificationsReadUseCase,
         _markAllRead = markAllNotificationsReadUseCase,
         _deleteNotification = deleteNotificationUseCase,
         _checkAlerts = checkNotificationAlertsUseCase,
+        _authLocal = authLocalDataSource,
         super(const NotificationsState.initial());
 
   static const _pageSize = 50;
@@ -35,6 +39,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   final MarkAllNotificationsReadUseCase _markAllRead;
   final DeleteNotificationUseCase _deleteNotification;
   final CheckNotificationAlertsUseCase _checkAlerts;
+  final AuthLocalDataSource _authLocal;
 
   Timer? _checkAlertsTimer;
   int _listLimit = _pageSize;
@@ -54,8 +59,12 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   Future<void> startSession() async {
     _listLimit = _pageSize;
     await loadNotifications(reset: true);
-    await triggerCheckAlerts();
     _checkAlertsTimer?.cancel();
+    _checkAlertsTimer = null;
+    // POST-style alert generation needs `notifications.manage`; roles without
+    // it must never call the endpoint (it would 403 on every tick).
+    if (!await _canCheckAlerts()) return;
+    await triggerCheckAlerts();
     _checkAlertsTimer = Timer.periodic(
       _checkAlertsInterval,
       (_) => triggerCheckAlerts(),
@@ -232,7 +241,16 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     result.fold((failure) => refresh(), (_) {});
   }
 
+  Future<bool> _canCheckAlerts() async {
+    final user = await _authLocal.getCachedUser();
+    return UserRoleUtils.canManageNotifications(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    );
+  }
+
   Future<void> triggerCheckAlerts() async {
+    if (!await _canCheckAlerts()) return;
     final current = state;
     if (current is NotificationsLoaded) {
       emit(current.copyWith(isCheckingAlerts: true, errorMessage: null));

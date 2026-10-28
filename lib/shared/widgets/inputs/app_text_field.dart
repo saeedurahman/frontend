@@ -17,6 +17,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.onChanged,
     this.onForgotPassword,
+    this.focusNode,
   });
 
   final TextEditingController controller;
@@ -29,6 +30,7 @@ class AppTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onForgotPassword;
+  final FocusNode? focusNode;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -75,6 +77,7 @@ class _AppTextFieldState extends State<AppTextField> {
         if (widget.labelText != null) const SizedBox(height: 8),
         TextFormField(
           controller: widget.controller,
+          focusNode: widget.focusNode,
           obscureText: widget.isPassword && _obscure,
           maxLines: widget.maxLine,
           keyboardType: widget.keyboardType,

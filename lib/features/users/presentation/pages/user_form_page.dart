@@ -7,6 +7,7 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_cubit.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_state.dart';
+import 'package:frantend/features/users/presentation/widgets/reset_password_dialog.dart';
 import 'package:frantend/features/users/presentation/widgets/reset_pin_dialog.dart';
 import 'package:frantend/features/users/presentation/widgets/user_role_picker.dart';
 import 'package:frantend/shared/widgets/badges/status_badge.dart';
@@ -51,6 +52,7 @@ class _UserFormView extends StatelessWidget {
           current.errors.containsKey('_general') ||
           current.errors.containsKey('_roles') ||
           current.errors.containsKey('_pin') ||
+          current.errors.containsKey('_password') ||
           (current.saveWarning != null &&
               current.saveWarning != previous.saveWarning),
       listener: (context, state) {
@@ -60,6 +62,8 @@ class _UserFormView extends StatelessWidget {
         if (roles != null) AppAlerts.showErrorMessage(context, roles);
         final pin = state.errors['_pin'];
         if (pin != null) AppAlerts.showErrorMessage(context, pin);
+        final password = state.errors['_password'];
+        if (password != null) AppAlerts.showErrorMessage(context, password);
       },
       builder: (context, state) {
         if (state.isLoading) {
@@ -423,6 +427,35 @@ class _AccountActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: [
+        _resetPinButton(context),
+        OutlinedButton.icon(
+          onPressed: state.isResettingPin || state.isSaving
+              ? null
+              : () async {
+                  final password = await ResetPasswordDialog.show(context);
+                  if (password == null || !context.mounted) return;
+                  final ok = await context
+                      .read<UserFormCubit>()
+                      .resetPassword(password);
+                  if (ok && context.mounted) {
+                    AppAlerts.showSuccessMessage(
+                      context,
+                      'Password reset successfully',
+                    );
+                  }
+                },
+          icon: const Icon(Icons.lock_reset),
+          label: const Text('Reset password'),
+        ),
+      ],
+    );
+  }
+
+  Widget _resetPinButton(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: state.isResettingPin || state.isSaving
           ? null

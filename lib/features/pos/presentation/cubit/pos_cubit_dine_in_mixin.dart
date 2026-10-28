@@ -310,22 +310,19 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     if (dineIn == null) {
       throw Exception('Not in dine-in mode');
     }
+    if (state.activeShift == null) {
+      throw const ShiftRequiredException();
+    }
     if (state.cartItems.isEmpty) {
       throw Exception('Cart is empty');
     }
+    _assertPaymentsCoverTotal(payments);
 
     _safeEmit(state.patch(isSubmittingSale: true));
     try {
       final request = CompleteTabRequest(
         registerShiftId: state.activeShift?.id,
-        payments: payments
-            .map((p) => {
-                  'payment_method': p.paymentMethod,
-                  'amount': DecimalUtils.format(p.amount),
-                  if (p.referenceNo != null && p.referenceNo!.isNotEmpty)
-                    'reference_no': p.referenceNo,
-                })
-            .toList(),
+        payments: PosSaleRequestBuilder.paymentsJson(payments),
       );
 
       final result = await _completeTabUseCase(dineIn.saleId, request);

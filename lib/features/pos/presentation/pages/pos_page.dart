@@ -115,6 +115,7 @@ class _PosPageState extends State<PosPage> {
                       onShiftTap: () => _showShiftSummary(context, state),
                       onHeldOrdersTap: () => HeldOrdersDialog.show(context),
                     ),
+                    _LoadErrorBanners(state: state),
                     Expanded(
                       child: state.isShiftReady
                           ? Row(
@@ -226,6 +227,21 @@ class _PosPageState extends State<PosPage> {
               ),
               Text(
                 'Expected cash: ${ShiftFormatUtils.formatMoney(summary.expectedCash)}',
+              ),
+            ],
+            if (state.shiftSummaryError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Could not load the shift summary: ${state.shiftSummaryError}',
+                style: const TextStyle(color: AppColors.error),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  dismissPopover(dialogContext);
+                  context.read<PosCubit>().retryShiftSummary();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
               ),
             ],
           ],
@@ -453,6 +469,63 @@ class _PosHeader extends StatelessWidget {
   }
 }
 
+/// Non-blocking "could not load X" strips with a retry button. These loads
+/// used to fail silently, leaving blank stock/category/tax data.
+class _LoadErrorBanners extends StatelessWidget {
+  const _LoadErrorBanners({required this.state});
+
+  final PosState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<PosCubit>();
+    final items = <(String, VoidCallback)>[
+      if (state.stockError != null)
+        ('Stock levels could not be loaded: ${state.stockError}', cubit.retryStock),
+      if (state.categoriesError != null)
+        (
+          'Categories could not be loaded: ${state.categoriesError}',
+          cubit.retryCategories,
+        ),
+      if (state.taxError != null)
+        ('Tax rates could not be loaded: ${state.taxError}', cubit.retryTaxData),
+      if (state.shiftSummaryError != null)
+        (
+          'Shift summary could not be loaded: ${state.shiftSummaryError}',
+          cubit.retryShiftSummary,
+        ),
+    ];
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: [
+        for (final (message, retry) in items)
+          Container(
+            width: double.infinity,
+            color: AppColors.error.withValues(alpha: 0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 16, color: AppColors.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                TextButton(onPressed: retry, child: const Text('Retry')),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _ShiftGateOverlay extends StatefulWidget {
   const _ShiftGateOverlay({required this.state});
 
@@ -502,7 +575,7 @@ class _ShiftGateOverlayState extends State<_ShiftGateOverlay> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'You need to open a register shift before making sales',
+                    'Open shift first: you need an open register shift before making sales',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
@@ -604,6 +677,17 @@ class _ShiftGateOverlayState extends State<_ShiftGateOverlay> {
                       border: OutlineInputBorder(),
                     ),
                   ),
+                  if (widget.state.openShiftError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.state.openShiftError!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
@@ -625,8 +709,11 @@ class _ShiftGateOverlayState extends State<_ShiftGateOverlay> {
                               );
                               if (!ok && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to open shift'),
+                                  SnackBar(
+                                    content: Text(
+                                      cubit.state.openShiftError ??
+                                          'Failed to open shift',
+                                    ),
                                   ),
                                 );
                               }

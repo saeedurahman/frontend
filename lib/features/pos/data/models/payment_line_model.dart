@@ -6,6 +6,7 @@ class PaymentLineModel {
     required this.amount,
     this.referenceNo,
     this.walletLabel,
+    this.tendered,
   });
 
   final String paymentMethod;
@@ -14,17 +15,29 @@ class PaymentLineModel {
   /// UI label for wallet sub-types (Easypaisa / JazzCash).
   final String? walletLabel;
 
+  /// Cash handed over by the customer; [amount] is the part applied to the
+  /// sale, so `tendered - amount` is the change. Null for non-cash lines.
+  final Decimal? tendered;
+
+  Decimal get change {
+    final t = tendered;
+    if (t == null || t <= amount) return Decimal.zero;
+    return t - amount;
+  }
+
   PaymentLineModel copyWith({
     String? paymentMethod,
     Decimal? amount,
     String? referenceNo,
     String? walletLabel,
+    Decimal? tendered,
   }) {
     return PaymentLineModel(
       paymentMethod: paymentMethod ?? this.paymentMethod,
       amount: amount ?? this.amount,
       referenceNo: referenceNo ?? this.referenceNo,
       walletLabel: walletLabel ?? this.walletLabel,
+      tendered: tendered ?? this.tendered,
     );
   }
 }

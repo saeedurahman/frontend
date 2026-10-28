@@ -30,8 +30,12 @@ class ProductGridArea extends StatelessWidget {
               child: state.isLoadingProducts
                   ? const _ProductShimmerGrid()
                   : state.filteredProducts.isEmpty
-                      ? const Center(child: Text('No products found'))
-                      : _ProductGrid(products: state.filteredProducts),
+                      ? _EmptyOrError(error: state.productsError)
+                      : _ProductGrid(
+                          products: state.filteredProducts,
+                          isLoadingMore: state.isLoadingMoreProducts,
+                          total: state.productsTotal,
+                        ),
             ),
           ],
         );
@@ -112,9 +116,72 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-class _ProductGrid extends StatelessWidget {
-  const _ProductGrid({required this.products});
+class _EmptyOrError extends StatelessWidget {
+  const _EmptyOrError({this.error});
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    if (error == null) return const Center(child: Text('No products found'));
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Could not load products: $error',
+            style: const TextStyle(color: AppColors.error),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: context.read<PosCubit>().retryProducts,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Infinite-scrolling catalog: the next page is requested when the cashier
+/// scrolls near the end of what is loaded.
+class _ProductGrid extends StatefulWidget {
+  const _ProductGrid({
+    required this.products,
+    required this.isLoadingMore,
+    required this.total,
+  });
+
   final List<ProductListItemModel> products;
+  final bool isLoadingMore;
+  final int total;
+
+  @override
+  State<_ProductGrid> createState() => _ProductGridState();
+}
+
+class _ProductGridState extends State<_ProductGrid> {
+  final _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_controller.hasClients) return;
+    final position = _controller.position;
+    if (position.pixels >= position.maxScrollExtent - 400) {
+      context.read<PosCubit>().loadMoreProducts();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,17 +189,41 @@ class _ProductGrid extends StatelessWidget {
       builder: (context, constraints) {
         final crossAxisCount =
             (constraints.maxWidth / 180).floor().clamp(2, 5);
-        return GridView.builder(
-          padding: const EdgeInsets.all(12),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 0.68,
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) =>
-              _ProductCard(product: products[index]),
+        // Short first pages may not fill the viewport; keep pulling pages.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted &&
+              _controller.hasClients &&
+              _controller.position.maxScrollExtent <= 0) {
+            context.read<PosCubit>().loadMoreProducts();
+          }
+        });
+        return Column(
+          children: [
+            Expanded(
+              child: GridView.builder(
+                controller: _controller,
+                padding: const EdgeInsets.all(12),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 0.68,
+                ),
+                itemCount: widget.products.length,
+                itemBuilder: (context, index) =>
+                    _ProductCard(product: widget.products[index]),
+              ),
+            ),
+            if (widget.isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+          ],
         );
       },
     );
