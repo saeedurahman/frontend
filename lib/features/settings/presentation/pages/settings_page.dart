@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dar
 import 'package:frantend/features/settings/presentation/widgets/security_settings_section.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:frantend/utils/app_phone_no_field.dart';
 import 'package:go_router/go_router.dart';
@@ -360,29 +362,35 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                     child: Text(business.currencyCode),
                   ),
                   const SizedBox(height: 20),
+                  const _SubscriptionLinkSection(),
+                  const SizedBox(height: 20),
                   const _AccessControlSection(),
                   const SizedBox(height: 20),
                   const SecuritySettingsSection(),
                   const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: PrimaryButton(
-                      label: 'Save Changes',
-                      isLoading: widget.state.isSavingBusiness,
-                      onPressed: widget.state.isSavingBusiness
-                          ? null
-                          : () async {
-                              if (_formKey.currentState?.validate() != true) {
-                                return;
-                              }
-                              final ok = await cubit.saveBusinessProfile();
-                              if (ok && context.mounted) {
-                                AppAlerts.showSuccessMessage(
-                                  context,
-                                  'Business profile saved',
-                                );
-                              }
-                            },
+                    child: PermissionGate(
+                      permission: Perm.settingsManage,
+                      mutating: true,
+                      child: PrimaryButton(
+                        label: 'Save Changes',
+                        isLoading: widget.state.isSavingBusiness,
+                        onPressed: widget.state.isSavingBusiness
+                            ? null
+                            : () async {
+                                if (_formKey.currentState?.validate() != true) {
+                                  return;
+                                }
+                                final ok = await cubit.saveBusinessProfile();
+                                if (ok && context.mounted) {
+                                  AppAlerts.showSuccessMessage(
+                                    context,
+                                    'Business profile saved',
+                                  );
+                                }
+                              },
+                      ),
                     ),
                   ),
                 ],
@@ -391,6 +399,41 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SubscriptionLinkSection extends StatelessWidget {
+  const _SubscriptionLinkSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Subscription', style: AppTextStyles.titleMedium),
+        const SizedBox(height: 8),
+        Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AppColors.border),
+            ),
+            leading: const Icon(
+              Icons.workspace_premium_outlined,
+              color: AppColors.primary,
+            ),
+            title: const Text('Subscription & renewal'),
+            subtitle: const Text(
+              'See your plan, end date and how to contact us to renew',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(RouteNames.settingsSubscription),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -563,20 +606,24 @@ class _ReceiptSettingsTabState extends State<_ReceiptSettingsTab> {
                     const SizedBox(height: 20),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: PrimaryButton(
-                        label: 'Save Changes',
-                        isLoading: widget.state.isSavingReceipt,
-                        onPressed: widget.state.isSavingReceipt
-                            ? null
-                            : () async {
-                                final ok = await cubit.saveReceiptSettings();
-                                if (ok && context.mounted) {
-                                  AppAlerts.showSuccessMessage(
-                                    context,
-                                    'Receipt settings saved',
-                                  );
-                                }
-                              },
+                      child: PermissionGate(
+                        permission: Perm.settingsManage,
+                        mutating: true,
+                        child: PrimaryButton(
+                          label: 'Save Changes',
+                          isLoading: widget.state.isSavingReceipt,
+                          onPressed: widget.state.isSavingReceipt
+                              ? null
+                              : () async {
+                                  final ok = await cubit.saveReceiptSettings();
+                                  if (ok && context.mounted) {
+                                    AppAlerts.showSuccessMessage(
+                                      context,
+                                      'Receipt settings saved',
+                                    );
+                                  }
+                                },
+                        ),
                       ),
                     ),
                   ],
@@ -664,16 +711,20 @@ class _TaxRatesTab extends StatelessWidget {
           children: [
             Text('Tax Rates', style: AppTextStyles.titleMedium),
             const Spacer(),
-            ElevatedButton.icon(
-              onPressed: state.isSavingTaxRate
-                  ? null
-                  : () => _showAddTaxRateDialog(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+            PermissionGate(
+              anyOf: [Perm.taxManage, Perm.settingsManage],
+              mutating: true,
+              child: ElevatedButton.icon(
+                onPressed: state.isSavingTaxRate
+                    ? null
+                    : () => _showAddTaxRateDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add Tax Rate'),
               ),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Tax Rate'),
             ),
           ],
         ),
@@ -726,38 +777,46 @@ class _TaxRatesTab extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (isDefault)
-                            TextButton(
+                            PermissionGate(
+                              anyOf: [Perm.taxManage, Perm.settingsManage],
+                              mutating: true,
+                              child: TextButton(
+                                onPressed: isBusy
+                                    ? null
+                                    : () async {
+                                        final ok =
+                                            await cubit.clearDefaultTaxRate();
+                                        if (ok && context.mounted) {
+                                          AppAlerts.showSuccessMessage(
+                                            context,
+                                            'Default tax rate removed',
+                                          );
+                                        }
+                                      },
+                                child: const Text('Remove Default'),
+                              ),
+                            ),
+                          PermissionGate(
+                            anyOf: [Perm.taxManage, Perm.settingsManage],
+                            mutating: true,
+                            child: IconButton(
+                              tooltip: 'Deactivate',
+                              icon: const Icon(Icons.block, color: AppColors.error),
                               onPressed: isBusy
                                   ? null
                                   : () async {
-                                      final ok =
-                                          await cubit.clearDefaultTaxRate();
+                                      final ok = await cubit.updateTaxRateActive(
+                                        rate.id,
+                                        false,
+                                      );
                                       if (ok && context.mounted) {
                                         AppAlerts.showSuccessMessage(
                                           context,
-                                          'Default tax rate removed',
+                                          'Tax rate deactivated',
                                         );
                                       }
                                     },
-                              child: const Text('Remove Default'),
                             ),
-                          IconButton(
-                            tooltip: 'Deactivate',
-                            icon: const Icon(Icons.block, color: AppColors.error),
-                            onPressed: isBusy
-                                ? null
-                                : () async {
-                                    final ok = await cubit.updateTaxRateActive(
-                                      rate.id,
-                                      false,
-                                    );
-                                    if (ok && context.mounted) {
-                                      AppAlerts.showSuccessMessage(
-                                        context,
-                                        'Tax rate deactivated',
-                                      );
-                                    }
-                                  },
                           ),
                         ],
                       ),
@@ -916,20 +975,24 @@ class _BranchOverridesTabState extends State<_BranchOverridesTab> {
                           child: const Text('Remove Override'),
                         ),
                       const Spacer(),
-                      PrimaryButton(
-                        label: 'Save Override',
-                        isLoading: widget.state.isSavingBranchOverride,
-                        onPressed: widget.state.isSavingBranchOverride
-                            ? null
-                            : () async {
-                                final ok = await cubit.saveBranchOverride();
-                                if (ok && context.mounted) {
-                                  AppAlerts.showSuccessMessage(
-                                    context,
-                                    'Branch override saved',
-                                  );
-                                }
-                              },
+                      PermissionGate(
+                        permission: Perm.settingsManage,
+                        mutating: true,
+                        child: PrimaryButton(
+                          label: 'Save Override',
+                          isLoading: widget.state.isSavingBranchOverride,
+                          onPressed: widget.state.isSavingBranchOverride
+                              ? null
+                              : () async {
+                                  final ok = await cubit.saveBranchOverride();
+                                  if (ok && context.mounted) {
+                                    AppAlerts.showSuccessMessage(
+                                      context,
+                                      'Branch override saved',
+                                    );
+                                  }
+                                },
+                        ),
                       ),
                     ],
                   ),

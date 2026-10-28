@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_actions.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_navigation.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -37,10 +39,12 @@ class SuppliersDataTable extends StatelessWidget {
       itemLabel: 'suppliers',
       actionsWidth: 130,
       sortCompare: _sortCompare,
-      onRowTap: (row) => openSupplierForm(
-        context,
-        '${RouteNames.suppliers}/${row.supplier.id}/edit',
-      ),
+      onRowTap: hasPermission(context, Perm.suppliersUpdate)
+          ? (row) => openSupplierForm(
+                context,
+                '${RouteNames.suppliers}/${row.supplier.id}/edit',
+              )
+          : null,
       rowBuilder: (context, row, {required selected, required onSelected}) {
         final supplier = row.supplier;
 
@@ -109,20 +113,28 @@ class SuppliersDataTable extends StatelessWidget {
           ],
           actions: Row(
             children: [
-              AppTableActionButton(
-                icon: Icons.edit_outlined,
-                tooltip: 'Edit',
-                onPressed: () => openSupplierForm(
-                  context,
-                  '${RouteNames.suppliers}/${supplier.id}/edit',
+              PermissionGate(
+                permission: Perm.suppliersUpdate,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Edit',
+                  onPressed: () => openSupplierForm(
+                    context,
+                    '${RouteNames.suppliers}/${supplier.id}/edit',
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
-              AppTableActionButton(
-                icon: Icons.delete_outline,
-                iconColor: AppColors.error,
-                tooltip: 'Delete',
-                onPressed: () => confirmDeleteSupplier(context, row),
+              PermissionGate(
+                permission: Perm.suppliersUpdate,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.delete_outline,
+                  iconColor: AppColors.error,
+                  tooltip: 'Delete',
+                  onPressed: () => confirmDeleteSupplier(context, row),
+                ),
               ),
             ],
           ),

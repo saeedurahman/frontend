@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/roles/presentation/utils/roles_navigation.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class RolesListToolbar extends StatelessWidget {
   const RolesListToolbar({super.key, required this.total});
@@ -33,15 +35,19 @@ class RolesListToolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => openRoleForm(context, RouteNames.settingsRoleNew),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        PermissionGate(
+          permission: Perm.rolesManage,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () => openRoleForm(context, RouteNames.settingsRoleNew),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Create Role'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Create Role'),
         ),
       ],
     );

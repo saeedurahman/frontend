@@ -76,3 +76,84 @@ class SyncFailure extends Failure {
 class UnknownFailure extends Failure {
   const UnknownFailure([super.message = 'An unknown error occurred']);
 }
+
+/// How to reach support, as sent by the backend on subscription errors.
+class SubscriptionContact extends Equatable {
+  const SubscriptionContact({this.phone, this.whatsapp, this.email});
+
+  static const empty = SubscriptionContact();
+
+  factory SubscriptionContact.fromJson(dynamic json) {
+    if (json is! Map) return empty;
+    String? text(dynamic v) {
+      final s = v?.toString().trim();
+      return s == null || s.isEmpty ? null : s;
+    }
+
+    return SubscriptionContact(
+      phone: text(json['phone']),
+      whatsapp: text(json['whatsapp']),
+      email: text(json['email']),
+    );
+  }
+
+  final String? phone;
+  final String? whatsapp;
+  final String? email;
+
+  bool get isEmpty => phone == null && whatsapp == null && email == null;
+
+  @override
+  List<Object?> get props => [phone, whatsapp, email];
+}
+
+/// HTTP 402: the business's subscription does not allow this request.
+///
+/// The session is valid; tokens must never be cleared because of this.
+class SubscriptionFailure extends Failure {
+  const SubscriptionFailure({
+    required this.code,
+    String message = defaultMessage,
+    this.expiredAt,
+    this.contact = SubscriptionContact.empty,
+  }) : super(message);
+
+  static const defaultMessage =
+      'Your subscription is not active. Please contact support.';
+
+  static const codeExpired = 'subscription_expired';
+  static const codeSuspended = 'subscription_suspended';
+  static const codeCancelled = 'subscription_cancelled';
+  static const codeGraceReadOnly = 'subscription_grace_readonly';
+
+  /// Reads `{"code","message","expired_at","contact"}`, either at the top level
+  /// or wrapped in FastAPI's `detail`.
+  factory SubscriptionFailure.fromBody(dynamic data) {
+    var body = data;
+    if (body is Map && body['detail'] is Map) body = body['detail'];
+    if (body is! Map) {
+      return const SubscriptionFailure(code: codeExpired);
+    }
+    final code = body['code'];
+    final message = body['message'];
+    final expired = DateTime.tryParse('${body['expired_at'] ?? ''}');
+    return SubscriptionFailure(
+      code: code is String && code.isNotEmpty ? code : codeExpired,
+      message: message is String && message.trim().isNotEmpty
+          ? message
+          : defaultMessage,
+      expiredAt: expired,
+      contact: SubscriptionContact.fromJson(body['contact']),
+    );
+  }
+
+  final String code;
+  final DateTime? expiredAt;
+  final SubscriptionContact contact;
+
+  /// Reads work, writes are refused: the business is in its grace period.
+  bool get isGraceReadOnly => code == codeGraceReadOnly;
+
+  @override
+  List<Object?> get props => [code, message, expiredAt, contact];
+}

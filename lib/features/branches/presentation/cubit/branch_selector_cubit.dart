@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/core/permissions/user_access.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
-import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/branches/domain/usecases/branches_usecases.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/settings/data/models/branch_model.dart';
@@ -14,6 +16,29 @@ class BranchSelectorCubit extends Cubit<BranchSelectorState> {
   final BranchesUseCases _useCases;
   final AuthLocalDataSource _authLocal;
 
+  /// Live permissions + branch restriction (set by `SessionServices`). Falls
+  /// back to the cached user when unset.
+  ({UserAccess access, List<String> branchIds}) Function()? scopeProvider;
+
+  /// Users who may see more than their own branch: a branch restriction that
+  /// names several, or the owner / anyone with branch + reporting rights.
+  @visibleForTesting
+  static bool canListBranches(UserAccess access, List<String> branchIds) {
+    if (!access.can(Perm.branchesView) && !access.isOwner) return false;
+    if (branchIds.isNotEmpty) return branchIds.length > 1;
+    return access.isOwner || access.can(Perm.reportsView);
+  }
+
+  /// Keeps only branches the user is limited to (all when unrestricted).
+  @visibleForTesting
+  static List<BranchModel> allowedBranches(
+    List<BranchModel> all,
+    List<String> branchIds,
+  ) {
+    if (branchIds.isEmpty) return all;
+    return all.where((b) => branchIds.contains(b.id)).toList();
+  }
+
   Future<void> startSession() async {
     emit(state.copyWith(isLoading: true));
 
@@ -23,11 +48,19 @@ class BranchSelectorCubit extends Cubit<BranchSelectorState> {
       return;
     }
 
-    final canListAllBranches = UserRoleUtils.isOwner(user.role) ||
-        UserRoleUtils.isManager(user.role);
+    final scope = scopeProvider?.call();
+    final access = scope?.access ??
+        UserAccess(
+          role: user.role,
+          roles: user.roles,
+          permissionKeys: user.permissionKeys,
+        );
+    final branchIds = scope?.branchIds ?? user.branchIds;
 
-    if (!canListAllBranches) {
-      await _initFixedBranch(user.branchId);
+    if (!canListBranches(access, branchIds)) {
+      await _initFixedBranch(
+        branchIds.length == 1 ? branchIds.first : user.branchId,
+      );
       return;
     }
 
@@ -39,7 +72,28 @@ class BranchSelectorCubit extends Cubit<BranchSelectorState> {
           isInitialized: true,
         ),
       ),
-      (branches) => _emitFromBranchList(branches, user.branchId),
+      (branches) => _emitFromBranchList(
+        allowedBranches(branches, branchIds),
+        user.branchId,
+      ),
+    );
+  }
+
+  /// A request for [branchId] came back 403: that branch is not for this
+  /// user. Drop it, fall back to an allowed one and tell the user once.
+  void handleForbiddenBranch(String? branchId) {
+    if (branchId == null || branchId != state.selectedBranchId) return;
+    final remaining =
+        state.availableBranches.where((b) => b.id != branchId).toList();
+    emit(
+      BranchSelectorState(
+        availableBranches: remaining,
+        selectedBranchId: remaining.isEmpty ? null : remaining.first.id,
+        canSwitch: remaining.length > 1,
+        isInitialized: true,
+        notice: "You don't have access to that branch.",
+        noticeSeq: state.noticeSeq + 1,
+      ),
     );
   }
 

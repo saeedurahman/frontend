@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
@@ -16,6 +17,7 @@ import 'package:frantend/features/products/presentation/cubit/products_list_cubi
 import 'package:frantend/features/products/presentation/cubit/products_list_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -173,15 +175,19 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => openProductForm(context, RouteNames.productNew),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        PermissionGate(
+          permission: Perm.productsCreate,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () => openProductForm(context, RouteNames.productNew),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Product'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add Product'),
         ),
       ],
     );
@@ -498,10 +504,12 @@ class _ProductsTable extends StatelessWidget {
       totalPages: cubit.totalPages(state),
       onPageSizeChanged: cubit.setPageSize,
       onGoToPage: cubit.goToPage,
-      onRowTap: (product) => openProductForm(
-        context,
-        '${RouteNames.products}/${product.id}/edit',
-      ),
+      onRowTap: hasPermission(context, Perm.productsUpdate)
+          ? (product) => openProductForm(
+                context,
+                '${RouteNames.products}/${product.id}/edit',
+              )
+          : null,
       rowBuilder: (context, product, {required selected, required onSelected}) {
         final categoryName =
             _categoryName(context, product.categoryId) ?? product.categoryName;
@@ -557,20 +565,28 @@ class _ProductsTable extends StatelessWidget {
           ],
           actions: Row(
             children: [
-              AppTableActionButton(
-                icon: Icons.edit_outlined,
-                tooltip: 'Edit',
-                onPressed: () => openProductForm(
-                  context,
-                  '${RouteNames.products}/${product.id}/edit',
+              PermissionGate(
+                permission: Perm.productsUpdate,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Edit',
+                  onPressed: () => openProductForm(
+                    context,
+                    '${RouteNames.products}/${product.id}/edit',
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
-              AppTableActionButton(
-                icon: Icons.delete_outline,
-                iconColor: AppColors.error,
-                tooltip: 'Delete',
-                onPressed: () => _confirmDelete(context, product),
+              PermissionGate(
+                permission: Perm.productsDelete,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.delete_outline,
+                  iconColor: AppColors.error,
+                  tooltip: 'Delete',
+                  onPressed: () => _confirmDelete(context, product),
+                ),
               ),
             ],
           ),
@@ -617,14 +633,18 @@ class _EmptyState extends StatelessWidget {
             style: AppTextStyles.bodySmall,
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => openProductForm(context, RouteNames.productNew),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+          PermissionGate(
+            permission: Perm.productsCreate,
+            mutating: true,
+            child: ElevatedButton.icon(
+              onPressed: () => openProductForm(context, RouteNames.productNew),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Product'),
             ),
-            icon: const Icon(Icons.add),
-            label: const Text('Add Product'),
           ),
         ],
       ),

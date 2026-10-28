@@ -9,6 +9,7 @@ import 'package:frantend/core/network/insecure_http_overrides.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
 import 'package:frantend/core/security/startup_guard.dart';
+import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/sync/sync_worker.dart';
 import 'package:frantend/core/utils/crash_log.dart';
 import 'package:frantend/core/utils/logger.dart';
@@ -16,6 +17,7 @@ import 'package:frantend/features/auth/domain/repositories/auth_repository.dart'
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/restaurant/domain/usecases/load_business_session_usecase.dart';
+import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +98,19 @@ Future<void> _startup() async {
       'Refreshing session context',
       () => sl<AuthGuard>().refreshSessionContext(),
     );
+    // Both were already started when the session was detected; these calls
+    // join the in-flight requests so the first screen is routed correctly
+    // (blocked subscription / missing permission) instead of flashing.
+    await step('Checking subscription', () async {
+      try {
+        await sl<SubscriptionCubit>().load().timeout(const Duration(seconds: 8));
+        await sl<AccessCubit>().refresh(force: true).timeout(
+          const Duration(seconds: 8),
+        );
+      } catch (e) {
+        debugPrint('[startup] subscription/access check skipped: $e');
+      }
+    });
     await step(
       'Starting notifications',
       () => sl<NotificationsCubit>().startSession(),

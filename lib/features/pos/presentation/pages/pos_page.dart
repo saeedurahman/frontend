@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
@@ -16,6 +17,7 @@ import 'package:frantend/features/pos/presentation/utils/pos_product_actions.dar
 import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:go_router/go_router.dart';
 
 class PosPage extends StatefulWidget {
@@ -251,31 +253,35 @@ class _PosPageState extends State<PosPage> {
             onPressed: () => dismissPopover(dialogContext),
             child: const Text('Done'),
           ),
-          OutlinedButton(
-            onPressed: shift == null || summary == null || !state.canCloseShift
-                ? null
-                : () {
-                    dismissPopover(dialogContext);
-                    context
-                        .push(
-                          RouteNames.closeShift,
-                          extra: {
-                            'shiftId': shift.id,
-                            'summary': summary,
-                            'registerName': registerName,
-                          },
-                        )
-                        .then((_) {
-                      if (context.mounted) {
-                        context.read<PosCubit>().checkActiveShift();
-                      }
-                    });
-                  },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.warning,
-              side: const BorderSide(color: AppColors.warning),
+          PermissionGate(
+            permission: Perm.shiftsClose,
+            mutating: true,
+            child: OutlinedButton(
+              onPressed: shift == null || summary == null || !state.canCloseShift
+                  ? null
+                  : () {
+                      dismissPopover(dialogContext);
+                      context
+                          .push(
+                            RouteNames.closeShift,
+                            extra: {
+                              'shiftId': shift.id,
+                              'summary': summary,
+                              'registerName': registerName,
+                            },
+                          )
+                          .then((_) {
+                        if (context.mounted) {
+                          context.read<PosCubit>().checkActiveShift();
+                        }
+                      });
+                    },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: const BorderSide(color: AppColors.warning),
+              ),
+              child: const Text('Close Shift →'),
             ),
-            child: const Text('Close Shift →'),
           ),
         ],
       ),
@@ -692,42 +698,46 @@ class _ShiftGateOverlayState extends State<_ShiftGateOverlay> {
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: FilledButton(
-                      onPressed: !widget.state.canOpenShift ||
-                              widget.state.isOpeningShift ||
-                              registers.isEmpty ||
-                              widget.state.isCreatingRegister
-                          ? null
-                          : () async {
-                              final float = Decimal.tryParse(
-                                    _floatController.text,
-                                  ) ??
-                                  Decimal.zero;
-                              final ok = await cubit.openShift(
-                                float,
-                                _notesController.text.trim(),
-                              );
-                              if (!ok && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      cubit.state.openShiftError ??
-                                          'Failed to open shift',
-                                    ),
-                                  ),
+                    child: PermissionGate(
+                      permission: Perm.shiftsOpen,
+                      mutating: true,
+                      child: FilledButton(
+                        onPressed: !widget.state.canOpenShift ||
+                                widget.state.isOpeningShift ||
+                                registers.isEmpty ||
+                                widget.state.isCreatingRegister
+                            ? null
+                            : () async {
+                                final float = Decimal.tryParse(
+                                      _floatController.text,
+                                    ) ??
+                                    Decimal.zero;
+                                final ok = await cubit.openShift(
+                                  float,
+                                  _notesController.text.trim(),
                                 );
-                              }
-                            },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                                if (!ok && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        cubit.state.openShiftError ??
+                                            'Failed to open shift',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                        ),
+                        child: widget.state.isOpeningShift
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Open Shift & Start Selling'),
                       ),
-                      child: widget.state.isOpeningShift
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Open Shift & Start Selling'),
                     ),
                   ),
                 ],

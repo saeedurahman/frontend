@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/purchases/presentation/cubit/purchase_order_de
 import 'package:frantend/features/purchases/presentation/cubit/purchase_order_detail_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
@@ -147,10 +149,17 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = order.status == PurchaseOrderStatus.draft;
-    final canCancel = order.status == PurchaseOrderStatus.draft;
-    final canReceive = order.status == PurchaseOrderStatus.ordered ||
-        order.status == PurchaseOrderStatus.partial;
+    final readOnly = isReadOnlyMode(context);
+    final canSubmit = order.status == PurchaseOrderStatus.draft &&
+        hasPermission(context, Perm.purchasesCreate) &&
+        !readOnly;
+    final canCancel = order.status == PurchaseOrderStatus.draft &&
+        hasPermission(context, Perm.purchasesCreate) &&
+        !readOnly;
+    final canReceive = (order.status == PurchaseOrderStatus.ordered ||
+            order.status == PurchaseOrderStatus.partial) &&
+        hasPermission(context, Perm.purchasesReceive) &&
+        !readOnly;
     final hasMoreActions = canSubmit || canCancel || canReceive;
 
     return Row(

@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
@@ -13,6 +14,7 @@ import 'package:frantend/features/accounting/presentation/cubit/journal_entries_
 import 'package:frantend/features/accounting/presentation/utils/accounting_navigation.dart';
 import 'package:frantend/features/accounting/presentation/widgets/journal_status_chip.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -135,21 +137,25 @@ class _Toolbar extends StatelessWidget {
         ),
         if (canCreate) ...[
           const SizedBox(width: 12),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final created = await context.push<bool>(
-                RouteNames.accountingJournalNew,
-              );
-              if (created == true && context.mounted) {
-                await context.read<JournalEntriesListCubit>().refresh();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+          PermissionGate(
+            permission: Perm.journalCreate,
+            mutating: true,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final created = await context.push<bool>(
+                  RouteNames.accountingJournalNew,
+                );
+                if (created == true && context.mounted) {
+                  await context.read<JournalEntriesListCubit>().refresh();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('New Journal Entry'),
             ),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Journal Entry'),
           ),
         ],
       ],

@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
@@ -14,6 +15,7 @@ import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -368,16 +370,20 @@ class _StockTable extends StatelessWidget {
           ],
           actions: Row(
             children: [
-              AppTableActionButton(
-                icon: Icons.tune,
-                tooltip: 'Adjust',
-                onPressed: () async {
-                  final saved = await StockAdjustmentDialog.show(
-                    context,
-                    row: row,
-                  );
-                  if (saved == true) await cubit.refresh();
-                },
+              PermissionGate(
+                permission: Perm.inventoryAdjust,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.tune,
+                  tooltip: 'Adjust',
+                  onPressed: () async {
+                    final saved = await StockAdjustmentDialog.show(
+                      context,
+                      row: row,
+                    );
+                    if (saved == true) await cubit.refresh();
+                  },
+                ),
               ),
               const SizedBox(width: 6),
               AppTableActionButton(

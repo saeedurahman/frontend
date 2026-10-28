@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/expenses/presentation/cubit/expense_detail_cubit.dart';
@@ -13,6 +14,7 @@ import 'package:frantend/features/expenses/presentation/utils/expense_calculatio
 import 'package:frantend/features/expenses/presentation/widgets/expense_status_chip.dart';
 import 'package:frantend/features/expenses/presentation/widgets/record_expense_payment_dialog.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -132,24 +134,32 @@ class _LoadedView extends StatelessWidget {
               Text('Expense Detail', style: AppTextStyles.headlineMedium),
               const Spacer(),
               if (canEditExpense(expense))
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final saved = await context.push<bool>(
-                      RouteNames.expenseEditPath(expenseId),
-                    );
-                    if (saved == true && context.mounted) {
-                      await context.read<ExpenseDetailCubit>().load(expenseId);
-                    }
-                  },
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('Edit'),
+                PermissionGate(
+                  permission: Perm.expensesUpdate,
+                  mutating: true,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final saved = await context.push<bool>(
+                        RouteNames.expenseEditPath(expenseId),
+                      );
+                      if (saved == true && context.mounted) {
+                        await context.read<ExpenseDetailCubit>().load(expenseId);
+                      }
+                    },
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Edit'),
+                  ),
                 ),
               const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: state.isDeleting ? null : () => _delete(context),
-                style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
-                icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('Delete'),
+              PermissionGate(
+                permission: Perm.expensesDelete,
+                mutating: true,
+                child: OutlinedButton.icon(
+                  onPressed: state.isDeleting ? null : () => _delete(context),
+                  style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Delete'),
+                ),
               ),
             ],
           ),
@@ -235,23 +245,27 @@ class _LoadedView extends StatelessWidget {
                     Text('Payments', style: AppTextStyles.titleMedium),
                     const Spacer(),
                     if (canRecordPayment)
-                      ElevatedButton.icon(
-                        onPressed: state.isRecordingPayment
-                            ? null
-                            : () => RecordExpensePaymentDialog.show(
-                                  context,
-                                  expenseDescription:
-                                      expense.description?.isNotEmpty == true
-                                          ? expense.description!
-                                          : expense.expenseNumber,
-                                  remainingBalance: remaining.toString(),
-                                ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
+                      PermissionGate(
+                        permission: Perm.expensesUpdate,
+                        mutating: true,
+                        child: ElevatedButton.icon(
+                          onPressed: state.isRecordingPayment
+                              ? null
+                              : () => RecordExpensePaymentDialog.show(
+                                    context,
+                                    expenseDescription:
+                                        expense.description?.isNotEmpty == true
+                                            ? expense.description!
+                                            : expense.expenseNumber,
+                                    remainingBalance: remaining.toString(),
+                                  ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Record Payment'),
                         ),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Record Payment'),
                       ),
                   ],
                 ),

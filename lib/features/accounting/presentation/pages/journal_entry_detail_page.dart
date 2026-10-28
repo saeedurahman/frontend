@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
@@ -15,6 +16,7 @@ import 'package:frantend/features/accounting/presentation/widgets/journal_lines_
 import 'package:frantend/features/accounting/presentation/widgets/journal_status_chip.dart';
 import 'package:frantend/features/accounting/presentation/widgets/post_journal_entry_dialog.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -163,45 +165,57 @@ class _JournalEntryDetailView extends StatelessWidget {
                 Row(
                   children: [
                     if (state.canCreate) ...[
-                      OutlinedButton.icon(
-                        onPressed: state.isPosting || state.isDeleting
-                            ? null
-                            : () async {
-                                final saved = await context.push<bool>(
-                                  RouteNames.accountingJournalEditPath(entryId),
-                                );
-                                if (saved == true && context.mounted) {
-                                  await context
-                                      .read<JournalEntryDetailCubit>()
-                                      .load(entryId);
-                                }
-                              },
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: const Text('Edit'),
+                      PermissionGate(
+                        permission: Perm.journalCreate,
+                        mutating: true,
+                        child: OutlinedButton.icon(
+                          onPressed: state.isPosting || state.isDeleting
+                              ? null
+                              : () async {
+                                  final saved = await context.push<bool>(
+                                    RouteNames.accountingJournalEditPath(entryId),
+                                  );
+                                  if (saved == true && context.mounted) {
+                                    await context
+                                        .read<JournalEntryDetailCubit>()
+                                        .load(entryId);
+                                  }
+                                },
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: const Text('Edit'),
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: state.isPosting || state.isDeleting
-                            ? null
-                            : () => _delete(context),
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        label: const Text('Delete'),
+                      PermissionGate(
+                        permission: Perm.journalCreate,
+                        mutating: true,
+                        child: OutlinedButton.icon(
+                          onPressed: state.isPosting || state.isDeleting
+                              ? null
+                              : () => _delete(context),
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          label: const Text('Delete'),
+                        ),
                       ),
                     ],
                     const Spacer(),
                     if (state.canPost)
-                      FilledButton.icon(
-                        onPressed: state.isPosting || state.isDeleting
-                            ? null
-                            : () => _post(context, balance),
-                        icon: state.isPosting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.check_circle_outline, size: 18),
-                        label: const Text('Post entry'),
+                      PermissionGate(
+                        permission: Perm.journalPost,
+                        mutating: true,
+                        child: FilledButton.icon(
+                          onPressed: state.isPosting || state.isDeleting
+                              ? null
+                              : () => _post(context, balance),
+                          icon: state.isPosting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.check_circle_outline, size: 18),
+                          label: const Text('Post entry'),
+                        ),
                       ),
                   ],
                 ),

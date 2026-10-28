@@ -7,9 +7,12 @@ import 'package:frantend/core/localization/locale_cubit.dart';
 import 'package:frantend/core/router/app_router.dart';
 import 'package:frantend/core/security/idle_lock_host.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
+import 'package:frantend/core/session/access_cubit.dart';
+import 'package:frantend/core/session/session_notice_host.dart';
 import 'package:frantend/core/theme/app_theme.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
 
 class FrantendApp extends StatelessWidget {
   FrantendApp({super.key});
@@ -22,6 +25,8 @@ class FrantendApp extends StatelessWidget {
       providers: [
         BlocProvider.value(value: sl<NotificationsCubit>()),
         BlocProvider.value(value: sl<BranchSelectorCubit>()),
+        BlocProvider.value(value: sl<AccessCubit>()),
+        BlocProvider.value(value: sl<SubscriptionCubit>()),
       ],
       child: BlocProvider(
         create: (_) => sl<LocaleCubit>()..load(),
@@ -43,7 +48,10 @@ class FrantendApp extends StatelessWidget {
               routerConfig: _router,
               builder: (context, child) => IdleLockHost(
                 service: sl<IdleLockService>(),
-                child: child ?? const SizedBox.shrink(),
+                child: SessionNoticeHost(
+                  branchSelector: sl<BranchSelectorCubit>(),
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             );
           },

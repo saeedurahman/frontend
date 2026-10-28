@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
@@ -15,6 +16,7 @@ import 'package:frantend/features/sales/presentation/utils/sale_line_display.dar
 import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_list_products_cell.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -133,13 +135,16 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        OutlinedButton.icon(
-          onPressed: () => AppAlerts.showInfoMessage(
-            context,
-            'Export coming soon',
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () => AppAlerts.showInfoMessage(
+              context,
+              'Export coming soon',
+            ),
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
           ),
-          icon: const Icon(Icons.download_outlined, size: 18),
-          label: const Text('Export'),
         ),
       ],
     );

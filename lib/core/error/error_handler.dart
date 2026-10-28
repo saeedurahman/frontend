@@ -47,6 +47,8 @@ class ErrorHandler {
     switch (statusCode) {
       case 401:
         return AuthFailure(message);
+      case 402:
+        return SubscriptionFailure.fromBody(data);
       case 403:
         return const PermissionDeniedFailure();
       case 404:

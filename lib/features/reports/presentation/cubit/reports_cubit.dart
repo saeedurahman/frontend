@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/reports/domain/usecases/reports_usecases.dart';
@@ -35,17 +36,22 @@ class ReportsCubit extends Cubit<ReportsState> {
 
   Future<void> init(ReportsFilter filter) async {
     final user = await _authLocal.getCachedUser();
-    if (!UserRoleUtils.canViewReports(user?.role)) {
+    final keys = user?.permissionKeys ?? const <String>[];
+    if (!UserRoleUtils.canViewReports(role: user?.role, permissionKeys: keys)) {
       emit(const ReportsAccessDenied());
       return;
     }
-    final isOwner = user?.role.toLowerCase() == 'owner';
+    final canSeeFraud = UserRoleUtils.can(
+      Perm.reportsFraudAlerts,
+      role: user?.role,
+      permissionKeys: keys,
+    );
     emit(
       ReportsLoaded(
         filter: filter,
         activeTab: ReportsTab.sales,
         loadedTabs: {},
-        showSecurityTab: isOwner,
+        showSecurityTab: canSeeFraud,
       ),
     );
     await loadTab(ReportsTab.sales, force: true);

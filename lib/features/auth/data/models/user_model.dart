@@ -10,7 +10,7 @@ class UserModel {
     required this.name,
     this.email,
     this.phone,
-    this.role = 'owner',
+    this.role = '',
     this.businessId,
     this.branchId,
     this.businessName,
@@ -18,6 +18,8 @@ class UserModel {
     this.businessTypeCode,
     this.roles = const [],
     this.permissionKeys = const [],
+    this.permissionsVersion,
+    this.branchIds = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -28,7 +30,7 @@ class UserModel {
   final String name;
   final String? email;
   final String? phone;
-  @JsonKey(defaultValue: 'owner')
+  @JsonKey(defaultValue: '')
   final String role;
   @JsonKey(name: 'business_id')
   final String? businessId;
@@ -45,6 +47,14 @@ class UserModel {
   @JsonKey(name: 'permission_keys')
   final List<String> permissionKeys;
 
+  /// Bumped by the backend whenever this user's permissions change.
+  @JsonKey(name: 'permissions_version')
+  final int? permissionsVersion;
+
+  /// Branches the user is limited to. Empty = no branch restriction sent.
+  @JsonKey(name: 'branch_ids', defaultValue: <String>[])
+  final List<String> branchIds;
+
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
   User toEntity() => User(
@@ -57,6 +67,8 @@ class UserModel {
         businessSlug: businessSlug,
         roles: roles,
         permissionKeys: permissionKeys,
+        permissionsVersion: permissionsVersion,
+        branchIds: branchIds,
       );
 
   factory UserModel.fromEntity(User user) => UserModel(
@@ -70,5 +82,7 @@ class UserModel {
         businessSlug: user.businessSlug,
         roles: user.roles,
         permissionKeys: user.permissionKeys,
+        permissionsVersion: user.permissionsVersion,
+        branchIds: user.branchIds,
       );
 }

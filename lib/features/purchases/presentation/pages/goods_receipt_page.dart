@@ -4,10 +4,12 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -308,22 +310,26 @@ class _BottomBar extends StatelessWidget {
             onPressed: state.isSubmitting ? null : () => context.pop(),
           ),
           const SizedBox(width: 12),
-          PrimaryButton(
-            label: 'Confirm Receipt',
-            isLoading: state.isSubmitting,
-            fullWidth: false,
-            onPressed: state.isSubmitting
-                ? null
-                : () async {
-                    final err = await cubit.confirmReceipt();
-                    if (!context.mounted) return;
-                    if (err != null) {
-                      AppAlerts.showErrorMessage(context, err);
-                    } else {
-                      AppAlerts.showSuccessMessage(context, 'Goods received');
-                      context.pop(true);
-                    }
-                  },
+          PermissionGate(
+            permission: Perm.purchasesReceive,
+            mutating: true,
+            child: PrimaryButton(
+              label: 'Confirm Receipt',
+              isLoading: state.isSubmitting,
+              fullWidth: false,
+              onPressed: state.isSubmitting
+                  ? null
+                  : () async {
+                      final err = await cubit.confirmReceipt();
+                      if (!context.mounted) return;
+                      if (err != null) {
+                        AppAlerts.showErrorMessage(context, err);
+                      } else {
+                        AppAlerts.showSuccessMessage(context, 'Goods received');
+                        context.pop(true);
+                      }
+                    },
+            ),
           ),
         ],
       ),

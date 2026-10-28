@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
@@ -20,6 +21,7 @@ import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dar
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/features/sales/presentation/widgets/void_sale_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
@@ -114,10 +116,20 @@ class _LoadedView extends StatelessWidget {
         (sale.customerId == null ? 'Walk-in Customer' : 'Customer');
     final balanceDue = SaleCalculations.balanceDue(sale);
     final invoiceLabel = sale.saleNumber ?? sale.id.substring(0, 8);
-    final canCancel = SaleStatus.canCancel(sale.saleStatus) && state.canCancelSales;
-    final canVoid = state.canVoid;
-    final canProcessReturn =
-        SaleStatus.canReturn(sale.saleStatus) && state.canCreateReturn;
+    // Cached flags from load time AND the live permission set, and nothing
+    // that changes data in read-only mode.
+    final readOnly = isReadOnlyMode(context);
+    final canCancel = SaleStatus.canCancel(sale.saleStatus) &&
+        state.canCancelSales &&
+        hasPermission(context, Perm.salesCancel) &&
+        !readOnly;
+    final canVoid = state.canVoid &&
+        hasPermission(context, Perm.salesVoid) &&
+        !readOnly;
+    final canProcessReturn = SaleStatus.canReturn(sale.saleStatus) &&
+        state.canCreateReturn &&
+        hasPermission(context, Perm.returnsCreate) &&
+        !readOnly;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: AppDimensions.spacingLg),

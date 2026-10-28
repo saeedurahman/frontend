@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/roles/data/models/role_model.dart';
 import 'package:frantend/features/roles/presentation/utils/roles_list_actions.dart';
 import 'package:frantend/features/roles/presentation/utils/roles_navigation.dart';
 import 'package:frantend/shared/widgets/badges/status_badge.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -77,21 +79,29 @@ class RolesDataTable extends StatelessWidget {
           ],
           actions: Row(
             children: [
-              AppTableActionButton(
-                icon: Icons.edit_outlined,
-                tooltip: 'Edit',
-                onPressed: () => openRoleForm(
-                  context,
-                  RouteNames.settingsRoleEditPath(role.id),
+              PermissionGate(
+                permission: Perm.rolesManage,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Edit',
+                  onPressed: () => openRoleForm(
+                    context,
+                    RouteNames.settingsRoleEditPath(role.id),
+                  ),
                 ),
               ),
               if (!role.isSystem) ...[
                 const SizedBox(width: 6),
-                AppTableActionButton(
-                  icon: Icons.delete_outline,
-                  iconColor: AppColors.error,
-                  tooltip: 'Delete',
-                  onPressed: () => confirmDeleteRole(context, role),
+                PermissionGate(
+                  permission: Perm.rolesManage,
+                  mutating: true,
+                  child: AppTableActionButton(
+                    icon: Icons.delete_outline,
+                    iconColor: AppColors.error,
+                    tooltip: 'Delete',
+                    onPressed: () => confirmDeleteRole(context, role),
+                  ),
                 ),
               ],
             ],

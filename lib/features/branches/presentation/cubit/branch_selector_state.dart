@@ -8,6 +8,8 @@ class BranchSelectorState extends Equatable {
     this.canSwitch = false,
     this.isLoading = false,
     this.isInitialized = false,
+    this.notice,
+    this.noticeSeq = 0,
   });
 
   final List<BranchModel> availableBranches;
@@ -15,6 +17,11 @@ class BranchSelectorState extends Equatable {
   final bool canSwitch;
   final bool isLoading;
   final bool isInitialized;
+
+  /// One-off message (e.g. a branch the user may not use), shown once per
+  /// [noticeSeq].
+  final String? notice;
+  final int noticeSeq;
 
   String get selectedBranchName {
     if (selectedBranchId == null) return 'Main Branch';
@@ -30,6 +37,8 @@ class BranchSelectorState extends Equatable {
     bool? canSwitch,
     bool? isLoading,
     bool? isInitialized,
+    String? notice,
+    int? noticeSeq,
   }) {
     return BranchSelectorState(
       availableBranches: availableBranches ?? this.availableBranches,
@@ -37,6 +46,8 @@ class BranchSelectorState extends Equatable {
       canSwitch: canSwitch ?? this.canSwitch,
       isLoading: isLoading ?? this.isLoading,
       isInitialized: isInitialized ?? this.isInitialized,
+      notice: notice ?? this.notice,
+      noticeSeq: noticeSeq ?? this.noticeSeq,
     );
   }
 
@@ -47,5 +58,7 @@ class BranchSelectorState extends Equatable {
         canSwitch,
         isLoading,
         isInitialized,
+        notice,
+        noticeSeq,
       ];
 }

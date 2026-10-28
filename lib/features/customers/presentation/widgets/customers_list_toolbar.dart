@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_navigation.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class CustomersListToolbar extends StatelessWidget {
   const CustomersListToolbar({super.key, required this.total});
@@ -27,15 +29,19 @@ class CustomersListToolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => openCustomerForm(context, RouteNames.customerNew),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        PermissionGate(
+          permission: Perm.customersCreate,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () => openCustomerForm(context, RouteNames.customerNew),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Customer'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add Customer'),
         ),
       ],
     );

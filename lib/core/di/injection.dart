@@ -1,6 +1,7 @@
 import 'package:frantend/core/di/injection.config.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
+import 'package:frantend/core/session/session_services.dart';
 import 'package:frantend/core/storage/preferences_storage.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/features/auth/data/datasources/pin_device_cache.dart';
@@ -17,6 +18,8 @@ final sl = GetIt.instance;
 Future<void> configureDependencies() async {
   await sl.init();
   _registerSecurityServices();
+  SessionServices.register();
+  SessionServices.wire();
 }
 
 /// Hand-registered (not generated) services.

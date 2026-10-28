@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/users/presentation/utils/users_navigation.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class UsersListToolbar extends StatelessWidget {
   const UsersListToolbar({super.key, required this.total});
@@ -34,11 +36,15 @@ class UsersListToolbar extends StatelessWidget {
             ),
             const Spacer(),
             if (canCreate)
-              PrimaryButton(
-                label: 'Add Staff',
-                icon: Icons.person_add_outlined,
-                fullWidth: false,
-                onPressed: () => openUserForm(context, RouteNames.staffNew),
+              PermissionGate(
+                permission: Perm.usersCreate,
+                mutating: true,
+                child: PrimaryButton(
+                  label: 'Add Staff',
+                  icon: Icons.person_add_outlined,
+                  fullWidth: false,
+                  onPressed: () => openUserForm(context, RouteNames.staffNew),
+                ),
               ),
           ],
         );

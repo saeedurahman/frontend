@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/close_shift_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/cash_register/presentation/widgets/shift_summa
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -192,13 +194,17 @@ class _CloseShiftView extends StatelessWidget {
                         onPressed: state.isSubmitting ? null : () => context.pop(),
                       ),
                       const Spacer(),
-                      PrimaryButton(
-                        label: 'Confirm & Close Shift',
-                        fullWidth: false,
-                        isLoading: state.isSubmitting,
-                        onPressed: state.canSubmit
-                            ? () => _submit(context)
-                            : null,
+                      PermissionGate(
+                        permission: Perm.shiftsClose,
+                        mutating: true,
+                        child: PrimaryButton(
+                          label: 'Confirm & Close Shift',
+                          fullWidth: false,
+                          isLoading: state.isSubmitting,
+                          onPressed: state.canSubmit
+                              ? () => _submit(context)
+                              : null,
+                        ),
                       ),
                     ],
                   ),

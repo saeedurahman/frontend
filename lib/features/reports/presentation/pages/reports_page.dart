@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_cubit.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_filter_cubit.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_state.dart';
@@ -10,6 +11,7 @@ import 'package:frantend/features/reports/presentation/cubit/reports_tab_data.da
 import 'package:frantend/features/reports/presentation/widgets/reports_filter_bar.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_tab_views.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 
 class ReportsPage extends StatelessWidget {
@@ -122,13 +124,16 @@ class _ReportsViewState extends State<_ReportsView>
               children: [
                 Text('Analytics & Reports', style: AppTextStyles.headlineMedium),
                 const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () => AppAlerts.showInfoMessage(
-                    context,
-                    'Export coming soon — backend CSV/Excel endpoints exist but desktop file-save is not wired yet.',
+                PermissionGate(
+                  permission: Perm.reportsExport,
+                  child: OutlinedButton.icon(
+                    onPressed: () => AppAlerts.showInfoMessage(
+                      context,
+                      'Export coming soon — backend CSV/Excel endpoints exist but desktop file-save is not wired yet.',
+                    ),
+                    icon: const Icon(Icons.download_outlined, size: 18),
+                    label: const Text('Export'),
                   ),
-                  icon: const Icon(Icons.download_outlined, size: 18),
-                  label: const Text('Export'),
                 ),
               ],
             ),

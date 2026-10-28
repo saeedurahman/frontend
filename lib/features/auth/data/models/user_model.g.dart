@@ -11,7 +11,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   name: json['full_name'] as String,
   email: json['email'] as String?,
   phone: json['phone'] as String?,
-  role: json['role'] as String? ?? 'owner',
+  role: json['role'] as String? ?? '',
   businessId: json['business_id'] as String?,
   branchId: json['branch_id'] as String?,
   businessName: json['business_name'] as String?,
@@ -25,6 +25,10 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  permissionsVersion: (json['permissions_version'] as num?)?.toInt(),
+  branchIds:
+      (json['branch_ids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      [],
 );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
@@ -40,4 +44,6 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
   'business_type_code': instance.businessTypeCode,
   'roles': instance.roles,
   'permission_keys': instance.permissionKeys,
+  'permissions_version': instance.permissionsVersion,
+  'branch_ids': instance.branchIds,
 };

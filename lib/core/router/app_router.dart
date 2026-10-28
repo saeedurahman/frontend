@@ -59,6 +59,9 @@ import 'package:frantend/features/expenses/presentation/pages/expense_form_page.
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
 import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
+import 'package:frantend/features/subscription/presentation/pages/no_access_page.dart';
+import 'package:frantend/features/subscription/presentation/pages/subscription_expired_page.dart';
+import 'package:frantend/features/subscription/presentation/pages/subscription_settings_page.dart';
 import 'package:frantend/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:frantend/features/audit/presentation/pages/audit_logs_page.dart';
 import 'package:frantend/features/reports/presentation/pages/reports_page.dart';
@@ -84,7 +87,9 @@ class AppRouter {
             ? _authGuard.homeRoute
             : RouteNames.landing;
       }
-      return _authGuard.redirect(state.matchedLocation);
+      // `state.uri` keeps the query, which the no-access page uses to send
+      // the user back once access is granted.
+      return _authGuard.redirect(state.uri.toString());
     },
     routes: [
       GoRoute(
@@ -98,6 +103,10 @@ class AppRouter {
       GoRoute(
         path: RouteNames.pinLogin,
         builder: (_, __) => const PinLoginPage(),
+      ),
+      GoRoute(
+        path: RouteNames.subscriptionExpired,
+        builder: (_, __) => const SubscriptionExpiredPage(),
       ),
       ShellRoute(
         builder: (context, state, child) => RegisterFlowShell(child: child),
@@ -155,6 +164,10 @@ class AppRouter {
           GoRoute(
             path: RouteNames.dashboard,
             builder: (_, __) => const DashboardPage(),
+          ),
+          GoRoute(
+            path: RouteNames.noAccess,
+            builder: (_, __) => const NoAccessPage(),
           ),
           GoRoute(
             path: RouteNames.pos,
@@ -489,6 +502,10 @@ class AppRouter {
                 redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
+                path: 'subscription',
+                builder: (_, __) => const SubscriptionSettingsPage(),
+              ),
+              GoRoute(
                 path: 'change-password',
                 builder: (_, __) => const ChangePasswordPage(),
               ),
@@ -530,6 +547,7 @@ class AppRouter {
 }
 
 (String, String) _metaForPath(String path) {
+  if (path.startsWith(RouteNames.noAccess)) return ('No access', 'Home');
   if (path.startsWith(RouteNames.dashboard)) return ('Dashboard', 'Home / Dashboard');
   if (path.startsWith(RouteNames.pos)) return ('Point of Sale', 'Home / Point of Sale');
   if (path.startsWith(RouteNames.products)) return ('Products', 'Home / Catalog / Products');
@@ -602,6 +620,9 @@ class AppRouter {
   if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');
   if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
   if (path.startsWith(RouteNames.settings)) {
+    if (path.startsWith(RouteNames.settingsSubscription)) {
+      return ('Subscription', 'Home / System / Settings / Subscription');
+    }
     if (path.startsWith(RouteNames.changePassword)) {
       return ('Change Password', 'Home / System / Settings / Security');
     }

@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/accounting/data/models/chart_of_account_model.dart';
 import 'package:frantend/features/accounting/presentation/cubit/coa_list_cubit.dart';
 import 'package:frantend/features/accounting/presentation/cubit/coa_list_state.dart';
@@ -11,6 +12,7 @@ import 'package:frantend/features/accounting/presentation/utils/accounting_navig
 import 'package:frantend/features/accounting/presentation/widgets/coa_tree_list.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -172,19 +174,23 @@ class _Toolbar extends StatelessWidget {
         ),
         const Spacer(),
         if (canManage)
-          ElevatedButton.icon(
-            onPressed: () async {
-              final created = await openCoaForm(context);
-              if (created == true && context.mounted) {
-                await context.read<CoaListCubit>().refresh();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+          PermissionGate(
+            permission: Perm.coaManage,
+            mutating: true,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final created = await openCoaForm(context);
+                if (created == true && context.mounted) {
+                  await context.read<CoaListCubit>().refresh();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('New Account'),
             ),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Account'),
           ),
       ],
     );

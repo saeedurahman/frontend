@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_cubit.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_state.dart';
@@ -13,6 +14,7 @@ import 'package:frantend/features/users/presentation/widgets/user_role_picker.da
 import 'package:frantend/shared/widgets/badges/status_badge.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -162,24 +164,28 @@ class _UserFormView extends StatelessWidget {
                       ],
                       if (isEdit && state.canDelete) ...[
                         const SizedBox(height: AppDimensions.spacingMd),
-                        OutlinedButton.icon(
-                          onPressed: state.isDeleting || state.isSaving
-                              ? null
-                              : () => _confirmDelete(context, state),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.error,
-                            side: const BorderSide(color: AppColors.error),
+                        PermissionGate(
+                          permission: Perm.usersDelete,
+                          mutating: true,
+                          child: OutlinedButton.icon(
+                            onPressed: state.isDeleting || state.isSaving
+                                ? null
+                                : () => _confirmDelete(context, state),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                            ),
+                            icon: state.isDeleting
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.delete_outline),
+                            label: const Text('Delete Staff Member'),
                           ),
-                          icon: state.isDeleting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.delete_outline),
-                          label: const Text('Delete Staff Member'),
                         ),
                       ],
                     ],
@@ -205,28 +211,32 @@ class _UserFormView extends StatelessWidget {
                         child: const Text('Cancel'),
                       ),
                       const Spacer(),
-                      PrimaryButton(
-                        label: isEdit ? 'Save Changes' : 'Create Staff Member',
-                        fullWidth: false,
-                        isLoading: state.isSaving,
-                        onPressed: state.isSaving ||
-                                state.isDeleting ||
-                                (isEdit && !state.canSave)
-                            ? null
-                            : () async {
-                                final ok = await context
-                                    .read<UserFormCubit>()
-                                    .submit();
-                                if (ok && context.mounted) {
-                                  AppAlerts.showSuccessMessage(
-                                    context,
-                                    isEdit
-                                        ? 'Staff member updated'
-                                        : 'Staff member created',
-                                  );
-                                  context.pop(true);
-                                }
-                              },
+                      PermissionGate(
+                        anyOf: [Perm.usersCreate, Perm.usersUpdate, Perm.rolesManage],
+                        mutating: true,
+                        child: PrimaryButton(
+                          label: isEdit ? 'Save Changes' : 'Create Staff Member',
+                          fullWidth: false,
+                          isLoading: state.isSaving,
+                          onPressed: state.isSaving ||
+                                  state.isDeleting ||
+                                  (isEdit && !state.canSave)
+                              ? null
+                              : () async {
+                                  final ok = await context
+                                      .read<UserFormCubit>()
+                                      .submit();
+                                  if (ok && context.mounted) {
+                                    AppAlerts.showSuccessMessage(
+                                      context,
+                                      isEdit
+                                          ? 'Staff member updated'
+                                          : 'Staff member created',
+                                    );
+                                    context.pop(true);
+                                  }
+                                },
+                        ),
                       ),
                     ],
                   ),
@@ -432,24 +442,28 @@ class _AccountActions extends StatelessWidget {
       runSpacing: 8,
       children: [
         _resetPinButton(context),
-        OutlinedButton.icon(
-          onPressed: state.isResettingPin || state.isSaving
-              ? null
-              : () async {
-                  final password = await ResetPasswordDialog.show(context);
-                  if (password == null || !context.mounted) return;
-                  final ok = await context
-                      .read<UserFormCubit>()
-                      .resetPassword(password);
-                  if (ok && context.mounted) {
-                    AppAlerts.showSuccessMessage(
-                      context,
-                      'Password reset successfully',
-                    );
-                  }
-                },
-          icon: const Icon(Icons.lock_reset),
-          label: const Text('Reset password'),
+        PermissionGate(
+          permission: Perm.usersUpdate,
+          mutating: true,
+          child: OutlinedButton.icon(
+            onPressed: state.isResettingPin || state.isSaving
+                ? null
+                : () async {
+                    final password = await ResetPasswordDialog.show(context);
+                    if (password == null || !context.mounted) return;
+                    final ok = await context
+                        .read<UserFormCubit>()
+                        .resetPassword(password);
+                    if (ok && context.mounted) {
+                      AppAlerts.showSuccessMessage(
+                        context,
+                        'Password reset successfully',
+                      );
+                    }
+                  },
+            icon: const Icon(Icons.lock_reset),
+            label: const Text('Reset password'),
+          ),
         ),
       ],
     );

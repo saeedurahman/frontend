@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/restaurant/data/models/floor_plan_model.dart';
 import 'package:frantend/features/restaurant/presentation/utils/table_pos_navigation.dart';
 import 'package:frantend/features/restaurant/presentation/utils/table_status_colors.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 Future<void> showTableDetailSheet(
   BuildContext context,
@@ -46,13 +48,17 @@ Future<void> showTableDetailSheet(
               ],
               const SizedBox(height: 20),
               if (canOrder)
-                FilledButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await launchTableOrder(context, table);
-                  },
-                  icon: const Icon(Icons.point_of_sale),
-                  label: Text(tableOrderActionLabel(table)),
+                PermissionGate(
+                  permission: Perm.salesCreate,
+                  mutating: true,
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await launchTableOrder(context, table);
+                    },
+                    icon: const Icon(Icons.point_of_sale),
+                    label: Text(tableOrderActionLabel(table)),
+                  ),
                 )
               else
                 const Text(

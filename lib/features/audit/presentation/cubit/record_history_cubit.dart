@@ -26,7 +26,10 @@ class RecordHistoryCubit extends Cubit<RecordHistoryState> {
     _recordId = recordId;
 
     final user = await _authLocal.getCachedUser();
-    if (!UserRoleUtils.isOwner(user?.role)) {
+    if (!UserRoleUtils.canViewAuditLogs(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    )) {
       emit(const RecordHistoryAccessDenied());
       return;
     }

@@ -1,416 +1,288 @@
-/// Role checks for nav gating and feature access.
+import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/core/permissions/user_access.dart';
+
+/// Permission checks for nav gating and feature access.
 ///
-/// Backend roles: `owner`, `manager`, `cashier` (and variants).
+/// Everything funnels through [can]: permission keys decide, and only an
+/// explicit `owner` role bypasses them. An empty key list grants nothing to a
+/// non-owner. The named helpers below are one-line aliases kept so call sites
+/// read well.
 class UserRoleUtils {
   UserRoleUtils._();
 
-  static const manageRolesPermission = 'users.roles.manage';
-  static const viewUsersPermission = 'users.view';
-  static const createUsersPermission = 'users.create';
-  static const updateUsersPermission = 'users.update';
-  static const deleteUsersPermission = 'users.delete';
-  static const managePricesPermission = 'products.manage_prices';
-  static const viewReturnsPermission = 'sales.returns.view';
-  static const createReturnsPermission = 'sales.returns.create';
-  static const cancelSalesPermission = 'sales.cancel';
-  static const voidSalesPermission = 'sales.void';
-  static const overridePricePermission = 'sales.override_price';
-  static const manageTaxPermission = 'tax.manage';
-  static const manageNotificationsPermission = 'notifications.manage';
-  static const createSalesPermission = 'sales.create';
-  static const viewShiftsPermission = 'shifts.view';
-  static const openShiftPermission = 'shifts.open';
-  static const closeShiftPermission = 'shifts.close';
+  static const manageRolesPermission = Perm.rolesManage;
+  static const viewUsersPermission = Perm.usersView;
+  static const createUsersPermission = Perm.usersCreate;
+  static const updateUsersPermission = Perm.usersUpdate;
+  static const deleteUsersPermission = Perm.usersDelete;
+  static const managePricesPermission = Perm.productsManagePrices;
+  static const viewReturnsPermission = Perm.returnsView;
+  static const createReturnsPermission = Perm.returnsCreate;
+  static const cancelSalesPermission = Perm.salesCancel;
+  static const voidSalesPermission = Perm.salesVoid;
+  static const overridePricePermission = Perm.salesOverridePrice;
+  static const manageTaxPermission = Perm.taxManage;
+  static const manageNotificationsPermission = Perm.notificationsManage;
+  static const createSalesPermission = Perm.salesCreate;
+  static const viewShiftsPermission = Perm.shiftsView;
+  static const openShiftPermission = Perm.shiftsOpen;
+  static const closeShiftPermission = Perm.shiftsClose;
 
-  static const viewTablesPermission = 'restaurant.tables.view';
-  static const updateTableStatusPermission = 'restaurant.tables.update_status';
-  static const viewFloorPlansPermission = 'restaurant.floor_plans.view';
-  static const viewModifiersPermission = 'restaurant.modifiers.view';
-  static const viewKotPermission = 'restaurant.kot.view';
-  static const updateKotPermission = 'restaurant.kot.update_status';
-  static const _legacyUpdateKotPermission = 'restaurant.kot.update';
-  static const fireKotPermission = 'restaurant.kot.fire';
+  /// True only for an explicit `owner` role.
+  static bool isOwner(String? role) => UserAccess(role: role).isOwner;
 
-  static const viewBomPermission = 'manufacturing.bom.view';
-  static const manageBomPermission = 'manufacturing.bom.manage';
-  static const viewProductionPermission = 'manufacturing.production.view';
-  static const createProductionPermission = 'manufacturing.production.create';
-  static const completeProductionPermission = 'manufacturing.production.complete';
-  static const cancelProductionPermission = 'manufacturing.production.cancel';
+  /// The single permission check.
+  static bool can(
+    String permission, {
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      UserAccess(role: role, permissionKeys: permissionKeys).can(permission);
 
-  static const viewCoaPermission = 'accounting.coa.view';
-  static const manageCoaPermission = 'accounting.coa.manage';
-  static const viewJournalPermission = 'accounting.journal.view';
-  static const createJournalPermission = 'accounting.journal.create';
-  static const postJournalPermission = 'accounting.journal.post';
+  /// True when any of [permissions] is granted.
+  static bool canAny(
+    Iterable<String> permissions, {
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      UserAccess(role: role, permissionKeys: permissionKeys)
+          .canAny(permissions);
 
-  static String _normalize(String? role) =>
-      role?.toLowerCase().trim() ?? '';
-
-  static bool isOwner(String? role) => _normalize(role) == 'owner';
-
-  static bool isManager(String? role) => _normalize(role) == 'manager';
-
-  static bool isCashier(String? role) => _normalize(role) == 'cashier';
-
-  static bool hasPermission(List<String> keys, String permission) =>
-      keys.contains(permission);
-
-  static bool _permissionOrOwnerFallback({
-    required String? role,
-    required List<String> permissionKeys,
-    required String permission,
-  }) {
-    if (permissionKeys.isNotEmpty) {
-      return hasPermission(permissionKeys, permission);
-    }
-    return isOwner(role);
-  }
-
-  /// Manage roles: permission-first, owner fallback for legacy cached sessions.
+  /// Manage roles (`users.roles.manage`).
   static bool canManageRoles({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: manageRolesPermission,
-      );
+      can(Perm.rolesManage, role: role, permissionKeys: permissionKeys);
 
-  /// Reassign staff roles (PUT /users/{id}/roles).
+  /// Reassign staff roles.
   static bool canManageUserRoles({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: manageRolesPermission,
-      );
+      can(Perm.rolesManage, role: role, permissionKeys: permissionKeys);
 
   static bool canViewUsers({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewUsersPermission,
-      );
+      can(Perm.usersView, role: role, permissionKeys: permissionKeys);
 
   static bool canCreateUsers({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: createUsersPermission,
-      );
+      can(Perm.usersCreate, role: role, permissionKeys: permissionKeys);
 
   static bool canUpdateUsers({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: updateUsersPermission,
-      );
+      can(Perm.usersUpdate, role: role, permissionKeys: permissionKeys);
 
   static bool canDeleteUsers({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: deleteUsersPermission,
-      );
+      can(Perm.usersDelete, role: role, permissionKeys: permissionKeys);
 
-  /// Retail price on default price list — owner/manager or explicit permission.
+  /// Retail price on the default price list.
   static bool canManagePrices({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      isOwner(role) ||
-      isManager(role) ||
-      hasPermission(permissionKeys, managePricesPermission);
+      can(Perm.productsManagePrices, role: role, permissionKeys: permissionKeys);
 
   static bool canViewReturns({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewReturnsPermission,
-      );
+      can(Perm.returnsView, role: role, permissionKeys: permissionKeys);
 
-  /// Change the tax rate of a cart line. Cashiers use the product/default tax;
-  /// only roles that may override prices or manage tax rates can edit it.
-  static bool canEditLineTax({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) {
-    if (permissionKeys.isNotEmpty) {
-      return hasPermission(permissionKeys, overridePricePermission) ||
-          hasPermission(permissionKeys, manageTaxPermission);
-    }
-    return isOwner(role);
-  }
-
-  /// Void a completed sale (`sales.void`). Cancel-only roles cannot void.
+  /// Void a completed sale. Cancel-only roles cannot void.
   static bool canVoidSales({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: voidSalesPermission,
-      );
+      can(Perm.salesVoid, role: role, permissionKeys: permissionKeys);
 
-  /// `/notifications/check-alerts` needs `notifications.manage`.
+  /// `/notifications/check-alerts` needs this.
   static bool canManageNotifications({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: manageNotificationsPermission,
-      );
+      can(Perm.notificationsManage, role: role, permissionKeys: permissionKeys);
 
   static bool canCancelSales({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: cancelSalesPermission,
-      );
+      can(Perm.salesCancel, role: role, permissionKeys: permissionKeys);
 
   static bool canCreateReturns({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: createReturnsPermission,
-      );
+      can(Perm.returnsCreate, role: role, permissionKeys: permissionKeys);
 
   static bool canCreateSales({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: createSalesPermission,
-      );
+      can(Perm.salesCreate, role: role, permissionKeys: permissionKeys);
 
   static bool canViewShifts({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewShiftsPermission,
-      );
+      can(Perm.shiftsView, role: role, permissionKeys: permissionKeys);
 
   static bool canOpenShift({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: openShiftPermission,
-      );
+      can(Perm.shiftsOpen, role: role, permissionKeys: permissionKeys);
 
   static bool canCloseShift({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: closeShiftPermission,
-      );
+      can(Perm.shiftsClose, role: role, permissionKeys: permissionKeys);
 
   static bool canViewTables({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewTablesPermission,
-      );
+      can(Perm.tablesView, role: role, permissionKeys: permissionKeys);
 
   static bool canViewKot({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewKotPermission,
-      );
+      can(Perm.kotView, role: role, permissionKeys: permissionKeys);
 
+  /// Analytics / financial reports.
+  static bool canViewReports({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.reportsView, role: role, permissionKeys: permissionKeys);
+
+  static bool canViewAuditLogs({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.auditView, role: role, permissionKeys: permissionKeys);
+
+  static bool canViewBom({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.bomView, role: role, permissionKeys: permissionKeys);
+
+  static bool canManageBom({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.bomManage, role: role, permissionKeys: permissionKeys);
+
+  static bool canViewProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.productionView, role: role, permissionKeys: permissionKeys);
+
+  static bool canCreateProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.productionCreate, role: role, permissionKeys: permissionKeys);
+
+  static bool canCompleteProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.productionComplete, role: role, permissionKeys: permissionKeys);
+
+  static bool canCancelProduction({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.productionCancel, role: role, permissionKeys: permissionKeys);
+
+  static bool canViewCoa({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.coaView, role: role, permissionKeys: permissionKeys);
+
+  static bool canManageCoa({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.coaManage, role: role, permissionKeys: permissionKeys);
+
+  static bool canViewJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.journalView, role: role, permissionKeys: permissionKeys);
+
+  static bool canCreateJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.journalCreate, role: role, permissionKeys: permissionKeys);
+
+  static bool canPostJournal({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      can(Perm.journalPost, role: role, permissionKeys: permissionKeys);
+
+  /// Update a KOT line (the legacy `restaurant.kot.update` key still counts).
   static bool canUpdateKot({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      _permissionOrOwnerFallback(
+      canAny(
+        const [Perm.kotUpdateStatus, Perm.kotLegacyUpdate],
         role: role,
         permissionKeys: permissionKeys,
-        permission: updateKotPermission,
-      ) ||
-      hasPermission(permissionKeys, _legacyUpdateKotPermission);
+      );
+
+  /// Change the tax rate of a cart line: price override or tax management.
+  static bool canEditLineTax({
+    String? role,
+    List<String> permissionKeys = const [],
+  }) =>
+      canAny(
+        const [Perm.salesOverridePrice, Perm.taxManage, Perm.salesOverrideTax],
+        role: role,
+        permissionKeys: permissionKeys,
+      );
 
   /// Kitchen-only staff: KOT access without POS sales.create.
   static bool isKitchenOnlyUser({
     String? role,
     List<String> permissionKeys = const [],
   }) {
-    final hasKotAccess = canViewKot(
-          role: role,
-          permissionKeys: permissionKeys,
-        ) ||
-        canUpdateKot(
-          role: role,
-          permissionKeys: permissionKeys,
-        );
+    final hasKotAccess =
+        canViewKot(role: role, permissionKeys: permissionKeys) ||
+            canUpdateKot(role: role, permissionKeys: permissionKeys);
     return hasKotAccess &&
         !canCreateSales(role: role, permissionKeys: permissionKeys);
   }
-
-  /// Analytics / financial reports require manager or owner.
-  static bool canViewReports(String? role) =>
-      isOwner(role) || isManager(role);
-
-  static bool canViewBom({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewBomPermission,
-      );
-
-  static bool canManageBom({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: manageBomPermission,
-      );
-
-  static bool canViewProduction({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewProductionPermission,
-      );
-
-  static bool canCreateProduction({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: createProductionPermission,
-      );
-
-  static bool canCompleteProduction({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: completeProductionPermission,
-      );
-
-  static bool canCancelProduction({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: cancelProductionPermission,
-      );
 
   /// Sidebar manufacturing section: any manufacturing view permission.
   static bool canAccessManufacturing({
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      canViewProduction(role: role, permissionKeys: permissionKeys) ||
-      canViewBom(role: role, permissionKeys: permissionKeys);
-
-  static bool canViewCoa({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
+      canAny(
+        const [Perm.productionView, Perm.bomView],
         role: role,
         permissionKeys: permissionKeys,
-        permission: viewCoaPermission,
-      );
-
-  static bool canManageCoa({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: manageCoaPermission,
-      );
-
-  static bool canViewJournal({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: viewJournalPermission,
-      );
-
-  static bool canCreateJournal({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: createJournalPermission,
-      );
-
-  static bool canPostJournal({
-    String? role,
-    List<String> permissionKeys = const [],
-  }) =>
-      _permissionOrOwnerFallback(
-        role: role,
-        permissionKeys: permissionKeys,
-        permission: postJournalPermission,
       );
 
   /// Sidebar accounting section: any accounting view permission.
@@ -418,6 +290,9 @@ class UserRoleUtils {
     String? role,
     List<String> permissionKeys = const [],
   }) =>
-      canViewCoa(role: role, permissionKeys: permissionKeys) ||
-      canViewJournal(role: role, permissionKeys: permissionKeys);
+      canAny(
+        const [Perm.coaView, Perm.journalView],
+        role: role,
+        permissionKeys: permissionKeys,
+      );
 }

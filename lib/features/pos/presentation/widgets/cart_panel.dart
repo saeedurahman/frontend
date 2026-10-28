@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
@@ -13,6 +14,7 @@ import 'package:frantend/features/pos/presentation/widgets/held_orders_dialog.da
 import 'package:frantend/features/pos/presentation/widgets/pos_dialogs.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class CartPanel extends StatelessWidget {
   const CartPanel({super.key, this.onPayPressed});
@@ -140,7 +142,11 @@ class CartPanel extends StatelessWidget {
               if (state.discountSchemes.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-                  child: _DiscountSchemePicker(state: state),
+                  child: PermissionGate(
+                    permission: Perm.salesApplyDiscount,
+                    mutating: true,
+                    child: _DiscountSchemePicker(state: state),
+                  ),
                 ),
               _CartSummary(state: state),
               if (isDineIn)
@@ -190,22 +196,26 @@ class CartPanel extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: SizedBox(
                   height: 56,
-                  child: FilledButton(
-                    onPressed: state.canProceedToPayment &&
-                            dineIn?.isSyncingLine != true
-                        ? (onPayPressed ?? () => PaymentModal.show(context))
-                        : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.border,
-                    ),
-                    child: Text(
-                      isDineIn
-                          ? 'PAY TABLE — ${formatPKR(state.displayGrandTotal.toDouble())}'
-                          : 'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                  child: PermissionGate(
+                    permission: Perm.salesCreate,
+                    mutating: true,
+                    child: FilledButton(
+                      onPressed: state.canProceedToPayment &&
+                              dineIn?.isSyncingLine != true
+                          ? (onPayPressed ?? () => PaymentModal.show(context))
+                          : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.border,
+                      ),
+                      child: Text(
+                        isDineIn
+                            ? 'PAY TABLE — ${formatPKR(state.displayGrandTotal.toDouble())}'
+                            : 'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -357,28 +367,32 @@ class _CartItemCard extends StatelessWidget {
                           ),
                           if (hasDiscount) ...[
                             const SizedBox(height: 4),
-                            GestureDetector(
-                              onTap: () async {
-                                final result = await ItemDiscountDialog.show(
-                                  context,
-                                  lineSubtotal: item.lineSubtotal,
-                                  currentPct: item.effectiveDiscountPct,
-                                  currentAmount: item.effectiveDiscountAmount,
-                                );
-                                if (result != null) {
-                                  cubit.updateItemDiscount(
-                                    index,
-                                    pct: result.$1,
-                                    amount: result.$2,
+                            PermissionGate(
+                              permission: Perm.salesApplyDiscount,
+                              mutating: true,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final result = await ItemDiscountDialog.show(
+                                    context,
+                                    lineSubtotal: item.lineSubtotal,
+                                    currentPct: item.effectiveDiscountPct,
+                                    currentAmount: item.effectiveDiscountAmount,
                                   );
-                                }
-                              },
-                              child: Text(
-                                'Discount: ${formatPKR(item.lineDiscount.toDouble())}',
-                                style: const TextStyle(
-                                  color: AppColors.warning,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                                  if (result != null) {
+                                    cubit.updateItemDiscount(
+                                      index,
+                                      pct: result.$1,
+                                      amount: result.$2,
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Discount: ${formatPKR(item.lineDiscount.toDouble())}',
+                                  style: const TextStyle(
+                                    color: AppColors.warning,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
@@ -770,22 +784,26 @@ class _CartSummary extends StatelessWidget {
             children: [
               const Expanded(child: Text('Discount')),
               Text(formatPKR(state.displayTotalDiscount.toDouble())),
-              IconButton(
-                iconSize: 14,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () async {
-                  final result = await CartDiscountDialog.show(
-                    context,
-                    currentType: state.cartDiscountType,
-                    currentValue: state.cartDiscountDecimal,
-                    previewSubtotal: state.displaySubtotal,
-                  );
-                  if (result != null) {
-                    cubit.applyCartDiscount(result.$1, result.$2);
-                  }
-                },
-                icon: const Icon(Icons.edit, size: 14),
+              PermissionGate(
+                permission: Perm.salesApplyDiscount,
+                mutating: true,
+                child: IconButton(
+                  iconSize: 14,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () async {
+                    final result = await CartDiscountDialog.show(
+                      context,
+                      currentType: state.cartDiscountType,
+                      currentValue: state.cartDiscountDecimal,
+                      previewSubtotal: state.displaySubtotal,
+                    );
+                    if (result != null) {
+                      cubit.applyCartDiscount(result.$1, result.$2);
+                    }
+                  },
+                  icon: const Icon(Icons.edit, size: 14),
+                ),
               ),
             ],
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/restaurant/data/models/kot_order_model.dart';
 import 'package:frantend/features/restaurant/presentation/utils/kot_status_utils.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class KotTicketCard extends StatelessWidget {
   const KotTicketCard({
@@ -76,25 +78,30 @@ class KotTicketCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 48,
-                  child: FilledButton(
-                    onPressed: isUpdating ? null : onAdvance,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: KotStatusUtils.columnColor(ticket.status),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: isUpdating
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                  child: PermissionGate(
+                    anyOf: [Perm.kotUpdateStatus, Perm.kotLegacyUpdate],
+                    mode: GateMode.disable,
+                    mutating: true,
+                    child: FilledButton(
+                      onPressed: isUpdating ? null : onAdvance,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: KotStatusUtils.columnColor(ticket.status),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: isUpdating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              KotStatusUtils.advanceActionLabel(ticket.status),
+                              style: const TextStyle(fontWeight: FontWeight.w700),
                             ),
-                          )
-                        : Text(
-                            KotStatusUtils.advanceActionLabel(ticket.status),
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
+                    ),
                   ),
                 ),
               ],

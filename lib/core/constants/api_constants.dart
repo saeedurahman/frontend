@@ -11,6 +11,7 @@ abstract final class ApiConstants {
   static const String logout = '/auth/logout';
   static const String pinLogin = '/auth/login/pin';
   static const String me = '/auth/me';
+  static const String subscriptionStatus = '/subscription/status';
   static const String changePassword = '/auth/change-password';
 
   // Business

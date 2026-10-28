@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/expenses/data/models/expense_list_item_model.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/expenses/presentation/cubit/expenses_list_stat
 import 'package:frantend/features/expenses/presentation/utils/expense_calculations.dart';
 import 'package:frantend/features/expenses/presentation/widgets/expense_status_chip.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -105,19 +107,23 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () async {
-            final saved = await context.push<bool>(RouteNames.expenseNew);
-            if (saved == true && context.mounted) {
-              await context.read<ExpensesListCubit>().loadExpenses();
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+        PermissionGate(
+          permission: Perm.expensesCreate,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              final saved = await context.push<bool>(RouteNames.expenseNew);
+              if (saved == true && context.mounted) {
+                await context.read<ExpensesListCubit>().loadExpenses();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Expense'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add Expense'),
         ),
       ],
     );
@@ -368,12 +374,16 @@ class _ExpensesTable extends StatelessWidget {
                                         RouteNames.expenseDetailPath(item.id),
                                       ),
                                     ),
-                                    IconButton(
-                                      tooltip: 'Delete',
-                                      icon: const Icon(Icons.delete_outline,
-                                          size: 20,
-                                          color: AppColors.error),
-                                      onPressed: () => _delete(context, item),
+                                    PermissionGate(
+                                      permission: Perm.expensesDelete,
+                                      mutating: true,
+                                      child: IconButton(
+                                        tooltip: 'Delete',
+                                        icon: const Icon(Icons.delete_outline,
+                                            size: 20,
+                                            color: AppColors.error),
+                                        onPressed: () => _delete(context, item),
+                                      ),
                                     ),
                                   ],
                                 ),

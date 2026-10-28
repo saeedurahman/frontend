@@ -13,6 +13,10 @@ abstract final class RouteNames {
   static const String registerStep4 = '/register/step4';
   static const String registerSuccess = '/register/success';
 
+  // Status pages (signed in, outside the permission map)
+  static const String subscriptionExpired = '/subscription-expired';
+  static const String noAccess = '/no-access';
+
   // Protected
   static const String dashboard = '/dashboard';
   static const String pos = '/pos';
@@ -82,6 +86,7 @@ abstract final class RouteNames {
   static const String changePassword = '/settings/change-password';
   static const String settingsReceipt = '/settings/receipt';
   static const String settingsTax = '/settings/tax';
+  static const String settingsSubscription = '/settings/subscription';
   static const String settingsRoles = '/settings/roles';
   static const String settingsRoleNew = '/settings/roles/new';
   static String settingsRoleEditPath(String id) => '/settings/roles/$id/edit';

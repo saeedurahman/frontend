@@ -34,7 +34,10 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
 
   Future<void> init() async {
     final user = await _authLocal.getCachedUser();
-    if (!UserRoleUtils.isOwner(user?.role)) {
+    if (!UserRoleUtils.canViewAuditLogs(
+      role: user?.role,
+      permissionKeys: user?.permissionKeys ?? const [],
+    )) {
       emit(const AuditLogsAccessDenied());
       return;
     }

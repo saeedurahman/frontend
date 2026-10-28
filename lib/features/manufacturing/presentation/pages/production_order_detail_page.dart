@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/manufacturing/data/models/production_order_model.dart';
 import 'package:frantend/features/manufacturing/presentation/cubit/production_order_detail_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/manufacturing/presentation/widgets/complete_pr
 import 'package:frantend/features/manufacturing/presentation/widgets/production_lines_table.dart';
 import 'package:frantend/features/manufacturing/presentation/widgets/production_order_summary_card.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -145,9 +147,13 @@ class _ProductionOrderDetailView extends StatelessWidget {
                   ),
                   const Spacer(),
                   if (isDraft && state.canCreate && !state.isEditingDraft)
-                    OutlinedButton(
-                      onPressed: state.isUpdating ? null : cubit.startEditingDraft,
-                      child: const Text('Edit'),
+                    PermissionGate(
+                      permission: Perm.productionCreate,
+                      mutating: true,
+                      child: OutlinedButton(
+                        onPressed: state.isUpdating ? null : cubit.startEditingDraft,
+                        child: const Text('Edit'),
+                      ),
                     ),
                   if (isDraft && state.isEditingDraft) ...[
                     OutlinedButton(
@@ -155,46 +161,62 @@ class _ProductionOrderDetailView extends StatelessWidget {
                       child: const Text('Cancel edit'),
                     ),
                     const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: state.isUpdating
-                          ? null
-                          : () async {
-                              final err = await cubit.saveDraft();
-                              if (!context.mounted) return;
-                              if (err != null) {
-                                AppAlerts.showErrorMessage(context, err);
-                              } else {
-                                AppAlerts.showSuccessMessage(
-                                  context,
-                                  'Draft updated',
-                                );
-                              }
-                            },
-                      child: const Text('Save draft'),
+                    PermissionGate(
+                      permission: Perm.productionCreate,
+                      mutating: true,
+                      child: FilledButton(
+                        onPressed: state.isUpdating
+                            ? null
+                            : () async {
+                                final err = await cubit.saveDraft();
+                                if (!context.mounted) return;
+                                if (err != null) {
+                                  AppAlerts.showErrorMessage(context, err);
+                                } else {
+                                  AppAlerts.showSuccessMessage(
+                                    context,
+                                    'Draft updated',
+                                  );
+                                }
+                              },
+                        child: const Text('Save draft'),
+                      ),
                     ),
                   ],
                   if (isDraft && state.canCreate && !state.isEditingDraft) ...[
                     const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: state.isUpdating ? null : () => _start(context),
-                      child: const Text('Start'),
+                    PermissionGate(
+                      permission: Perm.productionCreate,
+                      mutating: true,
+                      child: FilledButton(
+                        onPressed: state.isUpdating ? null : () => _start(context),
+                        child: const Text('Start'),
+                      ),
                     ),
                   ],
                   if (isInProgress && state.canComplete) ...[
-                    FilledButton(
-                      onPressed: state.isUpdating
-                          ? null
-                          : () => _complete(context, state),
-                      child: const Text('Complete'),
+                    PermissionGate(
+                      permission: Perm.productionComplete,
+                      mutating: true,
+                      child: FilledButton(
+                        onPressed: state.isUpdating
+                            ? null
+                            : () => _complete(context, state),
+                        child: const Text('Complete'),
+                      ),
                     ),
                   ],
                   if ((isDraft || isInProgress) && state.canCancel) ...[
                     const SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: state.isUpdating ? null : () => _cancel(context),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: AppColors.error),
+                    PermissionGate(
+                      permission: Perm.productionCancel,
+                      mutating: true,
+                      child: OutlinedButton(
+                        onPressed: state.isUpdating ? null : () => _cancel(context),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: AppColors.error),
+                        ),
                       ),
                     ),
                   ],

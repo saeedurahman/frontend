@@ -4,12 +4,14 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -120,14 +122,18 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => openPurchaseOrderForm(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+        PermissionGate(
+          permission: Perm.purchasesCreate,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () => openPurchaseOrderForm(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('New Purchase Order'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('New Purchase Order'),
         ),
       ],
     );

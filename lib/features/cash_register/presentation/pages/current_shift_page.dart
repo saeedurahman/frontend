@@ -4,12 +4,14 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/current_shift_cubit.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/current_shift_state.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:go_router/go_router.dart';
 
 class CurrentShiftPage extends StatelessWidget {
@@ -191,23 +193,27 @@ class _ActiveShiftContent extends StatelessWidget {
         else
           const Center(child: CircularProgressIndicator()),
         const SizedBox(height: AppDimensions.spacingLg),
-        PrimaryButton(
-          label: 'Close Shift',
-          icon: Icons.lock_outline,
-          onPressed: !state.canCloseShift || summary == null
-              ? null
-              : () => context.push(
-                    RouteNames.closeShift,
-                    extra: {
-                      'shiftId': shift.id,
-                      'summary': summary,
-                      'registerName': register.name,
-                    },
-                  ).then((_) {
-                    if (context.mounted) {
-                      context.read<CurrentShiftCubit>().refresh();
-                    }
-                  }),
+        PermissionGate(
+          permission: Perm.shiftsClose,
+          mutating: true,
+          child: PrimaryButton(
+            label: 'Close Shift',
+            icon: Icons.lock_outline,
+            onPressed: !state.canCloseShift || summary == null
+                ? null
+                : () => context.push(
+                      RouteNames.closeShift,
+                      extra: {
+                        'shiftId': shift.id,
+                        'summary': summary,
+                        'registerName': register.name,
+                      },
+                    ).then((_) {
+                      if (context.mounted) {
+                        context.read<CurrentShiftCubit>().refresh();
+                      }
+                    }),
+          ),
         ),
       ],
     );

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_navigation.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class SuppliersListToolbar extends StatelessWidget {
   const SuppliersListToolbar({super.key, required this.total});
@@ -27,15 +29,19 @@ class SuppliersListToolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => openSupplierForm(context, RouteNames.supplierNew),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        PermissionGate(
+          permission: Perm.suppliersCreate,
+          mutating: true,
+          child: ElevatedButton.icon(
+            onPressed: () => openSupplierForm(context, RouteNames.supplierNew),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Supplier'),
           ),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add Supplier'),
         ),
       ],
     );

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_actions.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_navigation.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -130,21 +132,29 @@ class CustomersDataTable extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              AppTableActionButton(
-                icon: Icons.edit_outlined,
-                tooltip: 'Edit',
-                onPressed: () => openCustomerForm(
-                  context,
-                  '${RouteNames.customers}/${customer.id}/edit',
+              PermissionGate(
+                permission: Perm.customersUpdate,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Edit',
+                  onPressed: () => openCustomerForm(
+                    context,
+                    '${RouteNames.customers}/${customer.id}/edit',
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
               if (customer.isActive)
-                AppTableActionButton(
-                  icon: Icons.person_off_outlined,
-                  iconColor: AppColors.error,
-                  tooltip: 'Deactivate',
-                  onPressed: () => confirmDeactivateCustomer(context, row),
+                PermissionGate(
+                  permission: Perm.customersUpdate,
+                  mutating: true,
+                  child: AppTableActionButton(
+                    icon: Icons.person_off_outlined,
+                    iconColor: AppColors.error,
+                    tooltip: 'Deactivate',
+                    onPressed: () => confirmDeactivateCustomer(context, row),
+                  ),
                 ),
             ],
           ),
