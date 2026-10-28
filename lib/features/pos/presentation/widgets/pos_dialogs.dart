@@ -2,11 +2,8 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frantend/core/constants/app_colors.dart';
-import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
-import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
-import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 
 /// Sentinel returned when the user explicitly chooses no tax on a line.
 class LineTaxRateNone {

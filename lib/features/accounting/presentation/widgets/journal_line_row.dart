@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
-import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/features/accounting/data/models/chart_of_account_model.dart';
 import 'package:frantend/features/accounting/domain/utils/coa_tree_utils.dart';
 import 'package:frantend/features/accounting/domain/utils/journal_balance.dart';

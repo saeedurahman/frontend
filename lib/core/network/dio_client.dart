@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/network/interceptors/auth_interceptor.dart';
 import 'package:frantend/core/network/interceptors/logging_interceptor.dart';
 import 'package:frantend/core/network/interceptors/offline_interceptor.dart';
 import 'package:frantend/core/network/interceptors/retry_interceptor.dart';
+import 'package:frantend/core/network/interceptors/timeout_interceptor.dart';
 import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/core/sync/sync_queue.dart';
@@ -19,8 +22,9 @@ class DioClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: kDefaultApiTimeout,
+        receiveTimeout: kDefaultApiTimeout,
+        sendTimeout: kDefaultApiTimeout,
         headers: {
           'Content-Type': ApiConstants.contentType,
           'Accept': ApiConstants.accept,
@@ -31,12 +35,16 @@ class DioClient {
     final authInterceptor = AuthInterceptor(
       secureStorage,
       dio: _dio,
-      onUnauthorized: () async {
+      onSessionExpired: () async {
         await secureStorage.clearAuthSession();
+        // Flip the router guard so the UI redirects to login.
+        final guard = sl<AuthGuard>();
+        if (guard.isAuthenticated) guard.setAuthenticated(false);
       },
     );
 
     _dio.interceptors.addAll([
+      TimeoutInterceptor(),
       authInterceptor,
       OfflineInterceptor(
         networkInfo: networkInfo,

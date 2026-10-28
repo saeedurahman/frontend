@@ -66,7 +66,6 @@ class JournalEntryFormCubit extends Cubit<JournalEntryFormState> {
   List<JournalLineDraft> _linesFromEntry(JournalEntryModel entry) {
     return entry.lines.map((line) {
       final debit = double.tryParse(line.debitAmount) ?? 0;
-      final credit = double.tryParse(line.creditAmount) ?? 0;
       final isDebit = debit > 0;
       return JournalLineDraft(
         accountId: line.accountId,

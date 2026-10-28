@@ -1,4 +1,7 @@
+import 'dart:io' show HttpDate;
+
 import 'package:dio/dio.dart';
+import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/error/exceptions.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:injectable/injectable.dart';
@@ -18,12 +21,11 @@ class ErrorHandler {
         case DioExceptionType.connectionError:
           return NetworkFailure(error.message ?? 'Connection error');
         case DioExceptionType.badResponse:
-          final statusCode = error.response?.statusCode;
-          final message = _extractMessage(error.response?.data);
-          if (statusCode == 401 || statusCode == 403) {
-            return AuthFailure(message);
-          }
-          return ServerFailure(message);
+          return mapStatus(
+            error.response?.statusCode,
+            error.response?.data,
+            headers: error.response?.headers,
+          );
         default:
           return ServerFailure(error.message ?? 'Request failed');
       }
@@ -39,12 +41,50 @@ class ErrorHandler {
     return UnknownFailure(error.toString());
   }
 
-  String _extractMessage(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString() ??
-          data['message']?.toString() ??
-          'Server error occurred';
+  /// Maps an HTTP status + body to a typed [Failure].
+  Failure mapStatus(int? statusCode, dynamic data, {Headers? headers}) {
+    final message = ApiErrorParser.message(data);
+    switch (statusCode) {
+      case 401:
+        return AuthFailure(message);
+      case 403:
+        return const PermissionDeniedFailure();
+      case 404:
+        return NotFoundFailure(
+          data is Map && data['detail'] is String ? message : 'Not found',
+        );
+      case 409:
+        return ConflictFailure(message);
+      case 422:
+        final fields = data is Map
+            ? ApiErrorParser.fieldErrors(data['detail'])
+            : const <String, String>{};
+        return ValidationFailure(message, fields);
+      case 429:
+        return RateLimitFailure(
+          retryAfterSeconds: parseRetryAfter(headers?.value('retry-after')),
+        );
+      default:
+        return ServerFailure(message);
     }
-    return 'Server error occurred';
+  }
+
+  /// `Retry-After` is either delta-seconds or an HTTP date.
+  static int parseRetryAfter(String? value, {DateTime? now}) {
+    if (value == null || value.trim().isEmpty) return 60;
+    final seconds = int.tryParse(value.trim());
+    if (seconds != null) return seconds < 1 ? 1 : seconds;
+    try {
+      final date = _parseHttpDate(value.trim());
+      final delta = date.difference(now ?? DateTime.now().toUtc()).inSeconds;
+      return delta < 1 ? 1 : delta;
+    } catch (_) {
+      return 60;
+    }
+  }
+
+  static DateTime _parseHttpDate(String value) {
+    // e.g. "Wed, 21 Oct 2026 07:28:00 GMT"
+    return HttpDate.parse(value);
   }
 }

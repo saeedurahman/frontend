@@ -6,6 +6,7 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> login({
     required String phone,
     required String password,
+    String? businessSlug,
   });
 
   Future<Either<Failure, User>> pinLogin({
@@ -21,6 +22,11 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> logout();
 
   Future<Either<Failure, User>> getCurrentUser();
+
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 
   Future<bool> isAuthenticated();
 }

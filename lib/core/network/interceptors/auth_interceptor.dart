@@ -3,31 +3,73 @@ import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/core/utils/logger.dart';
 
-typedef OnUnauthorized = Future<void> Function();
+typedef OnSessionExpired = Future<void> Function();
 
+/// Result of one refresh attempt.
+enum RefreshOutcome {
+  /// New tokens were stored.
+  refreshed,
+
+  /// The server refused the refresh token (401/400) or none is stored.
+  rejected,
+
+  /// Network/timeout/5xx: tokens are kept, the user stays signed in.
+  unavailable,
+}
+
+/// Attaches credentials and transparently refreshes an expired access token.
+///
+/// - Concurrent 401s share ONE in-flight refresh ([_refreshInFlight]); every
+///   waiter completes on success and on failure, so no request can hang.
+/// - A request retried after a refresh carries `extra['retried'] = true` and
+///   never re-enters the refresh flow.
+/// - Login/PIN-login/register/refresh responses never trigger a refresh
+///   (a wrong password must surface as "Invalid credentials").
+/// - The session is cleared ONLY when the refresh endpoint rejects the refresh
+///   token. 403 is a permission error and never touches the session.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(
     this._secureStorage, {
-    this.onUnauthorized,
+    this.onSessionExpired,
     Dio? dio,
   }) : _dio = dio;
 
   final SecureStorage _secureStorage;
   final Dio? _dio;
-  final OnUnauthorized? onUnauthorized;
 
-  bool _isRefreshing = false;
-  final List<_QueuedRequest> _retryQueue = [];
+  /// Called when the refresh token was rejected. The callback owns clearing
+  /// the stored tokens and notifying the UI.
+  final OnSessionExpired? onSessionExpired;
+
+  Future<RefreshOutcome>? _refreshInFlight;
+
+  static const retriedKey = 'retried';
+
+  static const _authExchangePaths = <String>[
+    ApiConstants.login,
+    ApiConstants.pinLogin,
+    ApiConstants.register,
+    ApiConstants.refreshToken,
+  ];
+
+  /// True for the credential-exchange endpoints (login, PIN login, register,
+  /// refresh).
+  static bool isAuthExchangePath(String path) {
+    final clean = Uri.tryParse(path)?.path ?? path;
+    return _authExchangePaths.any((p) => clean == p || clean.endsWith(p));
+  }
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _secureStorage.getAccessToken();
-    if (token != null && token.isNotEmpty) {
-      options.headers[ApiConstants.authorizationHeader] =
-          '${ApiConstants.bearerPrefix}$token';
+    if (!isAuthExchangePath(options.path)) {
+      final token = await _secureStorage.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers[ApiConstants.authorizationHeader] =
+            '${ApiConstants.bearerPrefix}$token';
+      }
     }
 
     final tenantId = await _secureStorage.getTenantId();
@@ -43,101 +85,110 @@ class AuthInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    if (err.response?.statusCode == 401 && _dio != null) {
-      if (_isRefreshing) {
-        _retryQueue.add(_QueuedRequest(err, handler));
-        return;
-      }
+    final dio = _dio;
+    final request = err.requestOptions;
 
-      _isRefreshing = true;
-      try {
-        final refreshed = await _refreshToken();
-        if (refreshed) {
-          final token = await _secureStorage.getAccessToken();
-          
-          // Retry the original request
-          err.requestOptions.headers[ApiConstants.authorizationHeader] =
-              '${ApiConstants.bearerPrefix}$token';
-          final response = await _dio.fetch<dynamic>(err.requestOptions);
-          handler.resolve(response);
-
-          // Retry all queued requests
-          for (final queued in _retryQueue) {
-            try {
-              queued.err.requestOptions.headers[ApiConstants.authorizationHeader] =
-                  '${ApiConstants.bearerPrefix}$token';
-              final queuedResponse = await _dio.fetch<dynamic>(queued.err.requestOptions);
-              queued.handler.resolve(queuedResponse);
-            } catch (e) {
-              queued.handler.reject(DioException(
-                requestOptions: queued.err.requestOptions,
-                error: e,
-              ));
-            }
-          }
-          _retryQueue.clear();
-          return;
-        }
-      } catch (e) {
-        AppLogger.error('Token refresh failed', error: e);
-      } finally {
-        _isRefreshing = false;
-      }
-
-      // If refresh failed, reject all queued requests and the original request
-      for (final queued in _retryQueue) {
-        queued.handler.next(queued.err);
-      }
-      _retryQueue.clear();
-
-      await onUnauthorized?.call();
+    final shouldRefresh = err.response?.statusCode == 401 &&
+        dio != null &&
+        !isAuthExchangePath(request.path) &&
+        request.extra[retriedKey] != true;
+    if (!shouldRefresh) {
+      // 403 and everything else: pass through untouched.
       return handler.next(err);
     }
 
-    if (err.response?.statusCode == 403) {
-      await onUnauthorized?.call();
-    }
+    // Another request may already have refreshed while this one was in flight:
+    // retry with the newer token instead of refreshing again.
+    final current = await _secureStorage.getAccessToken();
+    final sent = request.headers[ApiConstants.authorizationHeader];
+    final alreadyRefreshed = current != null &&
+        current.isNotEmpty &&
+        sent != '${ApiConstants.bearerPrefix}$current';
 
-    handler.next(err);
+    final outcome =
+        alreadyRefreshed ? RefreshOutcome.refreshed : await _refreshOnce();
+
+    switch (outcome) {
+      case RefreshOutcome.refreshed:
+        try {
+          final token = await _secureStorage.getAccessToken();
+          request.headers[ApiConstants.authorizationHeader] =
+              '${ApiConstants.bearerPrefix}$token';
+          request.extra[retriedKey] = true;
+          handler.resolve(await dio.fetch<dynamic>(request));
+        } on DioException catch (e) {
+          handler.next(e);
+        }
+      case RefreshOutcome.rejected:
+        // The shared refresh already expired the session (once).
+        handler.next(err);
+      case RefreshOutcome.unavailable:
+        // Keep the tokens; report a connectivity problem, not a logout.
+        handler.next(
+          DioException(
+            requestOptions: request,
+            type: DioExceptionType.connectionError,
+            error: err.error,
+            message: 'Could not refresh the session. Check your connection.',
+          ),
+        );
+    }
   }
 
-  Future<bool> _refreshToken() async {
+  Future<void> _expireSession() async {
+    try {
+      await onSessionExpired?.call();
+    } catch (e) {
+      AppLogger.error('Session expiry handler failed', error: e);
+    }
+  }
+
+  Future<RefreshOutcome> _refreshOnce() {
+    final running = _refreshInFlight;
+    if (running != null) return running;
+    final future = _refreshToken().then((outcome) async {
+      // Runs once per refresh, however many requests were waiting on it.
+      if (outcome == RefreshOutcome.rejected) await _expireSession();
+      return outcome;
+    }).whenComplete(() => _refreshInFlight = null);
+    _refreshInFlight = future;
+    return future;
+  }
+
+  Future<RefreshOutcome> _refreshToken() async {
+    final dio = _dio;
     final refreshToken = await _secureStorage.getRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty || _dio == null) {
-      return false;
+    if (refreshToken == null || refreshToken.isEmpty || dio == null) {
+      return RefreshOutcome.rejected;
     }
 
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      final response = await dio.post<Map<String, dynamic>>(
         ApiConstants.refreshToken,
         data: {'refresh_token': refreshToken},
-        options: Options(
-          headers: {ApiConstants.authorizationHeader: ''},
-          extra: {'skip_offline_queue': true},
-        ),
+        options: Options(extra: {'skip_offline_queue': true}),
       );
 
       final data = response.data;
-      if (data == null) return false;
-
-      final accessToken = data['access_token'] as String?;
-      final newRefreshToken = data['refresh_token'] as String? ?? refreshToken;
-
-      if (accessToken == null) return false;
+      final accessToken = data?['access_token'] as String?;
+      if (accessToken == null || accessToken.isEmpty) {
+        return RefreshOutcome.rejected;
+      }
+      final newRefresh = data?['refresh_token'] as String? ?? refreshToken;
 
       await _secureStorage.saveTokens(
         accessToken: accessToken,
-        refreshToken: newRefreshToken,
+        refreshToken: newRefresh,
       );
-      return true;
-    } catch (_) {
-      return false;
+      return RefreshOutcome.refreshed;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 400) return RefreshOutcome.rejected;
+      AppLogger.warning('Token refresh unavailable (status $status)');
+      return RefreshOutcome.unavailable;
+    } catch (e) {
+      AppLogger.warning('Token refresh failed unexpectedly: ${e.runtimeType}');
+      return RefreshOutcome.unavailable;
     }
   }
-}
-
-class _QueuedRequest {
-  _QueuedRequest(this.err, this.handler);
-  final DioException err;
-  final ErrorInterceptorHandler handler;
 }

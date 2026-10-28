@@ -246,10 +246,13 @@ class _ReadyView extends StatelessWidget {
           onBackspace: onBackspace,
         ),
         const SizedBox(height: AppDimensions.spacingLg),
-        SizedBox(
+        ValueListenableBuilder<int>(
+          valueListenable: context.read<AuthCubit>().cooldownSeconds,
+          builder: (context, cooldown, _) => SizedBox(
           height: AppDimensions.buttonHeight,
           child: ElevatedButton(
-            onPressed: isLoading || !isValidPin(pin) ? null : onSubmit,
+            onPressed:
+                isLoading || cooldown > 0 || !isValidPin(pin) ? null : onSubmit,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.textOnPrimary,
@@ -263,8 +266,13 @@ class _ReadyView extends StatelessWidget {
                       color: AppColors.textOnPrimary,
                     ),
                   )
-                : const Text('Login with PIN'),
+                : Text(
+                    cooldown > 0
+                        ? 'Try again in ${cooldown}s'
+                        : 'Login with PIN',
+                  ),
           ),
+        ),
         ),
         const SizedBox(height: AppDimensions.spacingLg),
         TextButton(

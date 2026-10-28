@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
 import 'package:frantend/features/auth/domain/usecases/login_usecase.dart';
@@ -36,11 +39,37 @@ class AuthCubit extends Cubit<AuthState> {
 
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
+
+  /// Optional until the backend makes login business-scoped.
+  final businessSlugController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   PhoneNumber? phoneNumber;
   bool rememberMe = false;
 
   void setRememberMe(bool value) => rememberMe = value;
+
+  /// Seconds left of a 429 cool-down; login/PIN buttons are disabled while > 0.
+  final ValueNotifier<int> cooldownSeconds = ValueNotifier<int>(0);
+  Timer? _cooldownTimer;
+
+  bool get isCoolingDown => cooldownSeconds.value > 0;
+
+  @visibleForTesting
+  void startCooldown(int seconds) {
+    _cooldownTimer?.cancel();
+    cooldownSeconds.value = seconds;
+    if (seconds <= 0) return;
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final next = cooldownSeconds.value - 1;
+      cooldownSeconds.value = next < 0 ? 0 : next;
+      if (next <= 0) timer.cancel();
+    });
+  }
+
+  void _onFailure(Failure failure) {
+    if (failure is RateLimitFailure) startCooldown(failure.retryAfterSeconds);
+    emit(AuthState.error(failure.message));
+  }
 
   Future<void> checkAuthStatus() async {
     final isAuth = await _authRepository.isAuthenticated();
@@ -60,15 +89,18 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> login() async {
+    if (isCoolingDown) return;
     emit(const AuthState.loading());
     final phone = _resolvePhoneForLogin();
     final password = passwordController.text;
 
-    final result = await _loginUseCase(phone: phone, password: password);
+    final result = await _loginUseCase(
+      phone: phone,
+      password: password,
+      businessSlug: businessSlugController.text,
+    );
     result.fold(
-      (failure) {
-        emit(AuthState.error(failure.message));
-      },
+      _onFailure,
       (user) {
         _authGuard.setAuthenticated(true);
         emit(AuthState.authenticated(user));
@@ -98,6 +130,7 @@ class AuthCubit extends Cubit<AuthState> {
     required String userId,
     required String pin,
   }) async {
+    if (isCoolingDown) return;
     emit(const AuthState.loading());
     final result = await _pinLoginUseCase(
       businessSlug: businessSlug,
@@ -105,7 +138,7 @@ class AuthCubit extends Cubit<AuthState> {
       pinCode: pin,
     );
     result.fold(
-      (failure) => emit(AuthState.error(failure.message)),
+      _onFailure,
       (user) {
         _authGuard.setAuthenticated(true);
         emit(AuthState.authenticated(user));
@@ -139,8 +172,11 @@ class AuthCubit extends Cubit<AuthState> {
 
   @override
   Future<void> close() {
+    _cooldownTimer?.cancel();
+    cooldownSeconds.dispose();
     phoneController.dispose();
     passwordController.dispose();
+    businessSlugController.dispose();
     return super.close();
   }
 }

@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local environment / --dart-define files (may hold server URLs or secrets)
+.env
+.env.*
+*.env
+dart_defines*.json
+dart-define*.json
+env.json
+*.local.json
+launch.local.json
+
+# Build outputs and local data
+/build/
+/windows/flutter/ephemeral/
+*.corrupt.*
+*.log.1
+/logs/
+*.msix

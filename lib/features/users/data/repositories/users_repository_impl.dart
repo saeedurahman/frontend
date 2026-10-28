@@ -107,9 +107,16 @@ class UsersRepositoryImpl implements UsersRepository {
   Future<Either<Failure, void>> resetUserPin({
     required String id,
     required String pinCode,
+    required String currentPassword,
+    String? currentPin,
   }) async {
     try {
-      await _remote.resetUserPin(id: id, pinCode: pinCode);
+      await _remote.resetUserPin(
+        id: id,
+        pinCode: pinCode,
+        currentPassword: currentPassword,
+        currentPin: currentPin,
+      );
       return const Right(null);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

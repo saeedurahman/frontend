@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
-import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:frantend/features/auth/presentation/cubit/auth_state.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';

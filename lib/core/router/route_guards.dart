@@ -87,9 +87,6 @@ class AuthGuard extends ChangeNotifier {
     return null;
   }
 
-  static bool _isKitchenRoute(String location) =>
-      KitchenAccessPolicy.isKitchenRoute(location);
-
   static const List<String> _publicRoutes = [
     RouteNames.landing,
     RouteNames.login,

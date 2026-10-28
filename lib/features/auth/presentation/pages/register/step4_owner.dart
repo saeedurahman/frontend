@@ -38,27 +38,14 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
 
     return BlocConsumer<RegisterCubit, RegisterState>(
       listener: (context, state) {
-        debugPrint('[Step4] BlocListener — state=${state.runtimeType}');
         if (state is RegisterFailure) {
-          debugPrint('[Step4] RegisterFailure — message="${state.message}"');
           AppAlerts.showErrorMessage(context, state.message);
         } else if (state is RegisterSuccess) {
-          debugPrint('[Step4] RegisterSuccess — navigating to ${RouteNames.registerSuccess}');
           context.go(RouteNames.registerSuccess);
         }
       },
       builder: (context, state) {
         final isLoading = state is RegisterLoading;
-        debugPrint(
-          '[Step4] build — state=${state.runtimeType}, isLoading=$isLoading, '
-          'plan=${cubit.data.plan.name}, '
-          'formKeyAttached=${cubit.step4FormKey.currentState != null}',
-        );
-        debugPrint(
-          '[Step4] build — wizard data: businessName="${cubit.businessNameController.text}", '
-          'city=${cubit.selectedCity}, businessType=${cubit.data.businessType}, '
-          'branchName="${cubit.branchNameController.text}"',
-        );
 
         return RegisterScaffold(
           currentStep: 4,
@@ -165,7 +152,6 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
                               plan: p,
                               isSelected: plan == p,
                               onTap: () {
-                                debugPrint('[Step4] plan selected — ${p.name}');
                                 cubit.setPlan(p);
                               },
                             ),
@@ -256,52 +242,33 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
     final confirm = cubit.confirmPasswordController.text;
     final formState = cubit.step4FormKey.currentState;
 
-    debugPrint('[Step4] onSubmit tapped — button="Complete Registration"');
-    debugPrint(
-      '[Step4] wizard — businessName="${cubit.businessNameController.text}", '
-      'city=${cubit.selectedCity}, businessType=${cubit.data.businessType}, '
-      'branchName="${cubit.branchNameController.text}", plan=${cubit.data.plan.name}',
-    );
-    debugPrint(
-      '[Step4] form — currentState=${formState != null ? "attached" : "NULL"}',
-    );
 
     if (ownerName.isEmpty) {
-      debugPrint('[Step4] onSubmit BLOCKED — full name empty');
       AppAlerts.showErrorMessage(context, 'Full name is required');
       return;
     }
     if (ownerPhone.isEmpty) {
-      debugPrint('[Step4] onSubmit BLOCKED — phone empty');
       AppAlerts.showErrorMessage(context, 'Phone no is required');
       return;
     }
     if (password.isEmpty) {
-      debugPrint('[Step4] onSubmit BLOCKED — password empty');
       AppAlerts.showErrorMessage(context, 'Password is required');
       return;
     }
     final passwordError =
         AppFormFieldValidator.registerPasswordValidator(password);
     if (passwordError != null) {
-      debugPrint('[Step4] onSubmit BLOCKED — $passwordError');
       AppAlerts.showErrorMessage(context, passwordError);
       return;
     }
     if (password != confirm) {
-      debugPrint('[Step4] onSubmit BLOCKED — passwords do not match');
       AppAlerts.showErrorMessage(context, 'Passwords do not match');
       return;
     }
 
-    if (formState != null) {
-      final isValid = formState.validate();
-      debugPrint('[Step4] formState.validate() => $isValid (logged only, not blocking)');
-    } else {
-      debugPrint('[Step4] formState is null');
-    }
+    // Surfaces inline field errors; the explicit checks above already gate.
+    formState?.validate();
 
-    debugPrint('[Step4] onSubmit calling cubit.submitRegistration()');
     cubit.submitRegistration();
   }
 }

@@ -76,6 +76,14 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           ),
           const SizedBox(height: AppDimensions.spacingMd),
           AppTextField(
+            labelText: 'Business ID (optional)',
+            hintText: 'e.g. my-shop',
+            controller: cubit.businessSlugController,
+            enableBorder: true,
+            maxLine: 1,
+          ),
+          const SizedBox(height: AppDimensions.spacingMd),
+          AppTextField(
             labelText: 'Password *',
             hintText: 'Enter Password',
             controller: cubit.passwordController,
@@ -119,41 +127,56 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             ],
           ),
           const SizedBox(height: AppDimensions.spacingLg),
-          SizedBox(
-            height: AppDimensions.buttonHeight,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : () => _handleLogin(cubit),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textOnPrimary,
-                      ),
-                    )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.login_rounded, size: 20),
-                      ],
+          ValueListenableBuilder<int>(
+            valueListenable: cubit.cooldownSeconds,
+            builder: (context, cooldown, _) {
+              final blocked = isLoading || cooldown > 0;
+              return SizedBox(
+                height: AppDimensions.buttonHeight,
+                child: ElevatedButton(
+                  onPressed: blocked ? null : () => _handleLogin(cubit),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMd),
                     ),
-            ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.textOnPrimary,
+                          ),
+                        )
+                      : cooldown > 0
+                          ? Text(
+                              'Try again in ${cooldown}s',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(Icons.login_rounded, size: 20),
+                              ],
+                            ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: AppDimensions.spacingLg),
           const Divider(color: AppColors.border),

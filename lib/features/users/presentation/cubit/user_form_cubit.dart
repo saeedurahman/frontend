@@ -373,13 +373,22 @@ class UserFormCubit extends Cubit<UserFormState> {
     );
   }
 
-  Future<bool> resetPin(String pinCode) async {
+  Future<bool> resetPin(
+    String pinCode, {
+    required String currentPassword,
+    String? currentPin,
+  }) async {
     if (!state.isEdit || !state.canUpdateProfile || state.userId == null) {
       return false;
     }
 
     emit(state.copyWith(isResettingPin: true, errors: {}));
-    final result = await _resetPin(id: state.userId!, pinCode: pinCode);
+    final result = await _resetPin(
+      id: state.userId!,
+      pinCode: pinCode,
+      currentPassword: currentPassword,
+      currentPin: currentPin,
+    );
     return result.fold(
       (failure) {
         emit(

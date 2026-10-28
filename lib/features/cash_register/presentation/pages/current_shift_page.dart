@@ -10,7 +10,6 @@ import 'package:frantend/features/cash_register/presentation/cubit/current_shift
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
-import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:go_router/go_router.dart';
 
 class CurrentShiftPage extends StatelessWidget {

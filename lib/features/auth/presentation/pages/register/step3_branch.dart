@@ -25,10 +25,6 @@ class Step3BranchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<RegisterCubit>();
-    debugPrint(
-      '[Step3] build — branchName="${cubit.branchNameController.text}", '
-      'formKeyAttached=${cubit.step3FormKey.currentState != null}',
-    );
 
     return RegisterScaffold(
       currentStep: 3,
@@ -65,7 +61,6 @@ class Step3BranchPage extends StatelessWidget {
                     v,
                     'Branch name is required',
                   );
-                  debugPrint('[Step3] branchName validator — value="$v", error=$error');
                   return error;
                 },
                 decoration: _decoration('e.g., Main Branch, Gulberg Branch'),
@@ -167,34 +162,21 @@ class Step3BranchPage extends StatelessWidget {
     final branchNameTrimmed = branchName.trim();
     final formState = cubit.step3FormKey.currentState;
 
-    debugPrint('[Step3] onContinue tapped — button="Continue to Step 4"');
-    debugPrint(
-      '[Step3] fields — branchName="$branchName", trimmed="$branchNameTrimmed"',
-    );
-    debugPrint(
-      '[Step3] form — currentState=${formState != null ? "attached" : "NULL"}, '
-      'cubit.data.branchName="${cubit.data.branchName}"',
-    );
 
     if (branchNameTrimmed.isEmpty) {
-      debugPrint('[Step3] onContinue BLOCKED — manual check: branch name empty');
       AppAlerts.showErrorMessage(context, 'Branch name is required');
       return;
     }
 
     if (formState == null) {
-      debugPrint('[Step3] onContinue BLOCKED — step3FormKey.currentState is null');
       return;
     }
 
     final isValid = formState.validate();
-    debugPrint('[Step3] formState.validate() => $isValid');
 
     if (isValid) {
-      debugPrint('[Step3] onContinue proceeding to ${RouteNames.registerStep4}');
       context.go(RouteNames.registerStep4);
     } else {
-      debugPrint('[Step3] onContinue BLOCKED — form validation failed (no snackbar shown)');
     }
   }
 }

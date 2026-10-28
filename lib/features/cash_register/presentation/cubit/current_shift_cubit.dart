@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
-import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/current_shift_state.dart';

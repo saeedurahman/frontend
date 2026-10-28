@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/presentation/cubit/brands_cubit.dart';
-import 'package:frantend/features/products/presentation/cubit/brands_state.dart';
 
 class QuickAddBrandDialog extends StatefulWidget {
   const QuickAddBrandDialog({super.key});

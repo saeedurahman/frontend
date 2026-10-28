@@ -11,6 +11,10 @@ class PreferencesStorage {
   static const String _themeModeKey = 'theme_mode';
   static const String _lastSyncKey = 'last_sync_at';
   static const String _selectedBranchKey = 'selected_branch_id';
+  static const String _idleLockMinutesKey = 'idle_lock_minutes';
+
+  /// Default inactivity before the PIN lock appears. 0 disables auto-lock.
+  static const int defaultIdleLockMinutes = 10;
 
   String? getLocale() => _prefs.getString(_localeKey);
 
@@ -29,6 +33,12 @@ class PreferencesStorage {
 
   Future<bool> setSelectedBranchId(String branchId) =>
       _prefs.setString(_selectedBranchKey, branchId);
+
+  int getIdleLockMinutes() =>
+      _prefs.getInt(_idleLockMinutesKey) ?? defaultIdleLockMinutes;
+
+  Future<bool> setIdleLockMinutes(int minutes) =>
+      _prefs.setInt(_idleLockMinutesKey, minutes < 0 ? 0 : minutes);
 
   Future<bool> clear() => _prefs.clear();
 }

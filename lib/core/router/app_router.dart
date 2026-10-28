@@ -57,6 +57,7 @@ import 'package:frantend/features/suppliers/presentation/pages/suppliers_list_pa
 import 'package:frantend/features/expenses/presentation/pages/expense_detail_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expense_form_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
+import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
 import 'package:frantend/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:frantend/features/audit/presentation/pages/audit_logs_page.dart';
@@ -488,6 +489,10 @@ class AppRouter {
                 redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
+                path: 'change-password',
+                builder: (_, __) => const ChangePasswordPage(),
+              ),
+              GoRoute(
                 path: 'roles',
                 builder: (_, __) => const RolesListPage(),
                 routes: [
@@ -597,6 +602,9 @@ class AppRouter {
   if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');
   if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
   if (path.startsWith(RouteNames.settings)) {
+    if (path.startsWith(RouteNames.changePassword)) {
+      return ('Change Password', 'Home / System / Settings / Security');
+    }
     if (path.startsWith(RouteNames.settingsRoles)) {
       return ('Roles & Permissions', 'Home / System / Settings / Roles');
     }

@@ -158,7 +158,24 @@ class _KeyButton extends StatelessWidget {
   }
 }
 
-bool isValidPinLength(int length) => length >= 4 && length <= 6;
+/// PINs set or changed from now on must be at least this long.
+const int kMinNewPinLength = 6;
+const int kMaxPinLength = 6;
+
+/// Login accepts 4-6 digits so PINs created before the 6-digit rule still work.
+bool isValidPinLength(int length) => length >= 4 && length <= kMaxPinLength;
+
+/// Rule for a PIN being created or changed.
+String? validateNewPin(String pin) {
+  if (!RegExp(r'^\d+$').hasMatch(pin)) return 'PIN must contain digits only';
+  if (pin.length < kMinNewPinLength) {
+    return 'PIN must be at least $kMinNewPinLength digits';
+  }
+  if (pin.length > kMaxPinLength) {
+    return 'PIN must be at most $kMaxPinLength digits';
+  }
+  return null;
+}
 
 bool isValidPin(String pin) =>
     isValidPinLength(pin.length) && RegExp(r'^\d+$').hasMatch(pin);

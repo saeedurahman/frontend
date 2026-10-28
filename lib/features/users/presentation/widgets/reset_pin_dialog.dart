@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/features/auth/presentation/widgets/pin_keypad.dart';
+
+/// Result of [ResetPinDialog]: the new PIN plus the re-authentication proof.
+class ResetPinResult {
+  const ResetPinResult({
+    required this.newPin,
+    required this.currentPassword,
+    this.currentPin,
+  });
+
+  final String newPin;
+  final String currentPassword;
+
+  /// Only collected when the user is changing their own PIN.
+  final String? currentPin;
+}
 
 class ResetPinDialog extends StatefulWidget {
-  const ResetPinDialog({super.key});
+  const ResetPinDialog({super.key, this.askCurrentPin = false});
 
-  static Future<String?> show(BuildContext context) {
-    return showDialog<String>(
+  /// True when changing your own PIN (also asks for the existing PIN).
+  final bool askCurrentPin;
+
+  static Future<ResetPinResult?> show(
+    BuildContext context, {
+    bool askCurrentPin = false,
+  }) {
+    return showDialog<ResetPinResult>(
       context: context,
-      builder: (_) => const ResetPinDialog(),
+      builder: (_) => ResetPinDialog(askCurrentPin: askCurrentPin),
     );
   }
 
@@ -17,27 +39,38 @@ class ResetPinDialog extends StatefulWidget {
 }
 
 class _ResetPinDialogState extends State<ResetPinDialog> {
+  final _passwordController = TextEditingController();
+  final _currentPinController = TextEditingController();
   final _pinController = TextEditingController();
   final _confirmController = TextEditingController();
   String? _error;
 
   @override
   void dispose() {
+    _passwordController.dispose();
+    _currentPinController.dispose();
     _pinController.dispose();
     _confirmController.dispose();
     super.dispose();
   }
 
   void _submit() {
+    final password = _passwordController.text;
+    final currentPin = _currentPinController.text.trim();
     final pin = _pinController.text.trim();
     final confirm = _confirmController.text.trim();
 
-    if (pin.length < 4 || pin.length > 6) {
-      setState(() => _error = 'PIN must be 4–6 digits');
+    if (password.isEmpty) {
+      setState(() => _error = 'Enter your current password');
       return;
     }
-    if (!RegExp(r'^\d+$').hasMatch(pin)) {
-      setState(() => _error = 'PIN must contain digits only');
+    if (widget.askCurrentPin && currentPin.isEmpty) {
+      setState(() => _error = 'Enter your current PIN');
+      return;
+    }
+    final pinError = validateNewPin(pin);
+    if (pinError != null) {
+      setState(() => _error = pinError);
       return;
     }
     if (pin != confirm) {
@@ -45,14 +78,20 @@ class _ResetPinDialogState extends State<ResetPinDialog> {
       return;
     }
 
-    Navigator.of(context).pop(pin);
+    Navigator.of(context).pop(
+      ResetPinResult(
+        newPin: pin,
+        currentPassword: password,
+        currentPin: widget.askCurrentPin ? currentPin : null,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Reset PIN'),
-      content: Column(
+      content: SingleChildScrollView(child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
@@ -61,16 +100,41 @@ class _ResetPinDialogState extends State<ResetPinDialog> {
           ),
           const SizedBox(height: 16),
           TextField(
+            controller: _passwordController,
+            decoration: const InputDecoration(
+              labelText: 'Your current password',
+              border: OutlineInputBorder(),
+            ),
+            obscureText: true,
+          ),
+          if (widget.askCurrentPin) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _currentPinController,
+              decoration: const InputDecoration(
+                labelText: 'Your current PIN',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(kMaxPinLength),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          TextField(
             controller: _pinController,
             decoration: const InputDecoration(
-              labelText: 'New PIN',
+              labelText: 'New PIN (min 6 digits)',
               border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
             obscureText: true,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
+              LengthLimitingTextInputFormatter(kMaxPinLength),
             ],
           ),
           const SizedBox(height: 12),
@@ -84,7 +148,7 @@ class _ResetPinDialogState extends State<ResetPinDialog> {
             obscureText: true,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
+              LengthLimitingTextInputFormatter(kMaxPinLength),
             ],
             onSubmitted: (_) => _submit(),
           ),
@@ -96,7 +160,7 @@ class _ResetPinDialogState extends State<ResetPinDialog> {
             ),
           ],
         ],
-      ),
+      )),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

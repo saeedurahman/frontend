@@ -5,7 +5,6 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/customer_picker_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/customer_picker_state.dart';
-import 'package:frantend/core/utils/currency_formatter.dart';
 
 class CustomerPickerDialog extends StatelessWidget {
   const CustomerPickerDialog({super.key});

@@ -87,7 +87,7 @@ class _CoaListViewState extends State<_CoaListView> {
                       ),
                     ),
                   ),
-                CoaListLoaded(:final filteredNodes, :final treeRoots)
+                CoaListLoaded(:final filteredNodes)
                     when filteredNodes.isEmpty =>
                   const EmptyState(
                     icon: Icons.account_tree_outlined,

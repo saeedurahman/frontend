@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
-import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/manufacturing/data/models/production_order_model.dart';
 import 'package:frantend/features/manufacturing/domain/usecases/manufacturing_usecases.dart';
 import 'package:frantend/features/manufacturing/presentation/cubit/production_orders_list_state.dart';

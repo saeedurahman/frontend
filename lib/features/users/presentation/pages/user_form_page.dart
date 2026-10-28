@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_cubit.dart';
 import 'package:frantend/features/users/presentation/cubit/user_form_state.dart';
 import 'package:frantend/features/users/presentation/widgets/reset_pin_dialog.dart';
@@ -426,9 +427,19 @@ class _AccountActions extends StatelessWidget {
       onPressed: state.isResettingPin || state.isSaving
           ? null
           : () async {
-              final pin = await ResetPinDialog.show(context);
-              if (pin == null || !context.mounted) return;
-              final ok = await context.read<UserFormCubit>().resetPin(pin);
+              final selfId = await sl<SecureStorage>().getUserId();
+              if (!context.mounted) return;
+              final isSelf = selfId != null && selfId == state.userId;
+              final reset = await ResetPinDialog.show(
+                context,
+                askCurrentPin: isSelf,
+              );
+              if (reset == null || !context.mounted) return;
+              final ok = await context.read<UserFormCubit>().resetPin(
+                    reset.newPin,
+                    currentPassword: reset.currentPassword,
+                    currentPin: reset.currentPin,
+                  );
               if (ok && context.mounted) {
                 AppAlerts.showSuccessMessage(context, 'PIN reset successfully');
               }

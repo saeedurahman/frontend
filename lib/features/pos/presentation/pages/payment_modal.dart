@@ -6,7 +6,6 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
-import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
 

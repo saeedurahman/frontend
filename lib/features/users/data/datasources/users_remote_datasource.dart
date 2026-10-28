@@ -34,6 +34,8 @@ abstract class UsersRemoteDataSource {
   Future<void> resetUserPin({
     required String id,
     required String pinCode,
+    required String currentPassword,
+    String? currentPin,
   });
 }
 
@@ -124,10 +126,16 @@ class UsersRemoteDataSourceImpl implements UsersRemoteDataSource {
   Future<void> resetUserPin({
     required String id,
     required String pinCode,
+    required String currentPassword,
+    String? currentPin,
   }) async {
     await _dio.put<void>(
       ApiConstants.userPin(id),
-      data: {'pin_code': pinCode},
+      data: {
+        'pin_code': pinCode,
+        'current_password': currentPassword,
+        if (currentPin != null) 'current_pin': currentPin,
+      },
     );
   }
 

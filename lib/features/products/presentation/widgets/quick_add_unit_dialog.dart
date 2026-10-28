@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
 import 'package:frantend/features/products/presentation/cubit/units_cubit.dart';
-import 'package:frantend/features/products/presentation/cubit/units_state.dart';
 
 class QuickAddUnitDialog extends StatefulWidget {
   const QuickAddUnitDialog({super.key});

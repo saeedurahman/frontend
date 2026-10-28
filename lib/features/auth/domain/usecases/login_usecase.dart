@@ -13,6 +13,11 @@ class LoginUseCase {
   Future<Either<Failure, User>> call({
     required String phone,
     required String password,
+    String? businessSlug,
   }) =>
-      _repository.login(phone: phone, password: password);
+      _repository.login(
+        phone: phone,
+        password: password,
+        businessSlug: businessSlug,
+      );
 }

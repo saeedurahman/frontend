@@ -44,6 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User>> login({
     required String phone,
     required String password,
+    String? businessSlug,
   }) async {
     try {
       if (!await _networkInfo.isConnected) {
@@ -57,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = await _remoteDataSource.login(
         phone: phone,
         password: password,
+        businessSlug: businessSlug,
       );
 
       await _localDataSource.saveTokens(
@@ -153,6 +155,24 @@ class AuthRepositoryImpl implements AuthRepository {
       await _seedPinDeviceCache(user);
       await _refreshBusinessSession();
       return Right(user);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _remoteDataSource.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      return const Right(null);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (e) {

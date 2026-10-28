@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +6,6 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
-import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/presentation/cubit/close_shift_cubit.dart';
 import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';

@@ -90,6 +90,13 @@ class ResetUserPinUseCase {
   Future<Either<Failure, void>> call({
     required String id,
     required String pinCode,
+    required String currentPassword,
+    String? currentPin,
   }) =>
-      _repository.resetUserPin(id: id, pinCode: pinCode);
+      _repository.resetUserPin(
+        id: id,
+        pinCode: pinCode,
+        currentPassword: currentPassword,
+        currentPin: currentPin,
+      );
 }
