@@ -4,12 +4,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/lifecycle/local_data_lifecycle.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/session/session_signals.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:frantend/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/subscription/data/subscription_repository.dart';
@@ -74,6 +77,18 @@ abstract final class SessionServices {
       (state) => guard.setSubscriptionBlocked(state.isBlocked),
     );
 
+    // A different branch means different prices and stock: drop cached reads.
+    String? selectedBranch = branches.state.selectedBranchId;
+    branches.stream.listen((state) {
+      final next = state.selectedBranchId;
+      final switched =
+          selectedBranch != null && next != null && next != selectedBranch;
+      selectedBranch = next;
+      if (switched) {
+        unawaited(sl<LocalDataLifecycle>().wipeOnBranchSwitch());
+      }
+    });
+
     AccessState previous = access.state;
     access.stream.listen((state) {
       final user = state.user;
@@ -123,12 +138,23 @@ abstract final class SessionServices {
     return null;
   }
 
-  /// Signs out everywhere (shell menu, subscription page).
-  static Future<void> logout() async {
+  /// Signs out everywhere (shell menu, subscription page, lock screen).
+  ///
+  /// Returns a [PendingWorkFailure] - and signs nobody out - while unsent
+  /// local changes exist; null once the user is signed out.
+  static Future<PendingWorkFailure?> logout() async {
+    final result = await sl<LogoutUseCase>()();
+    final blocked = result.fold(
+      (failure) => failure is PendingWorkFailure ? failure : null,
+      (_) => null,
+    );
+    if (blocked != null) return blocked;
+    // Any other failure still ends the local session (the repository clears
+    // it on every path), so the UI must leave the signed-in area too.
     sl<NotificationsCubit>().stopSession();
     sl<BranchSelectorCubit>().stopSession();
-    await sl<AuthRepository>().logout();
     sl<AuthGuard>().setAuthenticated(false);
+    return null;
   }
 }
 

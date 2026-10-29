@@ -6,21 +6,19 @@ import 'package:frantend/core/session/session_signals.dart';
 import 'package:frantend/core/network/interceptors/auth_interceptor.dart';
 import 'package:frantend/core/network/interceptors/forbidden_interceptor.dart';
 import 'package:frantend/core/network/interceptors/logging_interceptor.dart';
-import 'package:frantend/core/network/interceptors/offline_interceptor.dart';
 import 'package:frantend/core/network/interceptors/retry_interceptor.dart';
 import 'package:frantend/core/network/interceptors/subscription_interceptor.dart';
 import 'package:frantend/core/network/interceptors/timeout_interceptor.dart';
-import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
-import 'package:frantend/core/sync/sync_queue.dart';
 import 'package:injectable/injectable.dart';
 
+/// The one authenticated HTTP client. Every request either reaches the
+/// server or fails visibly: there is no interceptor that pretends a mutation
+/// succeeded.
 @lazySingleton
 class DioClient {
   DioClient({
     required SecureStorage secureStorage,
-    required NetworkInfo networkInfo,
-    required SyncQueue syncQueue,
   }) {
     _dio = Dio(
       BaseOptions(
@@ -51,11 +49,9 @@ class DioClient {
       authInterceptor,
       SubscriptionInterceptor(onFailure: SessionSignals.subscriptionFailure),
       ForbiddenInterceptor(onForbidden: SessionSignals.forbidden),
-      OfflineInterceptor(
-        networkInfo: networkInfo,
-        syncQueue: syncQueue,
-      ),
-      RetryInterceptor(dio: _dio, retries: 3),
+      // POS-critical paths are never auto-retried (see RetryInterceptor);
+      // other idempotent reads get a single retry.
+      RetryInterceptor(dio: _dio, retries: 1),
       LoggingInterceptor(),
     ]);
   }

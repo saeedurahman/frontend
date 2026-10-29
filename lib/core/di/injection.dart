@@ -1,3 +1,4 @@
+import 'package:frantend/core/di/foundation_module.dart';
 import 'package:frantend/core/di/injection.config.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
@@ -17,6 +18,7 @@ final sl = GetIt.instance;
 )
 Future<void> configureDependencies() async {
   await sl.init();
+  registerFoundationServices(sl);
   _registerSecurityServices();
   SessionServices.register();
   SessionServices.wire();

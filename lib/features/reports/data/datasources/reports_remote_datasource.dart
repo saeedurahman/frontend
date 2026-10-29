@@ -229,7 +229,7 @@ class ReportsRemoteDataSource {
     return _list(response.data, FraudAlertModel.fromJson);
   }
 
-  static final _opts = Options(extra: {'skip_offline_queue': true});
+  static final _opts = Options();
 
   Map<String, String> _dateParams(DateRangeQuery q) => {
         'date_from': _isoDate(q.dateFrom),

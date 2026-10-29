@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/router/route_names.dart';
@@ -17,18 +18,18 @@ class Sidebar extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: AppDimensions.spacingLg),
-          const Padding(
-            padding: EdgeInsets.all(AppDimensions.spacingMd),
+          Padding(
+            padding: const EdgeInsets.all(AppDimensions.spacingMd),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   backgroundColor: AppColors.primary,
                   child: Icon(Icons.store, color: AppColors.textOnPrimary),
                 ),
-                SizedBox(width: AppDimensions.spacingSm),
+                const SizedBox(width: AppDimensions.spacingSm),
                 Text(
-                  'Frantend POS',
-                  style: TextStyle(
+                  AppBrand.current.appName,
+                  style: const TextStyle(
                     color: AppColors.textOnPrimary,
                     fontWeight: FontWeight.bold,
                   ),

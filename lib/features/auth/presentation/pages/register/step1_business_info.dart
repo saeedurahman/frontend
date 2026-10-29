@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
@@ -37,7 +38,7 @@ class Step1BusinessInfoPage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Tell us about your venture to customize your PakPOS workspace.',
+                'Tell us about your venture to customize your ${AppBrand.current.appName} workspace.',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),

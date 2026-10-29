@@ -166,7 +166,7 @@ class AuthInterceptor extends Interceptor {
       final response = await dio.post<Map<String, dynamic>>(
         ApiConstants.refreshToken,
         data: {'refresh_token': refreshToken},
-        options: Options(extra: {'skip_offline_queue': true}),
+        options: Options(),
       );
 
       final data = response.data;

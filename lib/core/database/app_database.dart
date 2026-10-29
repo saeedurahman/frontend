@@ -4,17 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:frantend/core/database/daos/held_orders_dao.dart';
 import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
-import 'package:frantend/core/database/daos/pending_sales_dao.dart';
-import 'package:frantend/core/database/daos/products_dao.dart';
-import 'package:frantend/core/database/daos/sales_dao.dart';
-import 'package:frantend/core/database/daos/sync_queue_dao.dart';
-import 'package:frantend/core/database/tables/customers_table.dart';
 import 'package:frantend/core/database/tables/held_orders_table.dart';
 import 'package:frantend/core/database/tables/master_data_cache_table.dart';
-import 'package:frantend/core/database/tables/pending_sales_table.dart';
-import 'package:frantend/core/database/tables/products_table.dart';
-import 'package:frantend/core/database/tables/sales_table.dart';
-import 'package:frantend/core/database/tables/sync_queue_table.dart';
 import 'package:frantend/core/database/tables/users_table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -24,25 +15,18 @@ import 'package:sqlite3/sqlite3.dart';
 
 part 'app_database.g.dart';
 
+/// Local schema (v6). Deliberately small: only data that is *local by nature*
+/// lives here until the sync engine (Phase 4b) adds its own tables.
+///
+/// - [UsersTable]: the signed-in user's profile + permissions (offline gate).
+/// - [MasterDataCacheTable]: read-through JSON cache (barcode lookups, lists).
+/// - [HeldOrdersTable]: parked carts of one cashier / branch / business.
+///
+/// Every table is tenant-scoped data: [wipeTenantData] clears all of them on
+/// logout and on tenant switch.
 @DriftDatabase(
-  tables: [
-    SyncQueueTable,
-    ProductsTable,
-    MasterDataCacheTable,
-    SalesTable,
-    PendingSalesTable,
-    HeldOrdersTable,
-    CustomersTable,
-    UsersTable,
-  ],
-  daos: [
-    SyncQueueDao,
-    ProductsDao,
-    MasterDataCacheDao,
-    SalesDao,
-    PendingSalesDao,
-    HeldOrdersDao,
-  ],
+  tables: [MasterDataCacheTable, HeldOrdersTable, UsersTable],
+  daos: [MasterDataCacheDao, HeldOrdersDao],
 )
 @lazySingleton
 class AppDatabase extends _$AppDatabase {
@@ -53,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -64,9 +48,6 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(masterDataCacheTable);
       }
-      if (from < 3) {
-        await m.createTable(pendingSalesTable);
-      }
       if (from < 4) {
         await m.createTable(heldOrdersTable);
       }
@@ -75,8 +56,34 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(usersTable, usersTable.rolesJson);
         await m.addColumn(usersTable, usersTable.permissionKeysJson);
       }
+      if (from < 6) {
+        // Phase 4a: the fake-offline paths are gone. These tables only ever
+        // held unsent "pending" mutations and optimistic stock numbers, none
+        // of which the server ever received, so they are dropped, not moved.
+        for (final legacy in legacyTables) {
+          await customStatement('DROP TABLE IF EXISTS $legacy');
+        }
+      }
     },
   );
+
+  /// Tables removed in schema v6 (kept only so upgrades can drop them).
+  static const legacyTables = <String>[
+    'sync_queue_table',
+    'pending_sales_table',
+    'sales_table',
+    'products_table',
+    'customers_table',
+  ];
+
+  /// Deletes every row of every tenant-scoped table.
+  Future<void> wipeTenantData() async {
+    await transaction(() async {
+      for (final table in allTables) {
+        await delete(table).go();
+      }
+    });
+  }
 }
 
 /// Directory that holds app-private data (not the user's Documents folder).

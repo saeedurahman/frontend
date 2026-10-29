@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
@@ -7,7 +8,6 @@ import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/permissions/user_access.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/session/business_session_cubit.dart';
-import 'package:frantend/core/session/session_services.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
@@ -19,6 +19,10 @@ import 'package:frantend/features/notifications/presentation/widgets/notificatio
 import 'package:frantend/features/restaurant/domain/entities/business_feature_flags.dart';
 import 'package:frantend/features/subscription/presentation/widgets/subscription_banner.dart';
 import 'package:frantend/shared/widgets/layout/app_nav.dart';
+import 'package:frantend/shared/widgets/sync/offline_banner.dart';
+import 'package:frantend/shared/widgets/sync/sync_status_chip.dart';
+import 'package:frantend/shared/widgets/layout/sign_out_flow.dart';
+import 'package:frantend/utils/responsive/adaptive_layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -40,6 +44,8 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late final Future<UserModel?> _currentUserFuture;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _lastLocation;
 
   @override
   void initState() {
@@ -62,50 +68,159 @@ class _AppShellState extends State<AppShell> {
               _ => 0,
             };
 
-            return Scaffold(
-              body: LayoutBuilder(
-                builder: (context, constraints) {
-                  final content = Row(
-                    children: [
-                      _Sidebar(user: user, unreadCount: unreadCount),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _TopBar(
-                              title: widget.title,
-                              breadcrumb: widget.breadcrumb,
-                              user: user,
-                            ),
-                            const SubscriptionBanner(),
-                            Expanded(
-                              child: Container(
-                                color: const Color(0xFFF8FAFC),
-                                padding: const EdgeInsets.all(
-                                  AppDimensions.spacingMd,
-                                ),
-                                child: widget.child,
-                              ),
-                            ),
-                          ],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = Breakpoints.usesSidebar(constraints.maxWidth);
+                final location = GoRouterState.of(context).uri.path;
+                _closeDrawerOnNavigation(location);
+
+                final sidebar = _Sidebar(user: user, unreadCount: unreadCount);
+                final content = Column(
+                  children: [
+                    wide
+                        ? _TopBar(
+                            title: widget.title,
+                            breadcrumb: widget.breadcrumb,
+                            user: user,
+                          )
+                        : _CompactTopBar(title: widget.title),
+                    const OfflineBanner(),
+                    const SubscriptionBanner(),
+                    Expanded(
+                      child: Container(
+                        color: const Color(0xFFF8FAFC),
+                        padding: EdgeInsets.all(
+                          wide ? AppDimensions.spacingMd : 8,
                         ),
+                        child: widget.child,
                       ),
-                    ],
-                  );
+                    ),
+                  ],
+                );
 
-                  if (constraints.maxWidth >= 1024) {
-                    return content;
-                  }
-
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SizedBox(width: 1024, child: content),
-                  );
-                },
-              ),
+                return Scaffold(
+                  key: _scaffoldKey,
+                  drawer: wide ? null : Drawer(width: 260, child: sidebar),
+                  bottomNavigationBar: Breakpoints.usesBottomNav(
+                    constraints.maxWidth,
+                  )
+                      ? _BottomNav(location: location)
+                      : null,
+                  body: wide
+                      ? Row(children: [sidebar, Expanded(child: content)])
+                      : content,
+                );
+              },
             );
           },
         );
       },
+    );
+  }
+
+  /// The drawer stays mounted across ShellRoute navigations; close it once
+  /// the user picked a destination.
+  void _closeDrawerOnNavigation(String location) {
+    final changed = _lastLocation != null && _lastLocation != location;
+    _lastLocation = location;
+    if (changed && _scaffoldKey.currentState?.isDrawerOpen == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scaffoldKey.currentState?.closeDrawer();
+      });
+    }
+  }
+}
+
+/// Phone/tablet top bar: menu button, title, connection chip, bell.
+class _CompactTopBar extends StatelessWidget {
+  const _CompactTopBar({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              key: const Key('open-drawer'),
+              tooltip: 'Menu',
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            SyncStatusChip(onFailedTap: () => context.go(RouteNames.syncFailed)),
+            const SizedBox(width: 4),
+            const NotificationBellButton(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The few destinations a phone user needs one tap away; everything else is
+/// in the drawer ("More").
+class _BottomNav extends StatelessWidget {
+  const _BottomNav({required this.location});
+
+  final String location;
+
+  @override
+  Widget build(BuildContext context) {
+    final access = context.watch<AccessCubit>().state.access;
+    final flags = sl<BusinessSessionCubit>().state.flags;
+    final visible = {
+      for (final section in AppNav.visibleSections(access, flags))
+        for (final entry in section.items) entry.route: entry,
+    };
+    final primary = [
+      for (final route in const [
+        RouteNames.dashboard,
+        RouteNames.pos,
+        RouteNames.sales,
+      ])
+        if (visible.containsKey(route)) visible[route]!,
+    ];
+    final selected = primary.indexWhere(
+      (e) => e.route == RouteNames.dashboard
+          ? location == RouteNames.dashboard
+          : location.startsWith(e.route),
+    );
+
+    return NavigationBar(
+      key: const Key('bottom-nav'),
+      selectedIndex: selected < 0 ? primary.length : selected,
+      onDestinationSelected: (i) {
+        if (i < primary.length) {
+          context.go(primary[i].route);
+        } else {
+          Scaffold.of(context).openDrawer();
+        }
+      },
+      destinations: [
+        for (final e in primary)
+          NavigationDestination(icon: Icon(e.icon), label: e.label),
+        const NavigationDestination(icon: Icon(Icons.menu), label: 'More'),
+      ],
     );
   }
 }
@@ -119,7 +234,8 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final businessName = user?.businessName ?? 'PakPOS Business';
+    final businessName =
+        user?.businessName ?? '${AppBrand.current.shortName} Business';
 
     return Material(
       color: Colors.transparent,
@@ -145,9 +261,9 @@ class _Sidebar extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      'PakPOS',
-                      style: TextStyle(
+                    Text(
+                      AppBrand.current.shortName,
+                      style: const TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
@@ -218,7 +334,7 @@ class _SidebarFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.name ?? 'PakPOS User';
+    final name = user?.name ?? '${AppBrand.current.shortName} User';
     final role = user?.role ?? '';
 
     return Container(
@@ -269,10 +385,7 @@ class _SidebarFooter extends StatelessWidget {
             tooltip: 'Logout',
             icon: const Icon(Icons.logout_rounded),
             color: AppColors.primary,
-            onPressed: () async {
-              await SessionServices.logout();
-              if (context.mounted) context.go(RouteNames.login);
-            },
+            onPressed: () => signOutWithGuard(context),
           ),
         ],
       ),
@@ -377,6 +490,10 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
+            SyncStatusChip(
+              onFailedTap: () => context.go(RouteNames.syncFailed),
+            ),
+            const SizedBox(width: 12),
             const NotificationBellButton(),
             const SizedBox(width: 16),
             const BranchSelectorChip(),
@@ -384,10 +501,7 @@ class _TopBar extends StatelessWidget {
             PopupMenuButton<String>(
               tooltip: 'User menu',
               onSelected: (value) async {
-                if (value == 'logout') {
-                  await SessionServices.logout();
-                  if (context.mounted) context.go(RouteNames.login);
-                }
+                if (value == 'logout') await signOutWithGuard(context);
               },
               itemBuilder: (context) => const [
                 PopupMenuItem<String>(

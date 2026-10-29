@@ -37,35 +37,9 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
     final response = await _dioClient.dio.post<Map<String, dynamic>>(
       ApiConstants.sales,
       data: body,
-      options: Options(extra: {'entity_id': body['id']}),
     );
     final data = response.data ?? const {};
-    if (data['offline'] == true) {
-      return SaleResponseModel.fromJson(ApiJsonUtils.normalizeSaleResponse({
-        ...body,
-        'id': data['entity_id'] ?? body['id'],
-        'sale_number': 'OFFLINE-${DateTime.now().millisecondsSinceEpoch}',
-        'sale_type': body['sale_type'] ?? 'pos',
-        'sale_status': 'draft',
-        'total_amount': _estimateTotal(body),
-        'offline': true,
-        'lines': body['lines'] ?? [],
-        'payments': body['payments'] ?? [],
-      }));
-    }
     return SaleResponseModel.fromJson(ApiJsonUtils.normalizeSaleResponse(data));
-  }
-
-  String _estimateTotal(Map<String, dynamic> body) {
-    final lines = body['lines'] as List<dynamic>? ?? [];
-    var total = Decimal.zero;
-    for (final line in lines) {
-      if (line is! Map) continue;
-      final qty = Decimal.tryParse('${line['qty']}') ?? Decimal.zero;
-      final price = Decimal.tryParse('${line['unit_price']}') ?? Decimal.zero;
-      total += qty * price;
-    }
-    return total.toStringAsFixed(2);
   }
 
   @override
@@ -164,7 +138,7 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
     final response = await _dioClient.dio.post<Map<String, dynamic>>(
       ApiConstants.salePricePreview,
       data: body,
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return SalePricePreviewModel.fromJson(response.data ?? const {});
   }

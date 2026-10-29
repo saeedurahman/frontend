@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frantend/core/di/injection.dart';
-import 'package:frantend/core/router/route_guards.dart';
-import 'package:frantend/core/router/route_names.dart';
-import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
-import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/widgets/branch_selector_chip.dart';
-import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
-import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/layout/sign_out_flow.dart';
+import 'package:frantend/shared/widgets/sync/sync_status_chip.dart';
 
 /// Minimal full-screen shell for kitchen staff — no POS sidebar.
 class KitchenShell extends StatelessWidget {
@@ -29,17 +24,13 @@ class KitchenShell extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         actions: [
+          const SyncStatusChip(),
+          const SizedBox(width: 8),
           const BranchSelectorChip(),
           const SizedBox(width: 8),
           IconButton(
             tooltip: 'Logout',
-            onPressed: () async {
-              sl<NotificationsCubit>().stopSession();
-              sl<BranchSelectorCubit>().stopSession();
-              await sl<AuthRepository>().logout();
-              sl<AuthGuard>().setAuthenticated(false);
-              if (context.mounted) context.go(RouteNames.login);
-            },
+            onPressed: () => signOutWithGuard(context),
             icon: const Icon(Icons.logout_rounded),
           ),
           const SizedBox(width: 8),

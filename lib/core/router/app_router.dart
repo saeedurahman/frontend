@@ -59,6 +59,8 @@ import 'package:frantend/features/expenses/presentation/pages/expense_form_page.
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
 import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
+import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/features/subscription/presentation/pages/no_access_page.dart';
 import 'package:frantend/features/subscription/presentation/pages/subscription_expired_page.dart';
 import 'package:frantend/features/subscription/presentation/pages/subscription_settings_page.dart';
@@ -168,6 +170,10 @@ class AppRouter {
           GoRoute(
             path: RouteNames.noAccess,
             builder: (_, __) => const NoAccessPage(),
+          ),
+          GoRoute(
+            path: RouteNames.syncFailed,
+            builder: (_, __) => const FailedItemsPage(),
           ),
           GoRoute(
             path: RouteNames.pos,
@@ -644,5 +650,8 @@ class AppRouter {
     return ('Notifications', 'Home / System / Notifications');
   }
   if (path.startsWith(RouteNames.auditLogs)) return ('Audit Logs', 'Home / System / Audit Logs');
-  return ('PakPOS', 'Home');
+  if (path.startsWith(RouteNames.syncFailed)) {
+    return ('Sync issues', 'Home / System / Sync issues');
+  }
+  return (AppBrand.current.appName, 'Home');
 }

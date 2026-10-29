@@ -1,8 +1,8 @@
-import 'dart:ui' show PlatformDispatcher;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/app.dart';
+import 'package:frantend/core/brand/app_brand.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/network/insecure_http_overrides.dart';
@@ -10,7 +10,7 @@ import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
 import 'package:frantend/core/security/startup_guard.dart';
 import 'package:frantend/core/session/access_cubit.dart';
-import 'package:frantend/core/sync/sync_worker.dart';
+import 'package:frantend/core/platform/app_window_service.dart';
 import 'package:frantend/core/utils/crash_log.dart';
 import 'package:frantend/core/utils/logger.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
@@ -120,10 +120,13 @@ Future<void> _startup() async {
       () => sl<BranchSelectorCubit>().startSession(),
     );
   }
-  await step('Starting sync worker', () => sl<SyncWorker>().start());
+  await step('Starting reachability probe', () async {
+    sl<ConnectivityProbe>().start();
+    await sl<AppWindowService>().setTitle();
+  });
   await step('Starting idle lock', () async => sl<IdleLockService>().start());
 
-  AppLogger.info('Frantend POS started');
+  AppLogger.info('${AppBrand.current.appName} started');
 }
 
 class _Bootstrap extends StatefulWidget {
@@ -153,7 +156,7 @@ class _BootstrapState extends State<_Bootstrap> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             !snapshot.hasError) {
-          return FrantendApp();
+          return PakApp();
         }
         return MaterialApp(
           debugShowCheckedModeBanner: false,

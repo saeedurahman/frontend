@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/core/session/session_services.dart';
+import 'package:frantend/shared/widgets/layout/sign_out_flow.dart';
 import 'package:frantend/features/subscription/presentation/contact_launcher.dart';
 import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
 import 'package:intl/intl.dart';
@@ -172,7 +172,7 @@ class _SubscriptionExpiredPageState extends State<SubscriptionExpiredPage> {
                 const SizedBox(height: 12),
                 TextButton.icon(
                   key: const Key('logout-button'),
-                  onPressed: widget.onLogout ?? SessionServices.logout,
+                  onPressed: widget.onLogout ?? () => signOutWithGuard(context),
                   icon: const Icon(Icons.logout),
                   label: const Text('Log out', style: TextStyle(fontSize: 16)),
                 ),

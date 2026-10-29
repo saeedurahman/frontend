@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/shared/widgets/sync/sync_status_chip.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -354,7 +355,7 @@ class _PosHeader extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                    state.isOffline ? 'Shift Open (Offline)' : 'Shift Open',
+                    'Shift Open',
                     style: const TextStyle(
                       color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.w600,
@@ -362,6 +363,10 @@ class _PosHeader extends StatelessWidget {
                     ),
                   ),
             ),
+          ),
+          const SizedBox(width: 8),
+          SyncStatusChip(
+            onFailedTap: () => context.go(RouteNames.syncFailed),
           ),
           if (state.heldOrders.isNotEmpty && !state.isDineIn) ...[
             const SizedBox(width: 8),

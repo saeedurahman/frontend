@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:frantend/core/platform/printer_service.dart';
+import 'package:frantend/core/platform/file_saver_service.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
@@ -8,10 +11,8 @@ import 'package:frantend/features/sales/presentation/utils/sale_calculations.dar
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 abstract final class SaleReceiptService {
   static Future<BusinessProfileModel?> resolveBusinessProfile() async {
@@ -46,7 +47,10 @@ abstract final class SaleReceiptService {
       thermal: true,
       displaySettings: display,
     );
-    await Printing.layoutPdf(onLayout: (_) async => doc.save());
+    await sl<PrinterService>().printPdf(
+      await doc.save(),
+      jobName: sale.saleNumber ?? 'Receipt',
+    );
   }
 
   static Future<File?> downloadPdf(
@@ -60,13 +64,11 @@ abstract final class SaleReceiptService {
       displaySettings: display,
     );
     final bytes = await doc.save();
-    final dir =
-        await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
-    final file = File(
-      '${dir.path}/receipt_${sale.saleNumber ?? sale.id}.pdf',
+    final path = await sl<FileSaverService>().saveBytes(
+      'receipt_${sale.saleNumber ?? sale.id}.pdf',
+      bytes,
     );
-    await file.writeAsBytes(bytes);
-    return file;
+    return File(path);
   }
 
   static Future<pw.Document> buildPdf(
@@ -88,7 +90,7 @@ abstract final class SaleReceiptService {
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
               pw.Text(
-                business?.name ?? 'PakPOS',
+                business?.name ?? AppBrand.current.appName,
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
@@ -162,6 +164,12 @@ abstract final class SaleReceiptService {
               pw.Text(
                 display.footerText,
                 style: const pw.TextStyle(fontSize: 10),
+                textAlign: pw.TextAlign.center,
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                AppBrand.current.receiptPoweredBy,
+                style: const pw.TextStyle(fontSize: 8),
                 textAlign: pw.TextAlign.center,
               ),
             ],

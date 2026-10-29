@@ -1,10 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frantend/core/database/daos/held_orders_dao.dart';
-import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
@@ -23,7 +22,11 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
+import 'package:frantend/features/pos/domain/repositories/barcode_cache_repository.dart';
+import 'package:frantend/features/pos/domain/repositories/held_orders_repository.dart';
+import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
+import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/products/domain/usecases/get_categories_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
@@ -179,40 +182,37 @@ class _Auth extends Fake implements AuthLocalDataSource {
       );
 }
 
-class _Net extends Fake implements NetworkInfo {
-  @override
-  Future<bool> get isConnected async => true;
-}
-
-class _MemoryHeldDao extends Fake implements HeldOrdersDao {
+class _MemoryHeldRepo implements HeldOrdersRepository {
   final rows = <String, (HeldOrderModel, HeldOrderScope?)>{};
 
   @override
-  Future<void> saveHeldOrder(HeldOrderModel order,
-      {HeldOrderScope? scope}) async {
+  Future<void> save(HeldOrderModel order, HeldOrderScope scope) async {
     rows[order.id] = (order, scope);
   }
 
   @override
-  Future<List<HeldOrderModel>> getHeldOrdersFor(HeldOrderScope scope) async => [
+  Future<List<HeldOrderModel>> list(HeldOrderScope scope) async => [
         for (final r in rows.values)
           if (r.$2 == scope) r.$1,
       ];
 
   @override
-  Future<HeldOrderModel?> getHeldOrderForScope(
-    String id,
-    HeldOrderScope scope,
-  ) async {
+  Future<HeldOrderModel?> find(String id, HeldOrderScope scope) async {
     final r = rows[id];
     return r != null && r.$2 == scope ? r.$1 : null;
   }
 
   @override
-  Future<void> deleteHeldOrder(String id) async => rows.remove(id);
+  Future<void> delete(String id) async => rows.remove(id);
 }
 
-class _MemoryCache extends Fake implements MasterDataCacheDao {}
+class _MemoryBarcodeCache implements BarcodeCacheRepository {
+  @override
+  Future<ProductModel?> find(String tenantKey, String barcode) async => null;
+
+  @override
+  Future<void> remember(String t, String b, ProductModel p) async {}
+}
 
 class _GetCustomer extends Fake implements customers_uc.GetCustomerUseCase {}
 
@@ -225,7 +225,6 @@ class _Rig {
       getProductsUseCase: _Products(),
       getCategoriesUseCase: _Categories(),
       getProductByIdUseCase: _ProductById(),
-      lookupBarcodeUseCase: _Barcode(),
       getProductPriceUseCase: price,
       createSaleUseCase: createSale,
       getMyActiveShiftUseCase: myShift,
@@ -246,12 +245,13 @@ class _Rig {
       completeTabUseCase: _Complete(),
       getTabSaleUseCase: _GetTab(),
       getKotOrdersByTableUseCase: _Kot(),
-      authLocalDataSource: _Auth(),
-      networkInfo: _Net(),
-      heldOrdersDao: held,
+      resolvePosSession: ResolvePosSessionUseCase(_Auth(), FixedConnectivityProbe()),
+      heldOrdersUseCases: HeldOrdersUseCases(held, price, UuidIdGenerator()),
+      resolveBarcodeUseCase:
+          ResolveBarcodeUseCase(_MemoryBarcodeCache(), _Barcode(), _ProductById()),
+      saleAttempts: SaleAttemptTracker(UuidIdGenerator()),
       getCustomerUseCase: _GetCustomer(),
       getCustomerBalanceUseCase: _GetBalance(),
-      masterDataCacheDao: _MemoryCache(),
     );
   }
 
@@ -260,7 +260,7 @@ class _Rig {
   final myShift = _MyShift();
   final openShift = _OpenShift();
   final tax = _Tax();
-  final held = _MemoryHeldDao();
+  final held = _MemoryHeldRepo();
   late final PosCubit cubit;
 }
 

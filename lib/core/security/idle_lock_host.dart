@@ -7,7 +7,9 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
-import 'package:frantend/core/router/route_guards.dart';
+import 'package:frantend/core/brand/app_brand.dart';
+import 'package:frantend/core/session/session_services.dart';
+import 'package:frantend/shared/widgets/layout/sign_out_flow.dart' show pendingWorkMessage;
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/datasources/pin_device_cache.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
@@ -122,11 +124,9 @@ class _IdleLockScreenState extends State<IdleLockScreen> {
     result.fold(
       (failure) {
         if (failure is RateLimitFailure) _startCooldown(failure.retryAfterSeconds);
-        _fail(
-          failure is NetworkFailure
-              ? 'No connection. Connect to the internet to unlock, or sign out.'
-              : failure.message,
-        );
+        // Offline, the repository already verified the PIN against the hash
+        // stored at the last online PIN login; its message is the answer.
+        _fail(failure.message);
       },
       (_) => widget.service.unlock(),
     );
@@ -152,9 +152,12 @@ class _IdleLockScreenState extends State<IdleLockScreen> {
   }
 
   Future<void> _signOut() async {
-    await sl<AuthRepository>().logout();
-    // Flipping the guard redirects to login; the service unlocks itself.
-    sl<AuthGuard>().setAuthenticated(false);
+    // Refuses (and says why) while unsent local work exists; otherwise flips
+    // the guard, which redirects to login, and the service unlocks itself.
+    final blocked = await SessionServices.logout();
+    if (blocked != null && mounted) {
+      setState(() => _error = pendingWorkMessage(blocked.pendingCount));
+    }
   }
 
   @override
@@ -171,7 +174,10 @@ class _IdleLockScreenState extends State<IdleLockScreen> {
                 const Icon(Icons.lock_outline_rounded,
                     size: 40, color: AppColors.primary),
                 const SizedBox(height: 12),
-                Text('Screen locked', style: AppTextStyles.headlineMedium),
+                Text(
+                  '${AppBrand.current.shortName} is locked',
+                  style: AppTextStyles.headlineMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   _userName.isEmpty

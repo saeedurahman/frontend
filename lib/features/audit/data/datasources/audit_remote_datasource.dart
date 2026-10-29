@@ -12,7 +12,7 @@ class AuditRemoteDataSource {
 
   Dio get _dio => _dioClient.dio;
 
-  static final _opts = Options(extra: {'skip_offline_queue': true});
+  static final _opts = Options();
 
   Future<PaginatedAuditLogsModel> getAuditLogs({
     String? userId,

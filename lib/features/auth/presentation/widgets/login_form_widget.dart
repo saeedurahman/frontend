@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
@@ -277,7 +278,7 @@ class _FormHeader extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Text(
-          'PakPOS',
+          AppBrand.current.shortName,
           style: AppTextStyles.headlineMedium.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,

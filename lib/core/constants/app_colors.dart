@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Pakistani-themed palette for Frantend POS.
+/// Pakistani-themed palette shared by every brand.
 abstract final class AppColors {
   // Primary — Pakistan green
   static const Color primary = Color(0xFF0F6B36);

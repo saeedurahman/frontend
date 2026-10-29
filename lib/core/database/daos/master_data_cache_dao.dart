@@ -24,4 +24,7 @@ class MasterDataCacheDao extends DatabaseAccessor<AppDatabase>
         .getSingleOrNull();
     return row?.jsonData;
   }
+
+  /// Drops every cached read (branch switch, logout).
+  Future<int> clearAll() => delete(masterDataCacheTable).go();
 }

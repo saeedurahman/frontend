@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
@@ -197,7 +198,7 @@ class _ReceiptCardState extends State<_ReceiptCard> {
       child: Column(
         children: [
           Text(
-            _business?.name ?? 'PakPOS',
+            _business?.name ?? AppBrand.current.appName,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           if (_business?.addressLine1?.isNotEmpty == true) ...[

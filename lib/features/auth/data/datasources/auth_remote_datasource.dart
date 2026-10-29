@@ -52,7 +52,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'password': password,
           if (slug != null && slug.isNotEmpty) 'business_slug': slug,
         },
-        options: Options(extra: {'skip_offline_queue': true}),
+        options: Options(),
       );
       return TokenModel.fromJson(response.data!);
     } on DioException catch (e) {
@@ -74,7 +74,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'user_id': userId,
           'pin_code': pinCode,
         },
-        options: Options(extra: {'skip_offline_queue': true}),
+        options: Options(),
       );
       return TokenModel.fromJson(response.data!);
     } on DioException catch (e) {
@@ -88,7 +88,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiConstants.register,
         data: data,
-        options: Options(extra: {'skip_offline_queue': true}),
+        options: Options(),
       );
       return TokenModel.fromJson(response.data!);
     } on DioException {
@@ -111,7 +111,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> logout() async {
     await _dio.post<void>(
       ApiConstants.logout,
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
   }
 
@@ -127,7 +127,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'current_password': currentPassword,
           'new_password': newPassword,
         },
-        options: Options(extra: {'skip_offline_queue': true}),
+        options: Options(),
       );
     } on DioException catch (e) {
       // 401 here means the *current password* was wrong (the session itself is

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
@@ -112,7 +113,7 @@ class _RegisterHeader extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'PakPOS',
+            AppBrand.current.shortName,
             style: AppTextStyles.headlineMedium.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.bold,
@@ -178,7 +179,7 @@ class _RegisterFooter extends StatelessWidget {
           ? Column(
               children: [
                 Text(
-                  '© 2024 PakPOS Solutions • Security Verified',
+                  '© ${DateTime.now().year} ${AppBrand.current.appName} • Security Verified',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodySmall,
                 ),
@@ -203,7 +204,7 @@ class _RegisterFooter extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'PakPOS — Empowering Pakistani Businesses with Enterprise-Grade SaaS.',
+                  '${AppBrand.current.appName} — Empowering Pakistani Businesses with Enterprise-Grade SaaS.',
                   style: AppTextStyles.bodySmall,
                 ),
                 Row(

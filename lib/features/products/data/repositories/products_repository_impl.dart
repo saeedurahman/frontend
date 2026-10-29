@@ -2,7 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/core/network/network_info.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/features/products/data/datasources/products_local_datasource.dart';
 import 'package:frantend/features/products/data/datasources/products_remote_datasource.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
@@ -22,16 +22,16 @@ class ProductsRepositoryImpl implements ProductsRepository {
   ProductsRepositoryImpl({
     required ProductsRemoteDataSource remoteDataSource,
     required ProductsLocalDataSource localDataSource,
-    required NetworkInfo networkInfo,
+    required ConnectivityProbe connectivityProbe,
     required ErrorHandler errorHandler,
   })  : _remote = remoteDataSource,
         _local = localDataSource,
-        _networkInfo = networkInfo,
+        _probe = connectivityProbe,
         _errorHandler = errorHandler;
 
   final ProductsRemoteDataSource _remote;
   final ProductsLocalDataSource _local;
-  final NetworkInfo _networkInfo;
+  final ConnectivityProbe _probe;
   final ErrorHandler _errorHandler;
 
   bool _isOfflineError(Object e) {
@@ -142,7 +142,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
       final result = await _remote.createProduct(body);
       return Right(result);
     } catch (e) {
-      if (_isOfflineError(e) || !await _networkInfo.isConnected) {
+      if (_isOfflineError(e) || !_probe.isReachable) {
         return Left(const NetworkFailure('Product queued for sync when online'));
       }
       return Left(_errorHandler.mapExceptionToFailure(e));

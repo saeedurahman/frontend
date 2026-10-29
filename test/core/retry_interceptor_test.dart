@@ -85,7 +85,8 @@ void main() {
     final adapter = failingThenOk(DioExceptionType.connectionTimeout);
     final dio = build(adapter);
 
-    final response = await dio.post<dynamic>('/customers', data: {});
+    // /suppliers is not POS-critical, so it may be auto-retried.
+    final response = await dio.post<dynamic>('/suppliers', data: {});
 
     expect(response.statusCode, 200);
     expect(adapter.requests, hasLength(2));
@@ -93,6 +94,41 @@ void main() {
       adapter.requests[0].headers['Idempotency-Key'],
       adapter.requests[1].headers['Idempotency-Key'],
     );
+  });
+
+  group('POS-critical calls fail fast (no retry freeze)', () {
+    for (final path in ['/sales', '/shifts/my-active', '/registers', '/customers']) {
+      test('GET $path is tried exactly once', () async {
+        final adapter =
+            failingThenOk(DioExceptionType.receiveTimeout, failures: 99);
+        final dio = build(adapter);
+
+        await expectLater(dio.get<dynamic>(path), throwsA(isA<DioException>()));
+        expect(adapter.requests, hasLength(1));
+      });
+    }
+
+    test('POST /sales is tried exactly once, even after a connection timeout',
+        () async {
+      final adapter =
+          failingThenOk(DioExceptionType.connectionTimeout, failures: 99);
+      final dio = build(adapter);
+
+      await expectLater(
+        dio.post<dynamic>('/sales', data: {'id': 's1'}),
+        throwsA(isA<DioException>()),
+      );
+      expect(adapter.requests, hasLength(1));
+    });
+
+    test('isPosCritical covers the counter paths only', () {
+      for (final p in ['/sales', '/sales/1/payments', '/shifts/open', '/time']) {
+        expect(TimeoutInterceptor.isPosCritical(p), isTrue, reason: p);
+      }
+      for (final p in ['/suppliers', '/analytics/x', '/settings']) {
+        expect(TimeoutInterceptor.isPosCritical(p), isFalse, reason: p);
+      }
+    });
   });
 
   group('same logical money action reuses its key', () {
@@ -252,8 +288,8 @@ void main() {
   });
 
   group('timeouts', () {
-    test('default 15s, 60s for report/export/upload paths', () {
-      expect(kDefaultApiTimeout, const Duration(seconds: 15));
+    test('default 5s, 60s for report/export/upload paths', () {
+      expect(kDefaultApiTimeout, const Duration(seconds: 5));
       expect(kLongApiTimeout, const Duration(seconds: 60));
       for (final p in [
         '/analytics/sales-trend',

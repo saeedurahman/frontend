@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/localization/app_localizations.dart';
 import 'package:frantend/core/localization/locale_cubit.dart';
@@ -14,8 +15,8 @@ import 'package:frantend/features/branches/presentation/cubit/branch_selector_cu
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
 
-class FrantendApp extends StatelessWidget {
-  FrantendApp({super.key});
+class PakApp extends StatelessWidget {
+  PakApp({super.key});
 
   final _router = AppRouter.create();
 
@@ -33,7 +34,7 @@ class FrantendApp extends StatelessWidget {
         child: BlocBuilder<LocaleCubit, Locale>(
           builder: (context, locale) {
             return MaterialApp.router(
-              title: 'Frantend POS',
+              title: AppBrand.current.appName,
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
               darkTheme: AppTheme.dark,

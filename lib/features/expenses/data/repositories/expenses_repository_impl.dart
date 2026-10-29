@@ -1,4 +1,5 @@
 ﻿import 'package:dartz/dartz.dart';
+import 'package:frantend/core/identity/client_ids.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/expenses/data/datasources/expenses_remote_datasource.dart';
@@ -102,7 +103,7 @@ class ExpensesRepositoryImpl implements ExpensesRepository {
     Map<String, dynamic> body,
   ) async {
     try {
-      return Right(await _remote.createExpense(body));
+      return Right(await _remote.createExpense(ClientIds.stamp(body)));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }
@@ -136,7 +137,7 @@ class ExpensesRepositoryImpl implements ExpensesRepository {
     Map<String, dynamic> body,
   ) async {
     try {
-      return Right(await _remote.addPayment(expenseId, body));
+      return Right(await _remote.addPayment(expenseId, ClientIds.stamp(body)));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

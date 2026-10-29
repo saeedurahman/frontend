@@ -316,7 +316,10 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     if (state.cartItems.isEmpty) {
       throw Exception('Cart is empty');
     }
-    _assertPaymentsCoverTotal(payments);
+    PaymentCoverage.assertCovers(
+      payments: payments,
+      due: state.displayGrandTotal,
+    );
 
     _safeEmit(state.patch(isSubmittingSale: true));
     try {
@@ -330,7 +333,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
         throw Exception('Tab completion cancelled');
       }
 
-      return result.fold(
+      return await result.fold(
         (failure) => throw Exception(failure.message),
         (sale) {
           clearCart();

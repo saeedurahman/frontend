@@ -117,27 +117,22 @@ mixin PosCubitShiftMixin on PosCubitBase {
   /// Opens a shift. On failure [PosState.openShiftError] carries the real
   /// reason (server message, missing permission, no register selected).
   Future<bool> openShift(Decimal openingFloat, String? notes) async {
-    if (!state.canOpenShift) {
-      _safeEmit(state.patch(
-        openShiftError: 'You do not have permission to open a shift.',
-      ));
+    final blocker = ShiftPolicy.openBlocker(
+      canOpenShift: state.canOpenShift,
+      registerId: state.selectedRegisterId,
+    );
+    if (blocker != null) {
+      _safeEmit(state.patch(openShiftError: blocker));
       return false;
     }
-
-    final registerId = state.selectedRegisterId;
-    if (registerId == null) {
-      _safeEmit(state.patch(
-        openShiftError: 'Select a cash register to open a shift.',
-      ));
-      return false;
-    }
+    final registerId = state.selectedRegisterId!;
 
     _safeEmit(state.patch(isOpeningShift: true, openShiftError: null));
-    final result = await _openShift({
-      'cash_register_id': registerId,
-      'opening_float': DecimalUtils.format(openingFloat),
-      if (notes != null && notes.isNotEmpty) 'notes': notes,
-    });
+    final result = await _openShift(ShiftPolicy.openBody(
+      registerId: registerId,
+      openingFloat: openingFloat,
+      notes: notes,
+    ));
     if (isClosed) return false;
 
     return result.fold(

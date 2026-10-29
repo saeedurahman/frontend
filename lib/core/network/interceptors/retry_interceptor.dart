@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:frantend/core/network/interceptors/timeout_interceptor.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
 
 /// Hands out one `Idempotency-Key` per *logical* money action.
@@ -63,7 +64,9 @@ class IdempotencyKeyRegistry {
 
 /// Retries transient failures and stamps POSTs with an idempotency key.
 ///
-/// - GET/HEAD/PUT/DELETE are retried on timeouts and connection errors.
+/// - POS-critical paths ([TimeoutInterceptor.isPosCritical]) are never
+///   auto-retried: no multi-attempt freeze at the counter.
+/// - Other GET/HEAD/PUT/DELETE are retried on timeouts and connection errors.
 /// - POST gets an `Idempotency-Key` (one UUID per logical request; the same
 ///   [RequestOptions], and therefore the same key, is reused by every retry,
 ///   including the one after a token refresh).
@@ -158,6 +161,8 @@ class RetryInterceptor extends Interceptor {
   bool shouldRetry(DioException err) {
     final options = err.requestOptions;
     if (options.extra['no_retry'] == true) return false;
+    // POS-critical calls fail fast; the cashier decides whether to retry.
+    if (TimeoutInterceptor.isPosCritical(options.path)) return false;
 
     final transient = err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||

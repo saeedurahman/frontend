@@ -12,51 +12,33 @@ mixin PosCubitSessionMixin
     String? dineInTableNumber,
     String? dineInTableStatus,
   }) async {
-    final user = await _authLocal.getCachedUser();
-    final permissionKeys = user?.permissionKeys ?? const [];
-    final canCreate = UserRoleUtils.canCreateSales(
-      role: user?.role,
-      permissionKeys: permissionKeys,
-    );
-    final canOpen = UserRoleUtils.canOpenShift(
-      role: user?.role,
-      permissionKeys: permissionKeys,
-    );
-    final canClose = UserRoleUtils.canCloseShift(
-      role: user?.role,
-      permissionKeys: permissionKeys,
-    );
-    final canEditTax = UserRoleUtils.canEditLineTax(
-      role: user?.role,
-      permissionKeys: permissionKeys,
-    );
+    final session = await _resolvePosSession();
+    if (isClosed) return;
+    final user = session.user;
 
-    if (!canCreate) {
-      if (isClosed) return;
+    if (!session.canCreateSales) {
       _safeEmit(
         state.patch(
           accessDenied: true,
           isCheckingShift: false,
           isLoadingProducts: false,
-          canOpenShift: canOpen,
-          canCloseShift: canClose,
+          canOpenShift: session.canOpenShift,
+          canCloseShift: session.canCloseShift,
         ),
       );
       return;
     }
 
-    final offline = !await _networkInfo.isConnected;
-    if (isClosed) return;
     _safeEmit(state.patch(
       cashierName: user?.name ?? 'Cashier',
       branchId: user?.branchId,
       businessName: user?.businessName,
       userId: user?.id,
       businessId: user?.businessId,
-      canEditLineTax: canEditTax,
-      isOffline: offline,
-      canOpenShift: canOpen,
-      canCloseShift: canClose,
+      canEditLineTax: session.canEditLineTax,
+      isOffline: session.isOffline,
+      canOpenShift: session.canOpenShift,
+      canCloseShift: session.canCloseShift,
     ));
     await Future.wait([
       _loadProducts(),

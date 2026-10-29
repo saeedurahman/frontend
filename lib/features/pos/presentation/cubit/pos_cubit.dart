@@ -1,22 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/core/database/daos/held_orders_dao.dart';
-import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart'
     as customers_uc;
 import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/presentation/models/held_resume_result.dart';
-import 'package:frantend/core/network/network_info.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
-import 'package:frantend/core/utils/uuid_utils.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
-import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
@@ -25,6 +17,7 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
+import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_request_builder.dart';
@@ -58,7 +51,6 @@ class PosCubitBase extends Cubit<PosState> {
     required GetProductsUseCase getProductsUseCase,
     required GetCategoriesUseCase getCategoriesUseCase,
     required GetProductByIdUseCase getProductByIdUseCase,
-    required LookupBarcodeUseCase lookupBarcodeUseCase,
     required GetProductPriceUseCase getProductPriceUseCase,
     required CreateSaleUseCase createSaleUseCase,
     required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
@@ -79,16 +71,15 @@ class PosCubitBase extends Cubit<PosState> {
     required CompleteTabUseCase completeTabUseCase,
     required GetTabSaleUseCase getTabSaleUseCase,
     required GetKotOrdersByTableUseCase getKotOrdersByTableUseCase,
-    required AuthLocalDataSource authLocalDataSource,
-    required NetworkInfo networkInfo,
-    required HeldOrdersDao heldOrdersDao,
+    required ResolvePosSessionUseCase resolvePosSession,
+    required HeldOrdersUseCases heldOrdersUseCases,
+    required ResolveBarcodeUseCase resolveBarcodeUseCase,
+    required SaleAttemptTracker saleAttempts,
     required customers_uc.GetCustomerUseCase getCustomerUseCase,
     required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
-    required MasterDataCacheDao masterDataCacheDao,
   })  : _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
-        _lookupBarcode = lookupBarcodeUseCase,
         _getProductPrice = getProductPriceUseCase,
         _createSale = createSaleUseCase,
         _getMyActiveShift = getMyActiveShiftUseCase,
@@ -109,18 +100,17 @@ class PosCubitBase extends Cubit<PosState> {
         _completeTabUseCase = completeTabUseCase,
         _getTabSaleUseCase = getTabSaleUseCase,
         _getKotOrdersByTableUseCase = getKotOrdersByTableUseCase,
-        _authLocal = authLocalDataSource,
-        _networkInfo = networkInfo,
-        _heldOrdersDao = heldOrdersDao,
+        _resolvePosSession = resolvePosSession,
+        _heldOrders = heldOrdersUseCases,
+        _resolveBarcode = resolveBarcodeUseCase,
+        _saleAttempts = saleAttempts,
         _getCustomer = getCustomerUseCase,
         _getCustomerBalance = getCustomerBalanceUseCase,
-        _barcodeCache = masterDataCacheDao,
         super(const PosState());
 
   final GetProductsUseCase _getProducts;
   final GetCategoriesUseCase _getCategories;
   final GetProductByIdUseCase _getProductById;
-  final LookupBarcodeUseCase _lookupBarcode;
   final GetProductPriceUseCase _getProductPrice;
   final CreateSaleUseCase _createSale;
   final GetMyActiveShiftUseCase _getMyActiveShift;
@@ -141,17 +131,14 @@ class PosCubitBase extends Cubit<PosState> {
   final CompleteTabUseCase _completeTabUseCase;
   final GetTabSaleUseCase _getTabSaleUseCase;
   final GetKotOrdersByTableUseCase _getKotOrdersByTableUseCase;
-  final AuthLocalDataSource _authLocal;
-  final NetworkInfo _networkInfo;
-  final HeldOrdersDao _heldOrdersDao;
+  final ResolvePosSessionUseCase _resolvePosSession;
+  final HeldOrdersUseCases _heldOrders;
+  final ResolveBarcodeUseCase _resolveBarcode;
   final customers_uc.GetCustomerUseCase _getCustomer;
   final customers_uc.GetCustomerBalanceUseCase _getCustomerBalance;
-  final MasterDataCacheDao _barcodeCache;
 
-  /// A failed sale attempt keeps its id so tapping "Complete Sale" again for
-  /// the same cart + payments re-sends the same sale (the API dedupes on it).
-  String? _pendingSaleFingerprint;
-  String? _pendingSaleId;
+  /// Keeps the sale id stable across retries of the same cart + payments.
+  final SaleAttemptTracker _saleAttempts;
 
   /// Guards against out-of-order catalog responses.
   int _productsRequestId = 0;
@@ -190,7 +177,6 @@ class PosCubit extends PosCubitBase
     required super.getProductsUseCase,
     required super.getCategoriesUseCase,
     required super.getProductByIdUseCase,
-    required super.lookupBarcodeUseCase,
     required super.getProductPriceUseCase,
     required super.createSaleUseCase,
     required super.getMyActiveShiftUseCase,
@@ -211,11 +197,11 @@ class PosCubit extends PosCubitBase
     required super.completeTabUseCase,
     required super.getTabSaleUseCase,
     required super.getKotOrdersByTableUseCase,
-    required super.authLocalDataSource,
-    required super.networkInfo,
-    required super.heldOrdersDao,
+    required super.resolvePosSession,
+    required super.heldOrdersUseCases,
+    required super.resolveBarcodeUseCase,
+    required super.saleAttempts,
     required super.getCustomerUseCase,
     required super.getCustomerBalanceUseCase,
-    required super.masterDataCacheDao,
   });
 }

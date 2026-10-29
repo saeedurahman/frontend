@@ -4,6 +4,9 @@ abstract final class ApiConstants {
     defaultValue: 'http://localhost:8000/api/v1',
   );
 
+  // Reachability probe (cheap, unauthenticated)
+  static const String serverTime = '/time';
+
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
@@ -135,7 +138,6 @@ abstract final class ApiConstants {
 
   // Sync
   static const String syncPush = '/sync/push';
-  static const String syncPull = '/sync/pull';
 
   // Notifications
   static const String notifications = '/notifications';

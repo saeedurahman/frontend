@@ -203,9 +203,9 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       );
     }
 
-    final lowStockWarning = _lowStockWarning(
-      product: product,
-      details: details,
+    final lowStockWarning = LowStockPolicy.warning(
+      productName: product.name,
+      minStockLevel: details?.minStockLevel,
       available: availableStock,
       requested: requestedQty,
     );
@@ -277,24 +277,6 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       }
       return qty;
     });
-  }
-
-  static final _defaultLowStockThreshold = Decimal.fromInt(5);
-
-  String? _lowStockWarning({
-    required ProductListItemModel product,
-    required ProductModel? details,
-    required Decimal? available,
-    required Decimal requested,
-  }) {
-    if (available == null) return null;
-    final min = Decimal.tryParse(details?.minStockLevel ?? '');
-    final threshold =
-        min != null && min > Decimal.zero ? min : _defaultLowStockThreshold;
-    final remaining = available - requested;
-    if (remaining > threshold) return null;
-    final left = remaining < Decimal.zero ? Decimal.zero : remaining;
-    return 'Low stock: ${product.name} - ${DecimalUtils.format(left, fractionDigits: 0)} left after this sale';
   }
 
   ProductListItemModel _toListItem(ProductModel product) {
@@ -503,32 +485,19 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     final scope = _heldScope;
     final orders = scope == null
         ? const <HeldOrderModel>[]
-        : await _heldOrdersDao.getHeldOrdersFor(scope);
+        : await _heldOrders.list(scope);
     if (isClosed) return;
     _safeEmit(state.patch(heldOrders: orders));
   }
 
-  /// `Order 14:32:05`, or the cashier's own label; a numeric suffix keeps it
-  /// unique among the parked orders.
+  /// Kept for callers/tests; the rule lives in [HeldOrderLabels].
   @visibleForTesting
   static String uniqueHeldLabel(
     String? custom,
     DateTime now,
     Iterable<String> existing,
-  ) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    final trimmed = custom?.trim();
-    final base = trimmed != null && trimmed.isNotEmpty
-        ? trimmed
-        : 'Order ${two(now.hour)}:${two(now.minute)}:${two(now.second)}';
-    final taken = existing.map((l) => l.toLowerCase()).toSet();
-    if (!taken.contains(base.toLowerCase())) return base;
-    var n = 2;
-    while (taken.contains('$base ($n)'.toLowerCase())) {
-      n++;
-    }
-    return '$base ($n)';
-  }
+  ) =>
+      HeldOrderLabels.unique(custom, now, existing);
 
   Future<bool> holdCurrentSale({String? customLabel}) async {
     if (state.cartItems.isEmpty) return false;
@@ -537,29 +506,17 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
     _safeEmit(state.patch(isHoldingSale: true));
     try {
-      final now = DateTime.now();
-      final label = uniqueHeldLabel(
-        customLabel,
-        now,
-        state.heldOrders.map((o) => o.label),
-      );
-
-      final order = HeldOrderModel(
-        id: UuidUtils.v4(),
-        label: label,
-        createdAt: now,
-        cartItems: List<CartItemModel>.from(state.cartItems),
+      await _heldOrders.hold(
+        scope: scope,
+        items: state.cartItems,
+        existingLabels: state.heldOrders.map((o) => o.label),
+        total: state.displayGrandTotal,
+        customLabel: customLabel,
         customerId: state.selectedCustomer?.id,
         customerName: state.selectedCustomer?.name,
-        cartDiscountType: state.cartDiscountType,
-        cartDiscountValue: state.cartDiscountDecimal > Decimal.zero
-            ? state.cartDiscountDecimal
-            : null,
-        itemCount: state.cartItems.length,
-        totalAmount: state.displayGrandTotal,
+        discountType: state.cartDiscountType,
+        discountValue: state.cartDiscountDecimal,
       );
-
-      await _heldOrdersDao.saveHeldOrder(order, scope: scope);
       clearCart();
       await loadHeldOrders();
       return true;
@@ -568,70 +525,6 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         _safeEmit(state.patch(isHoldingSale: false));
       }
     }
-  }
-
-  /// Re-prices a parked order against today's prices and tax table and lists
-  /// every change so the cashier is warned before selling it.
-  Future<(List<CartItemModel>, List<String>)> _refreshHeldItems(
-    List<CartItemModel> items,
-  ) async {
-    final changes = <String>[];
-    final refreshed = <CartItemModel>[];
-    var priceLookupFailed = false;
-
-    for (final item in items) {
-      var next = item;
-
-      // Tax: always the current tax table, never the parked snapshot.
-      if (item.taxRateId != null) {
-        TaxRateModel? current;
-        for (final rate in state.taxRates) {
-          if (rate.id == item.taxRateId) current = rate;
-        }
-        current ??= state.defaultTaxRate;
-        if (current == null) {
-          next = next.copyWith(clearTax: true);
-          changes.add('${item.productName}: tax rate no longer exists, '
-              'tax removed');
-        } else {
-          final rate = Decimal.tryParse(current.rate) ?? Decimal.zero;
-          if (current.id != item.taxRateId || rate != item.effectiveTaxRate) {
-            changes.add('${item.productName}: tax '
-                '${DecimalUtils.format(item.effectiveTaxRate)}% -> '
-                '${DecimalUtils.format(rate)}%');
-          }
-          next = next.copyWith(
-            taxRateId: current.id,
-            taxRateName: taxDisplayLabel(current),
-            taxRate: rate,
-          );
-        }
-      }
-
-      // Price: re-fetched unless the cashier typed it in by hand.
-      if (!item.priceManual) {
-        final result = await _getProductPrice(item.productId, item.variationId);
-        if (isClosed) return (items, changes);
-        result.fold((_) => priceLookupFailed = true, (price) {
-          if (price == null || price <= Decimal.zero) return;
-          final unit = price + item.modifierTotalPerUnit;
-          if (unit != item.unitPrice) {
-            changes.add('${item.productName}: price '
-                '${DecimalUtils.format(item.unitPrice)} -> '
-                '${DecimalUtils.format(unit)}');
-            next = next.copyWith(unitPrice: unit);
-          }
-        });
-      }
-
-      refreshed.add(next);
-    }
-
-    if (priceLookupFailed) {
-      changes.add('Some prices could not be refreshed; the held prices are '
-          'kept. Check the total before payment.');
-    }
-    return (refreshed, changes);
   }
 
   Future<HeldResumeResult> resumeHeldOrder(
@@ -644,11 +537,16 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     final scope = _heldScope;
     if (scope == null) return HeldResumeResult.notResumed;
 
-    final held = await _heldOrdersDao.getHeldOrderForScope(heldOrderId, scope);
-    if (held == null) return HeldResumeResult.notResumed;
-
-    final (restoredItems, changes) = await _refreshHeldItems(held.cartItems);
-    if (isClosed) return HeldResumeResult.notResumed;
+    final resumed = await _heldOrders.resume(
+      id: heldOrderId,
+      scope: scope,
+      taxRates: state.taxRates,
+      defaultTaxRate: state.defaultTaxRate,
+    );
+    if (resumed == null || isClosed) return HeldResumeResult.notResumed;
+    final held = resumed.order;
+    final restoredItems = resumed.items;
+    final changes = resumed.changes;
 
     CustomerModel? customer;
     if (held.customerId != null) {
@@ -668,7 +566,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     ));
     _schedulePricePreview();
 
-    await _heldOrdersDao.deleteHeldOrder(heldOrderId);
+    await _heldOrders.discard(heldOrderId, scope);
     await loadHeldOrders();
     if (customer != null) await refreshSelectedCustomer();
     return HeldResumeResult(resumed: true, changes: changes);
@@ -677,21 +575,8 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   Future<void> discardHeldOrder(String heldOrderId) async {
     final scope = _heldScope;
     if (scope == null) return;
-    final held = await _heldOrdersDao.getHeldOrderForScope(heldOrderId, scope);
-    if (held == null) return;
-    await _heldOrdersDao.deleteHeldOrder(heldOrderId);
+    await _heldOrders.discard(heldOrderId, scope);
     await loadHeldOrders();
-  }
-
-  /// Payment lines must add up to what is due before anything is sent.
-  void _assertPaymentsCoverTotal(List<PaymentLineModel> payments) {
-    final paid = payments.fold(Decimal.zero, (sum, p) => sum + p.amount);
-    if (paid != state.displayGrandTotal) {
-      throw PaymentMismatchException(
-        'Payments (${DecimalUtils.format(paid)}) do not match the total '
-        '(${DecimalUtils.format(state.displayGrandTotal)}).',
-      );
-    }
   }
 
   Future<SaleResponseModel> submitSale(List<PaymentLineModel> payments) async {
@@ -714,7 +599,10 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     if (branchId == null) {
       throw Exception('Branch not configured');
     }
-    _assertPaymentsCoverTotal(payments);
+    PaymentCoverage.assertCovers(
+      payments: payments,
+      due: state.displayGrandTotal,
+    );
 
     _safeEmit(state.patch(isSubmittingSale: true));
 
@@ -733,22 +621,16 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
       // Same cart + payments as a failed earlier attempt = the same sale id,
       // so a re-tap can never create a second sale. Anything else is new.
-      final fingerprint = jsonEncode(body);
-      if (_pendingSaleFingerprint != fingerprint || _pendingSaleId == null) {
-        _pendingSaleFingerprint = fingerprint;
-        _pendingSaleId = UuidUtils.v4();
-      }
-      final saleBody = {...body, 'id': _pendingSaleId};
+      final saleBody = _saleAttempts.stamp(body);
 
       final result = await _createSale(saleBody);
       if (isClosed) {
         throw Exception('Sale submission cancelled');
       }
-      return result.fold(
+      return await result.fold(
         (failure) => throw Exception(failure.message),
         (sale) {
-          _pendingSaleFingerprint = null;
-          _pendingSaleId = null;
+          _saleAttempts.completed();
           clearCart();
           _safeEmit(state.patch(isSubmittingSale: false));
           refreshShiftSummary();

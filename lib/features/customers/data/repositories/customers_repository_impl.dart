@@ -1,5 +1,6 @@
 ﻿import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/identity/client_ids.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -49,7 +50,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
     Map<String, dynamic> body,
   ) async {
     try {
-      final result = await _remote.createCustomer(body);
+      final result = await _remote.createCustomer(ClientIds.stamp(body));
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
@@ -122,7 +123,10 @@ class CustomersRepositoryImpl implements CustomersRepository {
       if (registerShiftId != null && registerShiftId.isNotEmpty) {
         body['register_shift_id'] = registerShiftId;
       }
-      final result = await _remote.recordPayment(customerId, body);
+      final result = await _remote.recordPayment(
+        customerId,
+        ClientIds.stamp(body),
+      );
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

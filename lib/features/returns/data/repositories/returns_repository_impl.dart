@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:frantend/core/identity/client_ids.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/returns/data/datasources/returns_remote_datasource.dart';
@@ -22,7 +23,7 @@ class ReturnsRepositoryImpl implements ReturnsRepository {
     Map<String, dynamic> body,
   ) async {
     try {
-      final result = await _remote.createReturn(body);
+      final result = await _remote.createReturn(ClientIds.stamp(body));
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

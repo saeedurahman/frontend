@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:frantend/core/brand/app_brand.dart';
 
 abstract final class AppLogger {
   static final List<(RegExp, String Function(Match))> _redactions = [
@@ -32,21 +33,21 @@ abstract final class AppLogger {
   }
 
   static void debug(String message, {String? tag}) {
-    developer.log(redact(message), name: tag ?? 'Frantend');
+    developer.log(redact(message), name: tag ?? AppBrand.current.appName);
   }
 
   static void info(String message, {String? tag}) {
-    developer.log(redact(message), name: tag ?? 'Frantend', level: 800);
+    developer.log(redact(message), name: tag ?? AppBrand.current.appName, level: 800);
   }
 
   static void warning(String message, {String? tag}) {
-    developer.log(redact(message), name: tag ?? 'Frantend', level: 900);
+    developer.log(redact(message), name: tag ?? AppBrand.current.appName, level: 900);
   }
 
   static void error(String message, {Object? error, StackTrace? stackTrace}) {
     developer.log(
       redact(message),
-      name: 'Frantend',
+      name: AppBrand.current.appName,
       level: 1000,
       error: error == null ? null : redact(error.toString()),
       stackTrace: stackTrace,

@@ -9,7 +9,6 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:connectivity_plus/connectivity_plus.dart' as _i895;
 import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
@@ -332,26 +331,23 @@ import '../../features/users/domain/usecases/users_usecases.dart' as _i961;
 import '../../features/users/presentation/cubit/user_form_cubit.dart' as _i770;
 import '../../features/users/presentation/cubit/users_list_cubit.dart'
     as _i1011;
+import '../../features/auth/domain/offline/offline_credential_verifier.dart'
+    as _i1002;
+import '../../features/pos/domain/usecases/pos_local_usecases.dart'
+    as _i1003;
+import '../connectivity/connectivity_probe.dart' as _i1000;
+import '../lifecycle/local_data_lifecycle.dart' as _i1001;
 import '../database/app_database.dart' as _i982;
 import '../database/daos/held_orders_dao.dart' as _i1025;
 import '../database/daos/master_data_cache_dao.dart' as _i15;
-import '../database/daos/pending_sales_dao.dart' as _i842;
-import '../database/daos/products_dao.dart' as _i839;
-import '../database/daos/sales_dao.dart' as _i340;
-import '../database/daos/sync_queue_dao.dart' as _i428;
 import '../error/error_handler.dart' as _i308;
 import '../localization/locale_cubit.dart' as _i960;
 import '../network/dio_client.dart' as _i667;
-import '../network/network_info.dart' as _i932;
 import '../router/route_guards.dart' as _i525;
 import '../services/image_upload_service.dart' as _i606;
 import '../session/business_session_cubit.dart' as _i166;
 import '../storage/preferences_storage.dart' as _i574;
 import '../storage/secure_storage.dart' as _i619;
-import '../sync/conflict_resolver.dart' as _i50;
-import '../sync/sync_manager.dart' as _i417;
-import '../sync/sync_queue.dart' as _i554;
-import '../sync/sync_worker.dart' as _i987;
 import 'database_module.dart' as _i384;
 import 'dio_module.dart' as _i1045;
 
@@ -363,7 +359,6 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final preferencesModule = _$PreferencesModule();
-    final connectivityModule = _$ConnectivityModule();
     final databaseModule = _$DatabaseModule();
     final dioModule = _$DioModule();
     await gh.factoryAsync<_i460.SharedPreferences>(
@@ -372,32 +367,18 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i982.AppDatabase>(() => _i982.AppDatabase());
     gh.lazySingleton<_i308.ErrorHandler>(() => const _i308.ErrorHandler());
-    gh.lazySingleton<_i895.Connectivity>(() => connectivityModule.connectivity);
     gh.lazySingleton<_i606.ImageUploadService>(
       () => _i606.ImageUploadService(),
     );
     gh.lazySingleton<_i619.SecureStorage>(() => _i619.SecureStorage());
-    gh.lazySingleton<_i50.ConflictResolver>(() => _i50.ConflictResolver());
     gh.lazySingleton<_i166.BusinessSessionCubit>(
       () => _i166.BusinessSessionCubit(),
     );
     gh.lazySingleton<_i574.PreferencesStorage>(
       () => _i574.PreferencesStorage(gh<_i460.SharedPreferences>()),
     );
-    gh.lazySingleton<_i428.SyncQueueDao>(
-      () => databaseModule.syncQueueDao(gh<_i982.AppDatabase>()),
-    );
-    gh.lazySingleton<_i839.ProductsDao>(
-      () => databaseModule.productsDao(gh<_i982.AppDatabase>()),
-    );
     gh.lazySingleton<_i15.MasterDataCacheDao>(
       () => databaseModule.masterDataCacheDao(gh<_i982.AppDatabase>()),
-    );
-    gh.lazySingleton<_i340.SalesDao>(
-      () => databaseModule.salesDao(gh<_i982.AppDatabase>()),
-    );
-    gh.lazySingleton<_i842.PendingSalesDao>(
-      () => databaseModule.pendingSalesDao(gh<_i982.AppDatabase>()),
     );
     gh.lazySingleton<_i1025.HeldOrdersDao>(
       () => databaseModule.heldOrdersDao(gh<_i982.AppDatabase>()),
@@ -417,17 +398,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i994.ProductsLocalDataSource>(
       () => _i994.ProductsLocalDataSourceImpl(gh<_i15.MasterDataCacheDao>()),
     );
-    gh.lazySingleton<_i554.SyncQueue>(
-      () => _i554.SyncQueue(gh<_i428.SyncQueueDao>()),
-    );
-    gh.lazySingleton<_i932.NetworkInfo>(
-      () => _i932.NetworkInfoImpl(gh<_i895.Connectivity>()),
-    );
     gh.lazySingleton<_i667.DioClient>(
       () => _i667.DioClient(
         secureStorage: gh<_i619.SecureStorage>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        syncQueue: gh<_i554.SyncQueue>(),
       ),
     );
     gh.lazySingleton<_i745.ReturnsRemoteDataSource>(
@@ -542,7 +515,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1045.ProductsRepositoryImpl(
         remoteDataSource: gh<_i255.ProductsRemoteDataSource>(),
         localDataSource: gh<_i994.ProductsLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
+        connectivityProbe: gh<_i1000.ConnectivityProbe>(),
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
@@ -618,16 +591,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i930.AccountingRepositoryImpl(
         remoteDataSource: gh<_i85.AccountingRemoteDataSource>(),
         errorHandler: gh<_i308.ErrorHandler>(),
-      ),
-    );
-    gh.lazySingleton<_i417.SyncManager>(
-      () => _i417.SyncManager(
-        dioClient: gh<_i667.DioClient>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        syncQueue: gh<_i554.SyncQueue>(),
-        syncQueueDao: gh<_i428.SyncQueueDao>(),
-        conflictResolver: gh<_i50.ConflictResolver>(),
-        preferencesStorage: gh<_i574.PreferencesStorage>(),
       ),
     );
     gh.lazySingleton<_i477.RestaurantRemoteDataSource>(
@@ -892,15 +855,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i511.PosRepository>(
       () => _i84.PosRepositoryImpl(
         remoteDataSource: gh<_i449.PosRemoteDataSource>(),
-        pendingSalesDao: gh<_i842.PendingSalesDao>(),
-        productsDao: gh<_i839.ProductsDao>(),
-        syncQueue: gh<_i554.SyncQueue>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
+        connectivityProbe: gh<_i1000.ConnectivityProbe>(),
         errorHandler: gh<_i308.ErrorHandler>(),
       ),
-    );
-    gh.lazySingleton<_i987.SyncWorker>(
-      () => _i987.SyncWorker(gh<_i417.SyncManager>()),
     );
     gh.lazySingleton<_i665.DashboardRepository>(
       () =>
@@ -1484,7 +1441,6 @@ extension GetItInjectableX on _i174.GetIt {
         getProductsUseCase: gh<_i15.GetProductsUseCase>(),
         getCategoriesUseCase: gh<_i583.GetCategoriesUseCase>(),
         getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
-        lookupBarcodeUseCase: gh<_i698.LookupBarcodeUseCase>(),
         getProductPriceUseCase: gh<_i698.GetProductPriceUseCase>(),
         createSaleUseCase: gh<_i698.CreateSaleUseCase>(),
         getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
@@ -1505,12 +1461,12 @@ extension GetItInjectableX on _i174.GetIt {
         completeTabUseCase: gh<_i767.CompleteTabUseCase>(),
         getTabSaleUseCase: gh<_i767.GetTabSaleUseCase>(),
         getKotOrdersByTableUseCase: gh<_i767.GetKotOrdersByTableUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
-        heldOrdersDao: gh<_i1025.HeldOrdersDao>(),
+        resolvePosSession: gh<_i1003.ResolvePosSessionUseCase>(),
+        heldOrdersUseCases: gh<_i1003.HeldOrdersUseCases>(),
+        resolveBarcodeUseCase: gh<_i1003.ResolveBarcodeUseCase>(),
+        saleAttempts: gh<_i1003.SaleAttemptTracker>(),
         getCustomerUseCase: gh<_i449.GetCustomerUseCase>(),
         getCustomerBalanceUseCase: gh<_i449.GetCustomerBalanceUseCase>(),
-        masterDataCacheDao: gh<_i15.MasterDataCacheDao>(),
       ),
     );
     gh.factory<_i830.SaleDetailCubit>(
@@ -1555,10 +1511,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i153.AuthRepositoryImpl(
         remoteDataSource: gh<_i161.AuthRemoteDataSource>(),
         localDataSource: gh<_i992.AuthLocalDataSource>(),
-        networkInfo: gh<_i932.NetworkInfo>(),
+        connectivityProbe: gh<_i1000.ConnectivityProbe>(),
         errorHandler: gh<_i308.ErrorHandler>(),
         seedPinDeviceCache: gh<_i338.SeedPinDeviceCacheUseCase>(),
         loadBusinessSession: gh<_i857.LoadBusinessSessionUseCase>(),
+        offlineCredentials: gh<_i1002.OfflineCredentialVerifier>(),
+        localDataLifecycle: gh<_i1001.LocalDataLifecycle>(),
       ),
     );
     gh.factory<_i24.DashboardCubit>(
@@ -1622,7 +1580,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i188.LoginUseCase(gh<_i787.AuthRepository>()),
     );
     gh.factory<_i48.LogoutUseCase>(
-      () => _i48.LogoutUseCase(gh<_i787.AuthRepository>()),
+      () => _i48.LogoutUseCase(
+        gh<_i787.AuthRepository>(),
+        gh<_i1001.PendingWorkGuard>(),
+      ),
     );
     gh.factory<_i564.PinLoginUseCase>(
       () => _i564.PinLoginUseCase(gh<_i787.AuthRepository>()),
@@ -1651,8 +1612,6 @@ extension GetItInjectableX on _i174.GetIt {
 }
 
 class _$PreferencesModule extends _i574.PreferencesModule {}
-
-class _$ConnectivityModule extends _i932.ConnectivityModule {}
 
 class _$DatabaseModule extends _i384.DatabaseModule {}
 

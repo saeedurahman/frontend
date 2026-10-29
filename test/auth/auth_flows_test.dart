@@ -19,6 +19,7 @@ import 'package:frantend/features/auth/presentation/cubit/auth_state.dart';
 import 'package:frantend/features/auth/presentation/cubit/change_password_cubit.dart';
 import 'package:frantend/features/auth/presentation/widgets/pin_keypad.dart';
 import 'package:frantend/features/users/data/datasources/users_remote_datasource.dart';
+import 'package:frantend/core/lifecycle/local_data_lifecycle.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/users/presentation/widgets/reset_pin_dialog.dart';
 
@@ -79,7 +80,7 @@ AuthCubit _cubit(_FakeAuthRepository repo) => AuthCubit(
       loginUseCase: LoginUseCase(repo),
       pinLoginUseCase: PinLoginUseCase(repo),
       registerBusinessUseCase: RegisterBusinessUseCase(repo),
-      logoutUseCase: LogoutUseCase(repo),
+      logoutUseCase: LogoutUseCase(repo, const NoPendingWorkGuard()),
       authRepository: repo,
       authGuard: AuthGuard(FakeSecureStorage()),
     );

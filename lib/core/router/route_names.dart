@@ -16,6 +16,7 @@ abstract final class RouteNames {
   // Status pages (signed in, outside the permission map)
   static const String subscriptionExpired = '/subscription-expired';
   static const String noAccess = '/no-access';
+  static const String syncFailed = '/sync/failed';
 
   // Protected
   static const String dashboard = '/dashboard';

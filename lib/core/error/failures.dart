@@ -69,6 +69,17 @@ class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message = 'Not found']);
 }
 
+/// Logout refused: [pendingCount] local changes have not reached the server.
+class PendingWorkFailure extends Failure {
+  const PendingWorkFailure(this.pendingCount)
+      : super('Some changes have not been sent to the server yet.');
+
+  final int pendingCount;
+
+  @override
+  List<Object?> get props => [message, pendingCount];
+}
+
 class SyncFailure extends Failure {
   const SyncFailure([super.message = 'Sync failed']);
 }

@@ -15,7 +15,7 @@ class BranchesRemoteDataSource {
   Future<List<BranchModel>> getBranches() async {
     final response = await _dio.get<dynamic>(
       ApiConstants.branches,
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     final raw = response.data;
     if (raw is! List) return const [];
@@ -29,7 +29,7 @@ class BranchesRemoteDataSource {
   Future<BranchModel> getBranchById(String branchId) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.branchById(branchId),
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return BranchModel.fromJson(response.data ?? const {});
   }

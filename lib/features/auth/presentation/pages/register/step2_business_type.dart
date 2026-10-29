@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/register/domain/entities/register_entity.dart';
 import 'package:frantend/features/register/presentation/cubit/register_cubit.dart';
@@ -28,7 +29,7 @@ class Step2BusinessTypePage extends StatelessWidget {
           maxWidth: 960,
           title: 'Select your business niche',
           subtitle:
-              "We'll pre-configure your PakPOS modules based on your selection.",
+              "We'll pre-configure your ${AppBrand.current.appName} modules based on your selection.",
           bottomNavigation: RegisterBottomNav(
             stepLabel: 'Step 2 of 4',
             onBack: () => context.go(RouteNames.registerStep1),

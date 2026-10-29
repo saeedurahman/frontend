@@ -7,6 +7,9 @@ import 'package:frantend/core/storage/secure_storage.dart';
 
 /// In-memory [SecureStorage] (no platform channel).
 class FakeSecureStorage implements SecureStorage {
+  @override
+  Future<void> clearPinDeviceCache() async => _pinCache = null;
+
   FakeSecureStorage({String? access, String? refresh, String? tenant})
       : _access = access,
         _refresh = refresh,

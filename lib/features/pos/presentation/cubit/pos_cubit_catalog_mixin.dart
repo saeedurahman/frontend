@@ -194,74 +194,36 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
 
   // ── Barcode lookup: memory → local (Drift) cache → server ──────────────
 
-  String _barcodeCacheKey(String barcode) =>
-      'pos_barcode:${state.businessId ?? '-'}:$barcode';
-
-  ProductModel? _barcodeFromMemory(String barcode) {
-    for (final product in state.productDetailsCache.values) {
-      final inProduct = product.barcodes.any((b) => b.barcode == barcode);
-      final inVariation = product.variations.any(
-        (v) => v.barcodes.any((b) => b.barcode == barcode),
-      );
-      if (inProduct || inVariation) return product;
-    }
-    return null;
-  }
-
-  Future<ProductModel?> _barcodeFromLocalCache(String barcode) async {
-    try {
-      final json = await _barcodeCache.getCache(_barcodeCacheKey(barcode));
-      if (json == null) return null;
-      return ProductModel.fromJson(
-        Map<String, dynamic>.from(jsonDecode(json) as Map),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> _rememberBarcode(String barcode, ProductModel product) async {
-    try {
-      await _barcodeCache.upsertCache(
-        _barcodeCacheKey(barcode),
-        jsonEncode(product.toJson()),
-      );
-    } catch (_) {
-      // Cache is best-effort; scanning must never fail because of it.
-    }
-  }
+  String get _tenantKey => state.businessId ?? '-';
 
   /// Resolves a scanned code without a network round trip when possible. A
   /// cached hit is refreshed from the server in the background.
   Future<ProductModel?> resolveBarcode(String barcode) async {
-    final code = barcode.trim();
-    if (code.isEmpty) return null;
-
-    final cached = _barcodeFromMemory(code) ?? await _barcodeFromLocalCache(code);
-    if (cached != null) {
-      unawaited(_refreshBarcodeInBackground(code, cached.id));
-      return cached;
+    final resolved = await _resolveBarcode(
+      barcode: barcode,
+      tenantKey: _tenantKey,
+      memory: state.productDetailsCache.values,
+    );
+    final product = resolved.product;
+    if (product != null && resolved.fromCache) {
+      unawaited(_refreshBarcodeInBackground(barcode.trim(), product.id));
     }
-
-    final result = await _lookupBarcode(code);
-    return result.fold((_) => null, (product) {
-      unawaited(_rememberBarcode(code, product));
-      return product;
-    });
+    return product;
   }
 
   Future<void> _refreshBarcodeInBackground(
     String barcode,
     String productId,
   ) async {
-    final result = await _getProductById(productId);
-    if (isClosed) return;
-    await result.fold((_) async {}, (fresh) async {
-      await _rememberBarcode(barcode, fresh);
-      _safeEmit(state.patch(
-        productDetailsCache: {...state.productDetailsCache, fresh.id: fresh},
-      ));
-    });
+    final fresh = await _resolveBarcode.refresh(
+      barcode: barcode,
+      tenantKey: _tenantKey,
+      productId: productId,
+    );
+    if (isClosed || fresh == null) return;
+    _safeEmit(state.patch(
+      productDetailsCache: {...state.productDetailsCache, fresh.id: fresh},
+    ));
   }
 
   Future<bool> lookupBarcode(String barcode) async {

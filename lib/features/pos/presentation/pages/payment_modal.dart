@@ -7,6 +7,7 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/domain/utils/payment_allocator.dart';
+import 'package:frantend/features/pos/domain/utils/payment_planner.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
@@ -51,51 +52,37 @@ class _PaymentModalState extends State<PaymentModal> {
   Decimal _entered(_PaymentLineEntry line) =>
       Decimal.tryParse(line.amountController.text) ?? Decimal.zero;
 
-  CreditContext _creditContext(PosState state) {
-    final customer = state.selectedCustomer;
-    if (customer == null) return CreditContext.none;
-    return CreditContext(
-      hasCustomer: true,
-      creditLimit: Decimal.tryParse(customer.creditLimit),
-      balance: Decimal.tryParse(customer.balance ?? ''),
-    );
-  }
+  PaymentInput _input(_PaymentLineEntry line) => PaymentInput(
+        method: line.method,
+        entered: _entered(line),
+        referenceNo: line.referenceController.text,
+        walletLabel: line.walletLabel,
+      );
 
-  PaymentAllocation _allocation(PosState state) => PaymentAllocator.allocate(
+  PaymentAllocation _allocation(PosState state) => PaymentPlanner.allocate(
         total: state.displayGrandTotal,
-        inputs: [
-          for (final line in _lines)
-            PaymentInput(
-              method: line.method,
-              entered: _entered(line),
-              referenceNo: line.referenceController.text,
-              walletLabel: line.walletLabel,
-            ),
-        ],
-        credit: _creditContext(state),
+        inputs: _lines.map(_input),
+        customer: state.selectedCustomer,
       );
 
   /// What is still unpaid by every line except [except].
-  Decimal _dueExcluding(PosState state, _PaymentLineEntry except) {
-    var due = state.displayGrandTotal;
-    for (final line in _lines) {
-      if (identical(line, except) || line.method == PaymentMethods.credit) {
-        continue;
-      }
-      due -= _entered(line);
-    }
-    return due > Decimal.zero ? due : Decimal.zero;
-  }
+  Decimal _dueExcluding(PosState state, _PaymentLineEntry except) =>
+      PaymentPlanner.dueExcluding(
+        total: state.displayGrandTotal,
+        others: _lines.where((l) => !identical(l, except)).map(_input),
+      );
 
   void _addMethod(PosState state, _PaymentMethodOption option) {
     final isCredit = option.method == PaymentMethods.credit;
-    if (isCredit && state.selectedCustomer == null) return;
-    if (isCredit && _lines.any((l) => l.method == PaymentMethods.credit)) {
+    if (!PaymentPlanner.canAddMethod(
+      method: option.method,
+      hasCustomer: state.selectedCustomer != null,
+      existingMethods: _lines.map((l) => l.method),
+    )) {
       return;
     }
     setState(() {
-      final remaining = _allocation(state).remaining;
-      final prefill = remaining > Decimal.zero ? remaining : Decimal.zero;
+      final prefill = PaymentPlanner.prefill(_allocation(state));
       _lines.add(_PaymentLineEntry(
         method: option.method,
         label: option.label,

@@ -9,7 +9,7 @@ class AppLocalizationsUr extends AppLocalizations {
   AppLocalizationsUr([String locale = 'ur']) : super(locale);
 
   @override
-  String get appTitle => 'فرنٹینڈ POS';
+  String get appTitle => 'PakPOS';
 
   @override
   String get login => 'لاگ ان';

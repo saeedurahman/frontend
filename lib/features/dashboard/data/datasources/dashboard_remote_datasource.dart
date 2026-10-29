@@ -42,7 +42,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.analyticsDashboard,
       queryParameters: branchId == null ? null : {'branch_id': branchId},
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return DashboardSummaryModel.fromJson(response.data ?? const {});
   }
@@ -59,7 +59,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         'date_from': _asIsoDate(dateFrom),
         'date_to': _asIsoDate(dateTo),
       },
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return _toModelList<SalesTrendPointModel>(
       response.data,
@@ -78,7 +78,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         'date_from': _asIsoDate(dateFrom),
         'date_to': _asIsoDate(dateTo),
       },
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return _toModelList<PaymentBreakdownModel>(
       response.data,
@@ -99,7 +99,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         'date_to': _asIsoDate(dateTo),
         'limit': limit,
       },
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return _toModelList<TopProductModel>(
       response.data,
@@ -114,7 +114,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     final response = await _dio.get<dynamic>(
       ApiConstants.analyticsRecentTransactions,
       queryParameters: {'limit': limit},
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return _toModelList<RecentTransactionModel>(
       response.data,
@@ -126,7 +126,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   Future<InventoryInsightsModel> getInventoryInsights() async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.analyticsInventoryInsights,
-      options: Options(extra: {'skip_offline_queue': true}),
+      options: Options(),
     );
     return InventoryInsightsModel.fromJson(response.data ?? const {});
   }
