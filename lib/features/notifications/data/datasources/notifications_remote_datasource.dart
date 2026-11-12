@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
@@ -54,7 +55,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       ApiConstants.notificationsMarkRead,
       data: {'notification_ids': notificationIds},
     );
-    return (response.data?['updated'] as num?)?.toInt() ?? 0;
+    return JsonNum.intOr(response.data?['updated'], 0);
   }
 
   @override
@@ -62,7 +63,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     final response = await _dio.post<Map<String, dynamic>>(
       ApiConstants.notificationsMarkAllRead,
     );
-    return (response.data?['updated'] as num?)?.toInt() ?? 0;
+    return JsonNum.intOr(response.data?['updated'], 0);
   }
 
   @override
@@ -77,8 +78,8 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     );
     final data = response.data ?? const {};
     return (
-      lowStock: (data['low_stock'] as num?)?.toInt() ?? 0,
-      expiry: (data['expiry'] as num?)?.toInt() ?? 0,
+      lowStock: JsonNum.intOr(data['low_stock'], 0),
+      expiry: JsonNum.intOr(data['expiry'], 0),
     );
   }
 }

@@ -113,6 +113,8 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     String? variationId,
     Decimal? manualUnitPrice,
     List<CartLineModifierModel> modifiers = const [],
+    Decimal? qty,
+    bool rememberManualPrice = true,
   }) async {
     final dineIn = state.dineIn;
     if (dineIn == null) {
@@ -127,6 +129,8 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
         variationId: variationId,
         manualUnitPrice: manualUnitPrice,
         modifiers: modifiers,
+        qty: qty,
+        rememberManualPrice: rememberManualPrice,
       );
 
       if (outcome.result != AddToCartResult.added) {
@@ -142,7 +146,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
           .where((item) => item.cartKey == syncedItem.cartKey)
           .toList();
       final syncQty = previous.isEmpty
-          ? Decimal.one
+          ? syncedItem.qty
           : syncedItem.qty - previous.first.qty;
 
       final syncError = await _syncLineToTab(syncedItem, syncQty: syncQty);

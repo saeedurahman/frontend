@@ -16,6 +16,7 @@ mixin PosCubitSessionMixin
     final session = await _resolvePosSession();
     if (isClosed) return;
     final user = session.user;
+    _canOverridePrice = session.canOverridePrice;
 
     if (!session.canCreateSales) {
       _safeEmit(
@@ -41,6 +42,8 @@ mixin PosCubitSessionMixin
       canOpenShift: session.canOpenShift,
       canCloseShift: session.canCloseShift,
     ));
+    _priceChangesSub ??=
+        _priceChanges?.listen((_) => unawaited(refreshPrices()));
     await Future.wait([
       _loadProducts(),
       _loadCategories(),

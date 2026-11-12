@@ -79,7 +79,11 @@ class PosCubitBase extends Cubit<PosState> {
     required customers_uc.GetCustomerUseCase getCustomerUseCase,
     required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
     OfflinePolicy? offlinePolicy,
+    Stream<void>? priceChanges,
+    bool Function()? askQuantityOnTap,
   })  : _offlinePolicy = offlinePolicy,
+        _priceChanges = priceChanges,
+        _askQuantityOnTap = askQuantityOnTap,
         _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
@@ -136,10 +140,26 @@ class PosCubitBase extends Cubit<PosState> {
   final GetKotOrdersByTableUseCase _getKotOrdersByTableUseCase;
   final OfflinePolicy? _offlinePolicy;
 
+  /// Fires when prices in the local data changed (a pull, or a price saved on
+  /// this device); the cubit then re-reads the prices it has cached.
+  final Stream<void>? _priceChanges;
+  StreamSubscription<void>? _priceChangesSub;
+  int _priceRefreshId = 0;
+
   /// Selling below the known stock is a warning, not a block (offline the
   /// counter must never stop a sale over a number that may be stale). Without
   /// a policy the old strict behavior applies.
   bool _allowBelowStock = false;
+  bool get allowBelowStock => _allowBelowStock;
+
+  /// `sales.override_price` of the signed-in user (set by `init`).
+  bool _canOverridePrice = false;
+  bool get canOverridePrice => _canOverridePrice;
+
+  /// Device preference "Ask quantity on product tap"; read on every tap so a
+  /// change in Settings applies at once. On when not wired.
+  final bool Function()? _askQuantityOnTap;
+  bool get askQuantityOnTap => _askQuantityOnTap?.call() ?? true;
 
   final ResolvePosSessionUseCase _resolvePosSession;
   final HeldOrdersUseCases _heldOrders;
@@ -171,6 +191,7 @@ class PosCubitBase extends Cubit<PosState> {
   Future<void> close() {
     _searchDebounce?.cancel();
     _previewDebounce?.cancel();
+    unawaited(_priceChangesSub?.cancel());
     return super.close();
   }
 }
@@ -214,5 +235,7 @@ class PosCubit extends PosCubitBase
     required super.getCustomerUseCase,
     required super.getCustomerBalanceUseCase,
     super.offlinePolicy,
+    super.priceChanges,
+    super.askQuantityOnTap,
   });
 }

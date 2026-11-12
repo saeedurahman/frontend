@@ -9,9 +9,9 @@ part of 'paginated_products_model.dart';
 _$PaginatedProductsModelImpl _$$PaginatedProductsModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$PaginatedProductsModelImpl(
-  total: (json['total'] as num).toInt(),
-  skip: (json['skip'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
+  total: JsonNum.intOr(json['total']),
+  skip: JsonNum.intOr(json['skip']),
+  limit: JsonNum.intOr(json['limit']),
   items:
       (json['items'] as List<dynamic>?)
           ?.map((e) => ProductListItemModel.fromJson(e as Map<String, dynamic>))

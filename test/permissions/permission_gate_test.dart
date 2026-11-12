@@ -152,7 +152,7 @@ void main() {
     access.apply(makeUser(
       role: 'cashier',
       keys: [...cashierKeys, Perm.returnsCreate],
-      version: 2,
+      version: 'v2',
     ));
     await tester.pump();
     expect(find.text('Process return'), findsOneWidget);

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/error/exceptions.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -37,6 +38,7 @@ class ErrorHandler {
     if (error is ServerException) return ServerFailure(error.message);
     if (error is ValidationException) return ValidationFailure(error.message);
     if (error is SyncException) return SyncFailure(error.message);
+    if (error is ResponseParseException) return ServerFailure(error.userMessage);
 
     return UnknownFailure(error.toString());
   }

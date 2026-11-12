@@ -69,8 +69,9 @@ abstract final class ApiConstants {
 
   static String productPrice(String productId) => '/prices/product/$productId';
 
-  static String productPriceInList(String productId, String priceListId) =>
-      '/prices/product/$productId/list/$priceListId';
+  /// Backend: `POST /prices/lists/{id}/items` (upsert of one product's price).
+  static String priceListItems(String priceListId) =>
+      '/prices/lists/$priceListId/items';
 
   // Customers
   static const String customers = '/customers';

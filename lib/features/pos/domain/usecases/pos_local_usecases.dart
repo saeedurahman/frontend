@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/identity/id_generator.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
@@ -30,6 +31,7 @@ class PosSession {
     required this.canCloseShift,
     required this.canEditLineTax,
     required this.isOffline,
+    this.canOverridePrice = false,
   });
 
   final UserModel? user;
@@ -38,6 +40,9 @@ class PosSession {
   final bool canCloseShift;
   final bool canEditLineTax;
   final bool isOffline;
+
+  /// `sales.override_price`: may sell a line at a typed price.
+  final bool canOverridePrice;
 }
 
 /// Loads the cached user and turns role + permission keys into the POS
@@ -63,6 +68,11 @@ class ResolvePosSessionUseCase {
       canEditLineTax:
           UserRoleUtils.canEditLineTax(role: role, permissionKeys: keys),
       isOffline: !_probe.isReachable,
+      canOverridePrice: UserRoleUtils.canAny(
+        const [Perm.salesOverridePrice],
+        role: role,
+        permissionKeys: keys,
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 ﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
@@ -10,6 +9,7 @@ import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/payment_modal.dart';
+import 'package:frantend/features/pos/presentation/utils/pos_product_actions.dart';
 import 'package:frantend/features/pos/presentation/widgets/held_orders_dialog.dart';
 import 'package:frantend/features/pos/presentation/widgets/pos_dialogs.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
@@ -601,38 +601,11 @@ class _TaxBadge extends StatelessWidget {
   }
 }
 
-class _QtyStepper extends StatefulWidget {
+class _QtyStepper extends StatelessWidget {
   const _QtyStepper({required this.index, required this.qty});
 
   final int index;
   final Decimal qty;
-
-  @override
-  State<_QtyStepper> createState() => _QtyStepperState();
-}
-
-class _QtyStepperState extends State<_QtyStepper> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.qty.toString());
-  }
-
-  @override
-  void didUpdateWidget(_QtyStepper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.qty != widget.qty) {
-      _controller.text = widget.qty.toString();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -648,40 +621,36 @@ class _QtyStepperState extends State<_QtyStepper> {
         children: [
           _StepperButton(
             icon: Icons.remove,
-            onPressed: () => cubit.decrementQty(widget.index),
+            onPressed: () => cubit.decrementQty(index),
           ),
           Container(width: 1, height: 34, color: AppColors.border),
-          SizedBox(
-            width: 36,
-            child: TextField(
-              controller: _controller,
-              textAlign: TextAlign.center,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-              ],
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+          // The quantity opens the calculator in edit mode (Update / Remove).
+          InkWell(
+            key: Key('cart-qty-$index'),
+            onTap: () => editCartLineQuantity(context, cubit, index),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 40),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Center(
+                  widthFactor: 1,
+                  child: Text(
+                    qty.toString(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
               ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
-              ),
-              onSubmitted: (v) {
-                final qty = Decimal.tryParse(v) ?? Decimal.one;
-                cubit.updateCartItemQty(widget.index, qty);
-              },
             ),
           ),
           Container(width: 1, height: 34, color: AppColors.border),
           _StepperButton(
             icon: Icons.add,
             color: AppColors.primary,
-            onPressed: () => cubit.incrementQty(widget.index),
+            onPressed: () => cubit.incrementQty(index),
           ),
         ],
       ),

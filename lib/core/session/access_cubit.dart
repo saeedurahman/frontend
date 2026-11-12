@@ -17,7 +17,7 @@ class AccessState extends Equatable {
   });
 
   final User? user;
-  final int? permissionsVersion;
+  final String? permissionsVersion;
 
   /// Bumped when a refresh changed what the user may do, so the UI can tell
   /// them once.
@@ -163,13 +163,15 @@ class AccessCubit extends Cubit<AccessState> {
       businessSlug: before.businessSlug,
       roles: before.roles,
       permissionKeys: permissionKeys,
-      permissionsVersion: before.permissionsVersion,
+      permissionsVersion: permissionsVersion.isEmpty
+          ? before.permissionsVersion
+          : permissionsVersion,
       branchIds: branchIds.isEmpty ? before.branchIds : branchIds,
     ));
   }
 
   /// The backend told us the version moved (e.g. a header or token claim).
-  void onPermissionsVersion(int? version) {
+  void onPermissionsVersion(String? version) {
     if (version == null || version == state.permissionsVersion) return;
     refresh(force: true);
   }

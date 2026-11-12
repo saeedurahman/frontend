@@ -309,7 +309,7 @@ void main() {
       final access = AccessCubit(
         fetchCurrentUser: () async => null,
         loadCachedUser: () async => null,
-      )..apply(makeUser(role: 'cashier', keys: cashierKeys, version: 1));
+      )..apply(makeUser(role: 'cashier', keys: cashierKeys, version: 'v1'));
       await tester.pumpWidget(MultiBlocProvider(
         providers: [
           BlocProvider.value(value: sub),
@@ -322,7 +322,7 @@ void main() {
       expect(find.text(AccessCubit.permissionsChangedNotice), findsNothing);
 
       access.apply(makeUser(
-          role: 'cashier', keys: [...cashierKeys, 'sales.void'], version: 2));
+          role: 'cashier', keys: [...cashierKeys, 'sales.void'], version: 'v2'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text(AccessCubit.permissionsChangedNotice), findsOneWidget);

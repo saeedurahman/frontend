@@ -13,7 +13,7 @@ _$SalePricePreviewLineModelImpl _$$SalePricePreviewLineModelImplFromJson(
   variationId: json['variation_id'] as String?,
   qty: json['qty'] as String,
   unitPrice: json['unit_price'] as String,
-  lineOrder: (json['line_order'] as num?)?.toInt() ?? 0,
+  lineOrder: JsonNum.intOrNull(json['line_order']) ?? 0,
   lineSubtotal: json['line_subtotal'] as String,
   discountPct: json['discount_pct'] as String? ?? '0',
   discountAmount: json['discount_amount'] as String? ?? '0',

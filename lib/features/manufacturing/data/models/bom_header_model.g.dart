@@ -16,7 +16,7 @@ _$BomHeaderModelImpl _$$BomHeaderModelImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       outputQty: json['output_qty'] as String,
       isActive: json['is_active'] as bool? ?? true,
-      version: (json['version'] as num?)?.toInt() ?? 1,
+      version: JsonNum.intOrNull(json['version']) ?? 1,
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String,
       deletedAt: json['deleted_at'] as String?,

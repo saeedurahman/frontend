@@ -17,7 +17,7 @@ _$SupplierModelImpl _$$SupplierModelImplFromJson(Map<String, dynamic> json) =>
       taxId: json['tax_id'] as String?,
       addressLine1: json['address_line1'] as String?,
       city: json['city'] as String?,
-      paymentTermsDays: (json['payment_terms_days'] as num?)?.toInt() ?? 30,
+      paymentTermsDays: JsonNum.intOrNull(json['payment_terms_days']) ?? 30,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,

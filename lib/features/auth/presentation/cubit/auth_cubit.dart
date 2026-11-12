@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/phone_input.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -128,7 +129,7 @@ class AuthCubit extends Cubit<AuthState> {
   String _resolvePhoneForLogin() {
     final complete = phoneNumber?.completeNumber;
     if (complete != null && complete.isNotEmpty) {
-      return complete;
+      return PhoneInput.cleanE164(complete);
     }
 
     final raw = phoneController.text.trim();

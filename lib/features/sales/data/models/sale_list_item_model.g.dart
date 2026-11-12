@@ -22,7 +22,7 @@ _$SaleListItemModelImpl _$$SaleListItemModelImplFromJson(
   balanceDue: json['balance_due'] as String?,
   customerName: json['customer_name'] as String?,
   cashierName: json['cashier_name'] as String?,
-  itemCount: (json['item_count'] as num?)?.toInt(),
+  itemCount: JsonNum.intOrNull(json['item_count']),
   productNames:
       (json['product_names'] as List<dynamic>?)
           ?.map((e) => e as String)

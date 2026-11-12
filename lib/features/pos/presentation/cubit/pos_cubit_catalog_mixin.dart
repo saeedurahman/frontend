@@ -124,6 +124,31 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     }
   }
 
+  /// Re-reads every cached price and the price of each product on screen from
+  /// the local data. A list price replaces whatever was cached (an older price
+  /// or one typed in by hand); a key with no list price keeps its value, so a
+  /// hand-typed price for an unpriced product survives.
+  Future<void> refreshPrices() async {
+    final requestId = ++_priceRefreshId;
+    final keys = <String>{
+      ...state.priceCache.keys,
+      for (final p in state.products) p.id,
+    };
+    final fresh = <String, String>{};
+    for (final key in keys) {
+      final split = key.indexOf(':');
+      final productId = split < 0 ? key : key.substring(0, split);
+      final variationId = split < 0 ? null : key.substring(split + 1);
+      final result = await _getProductPrice(productId, variationId);
+      if (isClosed || requestId != _priceRefreshId) return;
+      result.fold((_) {}, (price) {
+        if (price != null && price > Decimal.zero) fresh[key] = price.toString();
+      });
+    }
+    if (fresh.isEmpty) return;
+    _safeEmit(state.patch(priceCache: {...state.priceCache, ...fresh}));
+  }
+
   Future<void> _loadStockBalances() async {
     final branchId = state.branchId;
     if (branchId == null) return;

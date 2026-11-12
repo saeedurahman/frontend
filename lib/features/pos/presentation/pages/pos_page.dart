@@ -91,7 +91,11 @@ class _PosPageState extends State<PosPage> {
       },
       child: Focus(
         autofocus: true,
-        child: BlocBuilder<PosCubit, PosState>(
+        // Popups (quantity calculator) give the keyboard back to the search
+        // box, where the scanner types.
+        child: PosSearchFocus(
+          node: _searchFocusNode,
+          child: BlocBuilder<PosCubit, PosState>(
           builder: (context, state) {
             if (state.accessDenied) {
               return const EmptyState(
@@ -169,6 +173,7 @@ class _PosPageState extends State<PosPage> {
               ],
             );
           },
+          ),
         ),
       ),
     );

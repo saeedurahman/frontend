@@ -19,7 +19,7 @@ _$ProductModelImpl _$$ProductModelImplFromJson(Map<String, dynamic> json) =>
       isActive: json['is_active'] as bool? ?? true,
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
-      shelfLifeDays: (json['shelf_life_days'] as num?)?.toInt(),
+      shelfLifeDays: JsonNum.intOrNull(json['shelf_life_days']),
       minStockLevel: json['min_stock_level'] as String?,
       maxStockLevel: json['max_stock_level'] as String?,
       createdAt: json['created_at'] as String?,

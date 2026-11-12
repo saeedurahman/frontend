@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/error/exceptions.dart';
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:frantend/features/auth/data/models/token_model.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:injectable/injectable.dart';
@@ -54,7 +55,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         },
         options: Options(),
       );
-      return TokenModel.fromJson(response.data!);
+      return _token(ApiConstants.login, response.data);
     } on DioException catch (e) {
       throw _credentialError(e);
     }
@@ -76,7 +77,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         },
         options: Options(),
       );
-      return TokenModel.fromJson(response.data!);
+      return _token(ApiConstants.pinLogin, response.data);
     } on DioException catch (e) {
       throw _credentialError(e);
     }
@@ -90,7 +91,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: data,
         options: Options(),
       );
-      return TokenModel.fromJson(response.data!);
+      return _token(ApiConstants.register, response.data);
     } on DioException {
       // The repository maps 409/422/429/network to typed failures.
       rethrow;
@@ -101,7 +102,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> getCurrentUser() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(ApiConstants.me);
-      return UserModel.fromJson(response.data!);
+      return ApiParse.guard<UserModel>(
+        ApiConstants.me,
+        response.data,
+        UserModel.fromJson,
+        expected: _userShape,
+      );
     } on DioException {
       rethrow;
     }
@@ -143,6 +149,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       rethrow;
     }
   }
+
+  TokenModel _token(String endpoint, Object? body) => ApiParse.guard(
+        endpoint,
+        body,
+        TokenModel.fromJson,
+        expected: {
+          'access_token': 'string',
+          'refresh_token': 'string',
+          'token_type': 'string',
+          'tenant_id': 'string?',
+          'user': 'map?',
+          for (final e in _userShape.entries) 'user.${e.key}': e.value,
+        },
+      );
+
+  /// Wire types of the user block (`UserInfo` in the backend), used only to
+  /// name the offending field when parsing fails.
+  static const _userShape = <String, String>{
+    'id': 'string',
+    'full_name': 'string',
+    'phone': 'string?',
+    'business_id': 'string?',
+    'branch_id': 'string?',
+    'business_name': 'string?',
+    'business_type_code': 'string?',
+    'business_slug': 'string?',
+    'roles': 'list?',
+    'permission_keys': 'list?',
+    'branch_ids': 'list?',
+  };
 
   /// 401 on a credential endpoint is a bad password/PIN. Everything else
   /// (429, 409, 422, network) is rethrown so the repository can map it to a

@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'production_order_model.freezed.dart';

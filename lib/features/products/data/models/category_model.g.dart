@@ -13,7 +13,7 @@ _$CategoryModelImpl _$$CategoryModelImplFromJson(Map<String, dynamic> json) =>
       parentId: json['parent_id'] as String?,
       name: json['name'] as String,
       slug: json['slug'] as String,
-      sortOrder: (json['sort_order'] as num?)?.toInt(),
+      sortOrder: JsonNum.intOrNull(json['sort_order']),
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,

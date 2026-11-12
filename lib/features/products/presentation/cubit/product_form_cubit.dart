@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_config.dart';
 import 'package:frantend/core/services/image_upload_service.dart';
+import 'package:frantend/core/utils/logger.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/products/data/models/variation_model.dart';
@@ -31,7 +32,11 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     required SetProductPriceUseCase setProductPriceUseCase,
     required ImageUploadService imageUploadService,
     required AuthLocalDataSource authLocalDataSource,
-  })  : _getProductById = getProductByIdUseCase,
+    Future<String?> Function()? localDefaultPriceListId,
+    Future<void> Function(Map<String, dynamic> priceListItem)? onPriceSaved,
+  })  : _localDefaultPriceListId = localDefaultPriceListId,
+        _onPriceSaved = onPriceSaved,
+        _getProductById = getProductByIdUseCase,
         _createProduct = createProductUseCase,
         _updateProduct = updateProductUseCase,
         _addVariation = addVariationUseCase,
@@ -53,6 +58,14 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   final SetProductPriceUseCase _setProductPrice;
   final ImageUploadService _imageUpload;
   final AuthLocalDataSource _authLocal;
+
+  /// Default price list from the pulled (local) data, if wired.
+  final Future<String?> Function()? _localDefaultPriceListId;
+
+  /// Called after a price was saved, with the saved `price_list_item` (same
+  /// keys as the sync feed), so the local copy (POS, product lists) has it at
+  /// once and a pull can follow.
+  final Future<void> Function(Map<String, dynamic> priceListItem)? _onPriceSaved;
   final ImagePicker _imagePicker = ImagePicker();
 
   Future<bool> _canManagePrices() async {
@@ -73,19 +86,47 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     return defaultVar?.id;
   }
 
-  Future<String?> _resolveDefaultPriceListId() async {
-    if (state.defaultPriceListId != null) return state.defaultPriceListId;
+  /// Resolves the default retail price list: cache -> local data -> server list
+  /// -> ask the server to create it. Returns the server's message when it fails,
+  /// so the user sees the real reason instead of a generic error.
+  Future<({String? id, String? error})> _resolveDefaultPriceList() async {
+    if (state.defaultPriceListId != null) {
+      return (id: state.defaultPriceListId, error: null);
+    }
 
+    try {
+      final local = await _localDefaultPriceListId?.call();
+      if (local != null) return (id: local, error: null);
+      AppLogger.debug('Price list lookup: none in local data (price_list entity empty)');
+    } catch (e) {
+      AppLogger.warning('Price list lookup: local read failed (${e.runtimeType})');
+    }
+
+    String? error;
     final listsResult = await _getPriceLists();
-    return listsResult.fold((_) => null, (lists) {
-      if (lists.isEmpty) return null;
-      return lists
-          .firstWhere(
-            (l) => l.isDefault,
-            orElse: () => lists.first,
-          )
-          .id;
-    });
+    final online = listsResult.fold<String?>(
+      (failure) {
+        error = failure.message;
+        AppLogger.warning('Price list lookup: GET /prices/lists failed: ${failure.message}');
+        return null;
+      },
+      (lists) {
+        if (lists.isEmpty) return null;
+        return lists.firstWhere((l) => l.isDefault, orElse: () => lists.first).id;
+      },
+    );
+    if (online != null) return (id: online, error: null);
+    if (error != null) return (id: null, error: error);
+
+    AppLogger.warning('Price list lookup: server has none, creating default');
+    final created = await _getPriceLists.createDefault();
+    return created.fold(
+      (failure) {
+        AppLogger.warning('Price list create failed: ${failure.message}');
+        return (id: null, error: failure.message);
+      },
+      (list) => (id: list.id, error: null),
+    );
   }
 
   void clearPriceSaveSuccess() =>
@@ -113,7 +154,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         );
       },
       (price) async {
-        final listId = price?.priceListId ?? await _resolveDefaultPriceListId();
+        final listId =
+            price?.priceListId ?? (await _resolveDefaultPriceList()).id;
         emit(
           state.copyWith(
             isLoadingPrice: false,
@@ -147,11 +189,12 @@ class ProductFormCubit extends Cubit<ProductFormState> {
       return false;
     }
 
-    final listId = await _resolveDefaultPriceListId();
+    final resolved = await _resolveDefaultPriceList();
+    final listId = resolved.id;
     if (listId == null) {
       emit(
         state.copyWith(
-          priceError: 'No price list configured for this business',
+          priceError: resolved.error ?? 'No price list configured for this business',
           priceSaveSuccess: false,
         ),
       );
@@ -168,8 +211,10 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     };
 
     final result = await _setProductPrice(productId, listId, body);
-    return result.fold(
+    Map<String, dynamic>? savedItem;
+    final saveOutcome = result.fold(
       (failure) {
+        AppLogger.warning('Set price failed: ${failure.message}');
         emit(
           state.copyWith(
             isSavingPrice: false,
@@ -180,6 +225,17 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         return false;
       },
       (saved) {
+        if (saved.id != null) {
+          savedItem = {
+            'id': saved.id,
+            'price_list_id': saved.priceListId ?? listId,
+            'product_id': productId,
+            'variation_id': saved.variationId ?? variationId,
+            'unit_price': saved.unitPrice ?? trimmed,
+            'min_qty': saved.minQty ??
+                (minQty == null || minQty.trim().isEmpty ? '1' : minQty.trim()),
+          };
+        }
         emit(
           state.copyWith(
             isSavingPrice: false,
@@ -194,6 +250,15 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         return true;
       },
     );
+    if (saveOutcome) {
+      // Put the new price into the local copy so POS and product lists show it.
+      try {
+        await _onPriceSaved?.call(savedItem ?? const {});
+      } catch (e) {
+        AppLogger.warning('Refresh after price save failed (${e.runtimeType})');
+      }
+    }
+    return saveOutcome;
   }
 
   void initCreate() {

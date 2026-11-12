@@ -24,7 +24,7 @@ class User extends Equatable {
   final String? businessSlug;
   final List<String> roles;
   final List<String> permissionKeys;
-  final int? permissionsVersion;
+  final String? permissionsVersion;
   final List<String> branchIds;
 
   @override

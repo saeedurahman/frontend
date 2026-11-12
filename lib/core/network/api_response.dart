@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'api_response.g.dart';

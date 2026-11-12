@@ -14,6 +14,7 @@ class PreferencesStorage {
   static const String _idleLockMinutesKey = 'idle_lock_minutes';
   static const String _allowBelowStockKey = 'offline_allow_below_stock';
   static const String _showSyncDetailsKey = 'offline_show_sync_details';
+  static const String _askQuantityOnTapKey = 'pos_ask_quantity_on_tap';
 
   /// Default inactivity before the PIN lock appears. 0 disables auto-lock.
   static const int defaultIdleLockMinutes = 10;
@@ -53,6 +54,13 @@ class PreferencesStorage {
 
   Future<bool> setShowSyncDetails(bool value) =>
       _prefs.setBool(_showSyncDetailsKey, value);
+
+  /// POS: tapping a product opens the quantity calculator (default) instead
+  /// of adding one unit straight away.
+  bool getAskQuantityOnTap() => _prefs.getBool(_askQuantityOnTapKey) ?? true;
+
+  Future<bool> setAskQuantityOnTap(bool value) =>
+      _prefs.setBool(_askQuantityOnTapKey, value);
 
   Future<bool> clear() => _prefs.clear();
 }

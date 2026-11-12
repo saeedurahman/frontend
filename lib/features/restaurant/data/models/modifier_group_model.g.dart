@@ -14,7 +14,7 @@ _$ModifierModelImpl _$$ModifierModelImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       priceDelta: json['price_delta'] as String? ?? '0',
       isActive: json['is_active'] as bool? ?? true,
-      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
     );
@@ -39,10 +39,10 @@ _$ModifierGroupModelImpl _$$ModifierGroupModelImplFromJson(
   businessId: json['business_id'] as String,
   name: json['name'] as String,
   selectionType: json['selection_type'] as String,
-  minSelections: (json['min_selections'] as num?)?.toInt() ?? 0,
-  maxSelections: (json['max_selections'] as num?)?.toInt(),
+  minSelections: JsonNum.intOrNull(json['min_selections']) ?? 0,
+  maxSelections: JsonNum.intOrNull(json['max_selections']),
   isRequired: json['is_required'] as bool? ?? false,
-  sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+  sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
   isActive: json['is_active'] as bool? ?? true,
   modifiers: json['modifiers'] == null
       ? const []

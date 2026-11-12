@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:frantend/features/audit/data/models/audit_log_model.dart';
 
 class PaginatedAuditLogsModel {
@@ -18,9 +19,9 @@ class PaginatedAuditLogsModel {
         : <AuditLogModel>[];
 
     return PaginatedAuditLogsModel(
-      total: (json['total'] as num?)?.toInt() ?? items.length,
-      skip: (json['skip'] as num?)?.toInt() ?? 0,
-      limit: (json['limit'] as num?)?.toInt() ?? items.length,
+      total: JsonNum.intOr(json['total'], items.length),
+      skip: JsonNum.intOr(json['skip'], 0),
+      limit: JsonNum.intOr(json['limit'], items.length),
       items: items,
     );
   }

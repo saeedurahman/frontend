@@ -19,7 +19,7 @@ _$SaleLineModelImpl _$$SaleLineModelImplFromJson(Map<String, dynamic> json) =>
       taxAmount: json['tax_amount'] as String?,
       lineTotal: json['line_total'] as String?,
       notes: json['notes'] as String?,
-      lineOrder: (json['line_order'] as num?)?.toInt(),
+      lineOrder: JsonNum.intOrNull(json['line_order']),
       productName: json['product_name'] as String?,
       variationName: json['variation_name'] as String?,
       returnedQty: json['returned_qty'] as String? ?? '0',

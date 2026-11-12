@@ -51,7 +51,7 @@ const managerKeys = <String>[
 User makeUser({
   String role = 'cashier',
   List<String> keys = const [],
-  int? version,
+  String? version,
   List<String> branchIds = const [],
   String id = 'u1',
 }) =>

@@ -67,9 +67,9 @@ Map<String, dynamic> _$$StockMovementModelImplToJson(
 _$PaginatedStockMovementsModelImpl _$$PaginatedStockMovementsModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$PaginatedStockMovementsModelImpl(
-  total: (json['total'] as num).toInt(),
-  skip: (json['skip'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
+  total: JsonNum.intOr(json['total']),
+  skip: JsonNum.intOr(json['skip']),
+  limit: JsonNum.intOr(json['limit']),
   items: (json['items'] as List<dynamic>)
       .map((e) => StockMovementModel.fromJson(e as Map<String, dynamic>))
       .toList(),

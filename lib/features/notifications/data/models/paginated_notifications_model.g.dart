@@ -9,10 +9,10 @@ part of 'paginated_notifications_model.dart';
 _$PaginatedNotificationsModelImpl _$$PaginatedNotificationsModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$PaginatedNotificationsModelImpl(
-  total: (json['total'] as num).toInt(),
-  unreadCount: (json['unread_count'] as num).toInt(),
-  skip: (json['skip'] as num).toInt(),
-  limit: (json['limit'] as num).toInt(),
+  total: JsonNum.intOr(json['total']),
+  unreadCount: JsonNum.intOr(json['unread_count']),
+  skip: JsonNum.intOr(json['skip']),
+  limit: JsonNum.intOr(json['limit']),
   items:
       (json['items'] as List<dynamic>?)
           ?.map((e) => NotificationModel.fromJson(e as Map<String, dynamic>))

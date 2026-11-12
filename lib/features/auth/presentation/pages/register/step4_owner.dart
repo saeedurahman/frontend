@@ -242,7 +242,6 @@ class _Step4OwnerPageState extends State<Step4OwnerPage> {
     final confirm = cubit.confirmPasswordController.text;
     final formState = cubit.step4FormKey.currentState;
 
-
     if (ownerName.isEmpty) {
       AppAlerts.showErrorMessage(context, 'Full name is required');
       return;

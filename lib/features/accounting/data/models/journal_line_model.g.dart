@@ -16,7 +16,7 @@ _$JournalLineModelImpl _$$JournalLineModelImplFromJson(
   debitAmount: json['debit_amount'] as String,
   creditAmount: json['credit_amount'] as String,
   description: json['description'] as String?,
-  lineOrder: (json['line_order'] as num?)?.toInt() ?? 0,
+  lineOrder: JsonNum.intOrNull(json['line_order']) ?? 0,
 );
 
 Map<String, dynamic> _$$JournalLineModelImplToJson(

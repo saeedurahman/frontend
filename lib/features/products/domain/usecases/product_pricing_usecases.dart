@@ -12,6 +12,14 @@ class GetPriceListsUseCase {
 
   Future<Either<Failure, List<PriceListModel>>> call() =>
       _repository.getPriceLists();
+
+  /// Creates the business's default retail list (used only when the server has none).
+  Future<Either<Failure, PriceListModel>> createDefault() =>
+      _repository.createPriceList(const {
+        'name': 'Retail',
+        'list_type': 'retail',
+        'is_default': true,
+      });
 }
 
 @injectable

@@ -105,16 +105,32 @@ class LocalCatalog {
         (byVariation['$v'] ??= []).add(b);
       }
     }
+    // Units decide whether the POS sells fractions (kg, litre) of the item.
+    final units = <String, Map<String, dynamic>?>{};
+    Future<Map<String, dynamic>?> unit(Object? id) async {
+      if (id == null) return null;
+      if (!units.containsKey('$id')) {
+        final u = await _store.entity('unit', '$id');
+        units['$id'] = u == null || u['name'] == null || u['symbol'] == null
+            ? null
+            : await _withBusiness(u);
+      }
+      return units['$id'];
+    }
+
+    final baseUnit = await unit(data['base_unit_id']);
     return ProductModel.fromJson({
       ...data,
       'product_type': data['product_type'] ?? 'standard',
       'tracking_type': data['tracking_type'] ?? 'none',
       if (category != null) 'category': await _withBusiness(category),
+      if (baseUnit != null) 'base_unit': baseUnit,
       'variations': [
         for (final v in variations)
           {
             ...await _withBusiness(v),
             'barcodes': byVariation['${v['id']}'] ?? const [],
+            if (await unit(v['unit_id']) != null) 'unit': await unit(v['unit_id']),
           },
       ],
       'barcodes': productBarcodes,
@@ -145,6 +161,9 @@ class LocalCatalog {
 
   // ── prices, tax, discounts ───────────────────────────────────────────
 
+  /// Id of the default (else first active) price list in the pulled data.
+  Future<String?> defaultPriceListId() => _defaultPriceListId();
+
   Future<String?> _defaultPriceListId() async {
     final lists = await _store.entities('price_list');
     Map<String, dynamic>? pick;
@@ -157,33 +176,123 @@ class LocalCatalog {
   }
 
   /// Unit price for [qty] from the default price list; null when none is set.
+  ///
+  /// The backend stores a price per product or per variation, so:
+  /// * the asked variation's own price wins, else the product-level price;
+  /// * with no [variationId] and no product-level price, the default
+  ///   variation's price is used (Product edit > Set Price saves it there);
+  /// * among those, the highest `min_qty` tier that [qty] reaches, and when
+  ///   no tier is reached, the base (lowest `min_qty`) price.
   Future<Decimal?> price(String productId, {String? variationId, Decimal? qty}) async {
     final listId = await _defaultPriceListId();
     if (listId == null) return null;
-    final items = await _store.entities('price_list_item',
-        where: 'parent_id = ?', args: [productId]);
-    final wanted = qty ?? Decimal.one;
-    Decimal? best;
-    var bestExact = false;
-    var bestMin = Decimal.parse('-1');
-    for (final i in items) {
-      if ('${i['price_list_id']}' != listId) continue;
-      final v = i['variation_id']?.toString();
-      if (v != null && v != variationId) continue;
-      final min = Decimal.tryParse('${i['min_qty'] ?? 1}') ?? Decimal.one;
-      if (min > wanted) continue;
-      final exact = v != null;
-      final better = best == null ||
-          (exact && !bestExact) ||
-          (exact == bestExact && min > bestMin);
-      if (better) {
-        best = Decimal.tryParse('${i['unit_price']}');
-        bestExact = exact;
-        bestMin = min;
-      }
+    final items = [
+      for (final i in await _store.entities('price_list_item',
+          where: 'parent_id = ?', args: [productId]))
+        if ('${i['price_list_id']}' == listId && i['deleted_at'] == null) i,
+    ];
+    if (items.isEmpty) return null;
+
+    final productLevel = [
+      for (final i in items)
+        if (i['variation_id'] == null) i,
+    ];
+    var target = variationId;
+    if (target == null && productLevel.isEmpty) {
+      target = await _defaultVariationId(productId, items);
     }
-    return best;
+    final exact = [
+      for (final i in items)
+        if (target != null && '${i['variation_id']}' == target) i,
+    ];
+
+    final wanted = qty ?? Decimal.one;
+    return _tierPrice(exact, wanted) ??
+        _tierPrice(productLevel, wanted) ??
+        _basePrice(exact) ??
+        _basePrice(productLevel);
   }
+
+  /// The product's default variation (else its only one) from pulled data;
+  /// falls back to the single variation the price [items] point at.
+  Future<String?> _defaultVariationId(
+    String productId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    final variations = await _store.entities('product_variation',
+        where: 'parent_id = ?', args: [productId]);
+    for (final v in variations) {
+      if (v['is_default'] == true) return '${v['id']}';
+    }
+    if (variations.length == 1) return '${variations.first['id']}';
+    final priced = {for (final i in items) '${i['variation_id']}'};
+    return priced.length == 1 ? priced.first : null;
+  }
+
+  static Decimal _minQty(Map<String, dynamic> item) =>
+      Decimal.tryParse('${item['min_qty'] ?? 1}') ?? Decimal.one;
+
+  /// Price of the highest tier whose `min_qty` is reached by [wanted].
+  static Decimal? _tierPrice(List<Map<String, dynamic>> items, Decimal wanted) {
+    Map<String, dynamic>? best;
+    for (final i in items) {
+      final min = _minQty(i);
+      if (min > wanted) continue;
+      if (best == null || min > _minQty(best)) best = i;
+    }
+    return best == null ? null : Decimal.tryParse('${best['unit_price']}');
+  }
+
+  /// Price of the lowest tier (used when the quantity reaches none).
+  static Decimal? _basePrice(List<Map<String, dynamic>> items) {
+    Map<String, dynamic>? base;
+    for (final i in items) {
+      if (base == null || _minQty(i) < _minQty(base)) base = i;
+    }
+    return base == null ? null : Decimal.tryParse('${base['unit_price']}');
+  }
+
+  /// Writes a price the server just accepted (`POST /prices/lists/{id}/items`)
+  /// into the local copy, in the shape the pull delivers, so the POS has it
+  /// before the next pull. The pull later replaces the row (same id).
+  Future<void> rememberPrice(Map<String, dynamic> item) async {
+    final id = item['id']?.toString();
+    final listId = item['price_list_id']?.toString();
+    if (id == null || listId == null || item['product_id'] == null) return;
+    await _store.transaction(() async {
+      if (await _store.entity('price_list', listId) == null) {
+        // The list itself has not been pulled yet (it was just created).
+        final hasDefault = (await _store.entities('price_list'))
+            .any((l) => l['is_default'] == true && l['is_active'] != false);
+        await _store.putEntity(
+          'price_list',
+          listId,
+          await _withBusiness({
+            'id': listId,
+            'name': 'Retail',
+            'list_type': 'retail',
+            'is_default': !hasDefault,
+            'is_active': true,
+          }),
+        );
+      }
+      await _store.putEntity(
+        'price_list_item',
+        id,
+        await _withBusiness({
+          'id': id,
+          'price_list_id': listId,
+          'product_id': '${item['product_id']}',
+          'variation_id': item['variation_id']?.toString(),
+          'unit_price': '${item['unit_price']}',
+          'min_qty': '${item['min_qty'] ?? '1'}',
+        }),
+      );
+    });
+  }
+
+  /// Fires when prices in the local copy changed (a pull or [rememberPrice]).
+  Stream<void> get priceChanges => _store.priceChanges;
 
   Future<List<TaxRateModel>> taxRates() async {
     final rows = await _store.entities('tax_rate');

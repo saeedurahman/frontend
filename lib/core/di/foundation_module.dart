@@ -57,6 +57,14 @@ import 'package:frantend/features/pos/domain/repositories/pos_repository.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
+import 'package:frantend/core/services/image_upload_service.dart';
+import 'package:frantend/features/products/domain/usecases/add_barcode_usecase.dart';
+import 'package:frantend/features/products/domain/usecases/add_variation_usecase.dart';
+import 'package:frantend/features/products/domain/usecases/create_product_usecase.dart';
+import 'package:frantend/features/products/domain/usecases/product_pricing_usecases.dart'
+    as pricing;
+import 'package:frantend/features/products/domain/usecases/update_product_usecase.dart';
+import 'package:frantend/features/products/presentation/cubit/product_form_cubit.dart';
 import 'package:frantend/features/products/domain/usecases/get_categories_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_products_usecase.dart';
@@ -324,6 +332,30 @@ void registerFoundationServices(GetIt sl) {
     );
   }
 
+  // Product form: price lookups read the pulled data first, and a saved price
+  // is pulled back so POS / product lists show it straight away.
+  if (sl.isRegistered<ProductFormCubit>()) sl.unregister<ProductFormCubit>();
+  sl.registerFactory<ProductFormCubit>(
+    () => ProductFormCubit(
+      getProductByIdUseCase: sl<GetProductByIdUseCase>(),
+      createProductUseCase: sl<CreateProductUseCase>(),
+      updateProductUseCase: sl<UpdateProductUseCase>(),
+      addVariationUseCase: sl<AddVariationUseCase>(),
+      addBarcodeUseCase: sl<AddBarcodeUseCase>(),
+      getPriceListsUseCase: sl<pricing.GetPriceListsUseCase>(),
+      getProductPriceUseCase: sl<pricing.GetProductPriceUseCase>(),
+      setProductPriceUseCase: sl<pricing.SetProductPriceUseCase>(),
+      imageUploadService: sl<ImageUploadService>(),
+      authLocalDataSource: sl<AuthLocalDataSource>(),
+      localDefaultPriceListId: sl<LocalCatalog>().defaultPriceListId,
+      // Local copy first (POS shows it at once), then a pull to confirm it.
+      onPriceSaved: (item) async {
+        await sl<LocalCatalog>().rememberPrice(item);
+        await sl<SyncEngine>().syncNow(manual: true);
+      },
+    ),
+  );
+
   if (sl.isRegistered<PosCubit>()) sl.unregister<PosCubit>();
   sl.registerFactory<PosCubit>(
     () => PosCubit(
@@ -358,6 +390,8 @@ void registerFoundationServices(GetIt sl) {
       getCustomerBalanceUseCase:
           customers_uc.GetCustomerBalanceUseCase(sl<LocalCustomersRepository>()),
       offlinePolicy: sl<OfflinePolicy>(),
+      priceChanges: sl<LocalCatalog>().priceChanges,
+      askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,
     ),
   );
 }

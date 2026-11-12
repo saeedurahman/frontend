@@ -15,7 +15,7 @@ _$$ProductionOrderBomSummaryModelImplFromJson(Map<String, dynamic> json) =>
       productName: json['product_name'] as String,
       variationId: json['variation_id'] as String?,
       outputQty: json['output_qty'] as String,
-      version: (json['version'] as num?)?.toInt() ?? 1,
+      version: JsonNum.intOrNull(json['version']) ?? 1,
     );
 
 Map<String, dynamic> _$$ProductionOrderBomSummaryModelImplToJson(

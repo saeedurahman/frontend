@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/phone_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/router/route_guards.dart';
@@ -75,8 +76,10 @@ class RegisterCubit extends Cubit<RegisterState> {
           ? null
           : branchPhoneController.text.trim(),
       ownerName: ownerNameController.text.trim(),
-      ownerPhone: ownerPhoneNumber?.completeNumber ??
-          ownerPhoneController.text.trim(),
+      ownerPhone: PhoneInput.cleanE164(
+        ownerPhoneNumber?.completeNumber ??
+            PhoneInput.toE164('92', ownerPhoneController.text),
+      ),
       password: passwordController.text,
       confirmPassword: confirmPasswordController.text,
     );

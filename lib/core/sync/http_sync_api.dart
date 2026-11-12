@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frantend/core/sync/sync_models.dart';
+import 'package:frantend/core/utils/json_num.dart';
 
 /// [SyncApi] over the authenticated Dio client.
 ///
@@ -35,7 +36,7 @@ class HttpSyncApi implements SyncApi {
       if (branchId != null) 'branch_id': branchId,
       'device_id': await _deviceId(),
     });
-    return PullPage.fromJson(json);
+    return _parse('/sync/pull', json, PullPage.fromJson);
   }
 
   @override
@@ -45,7 +46,7 @@ class HttpSyncApi implements SyncApi {
       if (pageToken != null) 'page_token': pageToken,
       'device_id': await _deviceId(),
     });
-    return SnapshotPage.fromJson(json);
+    return _parse('/sync/snapshot', json, SnapshotPage.fromJson);
   }
 
   @override
@@ -65,7 +66,11 @@ class HttpSyncApi implements SyncApi {
         },
         options: _options,
       );
-      return PushResponse.fromJson(response.data ?? const {});
+      return _parse<PushResponse>(
+        '/sync/push',
+        response.data ?? const {},
+        PushResponse.fromJson,
+      );
     } on DioException catch (e) {
       throw mapError(e);
     }
@@ -82,10 +87,24 @@ class HttpSyncApi implements SyncApi {
       'skip': skip,
       'limit': limit,
     });
-    return [
-      for (final item in (json['items'] as List? ?? const []))
-        FlaggedSale.fromJson(Map<String, dynamic>.from(item as Map)),
-    ];
+    return _parse('/sync/flags', json, (j) => [
+          for (final item in (j['items'] as List? ?? const []))
+            FlaggedSale.fromJson(Map<String, dynamic>.from(item as Map)),
+        ]);
+  }
+
+  /// A payload the app cannot read is a server-side answer problem, not a
+  /// crash: surface it as the typed sync error (already logged by ApiParse).
+  static T _parse<T>(
+    String endpoint,
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) parse,
+  ) {
+    try {
+      return ApiParse.guard(endpoint, json, parse);
+    } on ResponseParseException catch (e) {
+      throw SyncServerException(e.userMessage);
+    }
   }
 
   Future<Map<String, dynamic>> _get(

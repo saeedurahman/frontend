@@ -55,6 +55,8 @@ abstract class ProductsRepository {
   Future<Either<Failure, UnitModel>> createUnit(Map<String, dynamic> body);
 
   Future<Either<Failure, List<PriceListModel>>> getPriceLists();
+
+  Future<Either<Failure, PriceListModel>> createPriceList(Map<String, dynamic> body);
   Future<Either<Failure, ProductPriceModel?>> getProductPrice(
     String productId, {
     String? variationId,

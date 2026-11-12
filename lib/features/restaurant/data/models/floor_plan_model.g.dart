@@ -12,7 +12,7 @@ _$FloorPlanModelImpl _$$FloorPlanModelImplFromJson(Map<String, dynamic> json) =>
       businessId: json['business_id'] as String,
       branchId: json['branch_id'] as String,
       name: json['name'] as String,
-      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       layoutJson: json['layout_json'] == null
           ? const {}
@@ -42,7 +42,7 @@ _$FloorPlanWithTablesModelImpl _$$FloorPlanWithTablesModelImplFromJson(
   businessId: json['business_id'] as String,
   branchId: json['branch_id'] as String,
   name: json['name'] as String,
-  sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+  sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
   isActive: json['is_active'] as bool? ?? true,
   layoutJson: json['layout_json'] == null
       ? const {}
@@ -97,7 +97,7 @@ _$DiningTableModelImpl _$$DiningTableModelImplFromJson(
   branchId: json['branch_id'] as String,
   floorPlanId: json['floor_plan_id'] as String?,
   tableNumber: json['table_number'] as String,
-  capacity: (json['capacity'] as num?)?.toInt() ?? 4,
+  capacity: JsonNum.intOrNull(json['capacity']) ?? 4,
   status: json['status'] as String,
   posX: json['pos_x'] as String?,
   posY: json['pos_y'] as String?,

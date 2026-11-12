@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:equatable/equatable.dart';
 
 /// Wire shapes of the offline sync API (backend README, "Offline sync").
@@ -15,7 +16,7 @@ class SyncChange extends Equatable {
         entity: json['entity'] as String,
         id: json['id'].toString(),
         op: json['op'] as String,
-        seq: (json['seq'] as num?)?.toInt() ?? 0,
+        seq: JsonNum.intOr(json['seq']),
         data: json['data'] == null
             ? null
             : Map<String, dynamic>.from(json['data'] as Map),

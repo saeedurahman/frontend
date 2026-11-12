@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/utils/phone_input.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
@@ -41,6 +42,8 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
   late final TextEditingController _controller;
   late String _countryCode;
   String? _hintText;
+  String _dialCode = '92';
+  String? _trunkPrefix = '0';
 
   @override
   void initState() {
@@ -48,6 +51,7 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
     _controller = widget.controller ?? TextEditingController();
     _countryCode = widget.initialCountryCode ?? 'PK';
     _loadExampleHint(_countryCode);
+    _loadDialInfo(_countryCode);
     _parseInitialNumber();
   }
 
@@ -59,10 +63,22 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
       final util = dlib.PhoneNumberUtil.instance;
       final parsed = util.parse(full, _countryCode);
       _countryCode = util.getRegionCodeForCountryCode(parsed.countryCode);
+      _loadDialInfo(_countryCode);
       _controller.text = parsed.nationalNumber.toString();
       _loadExampleHint(_countryCode);
     } catch (_) {
       // Keep defaults if parsing fails.
+    }
+  }
+
+  void _loadDialInfo(String iso) {
+    try {
+      final util = dlib.PhoneNumberUtil.instance;
+      _dialCode = util.getCountryCodeForRegion(iso).toString();
+      final ndd = util.getNddPrefixForRegion(iso, true);
+      _trunkPrefix = (ndd == null || ndd.isEmpty) ? null : ndd;
+    } catch (_) {
+      // Keep the previous dial code / trunk prefix.
     }
   }
 
@@ -76,6 +92,12 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
     } catch (_) {
       _hintText = null;
     }
+  }
+
+  String? _lengthError(PhoneNumber? phone) {
+    final n = phone?.number ?? '';
+    final max = PhoneInput.maxE164Digits - _dialCode.length;
+    return n.length >= 7 && n.length <= max ? null : 'Invalid Mobile Number';
   }
 
   @override
@@ -114,7 +136,16 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
                 IntlPhoneField(
                   controller: _controller,
                   initialCountryCode: _countryCode,
-                  disableLengthCheck: widget.disableLengthCheck,
+                  // The library cap counts a typed 0 / pasted +92 and cut the
+                  // last digit; length is checked on normalised digits below.
+                  disableLengthCheck: true,
+                  inputFormatters: [
+                    NationalPhoneFormatter(
+                      dialCode: _dialCode,
+                      trunkPrefix: _trunkPrefix,
+                    ),
+                  ],
+                  validator: widget.disableLengthCheck ? null : _lengthError,
                   autovalidateMode: widget.autovalidateMode,
                   dropdownIcon: const Icon(
                     Icons.arrow_drop_down,
@@ -164,6 +195,7 @@ class _AppPhoneNoFieldState extends State<AppPhoneNoField> {
                     setState(() {
                       _countryCode = country.code;
                       _loadExampleHint(_countryCode);
+                      _loadDialInfo(_countryCode);
                     });
                   },
                   onChanged: (phone) {

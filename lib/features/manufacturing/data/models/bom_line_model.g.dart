@@ -17,7 +17,7 @@ _$BomLineModelImpl _$$BomLineModelImplFromJson(Map<String, dynamic> json) =>
       qtyRequired: json['qty_required'] as String,
       unitId: json['unit_id'] as String?,
       wastagePct: json['wastage_pct'] as String? ?? '0',
-      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
     );
 
 Map<String, dynamic> _$$BomLineModelImplToJson(_$BomLineModelImpl instance) =>

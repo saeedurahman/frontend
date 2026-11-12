@@ -241,13 +241,12 @@ class _ProductCard extends StatefulWidget {
 class _ProductCardState extends State<_ProductCard> {
   bool _flash = false;
 
-  Future<void> _openPriceDialog() async {
+  /// Card tap / "Add to cart": the quantity calculator, then the cart (or
+  /// one unit straight away when "Ask quantity on product tap" is off). The
+  /// price popup only appears when the product has no price.
+  Future<void> _addToCart() async {
     final cubit = context.read<PosCubit>();
-    final added = await setProductPriceFromGrid(
-      context,
-      cubit,
-      widget.product,
-    );
+    final added = await openProductFromGrid(context, cubit, widget.product);
     if (added && mounted) _flashAdded();
   }
 
@@ -288,7 +287,7 @@ class _ProductCardState extends State<_ProductCard> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: _openPriceDialog,
+          onTap: _addToCart,
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -398,7 +397,7 @@ class _ProductCardState extends State<_ProductCard> {
                             color: AppColors.background,
                             borderRadius: BorderRadius.circular(8),
                             child: InkWell(
-                              onTap: _openPriceDialog,
+                              onTap: _addToCart,
                               borderRadius: BorderRadius.circular(8),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -454,7 +453,7 @@ class _ProductCardState extends State<_ProductCard> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               onSelected: (value) {
-                                if (value == 'add') _openPriceDialog();
+                                if (value == 'add') _addToCart();
                               },
                               itemBuilder: (context) => [
                                 const PopupMenuItem(

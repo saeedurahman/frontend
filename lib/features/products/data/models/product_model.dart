@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';

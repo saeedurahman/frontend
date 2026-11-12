@@ -48,7 +48,12 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     String? variationId,
     Decimal? manualUnitPrice,
     List<CartLineModifierModel> modifiers = const [],
+    Decimal? qty,
+    bool rememberManualPrice = true,
   }) async {
+    // How many units this call adds (the quantity calculator passes more
+    // than one); a repeated add of the same line still merges into it.
+    final addQty = qty != null && qty > Decimal.zero ? qty : Decimal.one;
     if (!skipDineInDelegation &&
         this is PosCubitDineInMixin &&
         (this as PosCubitDineInMixin).isDineIn) {
@@ -57,6 +62,8 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         variationId: variationId,
         manualUnitPrice: manualUnitPrice,
         modifiers: modifiers,
+        qty: addQty,
+        rememberManualPrice: rememberManualPrice,
       );
     }
 
@@ -107,36 +114,16 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         ? '${product.id}:$variationId'
         : product.id;
 
-    Decimal? resolvedPrice = manualUnitPrice;
-
-    if (resolvedPrice == null) {
-      var cached = Decimal.tryParse(state.priceCache[priceKey] ?? '');
-      // The background warm-up stores the default price under the product id;
-      // it is valid for single-variation products.
-      if ((cached == null || cached <= Decimal.zero) &&
-          (details?.variations.length ?? 0) <= 1) {
-        cached = Decimal.tryParse(state.priceCache[product.id] ?? '');
-      }
-      if (cached != null && cached > Decimal.zero) {
-        resolvedPrice = cached;
-      }
-    }
-
-    if (resolvedPrice == null) {
-      final priceResult = await _getProductPrice(product.id, variationId);
-      if (isClosed) return AddToCartOutcome.added;
-      await priceResult.fold((_) {}, (p) {
-        if (p != null && p > Decimal.zero) {
-          resolvedPrice = p;
-          _safeEmit(state.patch(
-            priceCache: {...state.priceCache, priceKey: p.toString()},
-          ));
-        }
-      });
-    }
+    final resolvedPrice = manualUnitPrice ??
+        await _resolveUnitPrice(
+          product.id,
+          variationId,
+          singleVariation: (details?.variations.length ?? 0) <= 1,
+        );
+    if (isClosed) return AddToCartOutcome.added;
 
     final needsManualPrice =
-        resolvedPrice == null || resolvedPrice! <= Decimal.zero;
+        resolvedPrice == null || resolvedPrice <= Decimal.zero;
     if (needsManualPrice) {
       debugPrint('[POS:Cubit] addToCart → needsPrice');
       return AddToCartOutcome(
@@ -150,7 +137,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       );
     }
 
-    if (manualUnitPrice != null) {
+    if (manualUnitPrice != null && rememberManualPrice) {
       _safeEmit(state.patch(
         priceCache: {
           ...state.priceCache,
@@ -160,7 +147,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     }
 
     final unitPrice =
-        (manualUnitPrice ?? resolvedPrice!) + cartModifierTotalPerUnit(modifiers);
+        (manualUnitPrice ?? resolvedPrice) + cartModifierTotalPerUnit(modifiers);
     final isManualPrice = manualUnitPrice != null;
 
     final cartKey = buildCartLineKey(
@@ -171,8 +158,8 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     final existingIndex =
         state.cartItems.indexWhere((item) => item.cartKey == cartKey);
     final requestedQty = existingIndex >= 0
-        ? state.cartItems[existingIndex].qty + Decimal.one
-        : Decimal.one;
+        ? state.cartItems[existingIndex].qty + addQty
+        : addQty;
 
     // Stock comes from the branch balances loaded in bulk; the network is only
     // asked when the cache cannot answer or says there is not enough (it may
@@ -220,7 +207,14 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
     if (existingIndex >= 0) {
       final item = state.cartItems[existingIndex];
-      final updated = item.copyWith(qty: item.qty + Decimal.one);
+      // A typed price applies to the whole merged line.
+      final updated = isManualPrice && item.unitPrice != unitPrice
+          ? item.copyWith(
+              qty: item.qty + addQty,
+              unitPrice: unitPrice,
+              priceManual: true,
+            )
+          : item.copyWith(qty: item.qty + addQty);
       final items = [...state.cartItems];
       items[existingIndex] = updated;
       _safeEmit(state.patch(cartItems: items));
@@ -237,7 +231,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         variationName: variation?.name,
         sku: variation?.sku ?? product.sku,
         unitPrice: unitPrice,
-        qty: Decimal.one,
+        qty: addQty,
         priceManual: isManualPrice,
         maxAvailableStock: availableStock,
         modifiers: modifiers,
@@ -261,6 +255,47 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
             message: lowStockWarning,
           );
   }
+
+  /// List price of one unit: the price cache, else the local price list
+  /// (never the network). Null when the product has no price.
+  Future<Decimal?> _resolveUnitPrice(
+    String productId,
+    String? variationId, {
+    required bool singleVariation,
+  }) async {
+    final priceKey =
+        variationId != null ? '$productId:$variationId' : productId;
+    var cached = Decimal.tryParse(state.priceCache[priceKey] ?? '');
+    // The background warm-up stores the default price under the product id;
+    // it is valid for single-variation products.
+    if ((cached == null || cached <= Decimal.zero) && singleVariation) {
+      cached = Decimal.tryParse(state.priceCache[productId] ?? '');
+    }
+    if (cached != null && cached > Decimal.zero) return cached;
+
+    final priceResult = await _getProductPrice(productId, variationId);
+    if (isClosed) return null;
+    return priceResult.fold((_) => null, (p) {
+      if (p == null || p <= Decimal.zero) return null;
+      _safeEmit(state.patch(
+        priceCache: {...state.priceCache, priceKey: p.toString()},
+      ));
+      return p;
+    });
+  }
+
+  /// What the quantity calculator shows as the unit price before anything is
+  /// added. [details] is the product from `getProductDetails`.
+  Future<Decimal?> listPriceFor(
+    String productId, {
+    String? variationId,
+    ProductModel? details,
+  }) =>
+      _resolveUnitPrice(
+        productId,
+        variationId,
+        singleVariation: (details?.variations.length ?? 0) <= 1,
+      );
 
   /// Live balance for one product/variation; refreshes the shared cache.
   Future<Decimal?> _fetchStock(String productId, String? variationId) async {

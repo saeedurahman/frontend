@@ -106,14 +106,26 @@ class SyncStore {
       _queuedInTx = false;
       return value;
     });
+    final prices = _pricesInTx;
+    _pricesInTx = false;
     if (!_changes.isClosed) _changes.add(null);
+    if (prices && !_priceChanges.isClosed) _priceChanges.add(null);
     if (queued && !_enqueued.isClosed) _enqueued.add(null);
     return result;
   }
 
   bool _queuedInTx = false;
 
+  /// Fires after a commit that touched a price list or one of its items
+  /// (a pull, or a price saved on this device), so open screens re-read prices.
+  final StreamController<void> _priceChanges = StreamController<void>.broadcast();
+  Stream<void> get priceChanges => _priceChanges.stream;
+  bool _pricesInTx = false;
+
+  static const _priceEntities = {'price_list', 'price_list_item'};
+
   void dispose() {
+    unawaited(_priceChanges.close());
     unawaited(_changes.close());
     unawaited(_enqueued.close());
   }
@@ -261,6 +273,7 @@ class SyncStore {
     }
     if (c.isDelete || c.data == null) {
       await _exec('DELETE FROM entities WHERE entity = ? AND id = ?', [c.entity, c.id]);
+      if (_priceEntities.contains(c.entity)) _pricesInTx = true;
       return;
     }
     await putEntity(c.entity, c.id, c.data!, seq: c.seq);
@@ -274,6 +287,7 @@ class SyncStore {
     int seq = 0,
   }) async {
     final idx = IndexedEntity.of(entity, data);
+    if (_priceEntities.contains(entity)) _pricesInTx = true;
     await _exec(
       'INSERT OR REPLACE INTO entities (entity, id, business_id, branch_id, '
       'parent_id, data, search_text, barcode, category_id, active, is_deleted, seq) '

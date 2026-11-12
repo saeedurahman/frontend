@@ -22,7 +22,7 @@ void main() {
       );
 
   setUp(() {
-    server = makeUser(role: 'cashier', keys: cashierKeys, version: 1);
+    server = makeUser(role: 'cashier', keys: cashierKeys, version: 'v1');
     fetches = 0;
     clock = DateTime(2026, 1, 1, 9);
   });
@@ -35,7 +35,7 @@ void main() {
 
     await c.startSession();
     expect(c.state.user, isNotNull);
-    expect(c.state.permissionsVersion, 1);
+    expect(c.state.permissionsVersion, 'v1');
     expect(fetches, 1);
     await c.close();
   });
@@ -50,7 +50,7 @@ void main() {
     server = makeUser(
       role: 'cashier',
       keys: [...cashierKeys, Perm.returnsView],
-      version: 2,
+      version: 'v2',
     );
     clock = clock.add(const Duration(minutes: 11));
     await c.refresh(force: true);
@@ -75,7 +75,7 @@ void main() {
     server = makeUser(
       role: 'cashier',
       keys: cashierKeys.where((k) => k != Perm.salesCreate).toList(),
-      version: 2,
+      version: 'v2',
     );
     await c.refresh(force: true);
     expect(c.state.can(Perm.salesCreate), isFalse);
@@ -86,7 +86,7 @@ void main() {
   test('a role change alone is also announced', () async {
     final c = build();
     await c.startSession();
-    server = makeUser(role: 'manager', keys: cashierKeys, version: 1);
+    server = makeUser(role: 'manager', keys: cashierKeys, version: 'v1');
     await c.refresh(force: true);
     expect(c.state.noticeSeq, 1);
     await c.close();
@@ -124,15 +124,15 @@ void main() {
   test('a new permissions_version triggers an immediate refresh', () async {
     final c = build();
     await c.startSession();
-    c.onPermissionsVersion(1); // same version: nothing
+    c.onPermissionsVersion('v1'); // same version: nothing
     await Future<void>.delayed(Duration.zero);
     expect(fetches, 1);
 
-    server = makeUser(role: 'cashier', keys: cashierKeys, version: 2);
-    c.onPermissionsVersion(2);
+    server = makeUser(role: 'cashier', keys: cashierKeys, version: 'v2');
+    c.onPermissionsVersion('v2');
     await Future<void>.delayed(Duration.zero);
     expect(fetches, 2);
-    expect(c.state.permissionsVersion, 2);
+    expect(c.state.permissionsVersion, 'v2');
     await c.close();
   });
 

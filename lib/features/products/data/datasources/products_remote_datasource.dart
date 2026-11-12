@@ -53,6 +53,7 @@ abstract class ProductsRemoteDataSource {
   Future<UnitModel> createUnit(Map<String, dynamic> body);
 
   Future<List<PriceListModel>> getPriceLists();
+  Future<PriceListModel> createPriceList(Map<String, dynamic> body);
   Future<ProductPriceModel?> getProductPrice(
     String productId, {
     String? variationId,
@@ -278,11 +279,20 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
     String priceListId,
     Map<String, dynamic> body,
   ) async {
-    final response = await _dio.put<Map<String, dynamic>>(
-      ApiConstants.productPriceInList(productId, priceListId),
-      data: body,
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceListItems(priceListId),
+      data: {...body, 'product_id': productId},
     );
     return ProductPriceModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PriceListModel> createPriceList(Map<String, dynamic> body) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceLists,
+      data: body,
+    );
+    return PriceListModel.fromJson(response.data ?? const {});
   }
 
   List<T> _toModelList<T>(

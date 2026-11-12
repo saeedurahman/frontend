@@ -1,4 +1,5 @@
 import 'package:frantend/features/auth/domain/entities/user.dart';
+import 'package:frantend/core/utils/json_num.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
@@ -47,9 +48,10 @@ class UserModel {
   @JsonKey(name: 'permission_keys')
   final List<String> permissionKeys;
 
-  /// Bumped by the backend whenever this user's permissions change.
-  @JsonKey(name: 'permissions_version')
-  final int? permissionsVersion;
+  /// Fingerprint (string) of roles + permissions + branch scope; changes
+  /// whenever the user's access changes. Never compare numerically.
+  @JsonKey(name: 'permissions_version', fromJson: JsonNum.stringOrNull)
+  final String? permissionsVersion;
 
   /// Branches the user is limited to. Empty = no branch restriction sent.
   @JsonKey(name: 'branch_ids', defaultValue: <String>[])

@@ -326,6 +326,17 @@ class ProductsRepositoryImpl implements ProductsRepository {
   }
 
   @override
+  Future<Either<Failure, PriceListModel>> createPriceList(
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.createPriceList(body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, ProductPriceModel?>> getProductPrice(
     String productId, {
     String? variationId,
