@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/brand/app_brand.dart';
-import 'package:frantend/core/identity/client_ids.dart';
 import 'package:frantend/core/identity/device_identity.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/core/platform/barcode_scanner_service.dart';
@@ -87,21 +86,6 @@ void main() {
     test('isUuidV4 rejects other shapes', () {
       expect(isUuidV4('not-a-uuid'), isFalse);
       expect(isUuidV4('123e4567-e89b-12d3-a456-426614174000'), isFalse); // v1
-    });
-  });
-
-  group('ClientIds.stamp', () {
-    test('adds a UUID id and leaves the input untouched', () {
-      final body = {'name': 'Ali'};
-      final stamped = ClientIds.stamp(body);
-      expect(isUuidV4(stamped['id'] as String), isTrue);
-      expect(body.containsKey('id'), isFalse);
-      expect(stamped['name'], 'Ali');
-    });
-
-    test('keeps an id that is already there (a retried sale)', () {
-      final stamped = ClientIds.stamp({'id': 'abc', 'x': 1});
-      expect(stamped['id'], 'abc');
     });
   });
 

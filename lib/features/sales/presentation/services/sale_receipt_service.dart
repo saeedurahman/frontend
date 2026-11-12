@@ -5,6 +5,8 @@ import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
+import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
@@ -33,6 +35,18 @@ abstract final class SaleReceiptService {
       ),
       (settings) => settings,
     );
+  }
+
+  /// `Receipt D3F9-0001 | Official INV-...` for a sale made on this device
+  /// (null for sales this device did not create). Reprints show both numbers
+  /// once the server has assigned the official one.
+  static Future<String?> numbersLine(String saleId) async {
+    try {
+      final row = await sl<SyncStore>().sale(saleId);
+      return row == null ? null : LocalSaleMapper.numbersLine(row);
+    } catch (_) {
+      return null;
+    }
   }
 
   static PdfPageFormat pageFormat(String paperSize, {required bool thermal}) {
@@ -79,6 +93,7 @@ abstract final class SaleReceiptService {
     final display =
         displaySettings ?? await resolveDisplaySettings(branchId: sale.branchId);
     final business = await resolveBusinessProfile();
+    final numbers = await numbersLine(sale.id);
     final doc = pw.Document();
     final date = sale.soldAt ?? sale.createdAt ?? DateTime.now().toIso8601String();
 
@@ -121,6 +136,8 @@ abstract final class SaleReceiptService {
                 'Sale: ${sale.saleNumber ?? sale.id}',
                 style: const pw.TextStyle(fontSize: 10),
               ),
+              if (numbers != null)
+                pw.Text(numbers, style: const pw.TextStyle(fontSize: 8)),
               pw.Divider(),
               ...sale.lines.map(
                 (line) => pw.Row(

@@ -189,6 +189,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
     if (isClosed) return AddToCartOutcome.added;
 
+    String? belowStockWarning;
     if (availableStock != null && availableStock < requestedQty) {
       debugPrint(
         '[POS:Cubit] addToCart → insufficientStock available=$availableStock requested=$requestedQty',
@@ -196,14 +197,18 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       final label = variation?.name != null
           ? '${product.name} (${variation!.name})'
           : product.name;
-      return AddToCartOutcome(
-        result: AddToCartResult.insufficientStock,
-        message:
-            'Insufficient stock for $label. Available: ${DecimalUtils.format(availableStock, fractionDigits: 4)}',
-      );
+      final shown = DecimalUtils.format(availableStock, fractionDigits: 4);
+      if (!_allowBelowStock) {
+        return AddToCartOutcome(
+          result: AddToCartResult.insufficientStock,
+          message: 'Insufficient stock for $label. Available: $shown',
+        );
+      }
+      belowStockWarning =
+          'Below stock: $label has $shown on record. Sold anyway.';
     }
 
-    final lowStockWarning = LowStockPolicy.warning(
+    final lowStockWarning = belowStockWarning ?? LowStockPolicy.warning(
       productName: product.name,
       minStockLevel: details?.minStockLevel,
       available: availableStock,

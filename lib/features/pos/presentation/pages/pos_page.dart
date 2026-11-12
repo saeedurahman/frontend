@@ -366,7 +366,7 @@ class _PosHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           SyncStatusChip(
-            onFailedTap: () => context.go(RouteNames.syncFailed),
+            onTap: (s) => context.go(s.failed > 0 ? RouteNames.syncFailed : RouteNames.sync),
           ),
           if (state.heldOrders.isNotEmpty && !state.isDineIn) ...[
             const SizedBox(width: 8),

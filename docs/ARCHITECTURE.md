@@ -5,9 +5,10 @@ and the mobile app **Pak Khata** (later). Both are built from the same code;
 the differences live in a small set of replaceable adapters and one brand
 object.
 
-Phase status: **4a (this document) = foundations and refactor.** The offline
-sync engine (Phase 4b) is *not* implemented. Until it exists the app is
-online-first and says so honestly (see [Failure behavior](#failure-behavior)).
+Phase status: **4a** (foundations and refactor) and **4b** (offline-first data
+layer, sync engine, offline POS flows) are both in. The local database is the
+source of truth for POS work; the network only moves data in the background.
+See [Offline-first data layer](#offline-first-data-layer-phase-4b).
 
 ## Layers
 
@@ -90,15 +91,14 @@ desktop-only requirement; do it with the mobile app).
 
 - `IdGenerator` (`UuidIdGenerator`): UUIDv4 for sale, payment, customer,
   expense, shift, return, held order and operation ids.
-- `ClientIds.stamp(body)` adds `id` to create requests (customer, expense,
-  expense/customer payments, return, shift); `SaleAttemptTracker.stamp` does it
-  for a sale and each of its payment lines, stable across retries.
+- Client ids are sent **only** where the sync contract accepts them: the `id`
+  of `customer.create`, `shift.open`, `sale.create` (+ each sale line) and the
+  optional ledger `id` of `customer.payment`. Ordinary online endpoints
+  (`POST /customers`, `/expenses`, ...) never receive a client id (the Phase 4a
+  `ClientIds` stamping was removed).
 - `DeviceIdentity`: a stable `device_id` (secure storage, survives logout and
-  tenant switch) and a device name (user-set or host name), for the sync engine.
-
-> The backend must accept a client-supplied `id` on those POSTs (it ignores
-> unknown fields today only if Pydantic is not set to `forbid`). If a create
-> endpoint starts returning 422 for `id`, disable it in `ClientIds.stamp`.
+  tenant switch) and a device name. Sent as `X-Device-ID` (and `device_id`)
+  on every request; devices register server-side on their first pull/push.
 
 ## Reachability (`core/connectivity`)
 
@@ -113,8 +113,8 @@ network adapter?".
 - Debounce: 2 consecutive failures before `offline`.
 - Backoff while offline: 2, 4, 8 ... capped at 60 s; steady 30 s while online.
 - Consumers: `SyncStatusSource`, `OfflineBanner`, auth/product repositories
-  (cached reads), `PosRepositoryImpl` (error wording), and the future sync
-  engine.
+  (cached reads) and the sync engine (skips automatic cycles while offline,
+  syncs the moment the probe turns online).
 
 HTTP timeouts (`TimeoutInterceptor`): 5 s connect/send/receive for everything,
 including POS-critical calls; 60 s only for `/analytics`, `/reports`,
@@ -143,58 +143,80 @@ an `Idempotency-Key`, so a manual retry cannot double-post.
 
 ## Local data lifecycle (`core/lifecycle`)
 
-| Event          | Drift tables | cached reads | offline hashes | PIN roster |
-| -------------- | ------------ | ------------ | -------------- | ---------- |
-| logout         | wiped        | wiped        | wiped          | kept       |
-| tenant switch  | wiped        | wiped        | wiped          | wiped      |
-| branch switch  | kept         | wiped        | kept           | kept       |
+| Event          | Drift + sync tables | cached reads | offline hashes | PIN roster |
+| -------------- | ------------------- | ------------ | -------------- | ---------- |
+| logout         | wiped               | wiped        | wiped          | kept       |
+| tenant switch  | wiped               | wiped        | wiped          | wiped      |
+| branch switch  | kept                | wiped        | kept           | kept       |
+| device revoked | wiped               | wiped        | wiped          | kept       |
 
-- Tenant switch is detected at login by comparing the new tenant id with the
-  last one stored on the device (`LocalDataLifecycle.onTenantSignedIn`).
-- **Logout is refused** while `PendingWorkGuard.pendingCount() > 0`
-  (`LogoutUseCase`; UI: `signOutWithGuard` shows a dialog). The shipped guard
-  (`NoPendingWorkGuard`) returns 0; the sync engine replaces it.
-- Side effect to know: parked (held) orders are local-only and are deleted on
-  logout. They are not "pending sync" work, so the guard does not protect them.
+- **Logout is refused** while `PendingWorkGuard` reports work (`LogoutUseCase`;
+  UI: `signOutWithGuard`). The real guard (`OutboxPendingWorkGuard`) counts
+  outbox ops that are pending, sending, failed or rejected, plus parked
+  (held) orders, which exist only on the device. The dialog lists the counts;
+  the **owner** can still sign out after a second confirmation
+  (`LogoutUseCase(force: true)`).
+- **Tenant switch** is detected at login (`onTenantSignedIn`). If the previous
+  business still has unsent work the login is refused with the same counts
+  (`PendingWorkException` -> `PendingWorkFailure`); nothing is wiped.
+- `403 device_revoked` -> `SessionServices.forceSignOut`: wipe, end the
+  session, tell the user why (no guard: the server will not accept anything
+  from this device any more).
+- The per-device receipt counter and device id survive every wipe.
 
-## Local schema (Drift, v6)
+## Local schema (Drift v7)
 
-Kept: `users_table` (signed-in profile and permissions), `master_data_cache_table`
-(JSON read cache), `held_orders_table` (parked carts, scoped per
-tenant/branch/cashier). Phase 4b adds the sync tables (outbox, per-entity
-mirrors, cursors) next to these.
+Drift table classes (generated code, unchanged): `users_table`,
+`master_data_cache_table`, `held_orders_table`.
 
-Removed in v6 (dropped by the `from < 6` migration): `sync_queue_table`,
-`pending_sales_table`, `sales_table`, `products_table`, `customers_table`.
-They only ever held mutations the server never saw and optimistic stock
-numbers. The generated `app_database.g.dart` was trimmed by hand because
-`build_runner` could not run; regenerate it when the toolchain allows and
-expect an identical result.
+Hand-written SQL (`core/sync/sync_schema.dart`, created through
+`customStatement` in `onCreate` / `onUpgrade(from < 7)`, **no codegen**):
+
+| table              | purpose |
+| ------------------ | ------- |
+| `entities`         | generic mirror of every pulled entity: `entity, id, business_id, branch_id, parent_id, data (JSON), search_text, barcode, category_id, active, is_deleted, seq`; indexes for name search, barcode, category, parent |
+| `stock_levels`     | server balances per product/variation/branch (pending local sales are subtracted at read time) |
+| `deferred_changes` | pulled rows held back because a local op for the same entity is unfinished |
+| `outbox`           | `op_id` PK, `type, payload, status, attempts, next_attempt_at, error_code, error_message, retryable, created_at, occurred_at, depends_on, entity, entity_id` |
+| `local_sales`      | client sale id, `op_id`, device `receipt_no` (e.g. `DA1B2-0001`), `official_number`, status, `sync_state` (pending/synced/failed/discarded), totals, `flags`, lines + payments as JSON, `server_synced_at` |
+| `local_shifts`     | client shift id, register, user, status, float, actual cash, `sync_state`, open/close op ids |
+| `sync_meta`        | key/value: `cursor`, `last_pull_at`, `last_push_at`, `permissions_fingerprint`, `lease`, `monotonic_last_seen`, `receipt_counter`, `snapshot_*`, settings cache, discard log |
+
+History: v6 dropped the Phase-3 fake-offline tables; v7 adds the tables above
+(additive; `held_orders`, `users`, `master_data_cache` untouched).
+`wipeTenantData()` clears all of them except the receipt counter.
 
 ## Failure behavior
 
-There is no longer any code path that reports a mutation as done when it was
-not:
+Nothing pretends. A sale is saved on the device in one transaction together
+with its outbox op, so it **cannot fail because of the network**; what the UI
+may say about it is exactly what is true:
 
-- The `OfflineInterceptor` (fake `202 Queued`) is gone.
-- `PosRepositoryImpl.createSale` returns `Left(NetworkFailure)` when the server
-  cannot be reached ("The sale was NOT saved ..."), never a draft
-  `OFFLINE-<n>` sale, and no longer decrements local stock.
-- A failed sale keeps its id (`SaleAttemptTracker`), so tapping "Complete
-  Sale" again is idempotent.
+- the receipt shows the **device receipt number**; the official number appears
+  only after the server confirmed (`sync_state = synced`), and reprints show
+  both;
+- a sale is never marked "synced" before the server answered `applied` or
+  `duplicate`;
+- rejected items stay visible (chip "N failed", Sync page, Failed items page)
+  until retried or discarded by the owner/manager.
 
-Consequence until Phase 4b: **a sale cannot be completed without the server.**
-The UI says so (offline banner, sync chip, error text).
+See [Failure handling](#failure-handling) for every server answer.
 
 ## UI primitives
 
-- `SyncStatusSource` (`core/sync/sync_status.dart`) feeds `SyncStatusChip`
-  (Online / Offline / Syncing / N pending / N failed), shown in the app shell
-  top bar, kitchen shell and POS header. `ProbeBackedSyncStatusSource` is
-  truthful about connectivity; pending/failed are stubbed to 0.
-- `OfflineBanner` (app shell) is driven by `ConnectivityProbe`.
-- `FailedItemsPage` (`/sync/failed`, open to any signed-in user) is a
-  skeleton; the chip links to it when `failed > 0`.
+- `SyncStatusChip` (Online / Offline / Syncing / N pending / N failed) in the
+  app shell, kitchen shell and POS header is driven by
+  `EngineSyncStatusSource` (probe + live outbox counters). Tap: Sync page, or
+  the failed-items page when something failed.
+- `OfflineBanner` (probe), `LeaseBanner` (grace / clock), "Preparing your data"
+  (`DataPreparationGate`, first snapshot or resync).
+- Pages: `/sync` (`SyncPage`: waiting list, last synced, **Sync now**),
+  `/sync/failed` (`FailedItemsPage`: plain-language reason, **Retry**,
+  **Discard** for owner/manager with confirmation and a log entry),
+  `/sync/flags` (`FlagsPage`: `GET /sync/flags`, owner/manager).
+- A snackbar announces "Sync finished: N sale(s) flagged for review".
+- Settings > Offline: allow selling below stock, show sync details, **Resync
+  all data** (refused while anything is unsent).
 
 ## Responsive foundation (`utils/responsive/adaptive_layout.dart`)
 
@@ -219,3 +241,135 @@ Widget --> Cubit --> UseCase --> Repository (interface)
 Reachability and sync status flow sideways: `ConnectivityProbe` ->
 `SyncStatusSource` -> chip/banner; the sync engine (4b) will consume the same
 probe.
+
+## Offline-first data layer (Phase 4b)
+
+Contract: backend README, "Offline sync" (`/sync/pull`, `/sync/snapshot`,
+`/sync/push`, `/sync/flags`, lease). Code: `lib/core/sync`, `lib/core/offline`.
+
+```
+ UI -> cubit -> use case -> repository ---read---> LocalCatalog (entities, stock_levels)
+                                       \--write--> OfflineWriter
+                                                     |  ONE transaction
+                                                     v
+                                    local record (local_sales / local_shifts / entities)
+                                    + outbox row (op_id, type, payload, depends_on)
+                                                     |  store.enqueued
+                                                     v
+                           SyncEngine  (single flight)  push -> pull -> extras
+                               |                |
+                          PushService      PullService  -> AccessCubit (permissions)
+                               |                |
+                           HttpSyncApi  <---- server (authoritative: FIFO, costing,
+                                               ledgers, official numbers)
+```
+
+### Single write path
+
+`OfflineWriter` is the only way POS data changes: `saveSale`, `createCustomer`,
+`recordCustomerPayment`, `createExpense`, `openShift`, `closeShift`,
+`createReturn`, `voidSale`. Each writes the local record and the outbox op in
+one `SyncStore.transaction`; a crash can leave neither half. There is no online
+branch: `POST /sales` and friends are no longer called from the app.
+Management screens (customers, expenses, returns, cash register, sales) keep
+their remote reads; the writes the counter needs use the same writer
+(`offline_decorators.dart`), registered over the generated repositories in
+`foundation_module.dart`.
+
+### Op lifecycle
+
+```
+              enqueue
+                 v
+   +-------> pending --(in a batch)--> sending --+-- applied | duplicate --> applied (done)
+   |            ^  ^                              |
+   |            |  +-- 5xx / offline / 429 / 413 -+   (released, attempt not counted)
+   |            |                                 +-- retryable error --> pending (+backoff)
+   |            |                                 |      5s 15s 60s 5m 15m, then failed
+   |   Retry    |                                 +-- rejected / conflict --> rejected (final)
+   +-- failed / rejected <------------------------+
+        (a rejected op is re-sent under a NEW op_id: the server remembers final answers)
+```
+
+- `depends_on` (customer -> sale -> payment, shift.open -> sales -> shift.close)
+  is honoured: an op is sent only after its dependencies are applied or earlier
+  in the same batch; one whose dependency needs attention is parked as
+  `failed / dependency_failed` and released when the dependency is retried.
+- Batch size `SYNC_MAX_OPS` (default 200, `--dart-define=SYNC_MAX_OPS`), halved on 413.
+- On start, `sending` ops are reset to `pending` (the response may have been
+  lost; the server answers `duplicate`).
+
+### Pull
+
+First install / `full_resync_required` / `invalid_cursor` / "Resync all data":
+paged `GET /sync/snapshot` (progress UI); the cursor from the snapshot is
+adopted only after the last page, and an interrupted snapshot resumes from the
+stored page token. Then `GET /sync/pull` while `has_more`. Each page and the
+cursor are written in **one transaction** (a crash re-delivers the page;
+upserts are idempotent). Rows with an unfinished local op for the same entity
+go to `deferred_changes` and are applied once that op is done. The user's
+permissions/branches are derived from the pulled `user` + `role` rows and
+applied to `AccessCubit` live. The cursor never depends on the device clock.
+
+### Scheduler
+
+Triggers: app start, resume, probe offline -> online, immediately after any
+enqueue (150 ms debounce), a timer (30 s while work is waiting, 5 min
+otherwise), manual **Sync now**. Single flight (overlaps coalesce into one
+re-run). Server unreachable: exponential backoff 5 s -> 5 min; 429 honours
+`Retry-After`. Automatic cycles skip a probe that says "offline"; manual sync
+does not. After a successful sync the engine refreshes best-effort extras:
+`/settings` (cached; default tax etc.), `/shifts/my-active` (a shift opened
+elsewhere becomes the local shift) and `/subscription/status` (fresh lease).
+
+### POS from local data
+
+Products: `LocalCatalog.products` uses indexed `search_text` / `barcode` /
+`category_id` columns (10 001 products: name/sku/barcode search ~20 ms, exact
+barcode and category page a few ms). Prices from the default price list (tiers
+by `min_qty`, variation prices win), tax from pulled `tax_rate`, totals with
+the shared `PricingEngine`. Stock shown = pulled `stock_levels` minus
+quantities of this device's unsynced sales. Selling below stock is a warning
+(owner switch in Settings, else the business `allow_negative_stock`, else
+allowed). Customer balance uses the app's convention (negative = owes):
+server balance - unsynced credit sales + unsynced payments; the credit limit
+check (`PaymentAllocator`) runs on that figure. Held orders stay local only.
+
+### Lease and subscription offline
+
+`LeaseService` stores the signed lease (from `/subscription/status`), verifies
+the Ed25519 signature locally against `--dart-define=LEASE_PUBLIC_KEY`
+(unpadded base64url, 32 bytes) over the canonical JSON of the four fields,
+checks the business, and guards the clock: refused if the device time is more
+than 5 minutes before the lease's `server_time` **or** before a time already
+seen (`monotonic_last_seen`); a fresh online lease resets that reference.
+Until `valid_until` the POS works; after it a warning banner for `GRACE_DAYS`
+(default 3, `--dart-define=GRACE_DAYS`); then `AuthGuard.setLeaseBlocked` routes
+to `/subscription-expired`. No key configured = not enforced. Online 402
+handling is unchanged.
+
+### Failure handling
+
+| server answer | what the app does |
+| ------------- | ----------------- |
+| `applied` / `duplicate` | op `applied`; sale gets official number + flags + `synced` |
+| `rejected` / `conflict`, not retryable | op `rejected` (final), plain-language reason; sale `failed`; user: Retry (new op id) or Discard (owner/manager, confirmed, logged) |
+| retryable error | back to `pending`, backoff 5s,15s,60s,5m,15m; after `SYNC_MAX_ATTEMPTS` (10) -> `failed` |
+| `subscription_*` retryable | stays `pending`, retried every 15 min without using up attempts |
+| `dependency_failed` | the dependant is parked `failed` until its parent is retried |
+| 403 `device_revoked` | ops stay safe, then wipe + forced logout + message |
+| 413 `batch_too_large` | halve the batch; a single oversized op -> `rejected payload_too_large` |
+| 429 | wait `Retry-After`, everything stays pending |
+| 5xx / timeout / offline | everything stays pending; backoff; status "Offline" / last error |
+| 400 `invalid_cursor`, `full_resync_required` | new snapshot (once per cycle) |
+| `restricted: true` (expired subscription) | only `settings` arrive; the cursor does not move |
+
+### Hand-edited generated code (cumulative)
+
+`app_database.g.dart` (Phase 4a trim; Phase 4b needs no change: the new tables
+are hand-written SQL), `injection.config.dart` (4a edits + removal of
+`PosRepositoryImpl`), localization `appTitle`. Phase 4b registrations live in
+`foundation_module.dart`, which also *replaces* generated registrations
+(`PosRepository`, `CustomersRepository`, `CashRegisterRepository`,
+`ExpensesRepository`, `ReturnsRepository`, `SalesRepository`, `PosCubit`), so a
+future `build_runner` run keeps working.

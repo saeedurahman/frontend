@@ -7,11 +7,14 @@ import 'package:frantend/core/sync/sync_status.dart';
 /// N failed. Tapping a "failed" chip opens the failed-items page via
 /// [onFailedTap].
 class SyncStatusChip extends StatelessWidget {
-  const SyncStatusChip({super.key, this.source, this.onFailedTap});
+  const SyncStatusChip({super.key, this.source, this.onFailedTap, this.onTap});
 
   /// Defaults to the registered [SyncStatusSource].
   final SyncStatusSource? source;
   final VoidCallback? onFailedTap;
+
+  /// Tap on the chip in any state (e.g. open the Sync page).
+  final ValueChanged<SyncStatus>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +24,14 @@ class SyncStatusChip extends StatelessWidget {
       initialData: src.current,
       builder: (context, snapshot) => SyncStatusChipView(
         status: snapshot.data ?? src.current,
-        onTap: (snapshot.data ?? src.current).kind == SyncStatusKind.failed
-            ? onFailedTap
-            : null,
+        onTap: _tapFor(snapshot.data ?? src.current),
       ),
     );
+  }
+
+  VoidCallback? _tapFor(SyncStatus status) {
+    if (onTap != null) return () => onTap!(status);
+    return status.kind == SyncStatusKind.failed ? onFailedTap : null;
   }
 }
 

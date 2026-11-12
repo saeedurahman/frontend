@@ -92,6 +92,14 @@ class AuthRepositoryImpl implements AuthRepository {
       await _seedPinDeviceCache(user);
       await _refreshBusinessSession();
       return Right(user);
+    } on PendingWorkException catch (e) {
+      // Another business is already on this device with unsent work.
+      return Left(PendingWorkFailure(
+        e.summary.total,
+        unsynced: e.summary.unsynced,
+        failed: e.summary.failed,
+        held: e.summary.held,
+      ));
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (e) {
@@ -140,6 +148,14 @@ class AuthRepositoryImpl implements AuthRepository {
       await _seedPinDeviceCache(user);
       await _refreshBusinessSession();
       return Right(user);
+    } on PendingWorkException catch (e) {
+      // Another business is already on this device with unsent work.
+      return Left(PendingWorkFailure(
+        e.summary.total,
+        unsynced: e.summary.unsynced,
+        failed: e.summary.failed,
+        held: e.summary.held,
+      ));
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (e) {
@@ -218,6 +234,14 @@ class AuthRepositoryImpl implements AuthRepository {
       await _seedPinDeviceCache(user);
       await _refreshBusinessSession();
       return Right(user);
+    } on PendingWorkException catch (e) {
+      // Another business is already on this device with unsent work.
+      return Left(PendingWorkFailure(
+        e.summary.total,
+        unsynced: e.summary.unsynced,
+        failed: e.summary.failed,
+        held: e.summary.held,
+      ));
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (e) {

@@ -11,6 +11,7 @@ import 'package:frantend/core/security/idle_lock_service.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/session/session_notice_host.dart';
 import 'package:frantend/core/theme/app_theme.dart';
+import 'package:frantend/shared/widgets/sync/data_preparation_gate.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
@@ -51,7 +52,9 @@ class PakApp extends StatelessWidget {
                 service: sl<IdleLockService>(),
                 child: SessionNoticeHost(
                   branchSelector: sl<BranchSelectorCubit>(),
-                  child: child ?? const SizedBox.shrink(),
+                  child: DataPreparationGate(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             );

@@ -57,4 +57,10 @@ class HeldOrdersDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> deleteHeldOrder(String id) =>
       (delete(heldOrdersTable)..where((t) => t.id.equals(id))).go();
+
+  /// Parked orders on this device, across every cashier (logout guard).
+  Future<int> countAll() async {
+    final rows = await select(heldOrdersTable).get();
+    return rows.length;
+  }
 }

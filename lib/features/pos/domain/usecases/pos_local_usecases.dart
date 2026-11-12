@@ -139,56 +139,35 @@ abstract final class PaymentCoverage {
 /// Gives a retried sale the same id.
 ///
 /// A failed attempt keeps its id, so tapping "Complete Sale" again for the
-/// same cart + payments re-sends the *same* sale and the API dedupes on it. A
-/// changed cart or payment is a new sale with a new id.
+/// same cart + payments re-sends the *same* sale (the id is also the server's
+/// sale id). A changed cart or payment is a new sale with a new id. Only the
+/// sale id is client-generated here; line ids are minted when the sale is
+/// saved (backend README: "Clients generate the ids of customers, shifts,
+/// sales and sale lines").
 class SaleAttemptTracker {
   SaleAttemptTracker(this._ids);
 
   final IdGenerator _ids;
   String? _fingerprint;
   String? _saleId;
-  List<String> _paymentIds = const [];
 
   String idFor(Map<String, dynamic> body) {
     final fingerprint = jsonEncode(body);
     if (_fingerprint != fingerprint || _saleId == null) {
       _fingerprint = fingerprint;
       _saleId = _ids.saleId();
-      final payments = body['payments'];
-      _paymentIds = [
-        if (payments is List) for (final _ in payments) _ids.paymentId(),
-      ];
     }
     return _saleId!;
   }
 
-  /// [body] with the sale id and one id per payment line. A retry of the same
-  /// cart + payments gets the *same* ids; anything else gets fresh ones.
-  Map<String, dynamic> stamp(Map<String, dynamic> body) {
-    final saleId = idFor(body);
-    final payments = body['payments'];
-    return {
-      ...body,
-      'id': saleId,
-      if (payments is List)
-        'payments': [
-          for (var i = 0; i < payments.length; i++)
-            if (payments[i] is Map<String, dynamic>)
-              {
-                ...payments[i] as Map<String, dynamic>,
-                'id': _paymentIds[i],
-              }
-            else
-              payments[i],
-        ],
-    };
-  }
+  /// [body] with the sale id.
+  Map<String, dynamic> stamp(Map<String, dynamic> body) =>
+      {...body, 'id': idFor(body)};
 
   /// The sale went through; the next one is a fresh sale.
   void completed() {
     _fingerprint = null;
     _saleId = null;
-    _paymentIds = const [];
   }
 }
 

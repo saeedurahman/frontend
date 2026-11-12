@@ -8,7 +8,10 @@ import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/lifecycle/local_data_lifecycle.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/session/access_cubit.dart';
+import 'package:frantend/core/session/session_notices.dart';
 import 'package:frantend/core/session/session_signals.dart';
+import 'package:frantend/core/sync/lease_service.dart';
+import 'package:frantend/core/sync/sync_engine.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
@@ -29,7 +32,10 @@ abstract final class SessionServices {
   static void register() {
     if (!sl.isRegistered<SubscriptionRepository>()) {
       sl.registerLazySingleton<SubscriptionRepository>(
-        () => SubscriptionRepository(sl<Dio>()),
+        () => SubscriptionRepository(
+          sl<Dio>(),
+          onLease: (lease) => unawaited(sl<LeaseService>().ingest(lease)),
+        ),
       );
     }
     if (!sl.isRegistered<SubscriptionCubit>()) {
@@ -104,15 +110,29 @@ abstract final class SessionServices {
       }
     });
 
+    // ── offline data layer: sync engine + lease gate ──────────────────
+    final engine = sl<SyncEngine>();
+    final lease = sl<LeaseService>();
+    engine.hooks = engine.hooks.copyWith(onDeviceRevoked: forceSignOut);
+    lease.verdicts.listen(
+      (verdict) => guard.setLeaseBlocked(verdict.blocksApp && guard.isAuthenticated),
+    );
+    Timer.periodic(const Duration(minutes: 1), (_) {
+      if (guard.isAuthenticated) unawaited(lease.evaluate());
+    });
+
     _wasAuthenticated = guard.isAuthenticated;
     guard.addListener(() {
       final authenticated = guard.isAuthenticated;
       if (authenticated == _wasAuthenticated) return;
       _wasAuthenticated = authenticated;
       if (authenticated) {
+        unawaited(engine.start());
+        unawaited(lease.evaluate());
         unawaited(access.startSession());
         unawaited(subscription.startSession());
       } else {
+        engine.stop();
         access.stopSession();
         subscription.stopSession();
       }
@@ -122,6 +142,7 @@ abstract final class SessionServices {
       _ResumeObserver(() {
         if (!guard.isAuthenticated) return;
         access.onResumed();
+        engine.onResumed();
         unawaited(subscription.refreshIfStale());
       }),
     );
@@ -142,8 +163,8 @@ abstract final class SessionServices {
   ///
   /// Returns a [PendingWorkFailure] - and signs nobody out - while unsent
   /// local changes exist; null once the user is signed out.
-  static Future<PendingWorkFailure?> logout() async {
-    final result = await sl<LogoutUseCase>()();
+  static Future<PendingWorkFailure?> logout({bool force = false}) async {
+    final result = await sl<LogoutUseCase>()(force: force);
     final blocked = result.fold(
       (failure) => failure is PendingWorkFailure ? failure : null,
       (_) => null,
@@ -153,8 +174,29 @@ abstract final class SessionServices {
     // it on every path), so the UI must leave the signed-in area too.
     sl<NotificationsCubit>().stopSession();
     sl<BranchSelectorCubit>().stopSession();
+    sl<SyncEngine>().stop();
     sl<AuthGuard>().setAuthenticated(false);
     return null;
+  }
+
+  /// `403 device_revoked`: this device was removed by the owner. Wipe every
+  /// local table, end the session and tell the user why. No pending-work
+  /// check: the server will not accept anything from this device any more.
+  static Future<void> forceSignOut(String message) async {
+    sl<SyncEngine>().stop();
+    sl<NotificationsCubit>().stopSession();
+    sl<BranchSelectorCubit>().stopSession();
+    try {
+      await sl<AuthRepository>().logout();
+    } finally {
+      await sl<LocalDataLifecycle>().wipeOnLogout();
+      sl<AuthGuard>().setAuthenticated(false);
+    }
+    SessionNotices.post(
+      message.trim().isEmpty
+          ? 'This device was removed from your account. Sign in again to use it.'
+          : 'This device was removed from your account: $message',
+    );
   }
 }
 

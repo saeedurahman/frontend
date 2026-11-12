@@ -151,6 +151,7 @@ class _ReceiptCard extends StatefulWidget {
 class _ReceiptCardState extends State<_ReceiptCard> {
   ReceiptDisplaySettings? _display;
   BusinessProfileModel? _business;
+  String? _numbers;
   bool _loading = true;
 
   @override
@@ -164,8 +165,10 @@ class _ReceiptCardState extends State<_ReceiptCard> {
       branchId: widget.sale.branchId,
     );
     final business = await SaleReceiptService.resolveBusinessProfile();
+    final numbers = await SaleReceiptService.numbersLine(widget.sale.id);
     if (mounted) {
       setState(() {
+        _numbers = numbers;
         _display = display;
         _business = business;
         _loading = false;
@@ -225,6 +228,12 @@ class _ReceiptCardState extends State<_ReceiptCard> {
             'Sale: ${sale.saleNumber ?? sale.id.substring(0, 8)}',
             style: const TextStyle(fontSize: 12),
           ),
+          if (_numbers != null)
+            Text(
+              _numbers!,
+              key: const Key('receipt-numbers'),
+              style: const TextStyle(fontSize: 11),
+            ),
           Text(
             'Customer: ${sale.customer?.name ?? 'Walk-in'}',
             style: const TextStyle(fontSize: 12),

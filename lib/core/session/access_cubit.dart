@@ -141,6 +141,33 @@ class AccessCubit extends Cubit<AccessState> {
     ));
   }
 
+  /// New permissions / branch scope delivered by a sync pull (the `user` and
+  /// `role` rows), applied without a network call.
+  void applyPulledAccess({
+    required List<String> permissionKeys,
+    required List<String> branchIds,
+    required String permissionsVersion,
+  }) {
+    final before = state.user;
+    if (before == null) return;
+    // Roles that did not arrive (not visible to this user) must not wipe the
+    // permissions we already have.
+    if (permissionKeys.isEmpty && before.permissionKeys.isNotEmpty) return;
+    apply(User(
+      id: before.id,
+      email: before.email,
+      name: before.name,
+      role: before.role,
+      businessId: before.businessId,
+      branchId: before.branchId,
+      businessSlug: before.businessSlug,
+      roles: before.roles,
+      permissionKeys: permissionKeys,
+      permissionsVersion: before.permissionsVersion,
+      branchIds: branchIds.isEmpty ? before.branchIds : branchIds,
+    ));
+  }
+
   /// The backend told us the version moved (e.g. a header or token claim).
   void onPermissionsVersion(int? version) {
     if (version == null || version == state.permissionsVersion) return;

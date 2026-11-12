@@ -9,7 +9,7 @@ abstract final class PosSaleRequestBuilder {
   /// Set once the backend contract for cash change is final. While false only
   /// the amount applied to the sale is sent (never the tendered amount), so a
   /// strict schema cannot reject the request.
-  static const sendChangeInfo = false;
+  static const sendChangeInfo = true;
 
   static List<Map<String, dynamic>> paymentsJson(
     List<PaymentLineModel> payments,
@@ -22,7 +22,7 @@ abstract final class PosSaleRequestBuilder {
                   'reference_no': p.referenceNo,
                 if (sendChangeInfo && p.tendered != null) ...{
                   'tendered_amount': DecimalUtils.format(p.tendered!),
-                  'change_amount': DecimalUtils.format(p.change),
+                  'change_given': DecimalUtils.format(p.change),
                 },
               })
           .toList();

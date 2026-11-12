@@ -1,21 +1,16 @@
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
-import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
-import 'package:frantend/features/pos/data/datasources/pos_remote_datasource.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
-import 'package:frantend/features/pos/data/models/sale_response_model.dart';
-import 'package:frantend/features/pos/data/repositories/pos_repository_impl.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/domain/repositories/barcode_cache_repository.dart';
 import 'package:frantend/features/pos/domain/repositories/held_orders_repository.dart';
@@ -251,20 +246,15 @@ void main() {
       ],
     };
 
-    test('a retry of the same sale reuses sale and payment ids', () {
+    test('a retry of the same sale reuses the sale id', () {
       final t = SaleAttemptTracker(_Counter());
-      final first = t.stamp(body);
-      final second = t.stamp(body);
-      expect(second['id'], first['id']);
-      expect((second['payments'] as List).first['id'],
-          (first['payments'] as List).first['id']);
+      expect(t.stamp(body)['id'], t.stamp(body)['id']);
     });
 
-    test('a changed cart is a new sale with new ids', () {
+    test('a changed cart is a new sale with a new id', () {
       final t = SaleAttemptTracker(_Counter());
       final first = t.stamp(body);
-      final second = t.stamp({...body, 'notes': 'edited'});
-      expect(second['id'], isNot(first['id']));
+      expect(t.stamp({...body, 'notes': 'edited'})['id'], isNot(first['id']));
     });
 
     test('after completion the next sale gets a fresh id', () {
@@ -274,9 +264,11 @@ void main() {
       expect(t.stamp(body)['id'], isNot(first['id']));
     });
 
-    test('the input body is not mutated', () {
-      SaleAttemptTracker(_Counter()).stamp(body);
-      expect(body.containsKey('id'), isFalse);
+    test('only the sale id is added - no ids on payments (not in the contract)',
+        () {
+      final stamped = SaleAttemptTracker(_Counter()).stamp(body);
+      expect((stamped['payments'] as List).single.containsKey('id'), isFalse);
+      expect(body.containsKey('id'), isFalse, reason: 'input untouched');
     });
   });
 
@@ -634,69 +626,6 @@ void main() {
       expect(ctx.balance, Decimal.parse('1200'));
     });
   });
-
-  group('PosRepositoryImpl.createSale never fakes success', () {
-    _Remote remote0() => _Remote();
-
-    PosRepositoryImpl build(_Remote remote, ConnectivityProbe probe) =>
-        PosRepositoryImpl(
-          remoteDataSource: remote,
-          connectivityProbe: probe,
-          errorHandler: const ErrorHandler(),
-          ids: _Counter(),
-        );
-
-    test('success returns the server sale and sends a client id', () async {
-      final remote = remote0();
-      final result = await build(remote, FixedConnectivityProbe())
-          .createSale({'branch_id': 'b1'});
-      expect(result.isRight(), isTrue);
-      expect(remote.bodies.single['id'], 'id-0');
-    });
-
-    test('an existing sale id is preserved (idempotent retry)', () async {
-      final remote = remote0();
-      await build(remote, FixedConnectivityProbe()).createSale({'id': 'keep'});
-      expect(remote.bodies.single['id'], 'keep');
-    });
-
-    for (final type in [
-      DioExceptionType.connectionError,
-      DioExceptionType.connectionTimeout,
-      DioExceptionType.receiveTimeout,
-    ]) {
-      test('$type fails loudly: Left, never a draft/OFFLINE sale', () async {
-        final remote = remote0()..error = DioException(
-              requestOptions: RequestOptions(path: '/sales'),
-              type: type,
-            );
-        final result = await build(
-          remote,
-          FixedConnectivityProbe(ReachabilityStatus.offline),
-        ).createSale({'branch_id': 'b1'});
-
-        final failure = result.fold((f) => f, (_) => null);
-        expect(failure, isA<NetworkFailure>());
-        expect(failure!.message, contains('NOT saved'));
-        expect(failure.message, contains('offline'));
-      });
-    }
-
-    test('a server rejection is passed through unchanged', () async {
-      final remote = remote0()..error = DioException(
-            requestOptions: RequestOptions(path: '/sales'),
-            type: DioExceptionType.badResponse,
-            response: Response(
-              requestOptions: RequestOptions(path: '/sales'),
-              statusCode: 422,
-              data: {'detail': 'Out of stock'},
-            ),
-          );
-      final result = await build(remote, FixedConnectivityProbe())
-          .createSale({'branch_id': 'b1'});
-      expect(result.fold((f) => f, (_) => null), isA<ValidationFailure>());
-    });
-  });
 }
 
 // ── fakes used by the last groups ────────────────────────────────────────
@@ -730,21 +659,4 @@ class _ById extends Fake implements GetProductByIdUseCase {
 
   @override
   Future<Either<Failure, ProductModel>> call(String id) async => result;
-}
-
-class _Remote extends Fake implements PosRemoteDataSource {
-  final bodies = <Map<String, dynamic>>[];
-  Object? error;
-
-  @override
-  Future<SaleResponseModel> createSale(Map<String, dynamic> body) async {
-    bodies.add(body);
-    if (error != null) throw error!;
-    return SaleResponseModel(
-      id: body['id'] as String,
-      branchId: 'b1',
-      saleType: 'pos',
-      saleStatus: 'completed',
-    );
-  }
 }

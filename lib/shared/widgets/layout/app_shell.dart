@@ -19,6 +19,7 @@ import 'package:frantend/features/notifications/presentation/widgets/notificatio
 import 'package:frantend/features/restaurant/domain/entities/business_feature_flags.dart';
 import 'package:frantend/features/subscription/presentation/widgets/subscription_banner.dart';
 import 'package:frantend/shared/widgets/layout/app_nav.dart';
+import 'package:frantend/shared/widgets/sync/lease_banner.dart';
 import 'package:frantend/shared/widgets/sync/offline_banner.dart';
 import 'package:frantend/shared/widgets/sync/sync_status_chip.dart';
 import 'package:frantend/shared/widgets/layout/sign_out_flow.dart';
@@ -85,6 +86,7 @@ class _AppShellState extends State<AppShell> {
                           )
                         : _CompactTopBar(title: widget.title),
                     const OfflineBanner(),
+                    const LeaseBanner(),
                     const SubscriptionBanner(),
                     Expanded(
                       child: Container(
@@ -167,7 +169,7 @@ class _CompactTopBar extends StatelessWidget {
                 ),
               ),
             ),
-            SyncStatusChip(onFailedTap: () => context.go(RouteNames.syncFailed)),
+            SyncStatusChip(onTap: (s) => context.go(s.failed > 0 ? RouteNames.syncFailed : RouteNames.sync)),
             const SizedBox(width: 4),
             const NotificationBellButton(),
           ],
@@ -491,7 +493,7 @@ class _TopBar extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             SyncStatusChip(
-              onFailedTap: () => context.go(RouteNames.syncFailed),
+              onTap: (s) => context.go(s.failed > 0 ? RouteNames.syncFailed : RouteNames.sync),
             ),
             const SizedBox(width: 12),
             const NotificationBellButton(),

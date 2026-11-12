@@ -12,6 +12,8 @@ class PreferencesStorage {
   static const String _lastSyncKey = 'last_sync_at';
   static const String _selectedBranchKey = 'selected_branch_id';
   static const String _idleLockMinutesKey = 'idle_lock_minutes';
+  static const String _allowBelowStockKey = 'offline_allow_below_stock';
+  static const String _showSyncDetailsKey = 'offline_show_sync_details';
 
   /// Default inactivity before the PIN lock appears. 0 disables auto-lock.
   static const int defaultIdleLockMinutes = 10;
@@ -39,6 +41,18 @@ class PreferencesStorage {
 
   Future<bool> setIdleLockMinutes(int minutes) =>
       _prefs.setInt(_idleLockMinutesKey, minutes < 0 ? 0 : minutes);
+
+  /// Owner switch: sell below the recorded stock. Null = follow the server
+  /// setting (default allowed).
+  bool? getAllowBelowStock() => _prefs.getBool(_allowBelowStockKey);
+
+  Future<bool> setAllowBelowStock(bool value) =>
+      _prefs.setBool(_allowBelowStockKey, value);
+
+  bool getShowSyncDetails() => _prefs.getBool(_showSyncDetailsKey) ?? false;
+
+  Future<bool> setShowSyncDetails(bool value) =>
+      _prefs.setBool(_showSyncDetailsKey, value);
 
   Future<bool> clear() => _prefs.clear();
 }

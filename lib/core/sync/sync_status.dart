@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/core/sync/sync_engine.dart';
 
 /// What the sync chip shows. Pure data: the sync engine (Phase 4b) will feed
 /// real numbers; until then pending/failed are always 0.
@@ -11,9 +12,17 @@ class SyncStatus extends Equatable {
     this.isSyncing = false,
     this.pending = 0,
     this.failed = 0,
+    this.lastSyncedAt,
+    this.preparing = false,
   });
 
   static const idleOnline = SyncStatus();
+
+  /// When the last pull finished (null: never).
+  final DateTime? lastSyncedAt;
+
+  /// The first snapshot is still downloading ("Preparing your data").
+  final bool preparing;
 
   final bool isOnline;
   final bool isSyncing;
@@ -46,16 +55,21 @@ class SyncStatus extends Equatable {
     bool? isSyncing,
     int? pending,
     int? failed,
+    DateTime? lastSyncedAt,
+    bool? preparing,
   }) =>
       SyncStatus(
         isOnline: isOnline ?? this.isOnline,
         isSyncing: isSyncing ?? this.isSyncing,
         pending: pending ?? this.pending,
         failed: failed ?? this.failed,
+        lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+        preparing: preparing ?? this.preparing,
       );
 
   @override
-  List<Object?> get props => [isOnline, isSyncing, pending, failed];
+  List<Object?> get props =>
+      [isOnline, isSyncing, pending, failed, lastSyncedAt, preparing];
 }
 
 enum SyncStatusKind { online, offline, syncing, pending, failed }
@@ -77,9 +91,8 @@ class StubSyncStatusSource implements SyncStatusSource {
   Stream<SyncStatus> get changes => const Stream.empty();
 }
 
-/// Real connectivity (from [ConnectivityProbe]) with stubbed queue counters:
-/// there is no queue until Phase 4b, so pending/failed stay 0. The Online /
-/// Offline part is truthful already.
+/// Connectivity only (counters 0). Kept for tests and previews; the app uses
+/// [EngineSyncStatusSource].
 class ProbeBackedSyncStatusSource implements SyncStatusSource {
   ProbeBackedSyncStatusSource(this._probe) {
     _sub = _probe.status.listen((_) => _controller.add(current));
@@ -100,5 +113,45 @@ class ProbeBackedSyncStatusSource implements SyncStatusSource {
   Future<void> dispose() async {
     await _sub?.cancel();
     await _controller.close();
+  }
+}
+
+/// The real source: reachability from [ConnectivityProbe] plus the sync
+/// engine's live outbox counters, syncing flag and last-synced time.
+class EngineSyncStatusSource implements SyncStatusSource {
+  EngineSyncStatusSource(this._engine, this._probe) {
+    _subs = [
+      _engine.states.listen((_) => _controller.add(current)),
+      _probe.status.listen((_) => _controller.add(current)),
+    ];
+  }
+
+  final SyncEngine _engine;
+  final ConnectivityProbe _probe;
+  final StreamController<SyncStatus> _controller =
+      StreamController<SyncStatus>.broadcast();
+  late final List<StreamSubscription<Object?>> _subs;
+
+  @override
+  SyncStatus get current {
+    final s = _engine.state;
+    return SyncStatus(
+      isOnline: _probe.current != ReachabilityStatus.offline,
+      isSyncing: s.syncing,
+      pending: s.counts.pending + s.counts.sending,
+      failed: s.counts.failed,
+      lastSyncedAt: s.lastSyncedAt,
+      preparing: !s.hasData || s.progress != null,
+    );
+  }
+
+  @override
+  Stream<SyncStatus> get changes => _controller.stream;
+
+  Future<void> dispose() async {
+    for (final s in _subs) {
+      await s.cancel();
+    }
+    unawaited(_controller.close());
   }
 }

@@ -17,6 +17,7 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
+import 'package:frantend/core/offline/offline_policy.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
@@ -77,7 +78,9 @@ class PosCubitBase extends Cubit<PosState> {
     required SaleAttemptTracker saleAttempts,
     required customers_uc.GetCustomerUseCase getCustomerUseCase,
     required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
-  })  : _getProducts = getProductsUseCase,
+    OfflinePolicy? offlinePolicy,
+  })  : _offlinePolicy = offlinePolicy,
+        _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
         _getProductPrice = getProductPriceUseCase,
@@ -131,6 +134,13 @@ class PosCubitBase extends Cubit<PosState> {
   final CompleteTabUseCase _completeTabUseCase;
   final GetTabSaleUseCase _getTabSaleUseCase;
   final GetKotOrdersByTableUseCase _getKotOrdersByTableUseCase;
+  final OfflinePolicy? _offlinePolicy;
+
+  /// Selling below the known stock is a warning, not a block (offline the
+  /// counter must never stop a sale over a number that may be stale). Without
+  /// a policy the old strict behavior applies.
+  bool _allowBelowStock = false;
+
   final ResolvePosSessionUseCase _resolvePosSession;
   final HeldOrdersUseCases _heldOrders;
   final ResolveBarcodeUseCase _resolveBarcode;
@@ -203,5 +213,6 @@ class PosCubit extends PosCubitBase
     required super.saleAttempts,
     required super.getCustomerUseCase,
     required super.getCustomerBalanceUseCase,
+    super.offlinePolicy,
   });
 }

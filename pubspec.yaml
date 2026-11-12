@@ -72,6 +72,7 @@ dependencies:
 
   rational: any
   url_launcher: ^6.3.3
+  ed25519_edwards: ^0.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

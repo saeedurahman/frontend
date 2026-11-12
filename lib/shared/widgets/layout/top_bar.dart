@@ -29,7 +29,7 @@ class TopBar extends StatelessWidget {
         children: [
           Text(title, style: AppTextStyles.headlineMedium),
           const Spacer(),
-          SyncStatusChip(onFailedTap: () => context.go(RouteNames.syncFailed)),
+          SyncStatusChip(onTap: (s) => context.go(s.failed > 0 ? RouteNames.syncFailed : RouteNames.sync)),
           if (actions != null) ...actions!,
         ],
       ),

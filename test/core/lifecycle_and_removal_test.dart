@@ -25,6 +25,9 @@ class _GuardCount implements PendingWorkGuard {
   _GuardCount(this.count);
   final int count;
   @override
+  Future<PendingWorkSummary> summary() async =>
+      PendingWorkSummary(unsynced: count);
+  @override
   Future<int> pendingCount() async => count;
 }
 
@@ -180,7 +183,10 @@ void main() {
         () async {
       final repo = _Repo();
       final result = await LogoutUseCase(repo, _GuardCount(3))();
-      expect(result.fold((f) => f, (_) => null), const PendingWorkFailure(3));
+      expect(
+        result.fold((f) => f, (_) => null),
+        const PendingWorkFailure(3, unsynced: 3),
+      );
       expect(repo.logouts, 0);
     });
 
@@ -192,20 +198,23 @@ void main() {
     });
 
     test('the dialog explains how many changes are at risk', () {
-      expect(pendingWorkMessage(4), contains('4 change(s)'));
-      expect(pendingWorkMessage(4), contains('sign out again'));
+      const failure = PendingWorkFailure(7, unsynced: 4, failed: 1, held: 2);
+      expect(pendingWorkMessage(failure), contains('4 change(s)'));
+      expect(pendingWorkMessage(failure), contains('1 rejected'));
+      expect(pendingWorkMessage(failure), contains('2 parked'));
+      expect(pendingWorkMessage(failure), contains('sign out again'));
     });
   });
 
   group('schema v6', () {
-    test('only local-by-nature tables remain', () async {
+    test('only local-by-nature Drift tables remain', () async {
       final names = db.allTables.map((t) => t.actualTableName).toSet();
       expect(names, {
         'master_data_cache_table',
         'held_orders_table',
         'users_table',
       });
-      expect(db.schemaVersion, 6);
+      expect(db.schemaVersion, 7);
     });
 
     test('upgrading from v5 drops the legacy fake-offline tables', () async {

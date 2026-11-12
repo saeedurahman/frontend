@@ -1,18 +1,15 @@
 import 'package:decimal/decimal.dart';
 import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
-import 'package:frantend/core/utils/api_json_utils.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/data/models/sale_price_preview_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
-import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:injectable/injectable.dart';
 
 abstract class PosRemoteDataSource {
-  Future<SaleResponseModel> createSale(Map<String, dynamic> body);
   Future<ProductModel> getProductByBarcode(String barcode);
   Future<List<CustomerModel>> searchCustomers(String query);
   Future<CustomerModel> createCustomer(Map<String, dynamic> body);
@@ -31,16 +28,6 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
   PosRemoteDataSourceImpl(this._dioClient);
 
   final DioClient _dioClient;
-
-  @override
-  Future<SaleResponseModel> createSale(Map<String, dynamic> body) async {
-    final response = await _dioClient.dio.post<Map<String, dynamic>>(
-      ApiConstants.sales,
-      data: body,
-    );
-    final data = response.data ?? const {};
-    return SaleResponseModel.fromJson(ApiJsonUtils.normalizeSaleResponse(data));
-  }
 
   @override
   Future<ProductModel> getProductByBarcode(String barcode) async {

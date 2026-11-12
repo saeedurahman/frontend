@@ -167,7 +167,6 @@ import '../../features/notifications/presentation/cubit/notifications_cubit.dart
     as _i405;
 import '../../features/pos/data/datasources/pos_remote_datasource.dart'
     as _i449;
-import '../../features/pos/data/repositories/pos_repository_impl.dart' as _i84;
 import '../../features/pos/domain/repositories/pos_repository.dart' as _i511;
 import '../../features/pos/domain/usecases/pos_usecases.dart' as _i698;
 import '../../features/pos/presentation/cubit/customer_picker_cubit.dart'
@@ -850,13 +849,6 @@ extension GetItInjectableX on _i174.GetIt {
         createJournalEntryUseCase: gh<_i175.CreateJournalEntryUseCase>(),
         updateJournalEntryUseCase: gh<_i175.UpdateJournalEntryUseCase>(),
         deleteJournalEntryUseCase: gh<_i175.DeleteJournalEntryUseCase>(),
-      ),
-    );
-    gh.lazySingleton<_i511.PosRepository>(
-      () => _i84.PosRepositoryImpl(
-        remoteDataSource: gh<_i449.PosRemoteDataSource>(),
-        connectivityProbe: gh<_i1000.ConnectivityProbe>(),
-        errorHandler: gh<_i308.ErrorHandler>(),
       ),
     );
     gh.lazySingleton<_i665.DashboardRepository>(

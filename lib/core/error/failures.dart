@@ -71,13 +71,22 @@ class NotFoundFailure extends Failure {
 
 /// Logout refused: [pendingCount] local changes have not reached the server.
 class PendingWorkFailure extends Failure {
-  const PendingWorkFailure(this.pendingCount)
-      : super('Some changes have not been sent to the server yet.');
+  const PendingWorkFailure(
+    this.pendingCount, {
+    this.unsynced = 0,
+    this.failed = 0,
+    this.held = 0,
+  }) : super('Some changes have not been sent to the server yet.');
 
   final int pendingCount;
 
+  /// Breakdown (0 when unknown): waiting to send, rejected, parked orders.
+  final int unsynced;
+  final int failed;
+  final int held;
+
   @override
-  List<Object?> get props => [message, pendingCount];
+  List<Object?> get props => [message, pendingCount, unsynced, failed, held];
 }
 
 class SyncFailure extends Failure {

@@ -60,6 +60,8 @@ import 'package:frantend/features/expenses/presentation/pages/expenses_list_page
 import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
 import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
+import 'package:frantend/features/sync/presentation/pages/flags_page.dart';
+import 'package:frantend/features/sync/presentation/pages/sync_page.dart';
 import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/features/subscription/presentation/pages/no_access_page.dart';
 import 'package:frantend/features/subscription/presentation/pages/subscription_expired_page.dart';
@@ -172,8 +174,16 @@ class AppRouter {
             builder: (_, __) => const NoAccessPage(),
           ),
           GoRoute(
+            path: RouteNames.sync,
+            builder: (_, __) => const SyncPage(),
+          ),
+          GoRoute(
             path: RouteNames.syncFailed,
             builder: (_, __) => const FailedItemsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.syncFlags,
+            builder: (_, __) => const FlagsPage(),
           ),
           GoRoute(
             path: RouteNames.pos,
@@ -650,8 +660,12 @@ class AppRouter {
     return ('Notifications', 'Home / System / Notifications');
   }
   if (path.startsWith(RouteNames.auditLogs)) return ('Audit Logs', 'Home / System / Audit Logs');
+  if (path.startsWith(RouteNames.syncFlags)) {
+    return ('Flagged sales', 'Home / System / Sync / Flagged sales');
+  }
   if (path.startsWith(RouteNames.syncFailed)) {
     return ('Sync issues', 'Home / System / Sync issues');
   }
+  if (path.startsWith(RouteNames.sync)) return ('Sync', 'Home / System / Sync');
   return (AppBrand.current.appName, 'Home');
 }

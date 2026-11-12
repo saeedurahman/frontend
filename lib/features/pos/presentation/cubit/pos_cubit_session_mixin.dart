@@ -12,6 +12,7 @@ mixin PosCubitSessionMixin
     String? dineInTableNumber,
     String? dineInTableStatus,
   }) async {
+    _allowBelowStock = await _offlinePolicy?.allowSellBelowStock() ?? false;
     final session = await _resolvePosSession();
     if (isClosed) return;
     final user = session.user;

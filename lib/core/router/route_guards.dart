@@ -18,6 +18,7 @@ class AuthGuard extends ChangeNotifier {
   final SecureStorage _secureStorage;
   bool _isAuthenticated = false;
   bool _subscriptionBlocked = false;
+  bool _leaseBlocked = false;
   UserModel? _cachedUser;
 
   /// Business feature flags; overridable so the guard can be tested without DI.
@@ -26,7 +27,7 @@ class AuthGuard extends ChangeNotifier {
       () => sl<BusinessSessionCubit>().state.flags;
 
   bool get isAuthenticated => _isAuthenticated;
-  bool get isSubscriptionBlocked => _subscriptionBlocked;
+  bool get isSubscriptionBlocked => _subscriptionBlocked || _leaseBlocked;
 
   UserAccess get access => _cachedUser == null
       ? UserAccess.none
@@ -82,11 +83,20 @@ class AuthGuard extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Offline lease gate: the signed lease (plus grace) ran out, or the device
+  /// clock went backwards. Independent of the online subscription state.
+  void setLeaseBlocked(bool value) {
+    if (_leaseBlocked == value) return;
+    _leaseBlocked = value;
+    notifyListeners();
+  }
+
   void setAuthenticated(bool value) {
     _isAuthenticated = value;
     if (!value) {
       _cachedUser = null;
       _subscriptionBlocked = false;
+      _leaseBlocked = false;
     }
     notifyListeners();
   }
@@ -94,7 +104,7 @@ class AuthGuard extends ChangeNotifier {
   String? redirect(String location) => RouteAccessPolicy.redirect(
         location: location,
         isAuthenticated: _isAuthenticated,
-        isSubscriptionBlocked: _subscriptionBlocked,
+        isSubscriptionBlocked: isSubscriptionBlocked,
         access: access,
         isKitchenOnly: _isAuthenticated && isKitchenOnlyUser,
         homeRoute: homeRoute,

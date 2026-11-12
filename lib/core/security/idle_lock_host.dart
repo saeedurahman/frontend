@@ -156,7 +156,7 @@ class _IdleLockScreenState extends State<IdleLockScreen> {
     // the guard, which redirects to login, and the service unlocks itself.
     final blocked = await SessionServices.logout();
     if (blocked != null && mounted) {
-      setState(() => _error = pendingWorkMessage(blocked.pendingCount));
+      setState(() => _error = pendingWorkMessage(blocked));
     }
   }
 

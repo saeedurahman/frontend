@@ -73,7 +73,9 @@ abstract final class RoutePermissions {
     RouteNames.settings,
     RouteNames.noAccess,
     RouteNames.subscriptionExpired,
+    RouteNames.sync,
     RouteNames.syncFailed,
+    RouteNames.syncFlags,
   ];
 
   /// The permissions that open [location], or `null` when it needs none.

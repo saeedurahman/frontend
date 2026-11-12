@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/session/access_cubit.dart';
+import 'package:frantend/core/session/session_notices.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
@@ -11,7 +14,7 @@ import 'package:frantend/features/subscription/presentation/cubit/subscription_c
 /// - a branch the user may not use.
 ///
 /// Place it inside `MaterialApp.builder` so a `ScaffoldMessenger` exists.
-class SessionNoticeHost extends StatelessWidget {
+class SessionNoticeHost extends StatefulWidget {
   const SessionNoticeHost({
     super.key,
     required this.child,
@@ -22,6 +25,28 @@ class SessionNoticeHost extends StatelessWidget {
 
   /// Optional; the branch notice is skipped when not provided.
   final BranchSelectorCubit? branchSelector;
+
+  @override
+  State<SessionNoticeHost> createState() => _SessionNoticeHostState();
+}
+
+class _SessionNoticeHostState extends State<SessionNoticeHost> {
+  StreamSubscription<String>? _notices;
+
+  @override
+  void initState() {
+    super.initState();
+    // Messages from outside the widget tree (sync finished, device removed).
+    _notices = SessionNotices.stream.listen((m) {
+      if (mounted) _show(context, m);
+    });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_notices?.cancel());
+    super.dispose();
+  }
 
   void _show(BuildContext context, String message) {
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -50,9 +75,9 @@ class SessionNoticeHost extends StatelessWidget {
             if (message != null) _show(context, message);
           },
         ),
-        if (branchSelector != null)
+        if (widget.branchSelector != null)
           BlocListener<BranchSelectorCubit, BranchSelectorState>(
-            bloc: branchSelector,
+            bloc: widget.branchSelector,
             listenWhen: (a, b) => a.noticeSeq != b.noticeSeq,
             listener: (context, state) {
               final message = state.notice;
@@ -60,7 +85,7 @@ class SessionNoticeHost extends StatelessWidget {
             },
           ),
       ],
-      child: child,
+      child: widget.child,
     );
   }
 }

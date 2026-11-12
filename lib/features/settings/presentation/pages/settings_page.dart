@@ -11,6 +11,7 @@ import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:frantend/features/settings/presentation/widgets/offline_settings_section.dart';
 import 'package:frantend/features/settings/presentation/widgets/security_settings_section.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
@@ -368,6 +369,8 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                   const _AccessControlSection(),
                   const SizedBox(height: 20),
                   const SecuritySettingsSection(),
+                  const SizedBox(height: 20),
+                  const OfflineSettingsSection(),
                   const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,

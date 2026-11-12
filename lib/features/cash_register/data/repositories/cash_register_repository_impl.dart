@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:frantend/core/identity/client_ids.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/cash_register/data/datasources/cash_register_remote_datasource.dart';
@@ -67,7 +66,7 @@ class CashRegisterRepositoryImpl implements CashRegisterRepository {
     Map<String, dynamic> body,
   ) async {
     try {
-      return Right(await _remote.openShift(ClientIds.stamp(body)));
+      return Right(await _remote.openShift(body));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

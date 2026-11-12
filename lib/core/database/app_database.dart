@@ -7,6 +7,7 @@ import 'package:frantend/core/database/daos/master_data_cache_dao.dart';
 import 'package:frantend/core/database/tables/held_orders_table.dart';
 import 'package:frantend/core/database/tables/master_data_cache_table.dart';
 import 'package:frantend/core/database/tables/users_table.dart';
+import 'package:frantend/core/sync/sync_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart' as p;
@@ -15,12 +16,14 @@ import 'package:sqlite3/sqlite3.dart';
 
 part 'app_database.g.dart';
 
-/// Local schema (v6). Deliberately small: only data that is *local by nature*
+/// Local schema (v7). Deliberately small: only data that is *local by nature*
 /// lives here until the sync engine (Phase 4b) adds its own tables.
 ///
 /// - [UsersTable]: the signed-in user's profile + permissions (offline gate).
 /// - [MasterDataCacheTable]: read-through JSON cache (barcode lookups, lists).
 /// - [HeldOrdersTable]: parked carts of one cashier / branch / business.
+/// - Offline data layer (v7, hand-written SQL in [SyncSchema]): `entities`,
+///   `stock_levels`, `outbox`, `local_sales`, `local_shifts`, `sync_meta`.
 ///
 /// Every table is tenant-scoped data: [wipeTenantData] clears all of them on
 /// logout and on tenant switch.
@@ -37,12 +40,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+      await SyncSchema.create(this);
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -64,6 +68,11 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('DROP TABLE IF EXISTS $legacy');
         }
       }
+      if (from < 7) {
+        // Phase 4b: offline data layer (hand-written SQL, no codegen). Purely
+        // additive: held_orders, users and master_data_cache are untouched.
+        await SyncSchema.create(this);
+      }
     },
   );
 
@@ -82,6 +91,7 @@ class AppDatabase extends _$AppDatabase {
       for (final table in allTables) {
         await delete(table).go();
       }
+      await SyncSchema.wipe(this);
     });
   }
 }

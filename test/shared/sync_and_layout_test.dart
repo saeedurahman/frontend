@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/sync/sync_status.dart';
-import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
 import 'package:frantend/shared/widgets/sync/offline_banner.dart';
 import 'package:frantend/shared/widgets/sync/sync_status_chip.dart';
 import 'package:frantend/utils/responsive/adaptive_layout.dart';
@@ -155,24 +154,6 @@ void main() {
         )),
       );
       expect(find.textContaining('slow or unstable'), findsOneWidget);
-    });
-  });
-
-  group('FailedItemsPage skeleton', () {
-    testWidgets('says nothing needs attention for the stub', (tester) async {
-      await tester.pumpWidget(
-        _host(const FailedItemsPage(source: StubSyncStatusSource())),
-      );
-      expect(find.text('Nothing needs attention'), findsOneWidget);
-    });
-
-    testWidgets('shows the failed count when there is one', (tester) async {
-      await tester.pumpWidget(
-        _host(FailedItemsPage(
-          source: StubSyncStatusSource(const SyncStatus(failed: 3)),
-        )),
-      );
-      expect(find.text('3 change(s) need attention'), findsOneWidget);
     });
   });
 

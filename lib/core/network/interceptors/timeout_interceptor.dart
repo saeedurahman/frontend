@@ -17,6 +17,7 @@ class TimeoutInterceptor extends Interceptor {
     '/export',
     '/upload',
     '/dashboard',
+    '/sync',
   ];
 
   static bool isLongRunning(String path) {

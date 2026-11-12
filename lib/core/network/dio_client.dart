@@ -4,6 +4,8 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/session/session_signals.dart';
 import 'package:frantend/core/network/interceptors/auth_interceptor.dart';
+import 'package:frantend/core/identity/device_identity.dart';
+import 'package:frantend/core/network/interceptors/device_header_interceptor.dart';
 import 'package:frantend/core/network/interceptors/forbidden_interceptor.dart';
 import 'package:frantend/core/network/interceptors/logging_interceptor.dart';
 import 'package:frantend/core/network/interceptors/retry_interceptor.dart';
@@ -46,6 +48,10 @@ class DioClient {
 
     _dio.interceptors.addAll([
       TimeoutInterceptor(),
+      DeviceHeaderInterceptor(
+        deviceId: () => sl<DeviceIdentity>().deviceId(),
+        appVersion: '1.0.0',
+      ),
       authInterceptor,
       SubscriptionInterceptor(onFailure: SessionSignals.subscriptionFailure),
       ForbiddenInterceptor(onForbidden: SessionSignals.forbidden),
