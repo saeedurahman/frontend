@@ -11,6 +11,7 @@ import 'package:frantend/core/sync/sync_store.dart';
 ///
 /// - `GET /settings` -> cached copy (default tax rate etc. are app settings,
 ///   not part of the pulled entities).
+/// - `GET /business/me` -> stored copy (receipt header when printing offline).
 /// - `GET /shifts/my-active` -> a shift opened elsewhere (web, another till)
 ///   becomes the local active shift, so the shift gate matches the server.
 /// - `GET /subscription/status` -> a fresh signed lease.
@@ -36,6 +37,7 @@ class OnlineExtras {
 
   Future<void> run() async {
     await _safely(_settings);
+    await _safely(_businessProfile);
     await _safely(_activeShift);
     await _safely(refreshLease);
   }
@@ -56,6 +58,18 @@ class OnlineExtras {
       await _store.setMeta(LocalSettingsRepository.cacheKey, jsonEncode(list));
     }
   }
+
+  /// `GET /business/me` -> stored copy for receipts printed offline.
+  Future<void> _businessProfile() async {
+    final response = await _dio.get<dynamic>(ApiConstants.businessMe, options: _opts);
+    final data = response.data;
+    if (data is Map && data['id'] != null) {
+      await _store.setMeta(businessProfileKey, jsonEncode(data));
+    }
+  }
+
+  /// Same key as `ReceiptBrandingSource.profileKey`.
+  static const businessProfileKey = 'business_profile_cache';
 
   Future<void> _activeShift() async {
     final user = await _userId();

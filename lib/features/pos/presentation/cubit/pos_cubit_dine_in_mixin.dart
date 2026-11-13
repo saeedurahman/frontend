@@ -69,7 +69,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     } catch (e) {
       _safeEmit(state.patch(
         dineIn: state.dineIn?.copyWith(
-          syncError: e.toString().replaceFirst('Exception: ', ''),
+          syncError: UserErrorMessage.from(e),
         ),
       ));
     }

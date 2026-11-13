@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/audit/domain/usecases/audit_usecases.dart';
@@ -103,7 +104,7 @@ class AuditLogsCubit extends Cubit<AuditLogsState> {
     } on AuditAccessDeniedException {
       emit(const AuditLogsAccessDenied());
     } catch (e) {
-      emit(AuditLogsError(e.toString(), filters: _filters));
+      emit(AuditLogsError(UserErrorMessage.from(e), filters: _filters));
     }
   }
 

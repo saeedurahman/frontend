@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
@@ -102,13 +103,18 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
     if (!mounted) return;
 
     if (response != null) {
+      final savedOffline =
+          context.read<CustomerLedgerCubit>().lastPaymentSavedOffline;
       Navigator.of(context).pop(true);
       final newBalanceText =
           CustomerBalanceUtils.formatBalanceDisplay(response.newBalance).text;
       AppAlerts.showSuccessMessage(
         context,
-        'Payment of Rs. ${DecimalUtils.format(_amountParsed)} recorded. '
-        'New balance: $newBalanceText',
+        savedOffline
+            ? 'Payment of Rs. ${DecimalUtils.format(_amountParsed)}: '
+                '${UserErrorMessage.savedOffline}. New balance: $newBalanceText'
+            : 'Payment of Rs. ${DecimalUtils.format(_amountParsed)} recorded. '
+                'New balance: $newBalanceText',
       );
       return;
     }

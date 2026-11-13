@@ -273,9 +273,14 @@ class _ProductCardState extends State<_ProductCard> {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<PosCubit>();
-    final price = cubit.getDisplayPrice(widget.product.id);
-    final stock = cubit.getDisplayStock(widget.product.id);
+    // Each card listens to its own price and stock, so a sale, a pull or a
+    // sync result updates it in place.
+    final price = context.select<PosCubit, Decimal?>(
+      (c) => c.getDisplayPrice(widget.product.id),
+    );
+    final stock = context.select<PosCubit, String?>(
+      (c) => c.getDisplayStock(widget.product.id),
+    );
     final hasPrice = price != null && price > Decimal.zero;
     final inStock = _isInStock(stock);
     final imageUrl = widget.product.imageUrl?.trim();

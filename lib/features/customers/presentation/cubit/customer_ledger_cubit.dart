@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
@@ -40,6 +41,14 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
 
   String? _customerId;
   List<CustomerLedgerEntryModel> _allEntries = [];
+
+  /// The ledger lines live on the server only. True while they could not be
+  /// fetched because it is unreachable: the page then shows the customer and
+  /// the balance from this device, and payments can still be taken.
+  bool ledgerNeedsConnection = false;
+
+  /// The last payment was saved on this device and waits for the next sync.
+  bool lastPaymentSavedOffline = false;
 
   int paginationTotal(CustomerLedgerLoaded state) {
     if (state.hasMore) {
@@ -127,6 +136,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     _customerId = customerId;
     _allEntries = [];
     _pageSize = _defaultPageSize;
+    ledgerNeedsConnection = false;
     emit(const CustomerLedgerState.loading());
 
     final customerResult = await _getCustomer(customerId);
@@ -141,8 +151,26 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
           (failure) => emit(CustomerLedgerState.error(failure.message)),
           (balance) {
             ledgerResult.fold(
-              (failure) => emit(CustomerLedgerState.error(failure.message)),
+              (failure) {
+                if (failure is! NetworkFailure) {
+                  emit(CustomerLedgerState.error(failure.message));
+                  return;
+                }
+                // Offline: customer and balance are known on this device.
+                ledgerNeedsConnection = true;
+                emit(
+                  CustomerLedgerState.loaded(
+                    customer: customer,
+                    balance: balance.balance,
+                    entries: const [],
+                    hasMore: false,
+                    currentPage: 1,
+                    pageSize: _pageSize,
+                  ),
+                );
+              },
               (page) {
+                ledgerNeedsConnection = false;
                 _allEntries = page;
                 emit(
                   CustomerLedgerState.loaded(
@@ -203,21 +231,29 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         return null;
       },
       (response) async {
-        _allEntries = [];
+        // The payment is saved. Re-reading the ledger is a courtesy: when
+        // the server cannot be reached the lines on screen stay as they are
+        // and no error is shown for a payment that succeeded.
         final ledgerResult =
             await _getLedger(_customerId!, skip: 0, limit: _fetchSize);
 
         ledgerResult.fold(
           (failure) {
+            final offline = failure is NetworkFailure;
+            lastPaymentSavedOffline = offline;
+            if (offline) ledgerNeedsConnection = true;
             emit(
               current.copyWith(
                 balance: response.newBalance,
                 isRecordingPayment: false,
-                paymentError: failure.message,
+                paymentError: null,
+                activePaymentShiftId: registerShiftId,
               ),
             );
           },
           (page) {
+            lastPaymentSavedOffline = false;
+            ledgerNeedsConnection = false;
             _allEntries = page;
             emit(
               current.copyWith(

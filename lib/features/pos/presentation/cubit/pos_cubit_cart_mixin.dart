@@ -43,7 +43,30 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   static String taxDisplayLabel(TaxRateModel rate) =>
       '${rate.name} ${rate.rate}%';
 
+  /// Adds a line to the cart from the cubit's caches and the local database
+  /// only: nothing here may wait for the network (see [PosPerf]).
   Future<AddToCartOutcome> addToCart(
+    ProductListItemModel product, {
+    String? variationId,
+    Decimal? manualUnitPrice,
+    List<CartLineModifierModel> modifiers = const [],
+    Decimal? qty,
+    bool rememberManualPrice = true,
+  }) =>
+      PosPerf.measure(
+        PosPerf.addToCart,
+        budget: PosPerf.addToCartBudget,
+        () => _addToCart(
+          product,
+          variationId: variationId,
+          manualUnitPrice: manualUnitPrice,
+          modifiers: modifiers,
+          qty: qty,
+          rememberManualPrice: rememberManualPrice,
+        ),
+      );
+
+  Future<AddToCartOutcome> _addToCart(
     ProductListItemModel product, {
     String? variationId,
     Decimal? manualUnitPrice,
@@ -161,9 +184,9 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         ? state.cartItems[existingIndex].qty + addQty
         : addQty;
 
-    // Stock comes from the branch balances loaded in bulk; the network is only
-    // asked when the cache cannot answer or says there is not enough (it may
-    // be stale), and then once, before refusing the sale.
+    // Stock comes from the branch balances loaded in bulk; the local database
+    // is only asked when the cache cannot answer or says there is not enough
+    // (it may be stale), and then once, before refusing the sale.
     final singleVariation = (details?.variations.length ?? 0) <= 1;
     Decimal? availableStock = singleVariation
         ? Decimal.tryParse(state.stockCache[product.id] ?? '')
@@ -663,17 +686,24 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       // so a re-tap can never create a second sale. Anything else is new.
       final saleBody = _saleAttempts.stamp(body);
 
-      final result = await _createSale(saleBody);
+      final result = await PosPerf.measure(
+        PosPerf.saleSave,
+        budget: PosPerf.saleSaveBudget,
+        () => _createSale(saleBody),
+      );
       if (isClosed) {
         throw Exception('Sale submission cancelled');
       }
       return await result.fold(
-        (failure) => throw Exception(failure.message),
+        (failure) => throw Exception(UserErrorMessage.from(failure)),
         (sale) {
           _saleAttempts.completed();
           clearCart();
           _safeEmit(state.patch(isSubmittingSale: false));
           refreshShiftSummary();
+          // The cards must show the new stock at once (the store's stock
+          // event does the same when it is wired).
+          unawaited(refreshStock());
           return sale;
         },
       );

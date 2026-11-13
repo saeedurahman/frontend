@@ -49,8 +49,12 @@ class LocalProductsRepository implements ProductsRepository {
 
   @override
   Future<Either<Failure, ProductModel>> getProductById(String id) async {
-    final p = await _catalog.product(id);
-    return p == null ? const Left(_notAvailable) : Right(p);
+    try {
+      final p = await _catalog.product(id);
+      return p == null ? const Left(_notAvailable) : Right(p);
+    } catch (e) {
+      return Left(CacheFailure('$e'));
+    }
   }
 
   @override
@@ -78,22 +82,33 @@ class LocalInventoryRepository implements InventoryRepository {
     required String productId,
     String? variationId,
   }) async {
-    final qty = await _catalog.availableStock(branchId, productId, variationId: variationId);
-    if (qty == null) return const Left(_notAvailable);
-    return Right(StockBalanceModel(
-      productId: productId,
-      variationId: variationId,
-      branchId: branchId,
-      currentQty: qty.toString(),
-    ));
+    try {
+      final qty = await _catalog.availableStock(branchId, productId, variationId: variationId);
+      if (qty == null) return const Left(_notAvailable);
+      return Right(StockBalanceModel(
+        productId: productId,
+        variationId: variationId,
+        branchId: branchId,
+        currentQty: qty.toString(),
+      ));
+    } catch (e) {
+      // A repository answers with a Failure; callers refresh in the
+      // background and must not get an unhandled error.
+      return Left(CacheFailure('$e'));
+    }
   }
 
   @override
   Future<Either<Failure, List<StockBalanceModel>>> getStockBalances({
     required String branchId,
     List<String>? productIds,
-  }) async =>
-      Right(await _catalog.stockBalances(branchId, productIds: productIds));
+  }) async {
+    try {
+      return Right(await _catalog.stockBalances(branchId, productIds: productIds));
+    } catch (e) {
+      return Left(CacheFailure('$e'));
+    }
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

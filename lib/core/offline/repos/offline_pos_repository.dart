@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
@@ -59,7 +60,10 @@ class OfflinePosRepository implements PosRepository {
       return Right(LocalSaleMapper.toResponse(row, customer: customer));
     } catch (e) {
       // Only a local database problem can land here.
-      return Left(CacheFailure('The sale could not be saved on this device: $e'));
+      return Left(CacheFailure(
+        'The sale could not be saved on this device: '
+        '${UserErrorMessage.clean('$e', fallback: 'storage error')}',
+      ));
     }
   }
 
@@ -81,7 +85,9 @@ class OfflinePosRepository implements PosRepository {
       final entity = await _writer.createCustomer(body);
       return Right(CustomerModel.fromJson(entity).copyWith(balance: '0.00'));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(CacheFailure(
+        UserErrorMessage.clean('$e', fallback: 'Could not be saved on this device.'),
+      ));
     }
   }
 

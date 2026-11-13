@@ -33,6 +33,7 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
         ));
         _fillMissingStock(page.items);
         unawaited(_prefetchPrices(page.items));
+        _warmModifiers?.call(page.items.map((p) => p.id));
       },
     );
     if (!_stockLoaded) await _loadStockBalances();
@@ -77,6 +78,7 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
         ));
         _fillMissingStock(page.items);
         unawaited(_prefetchPrices(page.items));
+        _warmModifiers?.call(page.items.map((p) => p.id));
       },
     );
   }
@@ -149,12 +151,16 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     _safeEmit(state.patch(priceCache: {...state.priceCache, ...fresh}));
   }
 
+  /// Reads the balances of the branch from the local data: pulled stock
+  /// minus what this device sold that the pulled stock does not include yet.
+  /// The latest request wins, so overlapping refreshes cannot go backwards.
   Future<void> _loadStockBalances() async {
     final branchId = state.branchId;
     if (branchId == null) return;
 
+    final requestId = ++_stockRequestId;
     final result = await _getStockBalances(branchId: branchId);
-    if (isClosed) return;
+    if (isClosed || requestId != _stockRequestId) return;
 
     result.fold(
       (failure) => _safeEmit(state.patch(stockError: failure.message)),
@@ -179,6 +185,10 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
   }
 
   Future<void> retryStock() => _loadStockBalances();
+
+  /// Runs on every local stock change and right after a sale is saved.
+  @override
+  Future<void> refreshStock() => _loadStockBalances();
 
   Future<void> _loadCategories() async {
     final result = await _getCategories();
@@ -240,15 +250,19 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     String barcode,
     String productId,
   ) async {
-    final fresh = await _resolveBarcode.refresh(
-      barcode: barcode,
-      tenantKey: _tenantKey,
-      productId: productId,
-    );
-    if (isClosed || fresh == null) return;
-    _safeEmit(state.patch(
-      productDetailsCache: {...state.productDetailsCache, fresh.id: fresh},
-    ));
+    try {
+      final fresh = await _resolveBarcode.refresh(
+        barcode: barcode,
+        tenantKey: _tenantKey,
+        productId: productId,
+      );
+      if (isClosed || fresh == null) return;
+      _safeEmit(state.patch(
+        productDetailsCache: {...state.productDetailsCache, fresh.id: fresh},
+      ));
+    } catch (_) {
+      // Best effort: the scan already used the copy it had.
+    }
   }
 
   Future<bool> lookupBarcode(String barcode) async {

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/error/exceptions.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/utils/json_num.dart';
 import 'package:injectable/injectable.dart';
 
@@ -20,7 +21,8 @@ class ErrorHandler {
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
         case DioExceptionType.connectionError:
-          return NetworkFailure(error.message ?? 'Connection error');
+          // The library's own text is for logs; the screen gets plain words.
+          return const NetworkFailure(UserErrorMessage.offline);
         case DioExceptionType.badResponse:
           return mapStatus(
             error.response?.statusCode,
@@ -28,19 +30,32 @@ class ErrorHandler {
             headers: error.response?.headers,
           );
         default:
-          return ServerFailure(error.message ?? 'Request failed');
+          if (UserErrorMessage.isConnectionError(error)) {
+            return const NetworkFailure(UserErrorMessage.offline);
+          }
+          return ServerFailure(
+            UserErrorMessage.clean(error.message, fallback: 'Request failed'),
+          );
       }
     }
 
+    if (UserErrorMessage.isConnectionError(error)) {
+      return const NetworkFailure(UserErrorMessage.offline);
+    }
+
     if (error is AuthException) return AuthFailure(error.message);
-    if (error is NetworkException) return NetworkFailure(error.message);
+    if (error is NetworkException) {
+      return NetworkFailure(
+        UserErrorMessage.clean(error.message, fallback: UserErrorMessage.offline),
+      );
+    }
     if (error is CacheException) return CacheFailure(error.message);
     if (error is ServerException) return ServerFailure(error.message);
     if (error is ValidationException) return ValidationFailure(error.message);
     if (error is SyncException) return SyncFailure(error.message);
     if (error is ResponseParseException) return ServerFailure(error.userMessage);
 
-    return UnknownFailure(error.toString());
+    return UnknownFailure(UserErrorMessage.from(error));
   }
 
   /// Maps an HTTP status + body to a typed [Failure].

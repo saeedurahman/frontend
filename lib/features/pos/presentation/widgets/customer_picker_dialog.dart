@@ -5,6 +5,7 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/customer_picker_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/customer_picker_state.dart';
+import 'package:frantend/shared/widgets/sync/not_synced_badge.dart';
 
 class CustomerPickerDialog extends StatelessWidget {
   const CustomerPickerDialog({super.key});
@@ -90,6 +91,7 @@ class CustomerPickerDialog extends StatelessWidget {
                   Expanded(
                     child: _CustomerResults(
                       results: state.results,
+                      unsyncedIds: state.unsyncedIds,
                       query: state.searchQuery.trim(),
                       error: state.error,
                       onCreateTap: () =>
@@ -110,10 +112,12 @@ class _CustomerResults extends StatelessWidget {
     required this.results,
     required this.query,
     required this.onCreateTap,
+    this.unsyncedIds = const {},
     this.error,
   });
 
   final List<CustomerModel> results;
+  final Set<String> unsyncedIds;
   final String query;
   final VoidCallback onCreateTap;
   final String? error;
@@ -176,12 +180,31 @@ class _CustomerResults extends StatelessWidget {
       itemCount: results.length,
       itemBuilder: (context, index) {
         final customer = results[index];
+        final contact = customer.phone ?? customer.email ?? '';
+        final unsynced = unsyncedIds.contains(customer.id);
         return ListTile(
           title: Text(customer.name),
-          subtitle: Text(
-            customer.phone ?? customer.email ?? '',
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
+          subtitle: unsynced
+              ? Row(
+                  children: [
+                    if (contact.isNotEmpty) ...[
+                      Flexible(
+                        child: Text(
+                          contact,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              const TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    const NotSyncedBadge(),
+                  ],
+                )
+              : Text(
+                  contact,
+                  style: const TextStyle(color: AppColors.textSecondary),
+                ),
           onTap: () => Navigator.pop(context, customer),
         );
       },
@@ -221,7 +244,7 @@ class _CreateCustomerFormState extends State<_CreateCustomerForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<CustomerPickerCubit, CustomerPickerState>(
       builder: (context, state) {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -254,7 +277,7 @@ class _CreateCustomerFormState extends State<_CreateCustomerForm> {
                 const SizedBox(height: 8),
                 Text(state.error!, style: const TextStyle(color: AppColors.error)),
               ],
-              const Spacer(),
+              const SizedBox(height: 16),
               FilledButton(
                 onPressed: state.isCreating
                     ? null

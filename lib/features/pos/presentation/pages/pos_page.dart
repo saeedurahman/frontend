@@ -19,6 +19,7 @@ import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dar
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/shared/widgets/sync/not_synced_badge.dart';
 import 'package:go_router/go_router.dart';
 
 class PosPage extends StatefulWidget {
@@ -434,15 +435,29 @@ class _PosHeader extends StatelessWidget {
                     color: hasCustomer ? AppColors.primary : AppColors.border,
                   ),
                 ),
-                child: Text(
-                  hasCustomer
-                      ? '👤 ${state.selectedCustomer!.name}'
-                      : '👤 Walk-in Customer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: hasCustomer ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      hasCustomer
+                          ? '👤 ${state.selectedCustomer!.name}'
+                          : '👤 Walk-in Customer',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: hasCustomer
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    // Created on this device and not on the server yet.
+                    if (hasCustomer) ...[
+                      const SizedBox(width: 6),
+                      CustomerSyncBadge(
+                        customerId: state.selectedCustomer!.id,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

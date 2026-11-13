@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
@@ -127,7 +128,7 @@ class _PaymentModalState extends State<PaymentModal> {
       );
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = UserErrorMessage.from(e));
       }
     }
   }

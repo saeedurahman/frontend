@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
@@ -10,9 +13,11 @@ import 'package:frantend/features/cash_register/data/models/cash_register_model.
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/data/repositories/cash_register_repository_impl.dart';
+import 'package:frantend/features/customers/data/models/customer_balance_model.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
 import 'package:frantend/features/customers/data/repositories/customers_repository_impl.dart';
+import 'package:frantend/features/expenses/data/models/expense_category_model.dart';
 import 'package:frantend/features/expenses/data/models/expense_model.dart';
 import 'package:frantend/features/expenses/data/repositories/expenses_repository_impl.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
@@ -23,6 +28,19 @@ import 'package:frantend/features/sales/data/repositories/sales_repository_impl.
 // Management-screen repositories keep their remote reads; the *writes the
 // counter needs* go through the same single path as the POS: local record +
 // outbox op in one transaction.
+//
+// Reads that have a copy on the device fall back to it when the server
+// cannot be reached (and skip the attempt while the probe says "offline"),
+// so a screen never shows a connection error for data it already has.
+
+/// A local write failed. Only a database problem can land here; whatever it
+/// is, the text shown must not be transport-library output.
+Failure _localWriteFailure(Object error) => CacheFailure(
+      UserErrorMessage.clean(
+        '$error',
+        fallback: 'Could not be saved on this device.',
+      ),
+    );
 
 class OfflineCustomersRepository extends CustomersRepositoryImpl {
   OfflineCustomersRepository({
@@ -30,11 +48,67 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
     required super.errorHandler,
     required OfflineWriter writer,
     required LocalCatalog catalog,
+    bool Function()? isReachable,
   })  : _writer = writer,
-        _catalog = catalog;
+        _catalog = catalog,
+        _isReachable = isReachable;
 
   final OfflineWriter _writer;
   final LocalCatalog _catalog;
+  final bool Function()? _isReachable;
+
+  bool get _reachable => _isReachable?.call() ?? true;
+
+  /// Server list when reachable, else the customers on this device (which
+  /// include the ones created here and not synced yet).
+  @override
+  Future<Either<Failure, List<CustomerModel>>> getCustomers({
+    String? search,
+  }) async {
+    if (_reachable) {
+      final remote = await super.getCustomers(search: search);
+      if (remote.isRight() || !_isNetwork(remote)) return remote;
+    }
+    return Right(await _catalog.customers(search: search));
+  }
+
+  @override
+  Future<Either<Failure, CustomerModel>> getCustomer(String id) async {
+    final local = await _catalog.customer(id);
+    // Not on the server yet: only the device knows this customer.
+    final localOnly =
+        local != null && (await _catalog.unsyncedCustomerIds()).contains(id);
+    if (_reachable && !localOnly) {
+      final remote = await super.getCustomer(id);
+      if (remote.isRight() || !_isNetwork(remote) || local == null) {
+        return remote;
+      }
+    }
+    return local == null
+        ? const Left(NetworkFailure(UserErrorMessage.offline))
+        : Right(local);
+  }
+
+  @override
+  Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(
+    String customerId,
+  ) async {
+    final known = await _catalog.customer(customerId) != null;
+    final localOnly =
+        known && (await _catalog.unsyncedCustomerIds()).contains(customerId);
+    if (_reachable && !localOnly) {
+      final remote = await super.getCustomerBalance(customerId);
+      if (remote.isRight() || !_isNetwork(remote) || !known) return remote;
+    }
+    if (!known) return const Left(NetworkFailure(UserErrorMessage.offline));
+    return Right(CustomerBalanceModel(
+      customerId: customerId,
+      balance: DecimalUtils.format(await _catalog.customerBalance(customerId)),
+    ));
+  }
+
+  static bool _isNetwork(Either<Failure, Object?> result) =>
+      result.fold((f) => f is NetworkFailure, (_) => false);
 
   @override
   Future<Either<Failure, CustomerModel>> createCustomer(
@@ -44,7 +118,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
       final entity = await _writer.createCustomer(body);
       return Right(CustomerModel.fromJson(entity).copyWith(balance: '0.00'));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 
@@ -73,7 +147,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
         newBalance: DecimalUtils.format(await _catalog.customerBalance(customerId)),
       ));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 }
@@ -153,7 +227,7 @@ class OfflineCashRegisterRepository extends CashRegisterRepositoryImpl {
       );
       return Right(await _catalog.shiftSummary(shiftId));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 }
@@ -163,9 +237,43 @@ class OfflineExpensesRepository extends ExpensesRepositoryImpl {
     required super.remoteDataSource,
     required super.errorHandler,
     required OfflineWriter writer,
-  }) : _writer = writer;
+    SyncStore? store,
+  })  : _writer = writer,
+        _store = store;
 
   final OfflineWriter _writer;
+  final SyncStore? _store;
+
+  static const categoriesKey = 'expense_categories_cache';
+
+  /// The expense form needs the categories to save anything. The last list
+  /// the server sent is kept on the device and used when it cannot be
+  /// reached, so an expense can be recorded offline.
+  @override
+  Future<Either<Failure, List<ExpenseCategoryModel>>> getCategories() async {
+    final remote = await super.getCategories();
+    final store = _store;
+    if (store == null) return remote;
+    return remote.fold((failure) async {
+      if (failure is! NetworkFailure) return Left(failure);
+      final raw = await store.meta(categoriesKey);
+      if (raw == null) return Left(failure);
+      try {
+        return Right([
+          for (final c in jsonDecode(raw) as List)
+            ExpenseCategoryModel.fromJson(Map<String, dynamic>.from(c as Map)),
+        ]);
+      } catch (_) {
+        return Left(failure);
+      }
+    }, (categories) async {
+      await store.setMeta(
+        categoriesKey,
+        jsonEncode([for (final c in categories) c.toJson()]),
+      );
+      return Right(categories);
+    });
+  }
 
   @override
   Future<Either<Failure, ExpenseModel>> createExpense(Map<String, dynamic> body) async {
@@ -183,7 +291,7 @@ class OfflineExpensesRepository extends ExpensesRepositoryImpl {
         taxAmount: '${body['tax_amount'] ?? '0'}',
       ));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 }
@@ -213,7 +321,7 @@ class OfflineReturnsRepository extends ReturnsRepositoryImpl {
         reason: body['reason'] as String?,
       ));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 }
@@ -224,18 +332,24 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
     required super.errorHandler,
     required OfflineWriter writer,
     required SyncStore store,
+    bool Function()? isReachable,
   })  : _writer = writer,
-        _store = store;
+        _store = store,
+        _isReachable = isReachable;
 
   final OfflineWriter _writer;
   final SyncStore _store;
+  final bool Function()? _isReachable;
 
   /// A sale made on this device is shown from the local record until the
-  /// server has it (and again if the server cannot be reached).
+  /// server has it (and again if the server cannot be reached; while the
+  /// probe says "offline" the server is not even asked, so a reprint opens
+  /// at once).
   @override
   Future<Either<Failure, SaleResponseModel>> getSaleById(String id) async {
     final local = await _store.sale(id);
-    if (local != null && local['sync_state'] != 'synced') {
+    if (local != null &&
+        (local['sync_state'] != 'synced' || _isReachable?.call() == false)) {
       return Right(LocalSaleMapper.toResponse(local));
     }
     final remote = await super.getSaleById(id);
@@ -258,7 +372,7 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
       final current = await getSaleById(id);
       return current.map((s) => s.copyWith(saleStatus: 'voided'));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(_localWriteFailure(e));
     }
   }
 }

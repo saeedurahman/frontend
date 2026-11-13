@@ -108,8 +108,11 @@ class SyncStore {
     });
     final prices = _pricesInTx;
     _pricesInTx = false;
+    final stock = _stockInTx;
+    _stockInTx = false;
     if (!_changes.isClosed) _changes.add(null);
     if (prices && !_priceChanges.isClosed) _priceChanges.add(null);
+    if (stock && !_stockChanges.isClosed) _stockChanges.add(null);
     if (queued && !_enqueued.isClosed) _enqueued.add(null);
     return result;
   }
@@ -124,8 +127,16 @@ class SyncStore {
 
   static const _priceEntities = {'price_list', 'price_list_item'};
 
+  /// Fires after a commit that changed what the POS shows as stock: a pulled
+  /// balance, a sale saved / synced / failed / discarded / voided on this
+  /// device, a queued return, or a pull that confirmed earlier sales.
+  final StreamController<void> _stockChanges = StreamController<void>.broadcast();
+  Stream<void> get stockChanges => _stockChanges.stream;
+  bool _stockInTx = false;
+
   void dispose() {
     unawaited(_priceChanges.close());
+    unawaited(_stockChanges.close());
     unawaited(_changes.close());
     unawaited(_enqueued.close());
   }
@@ -196,6 +207,7 @@ class SyncStore {
   static const monotonicKey = 'monotonic_last_seen';
   static const receiptCounterKey = 'receipt_counter';
   static const discardLogKey = 'discard_log';
+  static const stockUnconfirmedKey = 'stock_unconfirmed_sales';
 
   Future<bool> get hasSnapshot async => (await meta(snapshotCompleteKey)) == '1';
 
@@ -248,6 +260,7 @@ class SyncStore {
 
   Future<void> _applyOne(SyncChange c) async {
     if (c.entity == 'stock_level') {
+      _stockInTx = true;
       if (c.isDelete || c.data == null) {
         await _exec('DELETE FROM stock_levels WHERE id = ?', [c.id]);
         return;
@@ -381,6 +394,7 @@ class SyncStore {
     }
     await _exec('DELETE FROM entities');
     await _exec('DELETE FROM stock_levels');
+    _stockInTx = true;
     await _exec('DELETE FROM deferred_changes');
     for (final r in kept) {
       await _exec(
@@ -414,14 +428,24 @@ class SyncStore {
     return rows.where((r) => wanted.contains(r['product_id'])).toList();
   }
 
-  /// Quantity sold on this device that the server has not confirmed yet, by
-  /// `productId` and `productId:variationId`.
+  /// Quantity sold on this device that the pulled balances do not include
+  /// yet, by `productId` and `productId:variationId`.
+  ///
+  /// A sale counts while it is `pending`, and after the server accepted it
+  /// until the next completed pull ([stockUnconfirmedSales]): the push answer
+  /// arrives before the balance that contains the sale, and dropping the sale
+  /// in between would show the old, higher stock for a moment. Once that pull
+  /// is in, the sale is in the pulled balance and is never subtracted again.
   Future<Map<String, Decimal>> pendingSaleQuantities(String branchId) async {
-    final rows = await _rows(
-      "SELECT lines FROM local_sales WHERE sync_state = 'pending' AND status = 'completed' "
-      'AND branch_id = ?',
-      [branchId],
-    );
+    final unconfirmed = await stockUnconfirmedSales();
+    final rows = [
+      for (final r in await _rows(
+        "SELECT id, sync_state, lines FROM local_sales WHERE status = 'completed' "
+        "AND branch_id = ? AND sync_state IN ('pending','synced')",
+        [branchId],
+      ))
+        if (r['sync_state'] == 'pending' || unconfirmed.contains(r['id'])) r,
+    ];
     final out = <String, Decimal>{};
     for (final r in rows) {
       for (final line in jsonDecode(r['lines']! as String) as List) {
@@ -436,6 +460,45 @@ class SyncStore {
       }
     }
     return out;
+  }
+
+  /// Ids of sales the server accepted whose effect on stock has not been
+  /// pulled yet.
+  Future<Set<String>> stockUnconfirmedSales() async {
+    final raw = await meta(stockUnconfirmedKey);
+    if (raw == null || raw.isEmpty) return <String>{};
+    try {
+      return {for (final id in jsonDecode(raw) as List) '$id'};
+    } catch (_) {
+      return <String>{};
+    }
+  }
+
+  Future<void> _setStockUnconfirmed(Set<String> ids) =>
+      setMeta(stockUnconfirmedKey, ids.isEmpty ? null : jsonEncode(ids.toList()));
+
+  /// A completed pull delivered the balances that contain [saleIds]: they
+  /// stop being subtracted. Call in the transaction of the pull's last page.
+  Future<void> confirmStockFor(Set<String> saleIds) async {
+    if (saleIds.isEmpty) return;
+    final current = await stockUnconfirmedSales();
+    final left = current.difference(saleIds);
+    if (left.length == current.length) return;
+    await _setStockUnconfirmed(left);
+    _stockInTx = true;
+  }
+
+  // ── customers ────────────────────────────────────────────────────────
+
+  /// Ids of customers created on this device that the server has not
+  /// accepted yet ("Not synced yet").
+  Future<Set<String>> unsyncedCustomerIds() async {
+    final rows = await _rows(
+      'SELECT entity_id FROM outbox WHERE type = ? AND entity_id IS NOT NULL '
+      "AND status IN ('pending','sending','failed','rejected')",
+      [OpTypes.customerCreate],
+    );
+    return {for (final r in rows) r['entity_id']! as String};
   }
 
   // ── outbox ───────────────────────────────────────────────────────────
@@ -466,6 +529,9 @@ class SyncStore {
       ],
     );
     _queuedInTx = true;
+    if (type == OpTypes.returnCreate || type == OpTypes.saleVoid) {
+      _stockInTx = true;
+    }
   }
 
   Future<OutboxOp?> op(String opId) async {
@@ -672,6 +738,7 @@ class SyncStore {
     await _exec('DELETE FROM outbox WHERE op_id = ?', [opId]);
     if (o.type == OpTypes.saleCreate) {
       await _exec("UPDATE local_sales SET sync_state = 'discarded' WHERE op_id = ?", [opId]);
+      _stockInTx = true;
     }
     if (o.type == OpTypes.shiftOpen) {
       await _exec("UPDATE local_shifts SET sync_state = 'discarded', status = 'closed' WHERE open_op_id = ?", [opId]);
@@ -721,6 +788,7 @@ class SyncStore {
       'INSERT INTO local_sales (${cols.join(',')}) VALUES (${cols.map((_) => '?').join(',')})',
       [for (final c in cols) row[c]],
     );
+    _stockInTx = true;
   }
 
   Future<Map<String, Object?>?> sale(String id) async {
@@ -742,22 +810,32 @@ class SyncStore {
         [if (syncState != null) syncState, if (shiftId != null) shiftId],
       );
 
+  /// The server accepted the sale. Its quantities keep being subtracted from
+  /// the pulled stock until the next completed pull (see
+  /// [pendingSaleQuantities]).
   Future<void> markSaleSynced(
     String id, {
     String? officialNumber,
     List<String> flags = const [],
-  }) =>
-      _exec(
-        "UPDATE local_sales SET sync_state = 'synced', official_number = COALESCE(?, official_number), "
-        'flags = ?, server_synced_at = ? WHERE id = ?',
-        [officialNumber, jsonEncode(flags), _clock().toUtc().toIso8601String(), id],
-      );
+  }) async {
+    await _exec(
+      "UPDATE local_sales SET sync_state = 'synced', official_number = COALESCE(?, official_number), "
+      'flags = ?, server_synced_at = ? WHERE id = ?',
+      [officialNumber, jsonEncode(flags), _clock().toUtc().toIso8601String(), id],
+    );
+    await _setStockUnconfirmed({...await stockUnconfirmedSales(), id});
+    _stockInTx = true;
+  }
 
-  Future<void> setSaleState(String id, String state) =>
-      _exec('UPDATE local_sales SET sync_state = ? WHERE id = ?', [state, id]);
+  Future<void> setSaleState(String id, String state) async {
+    await _exec('UPDATE local_sales SET sync_state = ? WHERE id = ?', [state, id]);
+    _stockInTx = true;
+  }
 
-  Future<void> setSaleStatus(String id, String status) =>
-      _exec('UPDATE local_sales SET status = ? WHERE id = ?', [status, id]);
+  Future<void> setSaleStatus(String id, String status) async {
+    await _exec('UPDATE local_sales SET status = ? WHERE id = ?', [status, id]);
+    _stockInTx = true;
+  }
 
   /// Credit still owed by a customer from sales the server has not seen.
   Future<Decimal> pendingCreditFor(String customerId) async {

@@ -1,5 +1,7 @@
 // Product tap / cart-line tap / scanner -> quantity calculator -> cart,
 // with the real PosCubit and the real POS action helpers.
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/identity/id_generator.dart';
+import 'package:frantend/core/offline/product_modifier_cache.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
@@ -349,6 +352,9 @@ class _Rig {
       getCustomerUseCase: _GetCustomer(),
       getCustomerBalanceUseCase: _GetBalance(),
       askQuantityOnTap: () => askQuantity,
+      // As in production: the products on screen get their modifier groups
+      // stored in the background.
+      warmModifiers: (ids) => unawaited(sl<ProductModifierCache>().warm(ids)),
     );
   }
 
@@ -410,7 +416,14 @@ void main() {
 
   setUp(() {
     modifiers = _Modifiers();
-    sl.registerSingleton<GetProductModifierGroupsUseCase>(modifiers);
+    // Add-to-cart reads modifier groups from the local copy; it is warmed
+    // for the products on screen when the POS loads them.
+    final stored = <String, String>{};
+    sl.registerSingleton<ProductModifierCache>(ProductModifierCache(
+      read: (key) async => stored[key],
+      write: (key, value) async => stored[key] = value,
+      fetch: modifiers.call,
+    ));
     searchFocus = FocusNode();
   });
 
@@ -767,10 +780,13 @@ void main() {
     testWidgets('are chosen after the quantity; the line gets that quantity',
         (tester) async {
       final rig = await pumpPos(tester);
+      // The groups were stored in the background when the products loaded.
+      final warmed = modifiers.asked.length;
       await tapCard(tester, 'p4');
       expect(popup, findsOneWidget);
       expect(find.byType(ModifierPickerSheet), findsNothing);
-      expect(modifiers.asked, isEmpty, reason: 'the popup does not wait for them');
+      expect(modifiers.asked.length, warmed,
+          reason: 'the popup does not ask the server for them');
 
       await press(tester, [LogicalKeyboardKey.digit3, LogicalKeyboardKey.enter]);
       expect(popup, findsNothing);

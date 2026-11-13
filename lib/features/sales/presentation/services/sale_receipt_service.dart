@@ -5,6 +5,7 @@ import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/offline/receipt_branding_source.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -17,7 +18,12 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 abstract final class SaleReceiptService {
+  /// Business name / address for the receipt, from the copy on this device
+  /// ([ReceiptBrandingSource]); printing never waits for the server.
   static Future<BusinessProfileModel?> resolveBusinessProfile() async {
+    if (sl.isRegistered<ReceiptBrandingSource>()) {
+      return sl<ReceiptBrandingSource>().businessProfile();
+    }
     final useCase = sl<GetBusinessProfileUseCase>();
     final result = await useCase();
     return result.fold((_) => null, (business) => business);
@@ -26,13 +32,13 @@ abstract final class SaleReceiptService {
   static Future<ReceiptDisplaySettings> resolveDisplaySettings({
     String? branchId,
   }) async {
+    if (sl.isRegistered<ReceiptBrandingSource>()) {
+      return sl<ReceiptBrandingSource>().displaySettings(branchId: branchId);
+    }
     final useCase = sl<GetReceiptDisplaySettingsUseCase>();
     final result = await useCase(branchId: branchId);
     return result.fold(
-      (_) => const ReceiptDisplaySettings(
-        footerText: 'Thank you for shopping with us!',
-        paperSize: '80mm',
-      ),
+      (_) => ReceiptBrandingSource.defaults,
       (settings) => settings,
     );
   }

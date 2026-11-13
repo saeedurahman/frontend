@@ -69,6 +69,9 @@ class PullService {
   Future<PullOutcome> pullAll({bool forceSnapshot = false}) async {
     final outcome = PullOutcome();
     try {
+      // Sales the server accepted before this pull started: the balances this
+      // pull delivers contain them.
+      final awaitingStock = await _store.stockUnconfirmedSales();
       if (forceSnapshot) await _beginSnapshot();
       if (!await _store.hasSnapshot || await _snapshotInProgress()) {
         await _snapshot(outcome);
@@ -99,6 +102,11 @@ class PullService {
           await _store.applyChanges(page.changes);
           if (page.nextCursor != null) {
             await _store.setMeta(SyncStore.cursorKey, page.nextCursor);
+          }
+          // Same commit as the last page: the stock shown never counts a
+          // sale twice (pulled balance + still subtracted) or not at all.
+          if (!page.hasMore && !page.restricted) {
+            await _store.confirmStockFor(awaitingStock);
           }
         });
         outcome.pages++;

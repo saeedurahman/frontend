@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/audit/domain/usecases/audit_usecases.dart';
@@ -99,7 +100,7 @@ class RecordHistoryCubit extends Cubit<RecordHistoryState> {
     } on AuditAccessDeniedException {
       emit(const RecordHistoryAccessDenied());
     } catch (e) {
-      emit(RecordHistoryError(e.toString()));
+      emit(RecordHistoryError(UserErrorMessage.from(e)));
     }
   }
 

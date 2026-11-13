@@ -37,7 +37,9 @@ class CustomerLedgerTable extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         child: Text(
-          'No ledger entries yet',
+          cubit.ledgerNeedsConnection
+              ? 'Ledger history is available when you are online.'
+              : 'No ledger entries yet',
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textSecondary,
           ),

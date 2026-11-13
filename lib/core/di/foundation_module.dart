@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
@@ -12,6 +14,8 @@ import 'package:frantend/core/lifecycle/local_data_lifecycle.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/offline/offline_policy.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
+import 'package:frantend/core/offline/product_modifier_cache.dart';
+import 'package:frantend/core/offline/receipt_branding_source.dart';
 import 'package:frantend/core/offline/repos/local_repositories.dart';
 import 'package:frantend/core/offline/repos/offline_decorators.dart';
 import 'package:frantend/core/offline/repos/offline_pos_repository.dart';
@@ -21,6 +25,7 @@ import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/secure_key_store.dart';
 import 'package:frantend/core/session/access_cubit.dart';
+import 'package:frantend/core/session/business_session_cubit.dart';
 import 'package:frantend/core/session/session_notices.dart';
 import 'package:frantend/core/storage/preferences_storage.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
@@ -56,6 +61,7 @@ import 'package:frantend/features/pos/domain/repositories/held_orders_repository
 import 'package:frantend/features/pos/domain/repositories/pos_repository.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
+import 'package:frantend/features/pos/presentation/cubit/customer_picker_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/features/products/domain/usecases/add_barcode_usecase.dart';
@@ -252,6 +258,35 @@ void registerFoundationServices(GetIt sl) {
   );
   once<LocalCustomersRepository>(() => LocalCustomersRepository(sl<LocalCatalog>()));
 
+  bool reachable() => sl<ConnectivityProbe>().isReachable;
+
+  // Modifier groups for add-to-cart: read from the device, refreshed in the
+  // background. Skipped entirely for a business without restaurant features.
+  once<ProductModifierCache>(
+    () => ProductModifierCache.onStore(
+      store: sl<SyncStore>(),
+      fetch: (productId) => sl<GetProductModifierGroupsUseCase>()(productId),
+      enabled: () {
+        if (!sl.isRegistered<BusinessSessionCubit>()) return true;
+        final session = sl<BusinessSessionCubit>().state;
+        return !session.isLoaded || session.flags.enableRestaurant;
+      },
+      isReachable: reachable,
+    ),
+  );
+
+  // Receipt header / footer from the copies on the device.
+  once<ReceiptBrandingSource>(
+    () => ReceiptBrandingSource(
+      store: sl<SyncStore>(),
+      localSettings: sl<LocalSettingsRepository>(),
+      fetchProfile: () => sl<GetBusinessProfileUseCase>()(),
+      fetchSettings: ({String? branchId}) =>
+          sl<GetSettingsUseCase>()(branchId: branchId),
+      isReachable: reachable,
+    ),
+  );
+
   // ── Repositories that now write through the outbox ───────────────────
   replace<PosRepository>(
     () => OfflinePosRepository(
@@ -269,6 +304,7 @@ void registerFoundationServices(GetIt sl) {
       errorHandler: sl<ErrorHandler>(),
       writer: sl<OfflineWriter>(),
       catalog: sl<LocalCatalog>(),
+      isReachable: reachable,
     ),
   );
   replace<CashRegisterRepository>(
@@ -286,6 +322,7 @@ void registerFoundationServices(GetIt sl) {
       remoteDataSource: sl<ExpensesRemoteDataSource>(),
       errorHandler: sl<ErrorHandler>(),
       writer: sl<OfflineWriter>(),
+      store: sl<SyncStore>(),
     ),
   );
   replace<ReturnsRepository>(
@@ -301,6 +338,7 @@ void registerFoundationServices(GetIt sl) {
       errorHandler: sl<ErrorHandler>(),
       writer: sl<OfflineWriter>(),
       store: sl<SyncStore>(),
+      isReachable: reachable,
     ),
   );
 
@@ -356,6 +394,22 @@ void registerFoundationServices(GetIt sl) {
     ),
   );
 
+  // POS customer picker: the list and the search read this device only, and
+  // quick-create is a local write + outbox op. No call here can fail (or
+  // wait) because of the network.
+  if (sl.isRegistered<CustomerPickerCubit>()) {
+    sl.unregister<CustomerPickerCubit>();
+  }
+  sl.registerFactory<CustomerPickerCubit>(
+    () => CustomerPickerCubit(
+      getCustomersUseCase:
+          customers_uc.GetCustomersUseCase(sl<LocalCustomersRepository>()),
+      createCustomerUseCase:
+          customers_uc.CreateCustomerUseCase(sl<CustomersRepository>()),
+      unsyncedCustomerIds: sl<LocalCatalog>().unsyncedCustomerIds,
+    ),
+  );
+
   if (sl.isRegistered<PosCubit>()) sl.unregister<PosCubit>();
   sl.registerFactory<PosCubit>(
     () => PosCubit(
@@ -391,6 +445,8 @@ void registerFoundationServices(GetIt sl) {
           customers_uc.GetCustomerBalanceUseCase(sl<LocalCustomersRepository>()),
       offlinePolicy: sl<OfflinePolicy>(),
       priceChanges: sl<LocalCatalog>().priceChanges,
+      stockChanges: sl<LocalCatalog>().stockChanges,
+      warmModifiers: (ids) => unawaited(sl<ProductModifierCache>().warm(ids)),
       askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,
     ),
   );

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_state.dart';
 import 'package:injectable/injectable.dart';
@@ -19,7 +20,7 @@ class DashboardCubit extends Cubit<DashboardState> {
       );
       emit(DashboardLoaded(data, trendDays: trendDays));
     } catch (e) {
-      emit(DashboardError(e.toString()));
+      emit(DashboardError(UserErrorMessage.from(e)));
     }
   }
 }

@@ -294,6 +294,13 @@ class LocalCatalog {
   /// Fires when prices in the local copy changed (a pull or [rememberPrice]).
   Stream<void> get priceChanges => _store.priceChanges;
 
+  /// Fires when the stock the POS shows changed: a pulled balance, a sale
+  /// saved or synced on this device, a return or a void.
+  Stream<void> get stockChanges => _store.stockChanges;
+
+  /// Fires after every committed local change (badges, lists).
+  Stream<void> get changes => _store.changes;
+
   Future<List<TaxRateModel>> taxRates() async {
     final rows = await _store.entities('tax_rate');
     return [
@@ -320,7 +327,8 @@ class LocalCatalog {
 
   // ── stock ────────────────────────────────────────────────────────────
 
-  /// Pulled balance minus what this device sold since (not yet confirmed).
+  /// Pulled balance minus what this device sold that the balance does not
+  /// include yet (see `SyncStore.pendingSaleQuantities`).
   /// Null when the server never reported a balance (treated as "unknown").
   Future<Decimal?> availableStock(
     String branchId,
@@ -371,6 +379,9 @@ class LocalCatalog {
     );
     return [for (final r in rows) await _customer(r)];
   }
+
+  /// Customers created on this device that the server has not accepted yet.
+  Future<Set<String>> unsyncedCustomerIds() => _store.unsyncedCustomerIds();
 
   Future<CustomerModel?> customer(String id) async {
     final row = await _store.entity('customer', id);

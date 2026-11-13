@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
@@ -107,7 +108,7 @@ class ReportsCubit extends Cubit<ReportsState> {
         emit(
           latest.copyWith(
             isLoadingTab: false,
-            errorMessage: e.toString().replaceFirst('Exception: ', ''),
+            errorMessage: UserErrorMessage.from(e),
           ),
         );
       }

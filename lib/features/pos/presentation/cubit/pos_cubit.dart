@@ -3,6 +3,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart'
     as customers_uc;
 import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
@@ -21,6 +22,7 @@ import 'package:frantend/core/offline/offline_policy.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
+import 'package:frantend/features/pos/domain/utils/pos_perf.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_request_builder.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/models/add_to_cart_outcome.dart';
@@ -80,9 +82,13 @@ class PosCubitBase extends Cubit<PosState> {
     required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
     OfflinePolicy? offlinePolicy,
     Stream<void>? priceChanges,
+    Stream<void>? stockChanges,
+    void Function(Iterable<String> productIds)? warmModifiers,
     bool Function()? askQuantityOnTap,
   })  : _offlinePolicy = offlinePolicy,
         _priceChanges = priceChanges,
+        _stockChanges = stockChanges,
+        _warmModifiers = warmModifiers,
         _askQuantityOnTap = askQuantityOnTap,
         _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
@@ -146,6 +152,18 @@ class PosCubitBase extends Cubit<PosState> {
   StreamSubscription<void>? _priceChangesSub;
   int _priceRefreshId = 0;
 
+  /// Fires when the stock in the local data changed (a sale saved on this
+  /// device, a pull, a sync result, a return or a void); the cubit then
+  /// re-reads the balances, so the grid and the quantity popup follow
+  /// without leaving the screen.
+  final Stream<void>? _stockChanges;
+  StreamSubscription<void>? _stockChangesSub;
+  int _stockRequestId = 0;
+
+  /// Background warm-up of the modifier groups of the products on screen
+  /// (restaurant businesses); add-to-cart reads them from the device.
+  final void Function(Iterable<String> productIds)? _warmModifiers;
+
   /// Selling below the known stock is a warning, not a block (offline the
   /// counter must never stop a sale over a number that may be stale). Without
   /// a policy the old strict behavior applies.
@@ -182,6 +200,10 @@ class PosCubitBase extends Cubit<PosState> {
   Timer? _previewDebounce;
   bool skipDineInDelegation = false;
 
+  /// Re-reads the stock shown on the cards and in the quantity popup
+  /// (implemented by the catalog mixin).
+  Future<void> refreshStock() async {}
+
   void _safeEmit(PosState newState) {
     if (isClosed) return;
     emit(newState);
@@ -192,6 +214,7 @@ class PosCubitBase extends Cubit<PosState> {
     _searchDebounce?.cancel();
     _previewDebounce?.cancel();
     unawaited(_priceChangesSub?.cancel());
+    unawaited(_stockChangesSub?.cancel());
     return super.close();
   }
 }
@@ -236,6 +259,8 @@ class PosCubit extends PosCubitBase
     required super.getCustomerBalanceUseCase,
     super.offlinePolicy,
     super.priceChanges,
+    super.stockChanges,
+    super.warmModifiers,
     super.askQuantityOnTap,
   });
 }

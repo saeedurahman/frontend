@@ -44,6 +44,8 @@ mixin PosCubitSessionMixin
     ));
     _priceChangesSub ??=
         _priceChanges?.listen((_) => unawaited(refreshPrices()));
+    _stockChangesSub ??=
+        _stockChanges?.listen((_) => unawaited(refreshStock()));
     await Future.wait([
       _loadProducts(),
       _loadCategories(),
