@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frantend/core/constants/app_config.dart';
+
 import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/features/settings/data/models/app_setting_model.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
@@ -9,7 +9,7 @@ import 'package:frantend/features/settings/domain/usecases/settings_usecases.dar
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/features/settings/presentation/utils/settings_value_utils.dart';
 import 'package:injectable/injectable.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:frantend/core/platform/image_picker_service.dart';
 
 @injectable
 class SettingsCubit extends Cubit<SettingsState> {
@@ -23,6 +23,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     required CreateTaxRateUseCase createTaxRateUseCase,
     required UpdateTaxRateUseCase updateTaxRateUseCase,
     required ImageUploadService imageUploadService,
+    ImagePickerService? imagePickerService,
   })  : _getBusiness = getBusinessProfileUseCase,
         _updateBusiness = updateBusinessProfileUseCase,
         _getSettings = getSettingsUseCase,
@@ -32,6 +33,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         _createTaxRate = createTaxRateUseCase,
         _updateTaxRate = updateTaxRateUseCase,
         _imageUpload = imageUploadService,
+        _imagePicker = imagePickerService ?? const WindowsImagePickerService(),
         super(const SettingsState.initial());
 
   final GetBusinessProfileUseCase _getBusiness;
@@ -43,7 +45,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   final CreateTaxRateUseCase _createTaxRate;
   final UpdateTaxRateUseCase _updateTaxRate;
   final ImageUploadService _imageUpload;
-  final ImagePicker _imagePicker = ImagePicker();
+  final ImagePickerService _imagePicker;
 
   Future<void> loadAll() async {
     emit(const SettingsState.loading());
@@ -146,16 +148,13 @@ class SettingsCubit extends Cubit<SettingsState> {
     final current = state;
     if (current is! SettingsLoaded) return;
 
-    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
+    final pickedPath = await _imagePicker.pickImage();
+    if (pickedPath == null) return;
 
     emit(current.copyWith(isUploadingLogo: true, errorMessage: null));
 
     try {
-      final url = await _imageUpload.uploadImage(
-        File(picked.path),
-        folder: AppConfig.cloudinaryLogosFolder,
-      );
+      final url = await _imageUpload.uploadImage(File(pickedPath));
       final latest = state;
       if (latest is! SettingsLoaded) return;
       emit(

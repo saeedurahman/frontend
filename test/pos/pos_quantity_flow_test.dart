@@ -157,7 +157,13 @@ class _Barcode extends Fake implements LookupBarcodeUseCase {
 
 class _Price extends Fake implements GetProductPriceUseCase {
   @override
-  Future<Either<Failure, Decimal?>> call(String p, String? v) async =>
+  Future<Either<Failure, Decimal?>> call(
+    String p,
+    String? v, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  }) async =>
       Right(_prices[p] == null ? null : Decimal.parse(_prices[p]!));
 }
 

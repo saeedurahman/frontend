@@ -14,6 +14,8 @@ class PriceListModel with _$PriceListModel {
     @JsonKey(name: 'valid_from') String? validFrom,
     @JsonKey(name: 'valid_to') String? validTo,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
+    @JsonKey(name: 'item_count') @Default(0) int itemCount,
+    @JsonKey(name: 'customer_count') @Default(0) int customerCount,
   }) = _PriceListModel;
 
   factory PriceListModel.fromJson(Map<String, dynamic> json) =>

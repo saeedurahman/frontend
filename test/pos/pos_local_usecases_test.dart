@@ -66,7 +66,13 @@ class _Prices extends Fake implements GetProductPriceUseCase {
   bool fail = false;
 
   @override
-  Future<Either<Failure, Decimal?>> call(String p, String? v) async =>
+  Future<Either<Failure, Decimal?>> call(
+    String p,
+    String? v, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  }) async =>
       fail ? const Left(ServerFailure('x')) : Right(prices[p]);
 }
 

@@ -26,6 +26,7 @@ abstract final class RouteNames {
   static const String products = '/products';
   static const String productDetail = '/products/:id';
   static const String productNew = '/products/new';
+  static const String priceLists = '/prices/lists';
   static const String inventory = '/inventory';
   static const String manufacturing = '/manufacturing';
   static const String manufacturingProductionNew = '/manufacturing/new';
@@ -88,6 +89,7 @@ abstract final class RouteNames {
   static const String settingsBusiness = '/settings/business';
   static const String changePassword = '/settings/change-password';
   static const String settingsReceipt = '/settings/receipt';
+  static const String settingsPrinter = '/settings/printer';
   static const String settingsTax = '/settings/tax';
   static const String settingsSubscription = '/settings/subscription';
   static const String settingsRoles = '/settings/roles';

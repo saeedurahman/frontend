@@ -175,17 +175,96 @@ class LocalCatalog {
     return pick == null ? null : '${pick['id']}';
   }
 
-  /// Unit price for [qty] from the default price list; null when none is set.
-  ///
-  /// The backend stores a price per product or per variation, so:
-  /// * the asked variation's own price wins, else the product-level price;
-  /// * with no [variationId] and no product-level price, the default
-  ///   variation's price is used (Product edit > Set Price saves it there);
-  /// * among those, the highest `min_qty` tier that [qty] reaches, and when
-  ///   no tier is reached, the base (lowest `min_qty`) price.
-  Future<Decimal?> price(String productId, {String? variationId, Decimal? qty}) async {
-    final listId = await _defaultPriceListId();
-    if (listId == null) return null;
+  bool _isPriceListValid(Map<String, dynamic> list, DateTime now) {
+    if (list['is_active'] == false) return false;
+    final validFromStr = list['valid_from']?.toString();
+    if (validFromStr != null && validFromStr.isNotEmpty) {
+      final from = DateTime.tryParse(validFromStr);
+      if (from != null && now.isBefore(from)) return false;
+    }
+    final validToStr = list['valid_to']?.toString();
+    if (validToStr != null && validToStr.isNotEmpty) {
+      final to = DateTime.tryParse(validToStr);
+      if (to != null && now.isAfter(to)) return false;
+    }
+    return true;
+  }
+
+  /// Resolves the effective price list id:
+  /// 1. If [priceListId] is provided and valid, returns it.
+  /// 2. Else if [customerId] is provided and has an assigned price list that is valid, returns it.
+  /// 3. Fallback to default price list.
+  Future<String?> effectivePriceListId({
+    String? priceListId,
+    String? customerId,
+    DateTime? now,
+  }) async {
+    final currentTime = now ?? DateTime.now();
+    if (priceListId != null && priceListId.isNotEmpty) {
+      final list = await _store.entity('price_list', priceListId);
+      if (list != null && _isPriceListValid(list, currentTime)) {
+        return priceListId;
+      }
+    }
+    if (customerId != null && customerId.isNotEmpty) {
+      final cust = await _store.entity('customer', customerId);
+      final custPriceListId = cust?['price_list_id']?.toString();
+      if (custPriceListId != null && custPriceListId.isNotEmpty) {
+        final list = await _store.entity('price_list', custPriceListId);
+        if (list != null && _isPriceListValid(list, currentTime)) {
+          return custPriceListId;
+        }
+      }
+    }
+    return _defaultPriceListId();
+  }
+
+  /// Unit price for [qty] from the effective price list (customer list or explicit list,
+  /// with fallback to the default list if inactive, outside validity window, or has no price).
+  Future<Decimal?> price(
+    String productId, {
+    String? variationId,
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+    DateTime? now,
+  }) async {
+    final defaultId = await _defaultPriceListId();
+    final effectiveId = await effectivePriceListId(
+      priceListId: priceListId,
+      customerId: customerId,
+      now: now,
+    );
+
+    // First try the effective price list if available
+    if (effectiveId != null) {
+      final effectivePrice = await _priceInList(
+        productId,
+        effectiveId,
+        variationId: variationId,
+        qty: qty,
+      );
+      if (effectivePrice != null) return effectivePrice;
+    }
+
+    // Fall back to the default price list if effective price list had no price
+    if (defaultId != null && defaultId != effectiveId) {
+      return _priceInList(
+        productId,
+        defaultId,
+        variationId: variationId,
+        qty: qty,
+      );
+    }
+    return null;
+  }
+
+  Future<Decimal?> _priceInList(
+    String productId,
+    String listId, {
+    String? variationId,
+    Decimal? qty,
+  }) async {
     final items = [
       for (final i in await _store.entities('price_list_item',
           where: 'parent_id = ?', args: [productId]))

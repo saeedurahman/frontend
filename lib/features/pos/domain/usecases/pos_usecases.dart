@@ -80,9 +80,18 @@ class GetProductPriceUseCase {
 
   Future<Either<Failure, Decimal?>> call(
     String productId,
-    String? variationId,
-  ) =>
-      _repository.getProductPrice(productId, variationId);
+    String? variationId, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  }) =>
+      _repository.getProductPrice(
+        productId,
+        variationId,
+        qty: qty,
+        priceListId: priceListId,
+        customerId: customerId,
+      );
 }
 
 @injectable

@@ -14,6 +14,7 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/presentation/cubit/sale_detail_cubit.dart';
 import 'package:frantend/features/sales/presentation/cubit/sale_detail_state.dart';
+import 'package:frantend/features/sales/presentation/services/receipt_share_service.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_line_display.dart';
@@ -175,7 +176,8 @@ class _LoadedView extends StatelessWidget {
                     isCancelling: state.isCancelling,
                     isVoiding: state.isVoiding,
                     canVoid: canVoid,
-                    onPrint: () => SaleReceiptService.printReceipt(sale),
+                    onPrint: () =>
+                        SaleReceiptService.printReceipt(sale, context: context),
                     onDownload: () async {
                       final file =
                           await SaleReceiptService.downloadPdf(context, sale);
@@ -846,15 +848,36 @@ class _SaleActionsCard extends StatelessWidget {
             child: Column(
               children: [
                 _ActionListTile(
+                  icon: Icons.share,
+                  label: 'Send on WhatsApp',
+                  subtitle: 'Share digital receipt link or text',
+                  onTap: actionsLocked
+                      ? null
+                      : () => ReceiptShareService.sendOnWhatsApp(context, sale),
+                ),
+                const SizedBox(height: 8),
+                _ActionListTile(
+                  icon: Icons.link,
+                  label: 'Copy link',
+                  subtitle: 'Copy public receipt link',
+                  onTap: actionsLocked
+                      ? null
+                      : () => ReceiptShareService.copyReceiptLink(context, sale),
+                ),
+                const SizedBox(height: 8),
+                _ActionListTile(
                   icon: Icons.print_outlined,
                   label: 'Print Receipt',
                   onTap: actionsLocked ? null : onPrint,
                 ),
                 const SizedBox(height: 8),
                 _ActionListTile(
-                  icon: Icons.download_outlined,
-                  label: 'Download PDF',
-                  onTap: actionsLocked ? null : onDownload,
+                  icon: Icons.picture_as_pdf_outlined,
+                  label: 'Save PDF',
+                  subtitle: 'Save receipt PDF to disk',
+                  onTap: actionsLocked
+                      ? null
+                      : () => ReceiptShareService.savePdf(context, sale),
                 ),
                 const SizedBox(height: 8),
                 _ActionListTile(

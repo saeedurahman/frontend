@@ -147,9 +147,18 @@ class OfflinePosRepository implements PosRepository {
   @override
   Future<Either<Failure, Decimal?>> getProductPrice(
     String productId,
-    String? variationId,
-  ) async =>
-      Right(await _catalog.price(productId, variationId: variationId));
+    String? variationId, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  }) async =>
+      Right(await _catalog.price(
+        productId,
+        variationId: variationId,
+        qty: qty,
+        priceListId: priceListId,
+        customerId: customerId,
+      ));
 
   @override
   Future<Either<Failure, SalePricePreviewModel>> previewSalePrice(

@@ -22,8 +22,10 @@ import 'package:frantend/core/offline/repos/offline_pos_repository.dart';
 import 'package:frantend/core/platform/app_window_service.dart';
 import 'package:frantend/core/platform/barcode_scanner_service.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
+import 'package:frantend/core/platform/image_picker_service.dart';
 import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/secure_key_store.dart';
+import 'package:frantend/core/platform/url_launcher_service.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/session/business_session_cubit.dart';
 import 'package:frantend/core/session/session_notices.dart';
@@ -70,6 +72,8 @@ import 'package:frantend/features/products/domain/usecases/create_product_usecas
 import 'package:frantend/features/products/domain/usecases/product_pricing_usecases.dart'
     as pricing;
 import 'package:frantend/features/products/domain/usecases/update_product_usecase.dart';
+import 'package:frantend/features/products/domain/repositories/products_repository.dart';
+import 'package:frantend/features/products/presentation/cubit/price_lists_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/product_form_cubit.dart';
 import 'package:frantend/features/products/domain/usecases/get_categories_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
@@ -113,6 +117,8 @@ void registerFoundationServices(GetIt sl) {
   once<FileSaverService>(() => const WindowsFileSaverService());
   once<AppWindowService>(() => WindowsAppWindowService());
   once<BarcodeScannerService>(() => KeyboardWedgeBarcodeScanner());
+  once<UrlLauncherService>(() => const WindowsUrlLauncherService());
+  once<ImagePickerService>(() => const WindowsImagePickerService());
 
   // ── Identity ─────────────────────────────────────────────────────────
   once<IdGenerator>(() => UuidIdGenerator());
@@ -450,6 +456,16 @@ void registerFoundationServices(GetIt sl) {
       askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,
     ),
   );
+
+  if (!sl.isRegistered<PriceListsCubit>()) {
+    sl.registerFactory<PriceListsCubit>(
+      () => PriceListsCubit(
+        productsRepository: sl<ProductsRepository>(),
+        connectivityProbe:
+            sl.isRegistered<ConnectivityProbe>() ? sl<ConnectivityProbe>() : null,
+      ),
+    );
+  }
 }
 
 /// Minimal user view for the wiring closures.

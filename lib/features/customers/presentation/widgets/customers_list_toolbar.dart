@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_navigation.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class CustomersListToolbar extends StatelessWidget {
@@ -29,6 +30,19 @@ class CustomersListToolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () => ExportDialog.show(
+              context,
+              dataset: 'customers',
+              title: 'Customers',
+            ),
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
+          ),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.customersCreate,
           mutating: true,

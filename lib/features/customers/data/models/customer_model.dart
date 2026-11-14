@@ -19,6 +19,7 @@ class CustomerModel with _$CustomerModel {
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'price_list_id') String? priceListId,
     @JsonKey(includeFromJson: false, includeToJson: false) String? balance,
   }) = _CustomerModel;
 

@@ -637,6 +637,34 @@ class _ReceiptSettingsTabState extends State<_ReceiptSettingsTab> {
                 ),
               ),
               const SizedBox(height: 16),
+              _SettingsCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.print, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Thermal Printer & Hardware', style: AppTextStyles.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Configure Windows thermal printers, paper size (80mm/58mm), auto-print, cash drawer pulse, and test printing.',
+                            style: AppTextStyles.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      onPressed: () => context.go(RouteNames.settingsPrinter),
+                      icon: const Icon(Icons.tune),
+                      label: const Text('Configure'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               _ReceiptPreviewCard(
                 footerText: widget.state.footerText,
                 paperSize: widget.state.paperSize,

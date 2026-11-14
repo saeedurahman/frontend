@@ -4,6 +4,9 @@ import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/platform/printer_service.dart';
+import 'package:frantend/features/sales/presentation/services/receipt_share_service.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
@@ -37,6 +40,14 @@ class _ReceiptPreviewPageState extends State<ReceiptPreviewPage>
       curve: Curves.elasticOut,
     );
     _animController.forward();
+    _checkAutoPrint();
+  }
+
+  Future<void> _checkAutoPrint() async {
+    final config = await sl<PrinterService>().loadConfig();
+    if (config.autoPrintAfterSale && mounted) {
+      await SaleReceiptService.printReceipt(widget.sale, context: context);
+    }
   }
 
   @override
@@ -89,26 +100,33 @@ class _ReceiptPreviewPageState extends State<ReceiptPreviewPage>
                     runSpacing: 12,
                     alignment: WrapAlignment.center,
                     children: [
+                      FilledButton.icon(
+                        onPressed: () =>
+                            ReceiptShareService.sendOnWhatsApp(context, widget.sale),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF25D366),
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.share),
+                        label: const Text('Send on WhatsApp'),
+                      ),
                       OutlinedButton.icon(
                         onPressed: () =>
-                            SaleReceiptService.printReceipt(widget.sale),
+                            ReceiptShareService.copyReceiptLink(context, widget.sale),
+                        icon: const Icon(Icons.link),
+                        label: const Text('Copy link'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () =>
+                            SaleReceiptService.printReceipt(widget.sale, context: context),
                         icon: const Icon(Icons.print),
                         label: const Text('Print Receipt'),
                       ),
                       OutlinedButton.icon(
-                        onPressed: () async {
-                          final file = await SaleReceiptService.downloadPdf(
-                            context,
-                            widget.sale,
-                          );
-                          if (context.mounted && file != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Saved to ${file.path}')),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.download),
-                        label: const Text('Download PDF'),
+                        onPressed: () =>
+                            ReceiptShareService.savePdf(context, widget.sale),
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                        label: const Text('Save PDF'),
                       ),
                       FilledButton.icon(
                         onPressed: () => _newSale(context),

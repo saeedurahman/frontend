@@ -9,10 +9,12 @@ import 'package:frantend/features/register/domain/entities/register_entity.dart'
 import 'package:frantend/features/register/presentation/cubit/register_cubit.dart';
 import 'package:frantend/features/register/presentation/widgets/register_scaffold.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/platform/image_picker_service.dart';
 import 'package:frantend/utils/app_form_field_validator.dart';
 import 'package:frantend/features/register/presentation/cubit/register_state.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
+
 
 class Step1BusinessInfoPage extends StatelessWidget {
   const Step1BusinessInfoPage({super.key});
@@ -164,9 +166,9 @@ class _LogoUploadArea extends StatelessWidget {
         final path = cubit.logoPath;
         return InkWell(
           onTap: () async {
-            final picker = ImagePicker();
-            final file = await picker.pickImage(source: ImageSource.gallery);
-            if (file != null) cubit.setLogoPath(file.path);
+            final path = await sl<ImagePickerService>().pickImage();
+
+            if (path != null) cubit.setLogoPath(path);
           },
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           child: Container(

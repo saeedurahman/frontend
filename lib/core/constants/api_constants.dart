@@ -39,6 +39,17 @@ abstract final class ApiConstants {
   static const String units = '/units';
   static const String unitConversions = '/units/conversions';
   static const String priceLists = '/prices/lists';
+  static String priceListById(String id) => '/prices/lists/$id';
+  static String priceListCopy(String id) => '/prices/lists/$id/copy';
+  static String priceListAdjust(String id) => '/prices/lists/$id/adjust';
+  static String priceListImport(String id) => '/prices/lists/$id/import';
+  static String priceListItems(String priceListId) => '/prices/lists/$priceListId/items';
+  static String priceListItemsBulk(String priceListId) => '/prices/lists/$priceListId/items/bulk';
+  static String priceListItemDelete(String priceListId, String itemId) => '/prices/lists/$priceListId/items/$itemId';
+  static const String productsImport = '/products/import';
+  static const String uploadsImage = '/uploads/image';
+  static const String export = '/export';
+  static String exportDataset(String dataset) => '/export/$dataset';
 
   // Sales
   static const String sales = '/sales';
@@ -48,6 +59,10 @@ abstract final class ApiConstants {
   static String invoiceData(String saleId) => '/invoice/$saleId';
   static String invoiceThermal(String saleId) => '/invoice/$saleId/thermal';
   static const String invoiceExportSales = '/invoice/export/sales';
+  static String saleReceiptLink(String saleId) => '/sales/$saleId/receipt-link';
+  static const String saleReceiptLinkLookup = '/sales/receipt-link/lookup';
+  static String publicReceiptPdf(String token) => '/r/$token?format=pdf';
+  static String publicReceiptHtml(String token) => '/r/$token';
 
   // Returns
   static const String returns = '/returns';
@@ -69,9 +84,6 @@ abstract final class ApiConstants {
 
   static String productPrice(String productId) => '/prices/product/$productId';
 
-  /// Backend: `POST /prices/lists/{id}/items` (upsert of one product's price).
-  static String priceListItems(String priceListId) =>
-      '/prices/lists/$priceListId/items';
 
   // Customers
   static const String customers = '/customers';

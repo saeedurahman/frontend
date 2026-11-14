@@ -35,6 +35,10 @@ mixin _$PriceListModel {
   String? get validTo => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_count')
+  int get itemCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_count')
+  int get customerCount => throw _privateConstructorUsedError;
 
   /// Serializes this PriceListModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -62,6 +66,8 @@ abstract class $PriceListModelCopyWith<$Res> {
     @JsonKey(name: 'valid_from') String? validFrom,
     @JsonKey(name: 'valid_to') String? validTo,
     @JsonKey(name: 'is_active') bool isActive,
+    @JsonKey(name: 'item_count') int itemCount,
+    @JsonKey(name: 'customer_count') int customerCount,
   });
 }
 
@@ -88,6 +94,8 @@ class _$PriceListModelCopyWithImpl<$Res, $Val extends PriceListModel>
     Object? validFrom = freezed,
     Object? validTo = freezed,
     Object? isActive = null,
+    Object? itemCount = null,
+    Object? customerCount = null,
   }) {
     return _then(
       _value.copyWith(
@@ -123,6 +131,14 @@ class _$PriceListModelCopyWithImpl<$Res, $Val extends PriceListModel>
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
                       as bool,
+            itemCount: null == itemCount
+                ? _value.itemCount
+                : itemCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            customerCount: null == customerCount
+                ? _value.customerCount
+                : customerCount // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -147,6 +163,8 @@ abstract class _$$PriceListModelImplCopyWith<$Res>
     @JsonKey(name: 'valid_from') String? validFrom,
     @JsonKey(name: 'valid_to') String? validTo,
     @JsonKey(name: 'is_active') bool isActive,
+    @JsonKey(name: 'item_count') int itemCount,
+    @JsonKey(name: 'customer_count') int customerCount,
   });
 }
 
@@ -172,6 +190,8 @@ class __$$PriceListModelImplCopyWithImpl<$Res>
     Object? validFrom = freezed,
     Object? validTo = freezed,
     Object? isActive = null,
+    Object? itemCount = null,
+    Object? customerCount = null,
   }) {
     return _then(
       _$PriceListModelImpl(
@@ -207,6 +227,14 @@ class __$$PriceListModelImplCopyWithImpl<$Res>
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
                   as bool,
+        itemCount: null == itemCount
+            ? _value.itemCount
+            : itemCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        customerCount: null == customerCount
+            ? _value.customerCount
+            : customerCount // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -224,6 +252,8 @@ class _$PriceListModelImpl implements _PriceListModel {
     @JsonKey(name: 'valid_from') this.validFrom,
     @JsonKey(name: 'valid_to') this.validTo,
     @JsonKey(name: 'is_active') this.isActive = true,
+    @JsonKey(name: 'item_count') this.itemCount = 0,
+    @JsonKey(name: 'customer_count') this.customerCount = 0,
   });
 
   factory _$PriceListModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -251,10 +281,16 @@ class _$PriceListModelImpl implements _PriceListModel {
   @override
   @JsonKey(name: 'is_active')
   final bool isActive;
+  @override
+  @JsonKey(name: 'item_count')
+  final int itemCount;
+  @override
+  @JsonKey(name: 'customer_count')
+  final int customerCount;
 
   @override
   String toString() {
-    return 'PriceListModel(id: $id, businessId: $businessId, name: $name, listType: $listType, isDefault: $isDefault, validFrom: $validFrom, validTo: $validTo, isActive: $isActive)';
+    return 'PriceListModel(id: $id, businessId: $businessId, name: $name, listType: $listType, isDefault: $isDefault, validFrom: $validFrom, validTo: $validTo, isActive: $isActive, itemCount: $itemCount, customerCount: $customerCount)';
   }
 
   @override
@@ -274,7 +310,11 @@ class _$PriceListModelImpl implements _PriceListModel {
                 other.validFrom == validFrom) &&
             (identical(other.validTo, validTo) || other.validTo == validTo) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.itemCount, itemCount) ||
+                other.itemCount == itemCount) &&
+            (identical(other.customerCount, customerCount) ||
+                other.customerCount == customerCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -289,6 +329,8 @@ class _$PriceListModelImpl implements _PriceListModel {
     validFrom,
     validTo,
     isActive,
+    itemCount,
+    customerCount,
   );
 
   /// Create a copy of PriceListModel
@@ -318,6 +360,8 @@ abstract class _PriceListModel implements PriceListModel {
     @JsonKey(name: 'valid_from') final String? validFrom,
     @JsonKey(name: 'valid_to') final String? validTo,
     @JsonKey(name: 'is_active') final bool isActive,
+    @JsonKey(name: 'item_count') final int itemCount,
+    @JsonKey(name: 'customer_count') final int customerCount,
   }) = _$PriceListModelImpl;
 
   factory _PriceListModel.fromJson(Map<String, dynamic> json) =
@@ -345,6 +389,12 @@ abstract class _PriceListModel implements PriceListModel {
   @override
   @JsonKey(name: 'is_active')
   bool get isActive;
+  @override
+  @JsonKey(name: 'item_count')
+  int get itemCount;
+  @override
+  @JsonKey(name: 'customer_count')
+  int get customerCount;
 
   /// Create a copy of PriceListModel
   /// with the given fields replaced by the non-null parameter values.

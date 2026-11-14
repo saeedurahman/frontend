@@ -1,10 +1,11 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_detail_models.dart';
 import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
@@ -53,7 +54,30 @@ abstract class ProductsRemoteDataSource {
   Future<UnitModel> createUnit(Map<String, dynamic> body);
 
   Future<List<PriceListModel>> getPriceLists();
+  Future<PriceListModel> getPriceList(String id);
   Future<PriceListModel> createPriceList(Map<String, dynamic> body);
+  Future<PriceListModel> updatePriceList(String id, Map<String, dynamic> body);
+  Future<Map<String, dynamic>> deletePriceList(String id);
+  Future<PriceListModel> copyPriceList(String id, Map<String, dynamic> body);
+  Future<PaginatedPriceListItemsModel> getPriceListItems(
+    String id, {
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  });
+  Future<BulkPriceResponseModel> bulkUpsertPriceItems(
+    String id,
+    List<Map<String, dynamic>> items,
+  );
+  Future<void> deletePriceItem(String id, String itemId);
+  Future<AdjustPricesResponseModel> adjustPriceList(
+    String id,
+    Map<String, dynamic> body,
+  );
+  Future<Map<String, dynamic>> importPriceListCsv(
+    String id,
+    Map<String, dynamic> body,
+  );
   Future<ProductPriceModel?> getProductPrice(
     String productId, {
     String? variationId,
@@ -293,6 +317,105 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
       data: body,
     );
     return PriceListModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PriceListModel> getPriceList(String id) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiConstants.priceListById(id),
+    );
+    return PriceListModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PriceListModel> updatePriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      ApiConstants.priceListById(id),
+      data: body,
+    );
+    return PriceListModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<Map<String, dynamic>> deletePriceList(String id) async {
+    final response = await _dio.delete<Map<String, dynamic>>(
+      ApiConstants.priceListById(id),
+    );
+    return response.data ?? const {'deleted': true};
+  }
+
+  @override
+  Future<PriceListModel> copyPriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceListCopy(id),
+      data: body,
+    );
+    return PriceListModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PaginatedPriceListItemsModel> getPriceListItems(
+    String id, {
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiConstants.priceListItems(id),
+      queryParameters: {
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        'skip': skip,
+        'limit': limit,
+      },
+    );
+    return PaginatedPriceListItemsModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<BulkPriceResponseModel> bulkUpsertPriceItems(
+    String id,
+    List<Map<String, dynamic>> items,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceListItemsBulk(id),
+      data: {'items': items},
+    );
+    return BulkPriceResponseModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<void> deletePriceItem(String id, String itemId) async {
+    await _dio.delete<void>(ApiConstants.priceListItemDelete(id, itemId));
+  }
+
+  @override
+  Future<AdjustPricesResponseModel> adjustPriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceListAdjust(id),
+      data: body,
+    );
+    return AdjustPricesResponseModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<Map<String, dynamic>> importPriceListCsv(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.priceListImport(id),
+      data: body,
+    );
+    return response.data ?? const {};
   }
 
   List<T> _toModelList<T>(

@@ -18,7 +18,13 @@ abstract class PosRemoteDataSource {
   Future<RegisterShiftModel?> getActiveShift(String registerId);
   Future<RegisterShiftModel> openShift(Map<String, dynamic> body);
   Future<ShiftSummaryModel> getShiftSummary(String shiftId);
-  Future<Decimal?> getProductPrice(String productId, String? variationId);
+  Future<Decimal?> getProductPrice(
+    String productId,
+    String? variationId, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  });
   Future<SalePricePreviewModel> previewSalePrice(Map<String, dynamic> body);
   Future<List<DiscountSchemeModel>> getDiscountSchemes();
 }
@@ -108,12 +114,19 @@ class PosRemoteDataSourceImpl implements PosRemoteDataSource {
   @override
   Future<Decimal?> getProductPrice(
     String productId,
-    String? variationId,
-  ) async {
+    String? variationId, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  }) async {
     final response = await _dioClient.dio.get<Map<String, dynamic>>(
       ApiConstants.productPrice(productId),
-      queryParameters:
-          variationId == null ? null : {'variation_id': variationId},
+      queryParameters: {
+        if (variationId != null) 'variation_id': variationId,
+        if (priceListId != null) 'price_list_id': priceListId,
+        if (customerId != null) 'customer_id': customerId,
+        if (qty != null) 'qty': qty.toString(),
+      },
     );
     final price = response.data?['unit_price'];
     if (price == null) return null;

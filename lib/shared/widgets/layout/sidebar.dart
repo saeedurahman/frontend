@@ -61,6 +61,12 @@ class Sidebar extends StatelessWidget {
                   isSelected: location.startsWith(RouteNames.products),
                 ),
                 _SidebarItem(
+                  icon: Icons.price_change,
+                  label: 'Price Lists',
+                  route: RouteNames.priceLists,
+                  isSelected: location.startsWith(RouteNames.priceLists),
+                ),
+                _SidebarItem(
                   icon: Icons.warehouse,
                   label: 'Inventory',
                   route: RouteNames.inventory,

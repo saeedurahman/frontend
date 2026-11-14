@@ -142,6 +142,8 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
           product.id,
           variationId,
           singleVariation: (details?.variations.length ?? 0) <= 1,
+          qty: addQty,
+          customerId: state.selectedCustomer?.id,
         );
     if (isClosed) return AddToCartOutcome.added;
 
@@ -285,24 +287,38 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     String productId,
     String? variationId, {
     required bool singleVariation,
+    Decimal? qty,
+    String? customerId,
   }) async {
+    final effectiveCustomer = customerId ?? state.selectedCustomer?.id;
     final priceKey =
         variationId != null ? '$productId:$variationId' : productId;
-    var cached = Decimal.tryParse(state.priceCache[priceKey] ?? '');
-    // The background warm-up stores the default price under the product id;
-    // it is valid for single-variation products.
-    if ((cached == null || cached <= Decimal.zero) && singleVariation) {
-      cached = Decimal.tryParse(state.priceCache[productId] ?? '');
-    }
-    if (cached != null && cached > Decimal.zero) return cached;
 
-    final priceResult = await _getProductPrice(productId, variationId);
+    // Fast-path: cached default 1-qty walk-in price
+    if (effectiveCustomer == null && (qty == null || qty == Decimal.one)) {
+      var cached = Decimal.tryParse(state.priceCache[priceKey] ?? '');
+      // The background warm-up stores the default price under the product id;
+      // it is valid for single-variation products.
+      if ((cached == null || cached <= Decimal.zero) && singleVariation) {
+        cached = Decimal.tryParse(state.priceCache[productId] ?? '');
+      }
+      if (cached != null && cached > Decimal.zero) return cached;
+    }
+
+    final priceResult = await _getProductPrice(
+      productId,
+      variationId,
+      qty: qty,
+      customerId: effectiveCustomer,
+    );
     if (isClosed) return null;
     return priceResult.fold((_) => null, (p) {
       if (p == null || p <= Decimal.zero) return null;
-      _safeEmit(state.patch(
-        priceCache: {...state.priceCache, priceKey: p.toString()},
-      ));
+      if (effectiveCustomer == null && (qty == null || qty == Decimal.one)) {
+        _safeEmit(state.patch(
+          priceCache: {...state.priceCache, priceKey: p.toString()},
+        ));
+      }
       return p;
     });
   }
@@ -313,11 +329,14 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     String productId, {
     String? variationId,
     ProductModel? details,
+    Decimal? qty,
   }) =>
       _resolveUnitPrice(
         productId,
         variationId,
         singleVariation: (details?.variations.length ?? 0) <= 1,
+        qty: qty,
+        customerId: state.selectedCustomer?.id,
       );
 
   /// Live balance for one product/variation; refreshes the shared cache.
@@ -383,9 +402,36 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       return;
     }
     final items = [...state.cartItems];
-    items[cartIndex] = items[cartIndex].copyWith(qty: newQty);
+    final item = items[cartIndex];
+    items[cartIndex] = item.copyWith(qty: newQty);
     emit(state.patch(cartItems: items));
     _schedulePricePreview();
+
+    // Check quantity tier price for new quantity
+    if (!item.priceManual) {
+      _getProductPrice(
+        item.productId,
+        item.variationId,
+        qty: newQty,
+        customerId: state.selectedCustomer?.id,
+      ).then((result) {
+        if (isClosed) return;
+        final p = result.fold((_) => null, (v) => v);
+        if (p != null && p > Decimal.zero) {
+          final idx = state.cartItems.indexWhere(
+            (it) => it.productId == item.productId && it.variationId == item.variationId,
+          );
+          if (idx != -1 && !state.cartItems[idx].priceManual && state.cartItems[idx].baseUnitPrice != p) {
+            final refreshed = [...state.cartItems];
+            refreshed[idx] = refreshed[idx].copyWith(
+              unitPrice: p + refreshed[idx].modifierTotalPerUnit,
+            );
+            emit(state.patch(cartItems: refreshed));
+            _schedulePricePreview();
+          }
+        }
+      });
+    }
   }
 
   void incrementQty(int cartIndex) {
@@ -492,8 +538,43 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   }
 
   Future<void> selectCustomer(CustomerModel? customer) async {
-    emit(state.patch(selectedCustomer: customer));
+    emit(state.patch(selectedCustomer: customer, priceCache: const <String, String>{}));
     if (customer != null) await refreshSelectedCustomer();
+    await _repriceCartForCustomer();
+  }
+
+  Future<void> _repriceCartForCustomer() async {
+    if (state.cartItems.isEmpty) return;
+    final customerId = state.selectedCustomer?.id;
+    final updatedCart = <CartItemModel>[];
+    bool changed = false;
+    for (final item in state.cartItems) {
+      if (item.priceManual) {
+        updatedCart.add(item);
+        continue;
+      }
+      final priceResult = await _getProductPrice(
+        item.productId,
+        item.variationId,
+        qty: item.qty,
+        customerId: customerId,
+      );
+      final newPrice = priceResult.fold((_) => null, (p) => p);
+      if (newPrice != null &&
+          newPrice > Decimal.zero &&
+          newPrice != item.baseUnitPrice) {
+        changed = true;
+        updatedCart.add(item.copyWith(
+          unitPrice: newPrice + item.modifierTotalPerUnit,
+        ));
+      } else {
+        updatedCart.add(item);
+      }
+    }
+    if (changed && !isClosed) {
+      emit(state.patch(cartItems: updatedCart));
+      _schedulePricePreview();
+    }
   }
 
   /// Loads the customer's real `credit_limit` and ledger balance. The picker

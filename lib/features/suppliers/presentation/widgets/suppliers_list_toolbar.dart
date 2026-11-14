@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_navigation.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 
 class SuppliersListToolbar extends StatelessWidget {
@@ -29,6 +30,19 @@ class SuppliersListToolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () => ExportDialog.show(
+              context,
+              dataset: 'suppliers',
+              title: 'Suppliers',
+            ),
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
+          ),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.suppliersCreate,
           mutating: true,

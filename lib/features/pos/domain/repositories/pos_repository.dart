@@ -41,8 +41,11 @@ abstract class PosRepository {
 
   Future<Either<Failure, Decimal?>> getProductPrice(
     String productId,
-    String? variationId,
-  );
+    String? variationId, {
+    Decimal? qty,
+    String? priceListId,
+    String? customerId,
+  });
 
   Future<Either<Failure, SalePricePreviewModel>> previewSalePrice(
     Map<String, dynamic> body,

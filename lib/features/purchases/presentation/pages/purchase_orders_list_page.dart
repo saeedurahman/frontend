@@ -11,6 +11,7 @@ import 'package:frantend/features/purchases/data/models/purchase_order_model.dar
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
@@ -122,6 +123,21 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              ExportDialog.show(
+                context,
+                dataset: 'purchases',
+                title: 'Purchases',
+              );
+            },
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
+          ),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.purchasesCreate,
           mutating: true,

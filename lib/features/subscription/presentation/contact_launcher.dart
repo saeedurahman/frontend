@@ -1,10 +1,10 @@
 import 'package:frantend/core/error/failures.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:frantend/core/platform/url_launcher_service.dart';
 
 typedef UrlOpener = Future<bool> Function(Uri uri);
 
 Future<bool> defaultUrlOpener(Uri uri) =>
-    launchUrl(uri, mode: LaunchMode.externalApplication);
+    const WindowsUrlLauncherService().launch(uri);
 
 /// Builds the links behind the Call / WhatsApp / Email buttons.
 abstract final class ContactLinks {

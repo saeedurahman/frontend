@@ -61,6 +61,12 @@ abstract final class AppNav {
       route: RouteNames.products,
     ),
     NavEntry(
+      section: 'CATALOG',
+      label: 'Price Lists',
+      icon: Icons.price_change_outlined,
+      route: RouteNames.priceLists,
+    ),
+    NavEntry(
       section: 'INVENTORY',
       label: 'Inventory',
       icon: Icons.warehouse_outlined,

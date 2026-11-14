@@ -16,6 +16,8 @@ _$PriceListModelImpl _$$PriceListModelImplFromJson(Map<String, dynamic> json) =>
       validFrom: json['valid_from'] as String?,
       validTo: json['valid_to'] as String?,
       isActive: json['is_active'] as bool? ?? true,
+      itemCount: json['item_count'] as int? ?? 0,
+      customerCount: json['customer_count'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$$PriceListModelImplToJson(
@@ -29,6 +31,8 @@ Map<String, dynamic> _$$PriceListModelImplToJson(
   'valid_from': instance.validFrom,
   'valid_to': instance.validTo,
   'is_active': instance.isActive,
+  'item_count': instance.itemCount,
+  'customer_count': instance.customerCount,
 };
 
 _$PriceListItemModelImpl _$$PriceListItemModelImplFromJson(

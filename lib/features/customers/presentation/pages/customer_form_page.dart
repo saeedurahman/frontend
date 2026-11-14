@@ -213,6 +213,29 @@ class _CustomerFields extends StatelessWidget {
             ..selection = TextSelection.collapsed(offset: state.taxId.length),
           onChanged: isEdit ? null : cubit.updateTaxId,
         ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String?>(
+          decoration: const InputDecoration(
+            labelText: 'Assigned Price List',
+            helperText: 'Special pricing for this customer (falls back to default list)',
+          ),
+          value: state.priceListId,
+          items: [
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Default / None assigned'),
+            ),
+            ...state.availablePriceLists.map(
+              (l) => DropdownMenuItem<String?>(
+                value: l.id,
+                child: Text(
+                  '${l.name} (${l.listType.toUpperCase()})${l.isDefault ? ' [Default]' : ''}',
+                ),
+              ),
+            ),
+          ],
+          onChanged: cubit.updatePriceListId,
+        ),
         if (isEdit) ...[
           const SizedBox(height: 12),
           SwitchListTile(

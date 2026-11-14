@@ -15,6 +15,7 @@ import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/categories_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
@@ -137,6 +138,23 @@ class _Toolbar extends StatelessWidget {
           child: Text(
             '($total items)',
             style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary),
+          ),
+        ),
+        const Spacer(),
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              final branchId = sl<BranchSelectorCubit>().state.selectedBranchId;
+              ExportDialog.show(
+                context,
+                dataset: 'inventory',
+                title: 'Inventory',
+                branchId: branchId,
+              );
+            },
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
           ),
         ),
       ],

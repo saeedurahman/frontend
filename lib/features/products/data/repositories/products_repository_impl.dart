@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
@@ -9,6 +9,7 @@ import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_detail_models.dart';
 import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
@@ -331,6 +332,113 @@ class ProductsRepositoryImpl implements ProductsRepository {
   ) async {
     try {
       return Right(await _remote.createPriceList(body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PriceListModel>> getPriceList(String id) async {
+    try {
+      return Right(await _remote.getPriceList(id));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PriceListModel>> updatePriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.updatePriceList(id, body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> deletePriceList(String id) async {
+    try {
+      return Right(await _remote.deletePriceList(id));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PriceListModel>> copyPriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.copyPriceList(id, body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PaginatedPriceListItemsModel>> getPriceListItems(
+    String id, {
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    try {
+      return Right(await _remote.getPriceListItems(
+        id,
+        search: search,
+        skip: skip,
+        limit: limit,
+      ));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BulkPriceResponseModel>> bulkUpsertPriceItems(
+    String id,
+    List<Map<String, dynamic>> items,
+  ) async {
+    try {
+      return Right(await _remote.bulkUpsertPriceItems(id, items));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deletePriceItem(String id, String itemId) async {
+    try {
+      await _remote.deletePriceItem(id, itemId);
+      return const Right(null);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AdjustPricesResponseModel>> adjustPriceList(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.adjustPriceList(id, body));
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> importPriceListCsv(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return Right(await _remote.importPriceListCsv(id, body));
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

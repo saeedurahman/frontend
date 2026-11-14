@@ -12,6 +12,7 @@ import 'package:frantend/features/expenses/presentation/cubit/expenses_list_cubi
 import 'package:frantend/features/expenses/presentation/cubit/expenses_list_state.dart';
 import 'package:frantend/features/expenses/presentation/utils/expense_calculations.dart';
 import 'package:frantend/features/expenses/presentation/widgets/expense_status_chip.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -107,6 +108,30 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        PermissionGate(
+          permission: Perm.reportsExport,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              final state = context.read<ExpensesListCubit>().state;
+              DateTime? from;
+              DateTime? to;
+              if (state is ExpensesListLoaded) {
+                from = state.dateFrom;
+                to = state.dateTo;
+              }
+              ExportDialog.show(
+                context,
+                dataset: 'expenses',
+                title: 'Expenses',
+                dateFrom: from,
+                dateTo: to,
+              );
+            },
+            icon: const Icon(Icons.download_outlined, size: 18),
+            label: const Text('Export'),
+          ),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.expensesCreate,
           mutating: true,

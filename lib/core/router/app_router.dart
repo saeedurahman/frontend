@@ -28,6 +28,7 @@ import 'package:frantend/features/sales/presentation/pages/sale_detail_page.dart
 import 'package:frantend/features/sales/presentation/pages/sales_list_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/inventory_stock_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/stock_movements_page.dart';
+import 'package:frantend/features/products/presentation/pages/price_lists_page.dart';
 import 'package:frantend/features/products/presentation/pages/product_form_page.dart';
 import 'package:frantend/features/products/presentation/pages/products_list_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/goods_receipt_page.dart';
@@ -58,6 +59,7 @@ import 'package:frantend/features/expenses/presentation/pages/expense_detail_pag
 import 'package:frantend/features/expenses/presentation/pages/expense_form_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
 import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
+import 'package:frantend/features/settings/presentation/pages/printer_settings_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
 import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
 import 'package:frantend/features/sync/presentation/pages/flags_page.dart';
@@ -229,6 +231,10 @@ class AppRouter {
                     '${RouteNames.products}/${state.pathParameters['id']}/edit',
               ),
             ],
+          ),
+          GoRoute(
+            path: RouteNames.priceLists,
+            builder: (_, __) => const PriceListsPage(),
           ),
           GoRoute(
             path: RouteNames.inventory,
@@ -514,7 +520,11 @@ class AppRouter {
                 redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
-                path: 'tax',
+                path: 'printer',
+                  builder: (_, __) => const PrinterSettingsPage(),
+                ),
+                GoRoute(
+                  path: 'tax',
                 redirect: (_, __) => RouteNames.settings,
               ),
               GoRoute(
@@ -567,6 +577,7 @@ class AppRouter {
   if (path.startsWith(RouteNames.dashboard)) return ('Dashboard', 'Home / Dashboard');
   if (path.startsWith(RouteNames.pos)) return ('Point of Sale', 'Home / Point of Sale');
   if (path.startsWith(RouteNames.products)) return ('Products', 'Home / Catalog / Products');
+  if (path.startsWith(RouteNames.priceLists)) return ('Price Lists', 'Home / Catalog / Price Lists');
   if (path.startsWith(RouteNames.inventory)) return ('Inventory', 'Home / Inventory');
   if (path.startsWith(RouteNames.purchases)) return ('Purchases', 'Home / Inventory / Purchases');
   if (path.startsWith(RouteNames.manufacturing)) {
@@ -636,6 +647,9 @@ class AppRouter {
   if (path.startsWith(RouteNames.analytics)) return ('Analytics', 'Home / Reports / Analytics');
   if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
   if (path.startsWith(RouteNames.settings)) {
+    if (path.startsWith(RouteNames.settingsPrinter)) {
+      return ('Printer Settings', 'Home / System / Settings / Printer');
+    }
     if (path.startsWith(RouteNames.settingsSubscription)) {
       return ('Subscription', 'Home / System / Settings / Subscription');
     }

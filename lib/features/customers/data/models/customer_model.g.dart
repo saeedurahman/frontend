@@ -20,6 +20,7 @@ _$CustomerModelImpl _$$CustomerModelImplFromJson(Map<String, dynamic> json) =>
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
+      priceListId: json['price_list_id'] as String?,
     );
 
 Map<String, dynamic> _$$CustomerModelImplToJson(_$CustomerModelImpl instance) =>
@@ -36,4 +37,5 @@ Map<String, dynamic> _$$CustomerModelImplToJson(_$CustomerModelImpl instance) =>
       'is_active': instance.isActive,
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
+      'price_list_id': instance.priceListId,
     };

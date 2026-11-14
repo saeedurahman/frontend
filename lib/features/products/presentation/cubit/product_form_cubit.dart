@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frantend/core/constants/app_config.dart';
+
 import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/core/utils/logger.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
@@ -17,7 +17,7 @@ import 'package:frantend/features/products/domain/usecases/update_product_usecas
 import 'package:frantend/features/products/presentation/cubit/product_form_state.dart';
 import 'package:frantend/features/products/presentation/utils/variation_utils.dart';
 import 'package:injectable/injectable.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:frantend/core/platform/image_picker_service.dart';
 
 @injectable
 class ProductFormCubit extends Cubit<ProductFormState> {
@@ -32,6 +32,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     required SetProductPriceUseCase setProductPriceUseCase,
     required ImageUploadService imageUploadService,
     required AuthLocalDataSource authLocalDataSource,
+    ImagePickerService? imagePickerService,
     Future<String?> Function()? localDefaultPriceListId,
     Future<void> Function(Map<String, dynamic> priceListItem)? onPriceSaved,
   })  : _localDefaultPriceListId = localDefaultPriceListId,
@@ -46,6 +47,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         _setProductPrice = setProductPriceUseCase,
         _imageUpload = imageUploadService,
         _authLocal = authLocalDataSource,
+        _imagePicker = imagePickerService ?? const WindowsImagePickerService(),
         super(const ProductFormState());
 
   final GetProductByIdUseCase _getProductById;
@@ -66,7 +68,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   /// keys as the sync feed), so the local copy (POS, product lists) has it at
   /// once and a pull can follow.
   final Future<void> Function(Map<String, dynamic> priceListItem)? _onPriceSaved;
-  final ImagePicker _imagePicker = ImagePicker();
+  final ImagePickerService _imagePicker;
 
   Future<bool> _canManagePrices() async {
     final user = await _authLocal.getCachedUser();
@@ -342,23 +344,20 @@ class ProductFormCubit extends Cubit<ProductFormState> {
       emit(state.copyWith(localImagePath: path));
 
   Future<void> pickAndUploadImage() async {
-    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
+    final pickedPath = await _imagePicker.pickImage();
+    if (pickedPath == null) return;
 
-    final file = File(picked.path);
+    final file = File(pickedPath);
     emit(
       state.copyWith(
-        localImagePath: picked.path,
+        localImagePath: pickedPath,
         isUploadingImage: true,
         imageUploadError: null,
       ),
     );
 
     try {
-      final url = await _imageUpload.uploadImage(
-        file,
-        folder: AppConfig.cloudinaryProductsFolder,
-      );
+      final url = await _imageUpload.uploadImage(file);
       emit(
         state.copyWith(
           imageUrl: url,

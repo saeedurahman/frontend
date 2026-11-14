@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:frantend/core/constants/app_config.dart';
+import 'package:frantend/core/constants/api_constants.dart';
+import 'package:frantend/core/network/dio_client.dart';
 import 'package:injectable/injectable.dart';
 
 class ImageUploadException implements Exception {
@@ -15,44 +16,49 @@ class ImageUploadException implements Exception {
 
 @lazySingleton
 class ImageUploadService {
-  ImageUploadService() : _dio = Dio();
+  ImageUploadService({DioClient? dioClient, Dio? dio})
+      : _dio = dio ?? dioClient?.dio ?? Dio();
 
-  /// Plain Dio — no auth/retry/offline interceptors (uploads go to Cloudinary).
   final Dio _dio;
 
   Future<String> uploadImage(
     File imageFile, {
-    String folder = AppConfig.cloudinaryProductsFolder,
+    String? folder,
   }) async {
-    final cloudName = AppConfig.cloudinaryCloudName;
-    final uploadPreset = AppConfig.cloudinaryUploadPreset;
-    final url =
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
-
+    final fileName = imageFile.path.split(RegExp(r'[\\/]')).last;
     final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(imageFile.path),
-      'upload_preset': uploadPreset,
-      'folder': folder,
+      'file': await MultipartFile.fromFile(imageFile.path, filename: fileName),
     });
 
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        url,
+        ApiConstants.uploadsImage,
         data: formData,
       );
 
-      if (response.statusCode == 200 && response.data != null) {
-        final secureUrl = response.data!['secure_url'];
-        if (secureUrl is String && secureUrl.isNotEmpty) {
-          return secureUrl;
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data != null) {
+        final url = response.data!['url'];
+        if (url is String && url.isNotEmpty) {
+          return url;
         }
       }
       throw ImageUploadException('Image upload failed — no URL returned');
     } on DioException catch (e) {
-      final message = e.response?.data is Map
-          ? '${(e.response!.data as Map)['error']?['message'] ?? e.message}'
-          : e.message;
-      throw ImageUploadException(message ?? 'Image upload failed');
+      if (e.response?.statusCode == 413) {
+        throw ImageUploadException(
+            'Image is too large. Please select an image under 5 MB.');
+      }
+      if (e.response?.statusCode == 415) {
+        throw ImageUploadException(
+            'Unsupported format. Please select a JPG, PNG, WebP or GIF.');
+      }
+      final data = e.response?.data;
+      String? detail;
+      if (data is Map) {
+        detail = data['detail']?.toString() ?? data['message']?.toString();
+      }
+      throw ImageUploadException(detail ?? e.message ?? 'Image upload failed');
     }
   }
 }

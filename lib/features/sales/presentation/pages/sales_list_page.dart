@@ -16,6 +16,7 @@ import 'package:frantend/features/sales/presentation/utils/sale_line_display.dar
 import 'package:frantend/features/sales/presentation/widgets/sale_list_cells.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_list_products_cell.dart';
 import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
@@ -138,10 +139,25 @@ class _Toolbar extends StatelessWidget {
         PermissionGate(
           permission: Perm.reportsExport,
           child: OutlinedButton.icon(
-            onPressed: () => AppAlerts.showInfoMessage(
-              context,
-              'Export coming soon',
-            ),
+            onPressed: () {
+              final state = context.read<SalesListCubit>().state;
+              String? branchId;
+              DateTime? from;
+              DateTime? to;
+              if (state is SalesListLoaded) {
+                branchId = state.branchIdFilter;
+                from = state.dateFrom;
+                to = state.dateTo;
+              }
+              ExportDialog.show(
+                context,
+                dataset: 'sales',
+                title: 'Sales',
+                branchId: branchId,
+                dateFrom: from,
+                dateTo: to,
+              );
+            },
             icon: const Icon(Icons.download_outlined, size: 18),
             label: const Text('Export'),
           ),

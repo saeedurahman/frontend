@@ -8,6 +8,7 @@ import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/widgets/record_payment_dialog.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,6 +47,19 @@ class CustomerLedgerHeader extends StatelessWidget {
               ),
             ),
             const Spacer(),
+            PermissionGate(
+              permission: Perm.reportsExport,
+              child: OutlinedButton.icon(
+                onPressed: () => ExportDialog.show(
+                  context,
+                  dataset: 'customer_ledger',
+                  title: 'Customer Ledger (${customer.name})',
+                ),
+                icon: const Icon(Icons.download_outlined, size: 18),
+                label: const Text('Export Ledger'),
+              ),
+            ),
+            const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: () => context.push(
                 '${RouteNames.customers}/${customer.id}/edit',

@@ -1,9 +1,10 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/barcode_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/price_list_detail_models.dart';
 import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
 import 'package:frantend/features/products/data/models/unit_model.dart';
@@ -55,8 +56,30 @@ abstract class ProductsRepository {
   Future<Either<Failure, UnitModel>> createUnit(Map<String, dynamic> body);
 
   Future<Either<Failure, List<PriceListModel>>> getPriceLists();
-
+  Future<Either<Failure, PriceListModel>> getPriceList(String id);
   Future<Either<Failure, PriceListModel>> createPriceList(Map<String, dynamic> body);
+  Future<Either<Failure, PriceListModel>> updatePriceList(String id, Map<String, dynamic> body);
+  Future<Either<Failure, Map<String, dynamic>>> deletePriceList(String id);
+  Future<Either<Failure, PriceListModel>> copyPriceList(String id, Map<String, dynamic> body);
+  Future<Either<Failure, PaginatedPriceListItemsModel>> getPriceListItems(
+    String id, {
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  });
+  Future<Either<Failure, BulkPriceResponseModel>> bulkUpsertPriceItems(
+    String id,
+    List<Map<String, dynamic>> items,
+  );
+  Future<Either<Failure, void>> deletePriceItem(String id, String itemId);
+  Future<Either<Failure, AdjustPricesResponseModel>> adjustPriceList(
+    String id,
+    Map<String, dynamic> body,
+  );
+  Future<Either<Failure, Map<String, dynamic>>> importPriceListCsv(
+    String id,
+    Map<String, dynamic> body,
+  );
   Future<Either<Failure, ProductPriceModel?>> getProductPrice(
     String productId, {
     String? variationId,

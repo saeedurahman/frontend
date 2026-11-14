@@ -14,6 +14,7 @@ abstract final class RoutePermissions {
 
     // Catalog
     _Rule(RouteNames.products, [Perm.productsView]),
+    _Rule(RouteNames.priceLists, [Perm.productsView, Perm.productsManagePrices]),
     _Rule('/products/new', [Perm.productsCreate]),
     _Rule('/products/:id/edit', [Perm.productsUpdate]),
 
@@ -71,6 +72,7 @@ abstract final class RoutePermissions {
   static const openRoutes = <String>[
     RouteNames.dashboard,
     RouteNames.settings,
+    RouteNames.settingsPrinter,
     RouteNames.noAccess,
     RouteNames.subscriptionExpired,
     RouteNames.sync,

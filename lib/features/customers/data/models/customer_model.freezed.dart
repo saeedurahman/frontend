@@ -40,6 +40,8 @@ mixin _$CustomerModel {
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
   String? get updatedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'price_list_id')
+  String? get priceListId => throw _privateConstructorUsedError;
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get balance => throw _privateConstructorUsedError;
 
@@ -73,6 +75,7 @@ abstract class $CustomerModelCopyWith<$Res> {
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'price_list_id') String? priceListId,
     @JsonKey(includeFromJson: false, includeToJson: false) String? balance,
   });
 }
@@ -104,6 +107,7 @@ class _$CustomerModelCopyWithImpl<$Res, $Val extends CustomerModel>
     Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? priceListId = freezed,
     Object? balance = freezed,
   }) {
     return _then(
@@ -156,6 +160,10 @@ class _$CustomerModelCopyWithImpl<$Res, $Val extends CustomerModel>
                 ? _value.updatedAt
                 : updatedAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            priceListId: freezed == priceListId
+                ? _value.priceListId
+                : priceListId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             balance: freezed == balance
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
@@ -188,6 +196,7 @@ abstract class _$$CustomerModelImplCopyWith<$Res>
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'price_list_id') String? priceListId,
     @JsonKey(includeFromJson: false, includeToJson: false) String? balance,
   });
 }
@@ -218,6 +227,7 @@ class __$$CustomerModelImplCopyWithImpl<$Res>
     Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? priceListId = freezed,
     Object? balance = freezed,
   }) {
     return _then(
@@ -270,6 +280,10 @@ class __$$CustomerModelImplCopyWithImpl<$Res>
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        priceListId: freezed == priceListId
+            ? _value.priceListId
+            : priceListId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         balance: freezed == balance
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
@@ -295,6 +309,7 @@ class _$CustomerModelImpl implements _CustomerModel {
     @JsonKey(name: 'is_active') this.isActive = true,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
+    @JsonKey(name: 'price_list_id') this.priceListId,
     @JsonKey(includeFromJson: false, includeToJson: false) this.balance,
   });
 
@@ -333,12 +348,15 @@ class _$CustomerModelImpl implements _CustomerModel {
   @JsonKey(name: 'updated_at')
   final String? updatedAt;
   @override
+  @JsonKey(name: 'price_list_id')
+  final String? priceListId;
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   final String? balance;
 
   @override
   String toString() {
-    return 'CustomerModel(id: $id, businessId: $businessId, name: $name, email: $email, phone: $phone, taxId: $taxId, addressLine1: $addressLine1, city: $city, creditLimit: $creditLimit, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, balance: $balance)';
+    return 'CustomerModel(id: $id, businessId: $businessId, name: $name, email: $email, phone: $phone, taxId: $taxId, addressLine1: $addressLine1, city: $city, creditLimit: $creditLimit, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, priceListId: $priceListId, balance: $balance)';
   }
 
   @override
@@ -364,6 +382,8 @@ class _$CustomerModelImpl implements _CustomerModel {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
+            (identical(other.priceListId, priceListId) ||
+                other.priceListId == priceListId) &&
             (identical(other.balance, balance) || other.balance == balance));
   }
 
@@ -383,6 +403,7 @@ class _$CustomerModelImpl implements _CustomerModel {
     isActive,
     createdAt,
     updatedAt,
+    priceListId,
     balance,
   );
 
@@ -414,6 +435,7 @@ abstract class _CustomerModel implements CustomerModel {
     @JsonKey(name: 'is_active') final bool isActive,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
+    @JsonKey(name: 'price_list_id') final String? priceListId,
     @JsonKey(includeFromJson: false, includeToJson: false)
     final String? balance,
   }) = _$CustomerModelImpl;
@@ -452,6 +474,9 @@ abstract class _CustomerModel implements CustomerModel {
   @override
   @JsonKey(name: 'updated_at')
   String? get updatedAt;
+  @override
+  @JsonKey(name: 'price_list_id')
+  String? get priceListId;
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get balance;

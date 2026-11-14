@@ -10,6 +10,7 @@ import 'package:frantend/features/reports/presentation/cubit/reports_state.dart'
 import 'package:frantend/features/reports/presentation/cubit/reports_tab_data.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_filter_bar.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_tab_views.dart';
+import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -127,10 +128,17 @@ class _ReportsViewState extends State<_ReportsView>
                 PermissionGate(
                   permission: Perm.reportsExport,
                   child: OutlinedButton.icon(
-                    onPressed: () => AppAlerts.showInfoMessage(
-                      context,
-                      'Export coming soon — backend CSV/Excel endpoints exist but desktop file-save is not wired yet.',
-                    ),
+                    onPressed: () {
+                      final filterState = context.read<ReportsFilterCubit>().state;
+                      ExportDialog.show(
+                        context,
+                        dataset: 'sales',
+                        title: 'Reports Data',
+                        dateFrom: filterState.filter.dateFrom,
+                        dateTo: filterState.filter.dateTo,
+                        branchId: filterState.filter.branchId,
+                      );
+                    },
                     icon: const Icon(Icons.download_outlined, size: 18),
                     label: const Text('Export'),
                   ),
