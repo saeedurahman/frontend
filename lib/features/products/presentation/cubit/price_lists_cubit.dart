@@ -24,6 +24,8 @@ class PriceListsState {
     this.errorMessage,
     this.successMessage,
     this.adjustPreview,
+    this.listsError,
+    this.itemsError,
   });
 
   final List<PriceListModel> priceLists;
@@ -40,6 +42,11 @@ class PriceListsState {
   final String? errorMessage;
   final String? successMessage;
   final AdjustPricesResponseModel? adjustPreview;
+
+  /// Persistent load failures (kept in state so the screen can show them with
+  /// a retry button instead of only a transient snackbar).
+  final String? listsError;
+  final String? itemsError;
 
   PriceListModel? get selectedList {
     if (selectedListId == null) return null;
@@ -68,6 +75,10 @@ class PriceListsState {
     bool clearSuccess = false,
     AdjustPricesResponseModel? adjustPreview,
     bool clearAdjustPreview = false,
+    String? listsError,
+    bool clearListsError = false,
+    String? itemsError,
+    bool clearItemsError = false,
   }) {
     return PriceListsState(
       priceLists: priceLists ?? this.priceLists,
@@ -84,6 +95,8 @@ class PriceListsState {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
       adjustPreview: clearAdjustPreview ? null : (adjustPreview ?? this.adjustPreview),
+      listsError: clearListsError ? null : (listsError ?? this.listsError),
+      itemsError: clearItemsError ? null : (itemsError ?? this.itemsError),
     );
   }
 }
@@ -115,7 +128,7 @@ class PriceListsCubit extends Cubit<PriceListsState> {
   }
 
   Future<void> loadPriceLists({String? preferredSelectedId}) async {
-    emit(state.copyWith(isLoadingLists: true, clearError: true));
+    emit(state.copyWith(isLoadingLists: true, clearError: true, clearListsError: true));
     await _checkOnline();
 
     final result = await _repository.getPriceLists();
@@ -124,6 +137,7 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(
           isLoadingLists: false,
           errorMessage: failure.message,
+          listsError: failure.message,
         ));
       },
       (lists) {
@@ -176,6 +190,7 @@ class PriceListsCubit extends Cubit<PriceListsState> {
       skip: sk,
       limit: lim,
       clearError: true,
+      clearItemsError: true,
     ));
 
     final result = await _repository.getPriceListItems(
@@ -190,6 +205,7 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(
           isLoadingItems: false,
           errorMessage: failure.message,
+          itemsError: failure.message,
         ));
       },
       (paged) {

@@ -252,6 +252,7 @@ class _PriceListFormDialogState extends State<PriceListFormDialog> {
                     ),
                     const SizedBox(width: AppDimensions.spacingSm),
                     PrimaryButton(
+                      fullWidth: false,
                       label: isEdit ? 'Save Changes' : 'Create List',
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _submit,
@@ -405,6 +406,7 @@ class _PriceListCopyDialogState extends State<PriceListCopyDialog> {
                     ),
                     const SizedBox(width: AppDimensions.spacingSm),
                     PrimaryButton(
+                      fullWidth: false,
                       label: 'Copy Price List',
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _submit,
@@ -673,6 +675,7 @@ class _PriceListAdjustDialogState extends State<PriceListAdjustDialog> {
                   ),
                   const SizedBox(width: 8),
                   PrimaryButton(
+                    fullWidth: false,
                     label: 'Apply Adjustment',
                     isLoading: _isApplying,
                     onPressed: _previewResult == null || _isApplying ? null : _runApply,
@@ -967,6 +970,7 @@ class _PriceListImportDialogState extends State<PriceListImportDialog> {
                   ),
                   const SizedBox(width: 8),
                   PrimaryButton(
+                    fullWidth: false,
                     label: 'Apply Import',
                     isLoading: _isApplying,
                     onPressed: (_importReport == null || _isApplying || (hasErrors && _onErrorMode == 'abort'))
@@ -1219,6 +1223,7 @@ class _PriceItemFormDialogState extends State<PriceItemFormDialog> {
                     ),
                     const SizedBox(width: AppDimensions.spacingSm),
                     PrimaryButton(
+                      fullWidth: false,
                       label: 'Save Price',
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _submit,

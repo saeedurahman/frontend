@@ -133,6 +133,11 @@ class _PriceListsViewState extends State<_PriceListsView> {
                             Expanded(
                               child: state.isLoadingLists
                                   ? const Center(child: CircularProgressIndicator())
+                                  : state.listsError != null && state.priceLists.isEmpty
+                                      ? _ErrorRetry(
+                                          message: state.listsError!,
+                                          onRetry: () => cubit.loadPriceLists(),
+                                        )
                                   : state.priceLists.isEmpty
                                       ? Center(
                                           child: Padding(
@@ -265,6 +270,36 @@ class _PriceListsViewState extends State<_PriceListsView> {
     if (confirmed == true) {
       await cubit.deletePriceList(list.id);
     }
+  }
+}
+
+class _ErrorRetry extends StatelessWidget {
+  const _ErrorRetry({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error, size: 40),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -494,6 +529,9 @@ class _PriceListDetailPanel extends StatelessWidget {
                   const SizedBox(width: 8),
                   PrimaryButton(
                     label: 'Add Price',
+                    // Must not be full width: it lives in a Row (infinite
+                    // width constraint crashed layout of the whole screen).
+                    fullWidth: false,
                     onPressed: !state.isOnline
                         ? null
                         : () => PriceItemFormDialog.show(
@@ -532,6 +570,11 @@ class _PriceListDetailPanel extends StatelessWidget {
         Expanded(
           child: state.isLoadingItems
               ? const Center(child: CircularProgressIndicator())
+              : state.itemsError != null
+                  ? _ErrorRetry(
+                      message: state.itemsError!,
+                      onRetry: () => cubit.loadItems(),
+                    )
               : state.items.isEmpty
                   ? Center(
                       child: Column(
@@ -554,6 +597,7 @@ class _PriceListDetailPanel extends StatelessWidget {
                           if (state.isOnline)
                             PrimaryButton(
                               label: 'Add First Price',
+                              fullWidth: false,
                               onPressed: () => PriceItemFormDialog.show(
                                 context,
                                 onSave: cubit.savePriceItem,
