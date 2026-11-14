@@ -394,7 +394,7 @@ void registerFoundationServices(GetIt sl) {
       localDefaultPriceListId: sl<LocalCatalog>().defaultPriceListId,
       // Local copy first (POS shows it at once), then a pull to confirm it.
       onPriceSaved: (item) async {
-        await sl<LocalCatalog>().rememberPrice(item);
+        await sl<LocalCatalog>().rememberPriceItem(item);
         await sl<SyncEngine>().syncNow(manual: true);
       },
     ),
@@ -451,6 +451,8 @@ void registerFoundationServices(GetIt sl) {
           customers_uc.GetCustomerBalanceUseCase(sl<LocalCustomersRepository>()),
       offlinePolicy: sl<OfflinePolicy>(),
       priceChanges: sl<LocalCatalog>().priceChanges,
+      resolvePriceList: (id) =>
+          sl<LocalCatalog>().effectivePriceList(customerId: id),
       stockChanges: sl<LocalCatalog>().stockChanges,
       warmModifiers: (ids) => unawaited(sl<ProductModifierCache>().warm(ids)),
       askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,

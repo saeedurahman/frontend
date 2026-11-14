@@ -74,6 +74,7 @@ class PosState with _$PosState {
   String? get categoriesError => catalog.categoriesError;
   String? get taxError => catalog.taxError;
   Map<String, String> get priceCache => catalog.priceCache;
+  PosPriceContext get priceContext => catalog.priceContext;
   Map<String, String> get stockCache => catalog.stockCache;
   Map<String, ProductModel> get productDetailsCache =>
       catalog.productDetailsCache;

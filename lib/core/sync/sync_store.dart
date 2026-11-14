@@ -7,6 +7,31 @@ import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_models.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
 
+/// What a committed change did to prices: which list (and product, when
+/// known) it touched. A change of a customer's assigned list carries the
+/// [customerId] instead. Screens re-resolve only what this concerns.
+class PriceChange {
+  const PriceChange({this.priceListId, this.productId, this.customerId});
+
+  final String? priceListId;
+  final String? productId;
+  final String? customerId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PriceChange &&
+      other.priceListId == priceListId &&
+      other.productId == productId &&
+      other.customerId == customerId;
+
+  @override
+  int get hashCode => Object.hash(priceListId, productId, customerId);
+
+  @override
+  String toString() =>
+      'PriceChange(list: $priceListId, product: $productId, customer: $customerId)';
+}
+
 /// Columns derived from an entity so lookups never parse JSON.
 class IndexedEntity {
   const IndexedEntity({
@@ -106,12 +131,16 @@ class SyncStore {
       _queuedInTx = false;
       return value;
     });
-    final prices = _pricesInTx;
-    _pricesInTx = false;
+    final prices = _priceEventsInTx.toList();
+    _priceEventsInTx.clear();
     final stock = _stockInTx;
     _stockInTx = false;
     if (!_changes.isClosed) _changes.add(null);
-    if (prices && !_priceChanges.isClosed) _priceChanges.add(null);
+    if (!_priceChanges.isClosed) {
+      for (final e in prices) {
+        _priceChanges.add(e);
+      }
+    }
     if (stock && !_stockChanges.isClosed) _stockChanges.add(null);
     if (queued && !_enqueued.isClosed) _enqueued.add(null);
     return result;
@@ -121,11 +150,30 @@ class SyncStore {
 
   /// Fires after a commit that touched a price list or one of its items
   /// (a pull, or a price saved on this device), so open screens re-read prices.
-  final StreamController<void> _priceChanges = StreamController<void>.broadcast();
-  Stream<void> get priceChanges => _priceChanges.stream;
-  bool _pricesInTx = false;
+  ///
+  /// One event per affected (list, product): consumers decide from the list
+  /// id whether the change concerns them.
+  final StreamController<PriceChange> _priceChanges =
+      StreamController<PriceChange>.broadcast();
+  Stream<PriceChange> get priceChanges => _priceChanges.stream;
+  final Set<PriceChange> _priceEventsInTx = {};
 
   static const _priceEntities = {'price_list', 'price_list_item'};
+
+  /// Records the price event a write of [entity] / [data] causes.
+  void _notePrice(String entity, String id, Map<String, dynamic>? data) {
+    switch (entity) {
+      case 'price_list':
+        _priceEventsInTx.add(PriceChange(priceListId: id));
+      case 'price_list_item':
+        _priceEventsInTx.add(PriceChange(
+          priceListId: data?['price_list_id']?.toString(),
+          productId: data?['product_id']?.toString(),
+        ));
+      case 'customer':
+        _priceEventsInTx.add(PriceChange(customerId: id));
+    }
+  }
 
   /// Fires after a commit that changed what the POS shows as stock: a pulled
   /// balance, a sale saved / synced / failed / discarded / voided on this
@@ -285,9 +333,15 @@ class SyncStore {
       return;
     }
     if (c.isDelete || c.data == null) {
+      if (_priceEntities.contains(c.entity)) {
+        // Remember which list / product the row belonged to for the event.
+        _notePrice(c.entity, c.id, await entity(c.entity, c.id));
+      }
       await _exec('DELETE FROM entities WHERE entity = ? AND id = ?', [c.entity, c.id]);
-      if (_priceEntities.contains(c.entity)) _pricesInTx = true;
       return;
+    }
+    if (c.entity == 'price_list_item') {
+      await _dropPriceTwins(c.id, c.data!);
     }
     await putEntity(c.entity, c.id, c.data!, seq: c.seq);
   }
@@ -300,7 +354,7 @@ class SyncStore {
     int seq = 0,
   }) async {
     final idx = IndexedEntity.of(entity, data);
-    if (_priceEntities.contains(entity)) _pricesInTx = true;
+    _notePrice(entity, id, data);
     await _exec(
       'INSERT OR REPLACE INTO entities (entity, id, business_id, branch_id, '
       'parent_id, data, search_text, barcode, category_id, active, is_deleted, seq) '
@@ -320,6 +374,44 @@ class SyncStore {
       ],
     );
   }
+
+  /// Removes one entity row (local deletes of data the server already
+  /// removed); the caller notes the price event.
+  Future<void> deleteEntity(String entity, String id) =>
+      _exec('DELETE FROM entities WHERE entity = ? AND id = ?', [entity, id]);
+
+  /// Queues the price event for a removed price row.
+  void notePriceRemoved(Map<String, dynamic> row) =>
+      _notePrice('price_list_item', '${row['id']}', row);
+
+  /// Queues the price event for a removed price list.
+  void notePriceListRemoved(String listId) =>
+      _notePrice('price_list', listId, null);
+
+  /// A pulled price row is authoritative for its (list, product, variation,
+  /// min_qty) slot: a row this device wrote earlier for the same slot under a
+  /// different id would otherwise stay next to it and could still win the
+  /// lookup with the old price.
+  Future<void> _dropPriceTwins(String id, Map<String, dynamic> data) async {
+    final productId = data['product_id']?.toString();
+    if (productId == null) return;
+    bool same(Map<String, dynamic> o) =>
+        '${o['price_list_id']}' == '${data['price_list_id']}' &&
+        '${o['variation_id']}' == '${data['variation_id']}' &&
+        _num(o['min_qty']) == _num(data['min_qty']);
+    for (final o in await entities('price_list_item',
+        where: 'parent_id = ?', args: [productId])) {
+      if ('${o['id']}' != id && same(o)) {
+        await _exec(
+          'DELETE FROM entities WHERE entity = ? AND id = ?',
+          ['price_list_item', '${o['id']}'],
+        );
+      }
+    }
+  }
+
+  static Decimal _num(Object? v) =>
+      Decimal.tryParse('${v ?? 1}') ?? Decimal.one;
 
   /// Applies parked changes whose entity no longer has a pending local op.
   Future<int> releaseDeferred() async {

@@ -1352,6 +1352,7 @@ mixin _$PosCatalogState {
 
   String? get taxError => throw _privateConstructorUsedError;
   Map<String, String> get priceCache => throw _privateConstructorUsedError;
+  PosPriceContext get priceContext => throw _privateConstructorUsedError;
   Map<String, String> get stockCache => throw _privateConstructorUsedError;
   Map<String, ProductModel> get productDetailsCache =>
       throw _privateConstructorUsedError;
@@ -1384,6 +1385,7 @@ abstract class $PosCatalogStateCopyWith<$Res> {
     String? categoriesError,
     String? taxError,
     Map<String, String> priceCache,
+    PosPriceContext priceContext,
     Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
   });
@@ -1417,6 +1419,7 @@ class _$PosCatalogStateCopyWithImpl<$Res, $Val extends PosCatalogState>
     Object? categoriesError = freezed,
     Object? taxError = freezed,
     Object? priceCache = null,
+    Object? priceContext = null,
     Object? stockCache = null,
     Object? productDetailsCache = null,
   }) {
@@ -1474,6 +1477,10 @@ class _$PosCatalogStateCopyWithImpl<$Res, $Val extends PosCatalogState>
                 ? _value.priceCache
                 : priceCache // ignore: cast_nullable_to_non_nullable
                       as Map<String, String>,
+            priceContext: null == priceContext
+                ? _value.priceContext
+                : priceContext // ignore: cast_nullable_to_non_nullable
+                      as PosPriceContext,
             stockCache: null == stockCache
                 ? _value.stockCache
                 : stockCache // ignore: cast_nullable_to_non_nullable
@@ -1511,6 +1518,7 @@ abstract class _$$PosCatalogStateImplCopyWith<$Res>
     String? categoriesError,
     String? taxError,
     Map<String, String> priceCache,
+    PosPriceContext priceContext,
     Map<String, String> stockCache,
     Map<String, ProductModel> productDetailsCache,
   });
@@ -1543,6 +1551,7 @@ class __$$PosCatalogStateImplCopyWithImpl<$Res>
     Object? categoriesError = freezed,
     Object? taxError = freezed,
     Object? priceCache = null,
+    Object? priceContext = null,
     Object? stockCache = null,
     Object? productDetailsCache = null,
   }) {
@@ -1600,6 +1609,10 @@ class __$$PosCatalogStateImplCopyWithImpl<$Res>
             ? _value._priceCache
             : priceCache // ignore: cast_nullable_to_non_nullable
                   as Map<String, String>,
+        priceContext: null == priceContext
+            ? _value.priceContext
+            : priceContext // ignore: cast_nullable_to_non_nullable
+                  as PosPriceContext,
         stockCache: null == stockCache
             ? _value._stockCache
             : stockCache // ignore: cast_nullable_to_non_nullable
@@ -1630,6 +1643,7 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
     this.categoriesError,
     this.taxError,
     final Map<String, String> priceCache = const {},
+    this.priceContext = const PosPriceContext(),
     final Map<String, String> stockCache = const {},
     final Map<String, ProductModel> productDetailsCache = const {},
   }) : _products = products,
@@ -1690,6 +1704,10 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
     return EqualUnmodifiableMapView(_priceCache);
   }
 
+  @override
+  @JsonKey()
+  final PosPriceContext priceContext;
+
   final Map<String, String> _stockCache;
   @override
   @JsonKey()
@@ -1711,7 +1729,7 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
 
   @override
   String toString() {
-    return 'PosCatalogState(products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, hasMoreProducts: $hasMoreProducts, isLoadingMoreProducts: $isLoadingMoreProducts, productsTotal: $productsTotal, stockError: $stockError, categoriesError: $categoriesError, taxError: $taxError, priceCache: $priceCache, stockCache: $stockCache, productDetailsCache: $productDetailsCache)';
+    return 'PosCatalogState(products: $products, categories: $categories, selectedCategoryId: $selectedCategoryId, productSearchQuery: $productSearchQuery, isLoadingProducts: $isLoadingProducts, productsError: $productsError, hasMoreProducts: $hasMoreProducts, isLoadingMoreProducts: $isLoadingMoreProducts, productsTotal: $productsTotal, stockError: $stockError, categoriesError: $categoriesError, taxError: $taxError, priceCache: $priceCache, priceContext: $priceContext, stockCache: $stockCache, productDetailsCache: $productDetailsCache)';
   }
 
   @override
@@ -1748,6 +1766,8 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
               other._priceCache,
               _priceCache,
             ) &&
+            (identical(other.priceContext, priceContext) ||
+                other.priceContext == priceContext) &&
             const DeepCollectionEquality().equals(
               other._stockCache,
               _stockCache,
@@ -1774,6 +1794,7 @@ class _$PosCatalogStateImpl implements _PosCatalogState {
     categoriesError,
     taxError,
     const DeepCollectionEquality().hash(_priceCache),
+    priceContext,
     const DeepCollectionEquality().hash(_stockCache),
     const DeepCollectionEquality().hash(_productDetailsCache),
   );
@@ -1805,6 +1826,7 @@ abstract class _PosCatalogState implements PosCatalogState {
     final String? categoriesError,
     final String? taxError,
     final Map<String, String> priceCache,
+    final PosPriceContext priceContext,
     final Map<String, String> stockCache,
     final Map<String, ProductModel> productDetailsCache,
   }) = _$PosCatalogStateImpl;
@@ -1835,6 +1857,8 @@ abstract class _PosCatalogState implements PosCatalogState {
   String? get taxError;
   @override
   Map<String, String> get priceCache;
+  @override
+  PosPriceContext get priceContext;
   @override
   Map<String, String> get stockCache;
   @override

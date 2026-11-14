@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
+import 'package:frantend/core/sync/sync_engine.dart';
 import 'package:frantend/features/products/data/models/price_list_detail_models.dart';
 import 'package:frantend/features/products/data/models/price_list_model.dart';
 import 'package:frantend/features/products/domain/repositories/products_repository.dart';
@@ -121,6 +122,25 @@ class PriceListsCubit extends Cubit<PriceListsState> {
       return online;
     }
     return true;
+  }
+
+  /// The single local copy the POS reads: every successful change on the
+  /// server is written into it at once (and announced as a price change), so
+  /// the POS never shows a price this screen has already replaced.
+  Future<void> _local(Future<void> Function(LocalCatalog catalog) write) async {
+    if (!sl.isRegistered<LocalCatalog>()) return;
+    try {
+      await write(sl<LocalCatalog>());
+    } catch (_) {}
+  }
+
+  /// After a bulk change (adjust / import) the server holds many new prices:
+  /// pull them into the local copy.
+  Future<void> _pull() async {
+    if (!sl.isRegistered<SyncEngine>()) return;
+    try {
+      await sl<SyncEngine>().syncNow(manual: true);
+    } catch (_) {}
   }
 
   void clearMessages() {
@@ -249,7 +269,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (created) {
+      (created) async {
+        await _local((c) => c.rememberPriceList(created.toJson()));
         emit(state.copyWith(
           isSaving: false,
           successMessage: 'Price list "${created.name}" created.',
@@ -290,7 +311,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (updated) {
+      (updated) async {
+        await _local((c) => c.rememberPriceList(updated.toJson()));
         emit(state.copyWith(
           isSaving: false,
           successMessage: 'Price list "${updated.name}" updated.',
@@ -333,7 +355,9 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (copied) {
+      (copied) async {
+        await _local((c) => c.rememberPriceList(copied.toJson()));
+        await _pull();
         emit(state.copyWith(
           isSaving: false,
           successMessage: 'Price list copied as "${copied.name}".',
@@ -366,7 +390,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return failure.message;
       },
-      (data) {
+      (data) async {
+        await _local((c) => c.forgetPriceList(id));
         final unassigned = data['customers_unassigned'] ?? 0;
         final msg = unassigned > 0
             ? 'Price list deleted. $unassigned customers unassigned to default list.'
@@ -411,18 +436,16 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (resp) {
-        // Instant local cache update so POS sees it immediately!
-        if (sl.isRegistered<LocalCatalog>()) {
-          sl<LocalCatalog>().rememberPrice({
-            'id': '${listId}_${productId}_${variationId ?? "base"}_$minQty',
-            'price_list_id': listId,
-            'product_id': productId,
-            'variation_id': variationId,
-            'unit_price': price.trim(),
-            'min_qty': minQty.trim().isEmpty ? '1' : minQty.trim(),
-          });
-        }
+      (resp) async {
+        // Written into THIS list's slot of the local copy (replacing the
+        // price already there), so the POS shows it at once.
+        await _local((c) => c.rememberPrice(
+              listId: listId,
+              productId: productId,
+              variationId: variationId,
+              price: price.trim(),
+              minQty: minQty.trim().isEmpty ? '1' : minQty.trim(),
+            ));
 
         emit(state.copyWith(
           isSaving: false,
@@ -450,7 +473,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (_) {
+      (_) async {
+        await _local((c) => c.forgetPrice(listId, itemId));
         emit(state.copyWith(
           isSaving: false,
           successMessage: 'Price removed.',
@@ -525,7 +549,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return false;
       },
-      (resp) {
+      (resp) async {
+        await _pull();
         emit(state.copyWith(
           isSaving: false,
           clearAdjustPreview: true,
@@ -563,7 +588,8 @@ class PriceListsCubit extends Cubit<PriceListsState> {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
         return null;
       },
-      (report) {
+      (report) async {
+        if (!dryRun) await _pull();
         emit(state.copyWith(
           isSaving: false,
           successMessage: !dryRun ? 'Price list import applied successfully.' : null,

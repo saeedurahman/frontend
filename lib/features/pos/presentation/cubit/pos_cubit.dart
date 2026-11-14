@@ -18,7 +18,9 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
+import 'package:frantend/core/offline/local_catalog.dart' show EffectivePriceList;
 import 'package:frantend/core/offline/offline_policy.dart';
+import 'package:frantend/core/sync/sync_store.dart' show PriceChange;
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
@@ -48,6 +50,11 @@ part 'pos_cubit_cart_mixin.dart';
 part 'pos_cubit_dine_in_mixin.dart';
 
 const _previewDebounceDuration = Duration(milliseconds: 400);
+
+/// Which price list applies to a customer (none = walk-in), read from the
+/// local data.
+typedef PosPriceListResolver = Future<EffectivePriceList> Function(
+    String? customerId);
 
 class PosCubitBase extends Cubit<PosState> {
   PosCubitBase({
@@ -81,12 +88,14 @@ class PosCubitBase extends Cubit<PosState> {
     required customers_uc.GetCustomerUseCase getCustomerUseCase,
     required customers_uc.GetCustomerBalanceUseCase getCustomerBalanceUseCase,
     OfflinePolicy? offlinePolicy,
-    Stream<void>? priceChanges,
+    Stream<PriceChange>? priceChanges,
+    PosPriceListResolver? resolvePriceList,
     Stream<void>? stockChanges,
     void Function(Iterable<String> productIds)? warmModifiers,
     bool Function()? askQuantityOnTap,
   })  : _offlinePolicy = offlinePolicy,
         _priceChanges = priceChanges,
+        _resolvePriceList = resolvePriceList,
         _stockChanges = stockChanges,
         _warmModifiers = warmModifiers,
         _askQuantityOnTap = askQuantityOnTap,
@@ -147,10 +156,23 @@ class PosCubitBase extends Cubit<PosState> {
   final OfflinePolicy? _offlinePolicy;
 
   /// Fires when prices in the local data changed (a pull, or a price saved on
-  /// this device); the cubit then re-reads the prices it has cached.
-  final Stream<void>? _priceChanges;
-  StreamSubscription<void>? _priceChangesSub;
+  /// this device), naming the price list; the cubit re-resolves its prices
+  /// only when the change concerns the default list or the list in force.
+  final Stream<PriceChange>? _priceChanges;
+  StreamSubscription<PriceChange>? _priceChangesSub;
   int _priceRefreshId = 0;
+
+  /// Reads the price list in force for a customer from the local data.
+  final PosPriceListResolver? _resolvePriceList;
+
+  /// Price changes of one transaction arrive as separate events; they are
+  /// merged and handled once.
+  final Set<PriceChange> _pendingPriceChanges = {};
+  bool _priceFlushScheduled = false;
+
+  /// Prices typed by hand for an unpriced product (kept across refreshes,
+  /// unlike list prices that disappear when the list drops them).
+  final Set<String> _manualPriceSlots = {};
 
   /// Fires when the stock in the local data changed (a sale saved on this
   /// device, a pull, a sync result, a return or a void); the cubit then
@@ -203,6 +225,29 @@ class PosCubitBase extends Cubit<PosState> {
   /// Re-reads the stock shown on the cards and in the quantity popup
   /// (implemented by the catalog mixin).
   Future<void> refreshStock() async {}
+
+  /// Re-resolves the prices on screen (implemented by the catalog mixin).
+  Future<void> refreshPrices({List<PriceChange> changes = const []}) async {}
+
+  /// Cache owner of a price: the price list in force, or (when it is not
+  /// known yet, e.g. right after the customer changed) the customer.
+  static String priceTokenOf(String? listId, String? customerId) =>
+      listId ?? 'c:${customerId ?? ''}';
+
+  String get priceToken {
+    final context = state.priceContext;
+    final customerId = state.selectedCustomer?.id;
+    return priceTokenOf(
+      context.customerId == customerId ? context.effectiveListId : null,
+      customerId,
+    );
+  }
+
+  /// Key of one price in `priceCache`: (price list, product, variation).
+  /// Entries of different lists never share a slot.
+  String priceSlot(String productId, String? variationId, {String? token}) =>
+      '${token ?? priceToken}|'
+      '${variationId != null ? '$productId:$variationId' : productId}';
 
   void _safeEmit(PosState newState) {
     if (isClosed) return;
@@ -259,6 +304,7 @@ class PosCubit extends PosCubitBase
     required super.getCustomerBalanceUseCase,
     super.offlinePolicy,
     super.priceChanges,
+    super.resolvePriceList,
     super.stockChanges,
     super.warmModifiers,
     super.askQuantityOnTap,

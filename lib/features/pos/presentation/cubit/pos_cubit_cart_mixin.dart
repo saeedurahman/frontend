@@ -133,9 +133,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       variationId = variation.id;
     }
 
-    final priceKey = variationId != null
-        ? '${product.id}:$variationId'
-        : product.id;
+    final priceKey = priceSlot(product.id, variationId);
 
     final resolvedPrice = manualUnitPrice ??
         await _resolveUnitPrice(
@@ -163,6 +161,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     }
 
     if (manualUnitPrice != null && rememberManualPrice) {
+      _manualPriceSlots.add(priceKey);
       _safeEmit(state.patch(
         priceCache: {
           ...state.priceCache,
@@ -291,16 +290,18 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     String? customerId,
   }) async {
     final effectiveCustomer = customerId ?? state.selectedCustomer?.id;
-    final priceKey =
-        variationId != null ? '$productId:$variationId' : productId;
+    // Cache entries belong to one price list, so the fast path is valid for
+    // whichever customer is selected, as long as it is that customer's list.
+    final cacheable = effectiveCustomer == state.selectedCustomer?.id &&
+        (qty == null || qty == Decimal.one);
+    final priceKey = priceSlot(productId, variationId);
 
-    // Fast-path: cached default 1-qty walk-in price
-    if (effectiveCustomer == null && (qty == null || qty == Decimal.one)) {
+    if (cacheable) {
       var cached = Decimal.tryParse(state.priceCache[priceKey] ?? '');
-      // The background warm-up stores the default price under the product id;
-      // it is valid for single-variation products.
+      // The background warm-up stores the price under the product id; it is
+      // valid for single-variation products.
       if ((cached == null || cached <= Decimal.zero) && singleVariation) {
-        cached = Decimal.tryParse(state.priceCache[productId] ?? '');
+        cached = Decimal.tryParse(state.priceCache[priceSlot(productId, null)] ?? '');
       }
       if (cached != null && cached > Decimal.zero) return cached;
     }
@@ -314,7 +315,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     if (isClosed) return null;
     return priceResult.fold((_) => null, (p) {
       if (p == null || p <= Decimal.zero) return null;
-      if (effectiveCustomer == null && (qty == null || qty == Decimal.one)) {
+      if (cacheable && effectiveCustomer == state.selectedCustomer?.id) {
         _safeEmit(state.patch(
           priceCache: {...state.priceCache, priceKey: p.toString()},
         ));
@@ -538,8 +539,11 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   }
 
   Future<void> selectCustomer(CustomerModel? customer) async {
-    emit(state.patch(selectedCustomer: customer, priceCache: const <String, String>{}));
+    emit(state.patch(selectedCustomer: customer));
     if (customer != null) await refreshSelectedCustomer();
+    // The customer decides the price list: re-derive the grid prices (and the
+    // open quantity popup that listens to them), then the cart lines.
+    await refreshPrices();
     await _repriceCartForCustomer();
   }
 
@@ -596,6 +600,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   }
 
   void clearCart() {
+    final hadCustomer = state.selectedCustomer != null;
     _safeEmit(state.patch(
       cartItems: <CartItemModel>[],
       selectedCustomer: null,
@@ -606,6 +611,8 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       pricePreviewError: null,
       isLoadingPricePreview: false,
     ));
+    // Back to the default list's prices.
+    if (hadCustomer) unawaited(refreshPrices());
   }
 
   @visibleForTesting
@@ -713,6 +720,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     await _heldOrders.discard(heldOrderId, scope);
     await loadHeldOrders();
     if (customer != null) await refreshSelectedCustomer();
+    await refreshPrices();
     return HeldResumeResult(resumed: true, changes: changes);
   }
 

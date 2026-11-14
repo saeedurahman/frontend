@@ -299,6 +299,7 @@ class OfflineWorld {
       getCustomerBalanceUseCase:
           customers_uc.GetCustomerBalanceUseCase(localCustomers),
       priceChanges: rig.catalog.priceChanges,
+      resolvePriceList: (id) => rig.catalog.effectivePriceList(customerId: id),
       stockChanges: rig.catalog.stockChanges,
       warmModifiers: (ids) => unawaited(modifiers.warm(ids)),
     );

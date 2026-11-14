@@ -99,11 +99,39 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     if (changed) _safeEmit(state.patch(stockCache: cache));
   }
 
+  /// Re-derives which price list is in force (the selected customer's list,
+  /// else the default list) from the local data.
+  Future<void> _refreshPriceContext() async {
+    final resolver = _resolvePriceList;
+    if (resolver == null) return;
+    final customerId = state.selectedCustomer?.id;
+    final resolved = await resolver(customerId);
+    if (isClosed || customerId != state.selectedCustomer?.id) return;
+    final current = state.priceContext;
+    if (current.customerId == customerId &&
+        current.effectiveListId == resolved.id &&
+        current.defaultListId == resolved.defaultId &&
+        current.listName == resolved.name) {
+      return;
+    }
+    _safeEmit(state.patch(
+      priceContext: current.bumped(
+        effectiveListId: resolved.id,
+        defaultListId: resolved.defaultId,
+        listName: resolved.name,
+        customerId: customerId,
+      ),
+    ));
+  }
+
   /// Background price warm-up so add-to-cart never waits on the network for a
-  /// product that is already on screen.
+  /// product that is already on screen. Prices are those of the list in
+  /// force for the selected customer and are cached under that list.
   Future<void> _prefetchPrices(List<ProductListItemModel> items) async {
+    final customerId = state.selectedCustomer?.id;
+    final token = priceToken;
     final pending = items
-        .where((p) => !state.priceCache.containsKey(p.id))
+        .where((p) => !state.priceCache.containsKey(priceSlot(p.id, null)))
         .map((p) => p.id)
         .toList();
     const concurrency = 4;
@@ -111,14 +139,21 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
       if (isClosed) return;
       final batch = pending.skip(i).take(concurrency);
       final results = await Future.wait(
-        batch.map((id) async => (id, await _getProductPrice(id, null))),
+        batch.map((id) async =>
+            (id, await _getProductPrice(id, null, customerId: customerId))),
       );
-      if (isClosed) return;
+      // The customer (so the list) changed meanwhile: these prices belong to
+      // the old list; `refreshPrices` of the change fills the new one.
+      if (isClosed ||
+          state.selectedCustomer?.id != customerId ||
+          priceToken != token) {
+        return;
+      }
       final cache = {...state.priceCache};
       for (final (id, result) in results) {
         result.fold((_) {}, (price) {
           if (price != null && price > Decimal.zero) {
-            cache[id] = price.toString();
+            cache[priceSlot(id, null, token: token)] = price.toString();
           }
         });
       }
@@ -126,29 +161,141 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     }
   }
 
-  /// Re-reads every cached price and the price of each product on screen from
-  /// the local data. A list price replaces whatever was cached (an older price
-  /// or one typed in by hand); a key with no list price keeps its value, so a
-  /// hand-typed price for an unpriced product survives.
-  Future<void> refreshPrices() async {
+  /// Re-resolves the prices on screen for the list in force, from the local
+  /// data, and emits a new state (also when the values did not change, so the
+  /// cards and an open quantity popup re-read them).
+  ///
+  /// A list price replaces whatever was cached; a product the list no longer
+  /// prices loses its entry (a price removed on the server disappears), except
+  /// a price typed in by hand for an unpriced product.
+  ///
+  /// [changes] are the price changes that triggered this: the cached entries
+  /// they name (of any list) are dropped, and with product ids only those
+  /// products are re-read.
+  @override
+  Future<void> refreshPrices({List<PriceChange> changes = const []}) async {
     final requestId = ++_priceRefreshId;
-    final keys = <String>{
-      ...state.priceCache.keys,
-      for (final p in state.products) p.id,
+    final customerId = state.selectedCustomer?.id;
+    final resolver = _resolvePriceList;
+    EffectivePriceList? resolved;
+    if (resolver != null) {
+      resolved = await resolver(customerId);
+      if (isClosed || requestId != _priceRefreshId) return;
+    }
+    final token = resolved != null
+        ? PosCubitBase.priceTokenOf(resolved.id, customerId)
+        : PosCubitBase.priceTokenOf(null, customerId);
+
+    final wholeList = changes.isEmpty ||
+        changes.any((c) => c.productId == null || c.customerId != null);
+    final onlyProducts = {
+      for (final c in changes)
+        if (c.productId != null) c.productId!,
     };
+
+    final keys = <String>{};
+    for (final k in state.priceCache.keys) {
+      final bar = k.indexOf('|');
+      if (k.substring(0, bar) == token) keys.add(k.substring(bar + 1));
+    }
+    for (final p in state.products) {
+      keys.add(p.id);
+    }
+    if (!wholeList) {
+      keys.removeWhere((k) => !onlyProducts.contains(k.split(':').first));
+    }
+
     final fresh = <String, String>{};
+    final gone = <String>{};
     for (final key in keys) {
       final split = key.indexOf(':');
       final productId = split < 0 ? key : key.substring(0, split);
       final variationId = split < 0 ? null : key.substring(split + 1);
-      final result = await _getProductPrice(productId, variationId);
+      final result = await _getProductPrice(
+        productId,
+        variationId,
+        customerId: customerId,
+      );
       if (isClosed || requestId != _priceRefreshId) return;
-      result.fold((_) {}, (price) {
-        if (price != null && price > Decimal.zero) fresh[key] = price.toString();
-      });
+      final slot = '$token|$key';
+      var price = result.fold((_) => null, (p) => p);
+      if (price != null && price > Decimal.zero) {
+        fresh[slot] = price.toString();
+      } else if (!_manualPriceSlots.contains(slot)) {
+        gone.add(slot);
+      }
     }
-    if (fresh.isEmpty) return;
-    _safeEmit(state.patch(priceCache: {...state.priceCache, ...fresh}));
+
+    final cache = {...state.priceCache}
+      ..removeWhere((k, _) => changes.any((c) => _slotMatches(k, c)))
+      ..removeWhere((k, _) => gone.contains(k))
+      ..addAll(fresh);
+    final current = state.priceContext;
+    _safeEmit(state.patch(
+      priceCache: cache,
+      priceContext: resolved == null
+          ? current.bumped(keep: true)
+          : current.bumped(
+              effectiveListId: resolved.id,
+              defaultListId: resolved.defaultId,
+              listName: resolved.name,
+              customerId: customerId,
+            ),
+    ));
+  }
+
+  /// True when the cache entry [slot] holds a price [change] touched.
+  static bool _slotMatches(String slot, PriceChange change) {
+    final listId = change.priceListId;
+    if (listId == null) return false;
+    final bar = slot.indexOf('|');
+    if (slot.substring(0, bar) != listId) return false;
+    final productId = change.productId;
+    return productId == null || slot.substring(bar + 1).split(':').first == productId;
+  }
+
+  /// A price change from the local data (pull, a price saved on this device).
+  /// The changes of one transaction arrive as separate events: they are
+  /// merged and handled once.
+  void _onPriceChange(PriceChange change) {
+    _pendingPriceChanges.add(change);
+    if (_priceFlushScheduled) return;
+    _priceFlushScheduled = true;
+    scheduleMicrotask(_flushPriceChanges);
+  }
+
+  void _flushPriceChanges() {
+    _priceFlushScheduled = false;
+    final changes = _pendingPriceChanges.toList();
+    _pendingPriceChanges.clear();
+    if (isClosed || changes.isEmpty) return;
+
+    final context = state.priceContext;
+    final customerId = state.selectedCustomer?.id;
+    // Re-resolve only what this POS shows: the default list (every other
+    // list falls back to it) and the list in force. Without a resolver the
+    // list in force is unknown, so every change counts.
+    final relevant = [
+      for (final c in changes)
+        if (c.customerId != null
+            ? c.customerId == customerId
+            : _resolvePriceList == null ||
+                c.priceListId == null ||
+                c.priceListId == context.defaultListId ||
+                c.priceListId == context.effectiveListId)
+          c,
+    ];
+    if (relevant.isNotEmpty) {
+      unawaited(refreshPrices(changes: changes));
+      return;
+    }
+    // A list this POS is not showing: just forget what was cached for it, so
+    // it is read afresh when a customer of that list is selected.
+    final cache = {...state.priceCache}
+      ..removeWhere((k, _) => changes.any((c) => _slotMatches(k, c)));
+    if (cache.length != state.priceCache.length) {
+      _safeEmit(state.patch(priceCache: cache));
+    }
   }
 
   /// Reads the balances of the branch from the local data: pulled stock
@@ -291,12 +438,18 @@ mixin PosCubitCatalogMixin on PosCubitBase, PosCubitCartMixin {
     });
   }
 
+  /// Price shown for the product now: the one of the list in force for the
+  /// selected customer (the default list with no customer).
   Decimal? getDisplayPrice(String productId, {String? variationId}) {
-    final key = variationId != null ? '$productId:$variationId' : productId;
-    final raw = state.priceCache[key];
+    final raw = state.priceCache[priceSlot(productId, variationId)];
     if (raw == null) return null;
     return Decimal.tryParse(raw);
   }
+
+  /// Name of the list in force when it is not the default one ("Wholesale"),
+  /// else null.
+  String? get specialPriceListName =>
+      state.priceContext.isSpecial ? state.priceContext.listName : null;
 
   String? getDisplayStock(String productId) => state.stockCache[productId];
 }

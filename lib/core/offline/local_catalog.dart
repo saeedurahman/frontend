@@ -170,6 +170,9 @@ class LocalCatalog {
     for (final l in lists) {
       if (l['is_active'] == false) continue;
       if (l['is_default'] == true) return '${l['id']}';
+      // A list this device only created a stub for (never pulled) must not
+      // become "the default" just because it is the first one.
+      if (l['_stub'] == true) continue;
       pick ??= l;
     }
     return pick == null ? null : '${pick['id']}';
@@ -331,47 +334,157 @@ class LocalCatalog {
     return base == null ? null : Decimal.tryParse('${base['unit_price']}');
   }
 
-  /// Writes a price the server just accepted (`POST /prices/lists/{id}/items`)
-  /// into the local copy, in the shape the pull delivers, so the POS has it
-  /// before the next pull. The pull later replaces the row (same id).
-  Future<void> rememberPrice(Map<String, dynamic> item) async {
-    final id = item['id']?.toString();
-    final listId = item['price_list_id']?.toString();
-    if (id == null || listId == null || item['product_id'] == null) return;
+  /// The price list that applies to [customerId] (none = walk-in): the
+  /// customer's assigned list while it is active and inside its validity
+  /// window, else the default list. See [EffectivePriceList].
+  Future<EffectivePriceList> effectivePriceList({
+    String? customerId,
+    DateTime? now,
+  }) async {
+    final defaultId = await _defaultPriceListId();
+    final id = await effectivePriceListId(customerId: customerId, now: now) ??
+        defaultId;
+    final list = id == null ? null : await _store.entity('price_list', id);
+    return EffectivePriceList(
+      id: id,
+      defaultId: defaultId,
+      name: list?['name']?.toString(),
+    );
+  }
+
+  /// Writes a price the server just accepted into the row of THAT list (a
+  /// price saved for one list can never end up in another list's slot).
+  ///
+  /// The slot is (list, product, variation, min_qty): when a row for it
+  /// already exists (pulled, with the server's id) it is updated in place;
+  /// writing a second row next to it would leave the old price in play. The
+  /// pull later replaces the row by id.
+  Future<void> rememberPrice({
+    required String listId,
+    required String productId,
+    String? variationId,
+    required String price,
+    String minQty = '1',
+    String? id,
+  }) async {
+    final wanted = Decimal.tryParse(minQty) ?? Decimal.one;
     await _store.transaction(() async {
       if (await _store.entity('price_list', listId) == null) {
-        // The list itself has not been pulled yet (it was just created).
-        final hasDefault = (await _store.entities('price_list'))
-            .any((l) => l['is_default'] == true && l['is_active'] != false);
+        // The list itself has not been pulled yet (it was just created). It
+        // is a stub: never the default, replaced by the pull.
         await _store.putEntity(
           'price_list',
           listId,
           await _withBusiness({
             'id': listId,
-            'name': 'Retail',
-            'list_type': 'retail',
-            'is_default': !hasDefault,
+            'name': 'Price list',
+            'list_type': 'custom',
+            'is_default': false,
             'is_active': true,
+            '_stub': true,
           }),
         );
       }
+      String? rowId;
+      for (final o in await _store.entities('price_list_item',
+          where: 'parent_id = ?', args: [productId])) {
+        if ('${o['price_list_id']}' == listId &&
+            o['variation_id']?.toString() == variationId &&
+            (Decimal.tryParse('${o['min_qty'] ?? 1}') ?? Decimal.one) ==
+                wanted) {
+          rowId = '${o['id']}';
+          break;
+        }
+      }
+      rowId ??= id ?? '${listId}_${productId}_${variationId ?? 'base'}_$minQty';
       await _store.putEntity(
         'price_list_item',
-        id,
+        rowId,
         await _withBusiness({
-          'id': id,
+          'id': rowId,
           'price_list_id': listId,
-          'product_id': '${item['product_id']}',
-          'variation_id': item['variation_id']?.toString(),
-          'unit_price': '${item['unit_price']}',
-          'min_qty': '${item['min_qty'] ?? '1'}',
+          'product_id': productId,
+          'variation_id': variationId,
+          'unit_price': price,
+          'min_qty': minQty,
         }),
       );
     });
   }
 
-  /// Fires when prices in the local copy changed (a pull or [rememberPrice]).
-  Stream<void> get priceChanges => _store.priceChanges;
+  /// [rememberPrice] for a price list item as the server returns it.
+  Future<void> rememberPriceItem(Map<String, dynamic> item) async {
+    final listId = item['price_list_id']?.toString();
+    final productId = item['product_id']?.toString();
+    if (listId == null || productId == null) return;
+    await rememberPrice(
+      listId: listId,
+      productId: productId,
+      variationId: item['variation_id']?.toString(),
+      price: '${item['unit_price']}',
+      minQty: '${item['min_qty'] ?? '1'}',
+      id: item['id']?.toString(),
+    );
+  }
+
+  /// Removes a price (the server deleted the item).
+  Future<void> forgetPrice(String listId, String itemId) async {
+    await _store.transaction(() async {
+      final row = await _store.entity('price_list_item', itemId);
+      if (row == null || '${row['price_list_id']}' != listId) return;
+      _store.notePriceRemoved(row);
+      await _store.deleteEntity('price_list_item', itemId);
+    });
+  }
+
+  /// Writes a price list as the server returned it (create / edit / default /
+  /// validity), keeping a single default list locally.
+  Future<void> rememberPriceList(Map<String, dynamic> list) async {
+    final id = list['id']?.toString();
+    if (id == null) return;
+    await _store.transaction(() async {
+      if (list['is_default'] == true) {
+        for (final o in await _store.entities('price_list')) {
+          if ('${o['id']}' != id && o['is_default'] == true) {
+            await _store.putEntity(
+                'price_list', '${o['id']}', {...o, 'is_default': false});
+          }
+        }
+      }
+      final data = {
+        for (final k in const [
+          'id',
+          'business_id',
+          'name',
+          'list_type',
+          'is_default',
+          'is_active',
+          'valid_from',
+          'valid_to',
+        ])
+          if (list.containsKey(k)) k: list[k],
+      };
+      await _store.putEntity('price_list', id, await _withBusiness(data));
+    });
+  }
+
+  /// Removes a price list and its items (deleted on the server).
+  Future<void> forgetPriceList(String listId) async {
+    await _store.transaction(() async {
+      for (final i in await _store.entities('price_list_item')) {
+        if ('${i['price_list_id']}' == listId) {
+          _store.notePriceRemoved(i);
+          await _store.deleteEntity('price_list_item', '${i['id']}');
+        }
+      }
+      _store.notePriceListRemoved(listId);
+      await _store.deleteEntity('price_list', listId);
+    });
+  }
+
+  /// Fires when prices in the local copy changed (a pull or a price saved on
+  /// this device), with the list (and product) it concerned.
+  Stream<PriceChange> get priceChanges => _store.priceChanges;
 
   /// Fires when the stock the POS shows changed: a pulled balance, a sale
   /// saved or synced on this device, a return or a void.
@@ -564,4 +677,27 @@ class LocalCatalog {
           : DecimalUtils.format(Decimal.parse(actual) - expected),
     );
   }
+}
+
+/// The price list in force for a customer (see
+/// [LocalCatalog.effectivePriceList]).
+class EffectivePriceList {
+  const EffectivePriceList({this.id, this.defaultId, this.name});
+
+  final String? id;
+  final String? defaultId;
+  final String? name;
+
+  /// True when a list other than the default one is in force.
+  bool get isSpecial => id != null && id != defaultId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is EffectivePriceList &&
+      other.id == id &&
+      other.defaultId == defaultId &&
+      other.name == name;
+
+  @override
+  int get hashCode => Object.hash(id, defaultId, name);
 }

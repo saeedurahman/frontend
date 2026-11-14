@@ -281,6 +281,10 @@ class _ProductCardState extends State<_ProductCard> {
     final stock = context.select<PosCubit, String?>(
       (c) => c.getDisplayStock(widget.product.id),
     );
+    // "Wholesale" etc. when the customer's own list is in force.
+    final listName = context.select<PosCubit, String?>(
+      (c) => c.specialPriceListName,
+    );
     final hasPrice = price != null && price > Decimal.zero;
     final inStock = _isInStock(stock);
     final imageUrl = widget.product.imageUrl?.trim();
@@ -386,7 +390,7 @@ class _ProductCardState extends State<_ProductCard> {
                     const SizedBox(height: 4),
                     _InfoRow(
                       icon: Icons.sell_outlined,
-                      label: 'Price',
+                      label: listName ?? 'Price',
                       value: hasPrice
                           ? formatPKR(price.toDouble())
                           : 'Tap to set',

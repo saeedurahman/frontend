@@ -42,10 +42,11 @@ mixin PosCubitSessionMixin
       canOpenShift: session.canOpenShift,
       canCloseShift: session.canCloseShift,
     ));
-    _priceChangesSub ??=
-        _priceChanges?.listen((_) => unawaited(refreshPrices()));
+    _priceChangesSub ??= _priceChanges?.listen(_onPriceChange);
     _stockChangesSub ??=
         _stockChanges?.listen((_) => unawaited(refreshStock()));
+    await _refreshPriceContext();
+    if (isClosed) return;
     await Future.wait([
       _loadProducts(),
       _loadCategories(),

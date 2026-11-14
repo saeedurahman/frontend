@@ -39,6 +39,7 @@ extension PosStateFlatCopy on PosState {
     Object? isLoadingProducts = _unset,
     Object? productsError = _unset,
     Object? priceCache = _unset,
+    Object? priceContext = _unset,
     Object? stockCache = _unset,
     Object? productDetailsCache = _unset,
     Object? cartItems = _unset,
@@ -143,6 +144,9 @@ extension PosStateFlatCopy on PosState {
       priceCache: priceCache == _unset
           ? catalog.priceCache
           : priceCache as Map<String, String>,
+      priceContext: priceContext == _unset
+          ? catalog.priceContext
+          : priceContext as PosPriceContext,
       stockCache: stockCache == _unset
           ? catalog.stockCache
           : stockCache as Map<String, String>,

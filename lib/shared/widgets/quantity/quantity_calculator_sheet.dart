@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,7 @@ class QuantityCalculatorConfig {
     this.subtitle,
     this.imageUrl,
     this.unitPrice,
+    this.priceUpdates,
     this.unitLabel,
     this.allowDecimal = false,
     this.stock,
@@ -32,6 +35,10 @@ class QuantityCalculatorConfig {
 
   /// Price of one unit; null hides the price and the total.
   final Decimal? unitPrice;
+
+  /// New list prices while the popup is open (a price changed elsewhere, or
+  /// the customer did): the popup then shows and totals with the new price.
+  final Stream<Decimal?>? priceUpdates;
 
   /// Short unit name shown next to quantities ("kg", "pcs").
   final String? unitLabel;
@@ -146,6 +153,8 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
   bool _priceMode = false;
   String _priceText = '';
   Decimal? _manualPrice;
+  Decimal? _livePrice;
+  StreamSubscription<Decimal?>? _priceSub;
 
   bool _attempted = false;
   bool _closed = false;
@@ -155,6 +164,10 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
   @override
   void initState() {
     super.initState();
+    _priceSub = _config.priceUpdates?.listen((p) {
+      if (p == null || p <= Decimal.zero || !mounted) return;
+      setState(() => _livePrice = p);
+    });
     final initial = _config.initialQuantity;
     if (initial != null) {
       _expr = initial.toString();
@@ -164,13 +177,14 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
 
   @override
   void dispose() {
+    _priceSub?.cancel();
     _focus.dispose();
     super.dispose();
   }
 
   // ── values ───────────────────────────────────────────────────────────
 
-  Decimal? get _price => _manualPrice ?? _config.unitPrice;
+  Decimal? get _price => _manualPrice ?? _livePrice ?? _config.unitPrice;
 
   QuantityCheck get _check {
     final check = QuantityRules.parse(_expr, allowDecimal: _config.allowDecimal);
@@ -322,7 +336,7 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
         _priceText.endsWith('.') ? '${_priceText}0' : _priceText,
       );
       if (typed == null || typed <= Decimal.zero) return false;
-      _manualPrice = typed == _config.unitPrice ? null : typed;
+      _manualPrice = typed == (_livePrice ?? _config.unitPrice) ? null : typed;
     }
     _priceMode = false;
     _priceText = '';

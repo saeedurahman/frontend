@@ -211,6 +211,7 @@ QuantityCalculatorConfig _quantityConfig(
   Decimal? unitPrice,
   Decimal? initialQuantity,
   bool canEditPrice = false,
+  bool livePrice = false,
 }) {
   UnitModel? unit = details?.baseUnit;
   for (final v in details?.variations ?? const <VariationModel>[]) {
@@ -221,6 +222,12 @@ QuantityCalculatorConfig _quantityConfig(
     subtitle: variationName,
     imageUrl: imageUrl ?? details?.imageUrl,
     unitPrice: unitPrice,
+    priceUpdates: livePrice
+        ? cubit.stream
+            .map((_) =>
+                cubit.getDisplayPrice(productId, variationId: variationId))
+            .distinct()
+        : null,
     unitLabel: unit?.symbol,
     allowDecimal: QuantityRules.unitAllowsDecimal(
       name: unit?.name,
@@ -327,6 +334,7 @@ Future<bool> openProductFromGrid(
       details: details,
       unitPrice: unitPrice,
       canEditPrice: typedPrice == null,
+      livePrice: typedPrice == null,
       pricedLine: CartItemModel(
         productId: product.id,
         productName: product.name,

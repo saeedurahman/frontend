@@ -189,7 +189,7 @@ void main() {
     expect(pOil, Decimal.parse('520.00'));
 
     // Test 7: rememberPrice updates local catalog immediately
-    await catalog.rememberPrice({
+    await catalog.rememberPriceItem({
       'id': 'pli-ws-oil',
       'price_list_id': 'pl-wholesale',
       'product_id': 'prod-2',

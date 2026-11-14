@@ -223,6 +223,7 @@ PosCubit _pos(SyncRig rig) {
     getCustomerUseCase: _GetCustomer(),
     getCustomerBalanceUseCase: _GetBalance(),
     priceChanges: rig.catalog.priceChanges,
+    resolvePriceList: (id) => rig.catalog.effectivePriceList(customerId: id),
   );
 }
 
@@ -261,7 +262,7 @@ ProductFormCubit _form(
     imageUploadService: _Images(),
     authLocalDataSource: _Auth(),
     localDefaultPriceListId: rig.catalog.defaultPriceListId,
-    onPriceSaved: rig.catalog.rememberPrice,
+    onPriceSaved: rig.catalog.rememberPriceItem,
   );
   // ignore: invalid_use_of_visible_for_testing_member
   cubit.emit(ProductFormState(
@@ -502,7 +503,7 @@ void main() {
 
   test('a price list that was never pulled is created locally with the price',
       () async {
-    await rig.catalog.rememberPrice({
+    await rig.catalog.rememberPriceItem({
       'id': 'pli-x',
       'price_list_id': 'pl-new',
       'product_id': 'p2',
