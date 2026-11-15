@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,6 +12,7 @@ import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
+import 'package:path/path.dart' as p;
 
 import '../helpers/fake_http.dart';
 
@@ -29,6 +31,7 @@ class FakeFileSaverService implements FileSaverService {
   String? openedFolder;
   String? openedFile;
   bool cancelSavePath = false;
+  late final Directory tempDir = Directory.systemTemp.createTempSync('fake_saver_');
 
   @override
   Future<String?> chooseSavePath(
@@ -38,7 +41,7 @@ class FakeFileSaverService implements FileSaverService {
     lastSavedName = suggestedName;
     lastExtensions = extensions;
     if (cancelSavePath) return null;
-    lastSavedPath = 'C:\\Users\\User\\Downloads\\$suggestedName';
+    lastSavedPath = p.join(tempDir.path, suggestedName);
     return lastSavedPath;
   }
 
@@ -46,7 +49,12 @@ class FakeFileSaverService implements FileSaverService {
   Future<String> saveBytesToPath(String path, Uint8List bytes) async {
     lastSavedPath = path;
     lastSavedBytes = bytes;
-    return path;
+    final file = File(path);
+    if (!file.parent.existsSync()) {
+      file.parent.createSync(recursive: true);
+    }
+    file.writeAsBytesSync(bytes, flush: true);
+    return file.path;
   }
 
   @override
@@ -64,8 +72,8 @@ class FakeFileSaverService implements FileSaverService {
   Future<String> saveBytes(String fileName, Uint8List bytes) async {
     lastSavedName = fileName;
     lastSavedBytes = bytes;
-    lastSavedPath = 'C:\\Users\\User\\Downloads\\$fileName';
-    return lastSavedPath!;
+    lastSavedPath = p.join(tempDir.path, fileName);
+    return saveBytesToPath(lastSavedPath!, bytes);
   }
 
   @override
@@ -335,5 +343,55 @@ void main() {
 
     expect(fileSaver.lastSavedName, contains('inventory_'));
     expect(fileSaver.lastSavedName, endsWith('.pdf'));
+  });
+
+  test('FileSaverService.normalizeFilePath converts file:/// URIs and ensures extension', () {
+    const uriPath = 'file:///C:/Users/saeed/OneDrive/Documents/sales/sales_20261115';
+    final normalized = FileSaverService.normalizeFilePath(uriPath, defaultExtension: 'pdf');
+    expect(normalized.startsWith('file:'), false);
+    expect(normalized.endsWith('.pdf'), true);
+    expect(normalized, contains('sales_20261115.pdf'));
+
+    const alreadyValid = 'C:\\Exports\\sales_20261115.xlsx';
+    final normalizedValid = FileSaverService.normalizeFilePath(alreadyValid, defaultExtension: 'xlsx');
+    expect(normalizedValid, equals('C:\\Exports\\sales_20261115.xlsx'));
+  });
+
+  testWidgets('Export with JSON response displays server error message instead of saving file', (tester) async {
+    final errorJsonBytes = utf8.encode(jsonEncode({'detail': 'Special export restriction'}));
+    adapter = FakeAdapter((options) {
+      return ResponseBody.fromBytes(
+        errorJsonBytes,
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    });
+    dio.httpClientAdapter = adapter;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => ExportService.runExport(
+                context: context,
+                dataset: 'sales',
+                format: 'xlsx',
+              ),
+              child: const Text('Export JSON Error'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Export JSON Error'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Special export restriction'), findsOneWidget);
+    expect(fileSaver.lastSavedBytes, isNull);
   });
 }

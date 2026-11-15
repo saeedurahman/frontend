@@ -25,8 +25,9 @@ class ExportDialog extends StatefulWidget {
     DateTime? dateFrom,
     DateTime? dateTo,
     String? branchId,
-  }) {
-    return showDialog(
+  }) async {
+    debugPrint('[ExportFlow] ExportDialog.show: dataset=$dataset, title=$title');
+    final format = await showDialog<String>(
       context: context,
       builder: (ctx) => ExportDialog(
         dataset: dataset,
@@ -36,6 +37,17 @@ class ExportDialog extends StatefulWidget {
         branchId: branchId,
       ),
     );
+    debugPrint('[ExportFlow] ExportDialog.show: format returned=$format, context.mounted=${context.mounted}');
+    if (format != null && context.mounted) {
+      await ExportService.runExport(
+        context: context,
+        dataset: dataset,
+        format: format,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        branchId: branchId,
+      );
+    }
   }
 
   @override
@@ -97,20 +109,17 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            debugPrint('[ExportFlow] ExportDialog cancelled by user');
+            Navigator.pop(context);
+          },
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
           onPressed: () {
-            Navigator.pop(context);
-            ExportService.runExport(
-              context: context,
-              dataset: widget.dataset,
-              format: _selectedFormat,
-              dateFrom: widget.dateFrom,
-              dateTo: widget.dateTo,
-              branchId: widget.branchId,
-            );
+            final chosen = _selectedFormat;
+            debugPrint('[ExportFlow] ExportDialog format confirmed: $chosen');
+            Navigator.pop(context, chosen);
           },
           icon: const Icon(Icons.download),
           label: const Text('Export Now'),
