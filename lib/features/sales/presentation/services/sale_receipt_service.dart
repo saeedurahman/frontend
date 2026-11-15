@@ -315,8 +315,11 @@ abstract final class SaleReceiptService {
     final business = await resolveBusinessProfile();
     final theme = customTheme ?? await loadFonts();
     final doc = pw.Document(theme: theme);
-    final format =
+    final rawFormat =
         paperSize == '58mm' ? PdfPageFormat.roll57 : PdfPageFormat.roll80;
+    final format = rawFormat.height.isInfinite || rawFormat.height <= 0
+        ? rawFormat.copyWith(height: 297 * PdfPageFormat.mm)
+        : rawFormat;
 
     doc.addPage(
       pw.MultiPage(

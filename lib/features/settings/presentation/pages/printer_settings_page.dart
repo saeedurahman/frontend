@@ -5,6 +5,7 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 class PrinterSettingsPage extends StatefulWidget {
@@ -48,7 +49,84 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
     }
   }
 
+  Future<void> _previewReceipt() async {
+    try {
+      final doc = await SaleReceiptService.buildTestPdf(
+        paperSize: _config.paperSize,
+      );
+      final bytes = await doc.save();
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 550, maxHeight: 700),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Receipt Preview',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: PdfPreview(
+                    build: (format) => bytes,
+                    canChangeOrientation: false,
+                    canChangePageFormat: false,
+                    canDebug: false,
+                    allowPrinting: true,
+                    allowSharing: false,
+                    initialPageFormat: _config.paperSize == '58mm'
+                        ? PdfPageFormat.roll57
+                        : PdfPageFormat.roll80,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        AppAlerts.showErrorMessage(context, 'Unable to preview receipt: $e');
+      }
+    }
+  }
+
   Future<void> _testPrint() async {
+    if (_printers.isEmpty && _config.printerName == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'No printer found. You can still preview or save the receipt as PDF',
+            ),
+            duration: const Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Preview',
+              onPressed: _previewReceipt,
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isPrintingTest = true);
     try {
       final doc = await SaleReceiptService.buildTestPdf(
@@ -64,6 +142,19 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
       if (mounted) {
         if (success) {
           AppAlerts.showSuccessMessage(context, 'Test print sent successfully');
+        } else if (_printers.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'No printer found. You can still preview or save the receipt as PDF',
+              ),
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: 'Preview',
+                onPressed: _previewReceipt,
+              ),
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -78,15 +169,30 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Print error: $e'),
-            action: SnackBarAction(
-              label: 'Print again',
-              onPressed: _testPrint,
+        if (_printers.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'No printer found. You can still preview or save the receipt as PDF',
+              ),
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: 'Preview',
+                onPressed: _previewReceipt,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Print error: $e'),
+              action: SnackBarAction(
+                label: 'Print again',
+                onPressed: _testPrint,
+              ),
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -178,6 +284,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String?>(
+              isExpanded: true,
               value: _config.printerName,
               decoration: InputDecoration(
                 labelText: 'Connected Printer',
@@ -189,7 +296,10 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
               items: [
                 const DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Always show Windows Print Dialog (No default)'),
+                  child: Text(
+                    'Always show Windows Print Dialog (No default)',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 for (final p in _printers)
                   DropdownMenuItem<String?>(
@@ -270,19 +380,22 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Number of Receipt Copies',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    Text(
-                      'Print multiple copies per transaction (e.g. customer & merchant copy)',
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-                  ],
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Number of Receipt Copies',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                      Text(
+                        'Print multiple copies per transaction (e.g. customer & merchant copy)',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 16),
                 Row(
                   children: [
                     IconButton(
@@ -360,23 +473,41 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   }
 
   Widget _buildTestPrintButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton.icon(
-        onPressed: _isPrintingTest ? null : _testPrint,
-        icon: _isPrintingTest
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.print_outlined),
-        label: Text(_isPrintingTest ? 'Printing...' : 'Print Test Receipt (with Urdu demo)'),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: SizedBox(
+            height: 50,
+            child: OutlinedButton.icon(
+              onPressed: _isPrintingTest ? null : _testPrint,
+              icon: _isPrintingTest
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.print_outlined),
+              label: Text(_isPrintingTest ? 'Printing...' : 'Print Test Receipt (with Urdu demo)'),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: SizedBox(
+            height: 50,
+            child: FilledButton.tonalIcon(
+              onPressed: _previewReceipt,
+              icon: const Icon(Icons.visibility_outlined),
+              label: const Text('Preview Receipt'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

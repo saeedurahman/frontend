@@ -204,4 +204,135 @@ void main() {
     );
     expect(pOilUpdated, Decimal.parse('490.00'));
   });
+
+  test('BUG 4: Seeds duplicate rows with different prices and proves POS resolves the newest one', () async {
+    final catalog = world.rig.catalog;
+    final store = world.rig.store;
+
+    await store.putEntity('price_list', 'pl-wholesale', {
+      'id': 'pl-wholesale',
+      'name': 'Wholesale',
+      'list_type': 'wholesale',
+      'is_default': false,
+      'is_active': true,
+    });
+
+    await store.putEntity('product', 'p-dup', {
+      'id': 'p-dup',
+      'name': 'Test Duplicate Product',
+    });
+
+    await store.putEntity('customer', 'c-ws', {
+      'id': 'c-ws',
+      'name': 'Wholesale Customer',
+      'price_list_id': 'pl-wholesale',
+    });
+
+    // Seed duplicate rows directly using custom SQL to simulate legacy stale rows:
+    // Row 1: Oldest placeholder row (price: 250.00)
+    await store.db.customStatement(
+      "INSERT INTO entities (entity, id, parent_id, data, active, is_deleted, seq) "
+      "VALUES ('price_list_item', 'pl-wholesale_p-dup_base_1', 'p-dup', "
+      "'{\"id\":\"pl-wholesale_p-dup_base_1\",\"price_list_id\":\"pl-wholesale\",\"product_id\":\"p-dup\",\"unit_price\":\"250.00\",\"min_qty\":1,\"created_at\":\"2026-01-01T00:00:00\"}', 1, 0, 1)",
+    );
+
+    // Row 2: Intermediate stale row (price: 200.00)
+    await store.db.customStatement(
+      "INSERT INTO entities (entity, id, parent_id, data, active, is_deleted, seq) "
+      "VALUES ('price_list_item', 'row-middle-uuid', 'p-dup', "
+      "'{\"id\":\"row-middle-uuid\",\"price_list_id\":\"pl-wholesale\",\"product_id\":\"p-dup\",\"unit_price\":\"200.00\",\"min_qty\":1,\"created_at\":\"2026-02-01T00:00:00\"}', 1, 0, 5)",
+    );
+
+    // Row 3: Newest row (price: 300.00)
+    await store.db.customStatement(
+      "INSERT INTO entities (entity, id, parent_id, data, active, is_deleted, seq) "
+      "VALUES ('price_list_item', 'row-newest-uuid', 'p-dup', "
+      "'{\"id\":\"row-newest-uuid\",\"price_list_id\":\"pl-wholesale\",\"product_id\":\"p-dup\",\"unit_price\":\"300.00\",\"min_qty\":1,\"created_at\":\"2026-03-01T00:00:00\",\"updated_at\":\"2026-03-01T00:00:00\"}', 1, 0, 10)",
+    );
+
+    // 1. Prove POS resolves the newest row (300.00), not the older rows (250.00 or 200.00)
+    final resolvedPrice = await catalog.price(
+      'p-dup',
+      customerId: 'c-ws',
+    );
+    expect(resolvedPrice, Decimal.parse('300.00'));
+
+    // 2. Run one-time cleanup/migration: should delete the 2 older duplicate rows and placeholder row
+    final removedCount = await store.cleanupDuplicatePriceListItems(force: true);
+    expect(removedCount, 2);
+
+    // Verify only the newest row remains in the database
+    final remainingRows = await store.entities(
+      'price_list_item',
+      where: 'parent_id = ?',
+      args: ['p-dup'],
+    );
+    expect(remainingRows.length, 1);
+    expect(remainingRows.first['id'], 'row-newest-uuid');
+    expect(remainingRows.first['unit_price'], '300.00');
+
+    // POS still resolves 300.00
+    final priceAfterCleanup = await catalog.price('p-dup', customerId: 'c-ws');
+    expect(priceAfterCleanup, Decimal.parse('300.00'));
+  });
+
+  test('BUG 4: Changes a wholesale price twice in a row and POS shows the latest each time', () async {
+    final catalog = world.rig.catalog;
+    final store = world.rig.store;
+
+    await store.putEntity('price_list', 'pl-ws2', {
+      'id': 'pl-ws2',
+      'name': 'Wholesale 2',
+      'list_type': 'wholesale',
+      'is_default': false,
+      'is_active': true,
+    });
+
+    await store.putEntity('product', 'p-dyn', {
+      'id': 'p-dyn',
+      'name': 'Dynamic Price Product',
+    });
+
+    await store.putEntity('customer', 'c-ws2', {
+      'id': 'c-ws2',
+      'name': 'Customer 2',
+      'price_list_id': 'pl-ws2',
+    });
+
+    // Initial price: 200.00
+    await catalog.rememberPrice(
+      listId: 'pl-ws2',
+      productId: 'p-dyn',
+      price: '200.00',
+    );
+    var p = await catalog.price('p-dyn', customerId: 'c-ws2');
+    expect(p, Decimal.parse('200.00'));
+
+    // First change: updates price to 250.00
+    await catalog.rememberPrice(
+      listId: 'pl-ws2',
+      productId: 'p-dyn',
+      price: '250.00',
+    );
+    p = await catalog.price('p-dyn', customerId: 'c-ws2');
+    expect(p, Decimal.parse('250.00'));
+
+    // Second change: updates price to 300.00
+    await catalog.rememberPrice(
+      listId: 'pl-ws2',
+      productId: 'p-dyn',
+      price: '300.00',
+    );
+    p = await catalog.price('p-dyn', customerId: 'c-ws2');
+    expect(p, Decimal.parse('300.00'));
+
+    // Verify there are no duplicate twin rows
+    final items = await store.entities(
+      'price_list_item',
+      where: 'parent_id = ?',
+      args: ['p-dyn'],
+    );
+    expect(items.length, 1);
+    expect(items.first['unit_price'], '300.00');
+  });
 }

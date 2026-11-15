@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/api_constants.dart';
+import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
@@ -11,20 +13,40 @@ import 'package:intl/intl.dart';
 
 abstract final class ExportService {
   /// Fetches export bytes from backend GET /export/{dataset} and saves them via FileSaverService.
+  ///
+  /// The user selects the save location up-front so network requests never run if cancelled.
+  /// A cancelable progress dialog shows live download progress with a visible Cancel button.
   static Future<bool> runExport({
     required BuildContext context,
     required String dataset,
-    String format = 'xlsx', // 'csv' or 'xlsx'
+    String format = 'xlsx', // 'csv', 'xlsx', or 'pdf'
     DateTime? dateFrom,
     DateTime? dateTo,
     String? branchId,
     String? suggestedName,
+    String? preselectedPath,
+    CancelToken? externalCancelToken,
   }) async {
     final dio = sl<DioClient>().dio;
     final fileSaver = sl<FileSaverService>();
 
+    final normalizedFormat = format.toLowerCase().trim();
+    final dateStamp = DateFormat('yyyyMMdd').format(dateTo ?? DateTime.now());
+    final defaultFileName = suggestedName ?? '${dataset}_$dateStamp.$normalizedFormat';
+
+    // 1. Pick save location upfront if not provided
+    final savePath = preselectedPath ??
+        await fileSaver.chooseSavePath(
+          defaultFileName,
+          extensions: [normalizedFormat],
+        );
+
+    // If user cancelled save file dialog, exit cleanly without making network calls.
+    if (savePath == null) return false;
+    if (!context.mounted) return false;
+
     final query = <String, dynamic>{
-      'format': format.toLowerCase(),
+      'format': normalizedFormat,
       if (dateFrom != null)
         'date_from': DateFormat('yyyy-MM-dd').format(dateFrom),
       if (dateTo != null)
@@ -33,34 +55,82 @@ abstract final class ExportService {
         'branch_id': branchId,
     };
 
-    // Show loading indicator
+    final cancelToken = externalCancelToken ?? CancelToken();
+    final progressNotifier = ValueNotifier<({int received, int total})>(
+      (received: 0, total: 0),
+    );
+
     var dialogOpen = true;
+
+    // Show cancelable progress dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          content: Row(
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text('Generating $dataset export ($format)...'),
+      builder: (dialogCtx) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.file_download_outlined, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text('Exporting ${dataset.toUpperCase()} ($normalizedFormat)'),
+              ],
+            ),
+            content: ValueListenableBuilder<({int received, int total})>(
+              valueListenable: progressNotifier,
+              builder: (ctx, progress, _) {
+                final hasTotal = progress.total > 0;
+                final ratio = hasTotal
+                    ? (progress.received / progress.total).clamp(0.0, 1.0)
+                    : null;
+                final percent = hasTotal ? (ratio! * 100).toStringAsFixed(0) : null;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasTotal
+                          ? 'Downloading export... $percent% (${_formatBytes(progress.received)} of ${_formatBytes(progress.total)})'
+                          : 'Generating $dataset export from server...',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    LinearProgressIndicator(value: ratio),
+                  ],
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  cancelToken.cancel('Export cancelled by user');
+                  if (dialogOpen && dialogCtx.mounted) {
+                    Navigator.of(dialogCtx, rootNavigator: true).pop();
+                    dialogOpen = false;
+                  }
+                },
+                child: const Text('Cancel', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     ).then((_) => dialogOpen = false);
 
     Uint8List? fileBytes;
     String? errorMsg;
+    bool wasCancelled = false;
 
     try {
       final res = await dio.get<List<int>>(
         ApiConstants.exportDataset(dataset),
         queryParameters: query,
+        cancelToken: cancelToken,
+        onReceiveProgress: (received, total) {
+          progressNotifier.value = (received: received, total: total);
+        },
         options: Options(
           responseType: ResponseType.bytes,
           receiveTimeout: const Duration(seconds: 60),
@@ -72,27 +142,69 @@ abstract final class ExportService {
         fileBytes = Uint8List.fromList(res.data!);
       }
     } on DioException catch (e) {
-      if (e.response?.statusCode == 413) {
-        errorMsg =
-            'Export too large: more than 50,000 rows. Narrow the date range or select a branch and try again.';
+      if (CancelToken.isCancel(e) || e.type == DioExceptionType.cancel) {
+        wasCancelled = true;
+      } else if (e.response?.statusCode == 413) {
+        String? detail;
+        final rawData = e.response?.data;
+        if (rawData is List<int>) {
+          try {
+            final parsed = jsonDecode(utf8.decode(rawData));
+            if (parsed is Map) detail = parsed['detail']?.toString();
+          } catch (_) {}
+        } else if (rawData is Map) {
+          detail = rawData['detail']?.toString();
+        }
+
+        if (detail != null && detail.isNotEmpty) {
+          errorMsg = detail;
+        } else if (normalizedFormat == 'pdf') {
+          errorMsg =
+              'PDF export row limit reached. Please narrow the date range or choose Excel / CSV format.';
+        } else {
+          errorMsg =
+              'Export too large: more than 50,000 rows. Narrow the date range or select a branch and try again.';
+        }
       } else if (e.response?.statusCode == 403) {
         errorMsg = 'You do not have permission to export this report (reports.export required).';
+      } else if (e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        errorMsg =
+            'Export timed out after 60 seconds. The dataset might be large; try selecting CSV format or a narrower date range.';
       } else {
-        final data = e.response?.data;
-        if (data is Map) {
-          errorMsg = data['detail']?.toString() ?? data['message']?.toString();
+        String? detail;
+        final rawData = e.response?.data;
+        if (rawData is List<int>) {
+          try {
+            final parsed = jsonDecode(utf8.decode(rawData));
+            if (parsed is Map) detail = parsed['detail']?.toString() ?? parsed['message']?.toString();
+          } catch (_) {}
+        } else if (rawData is Map) {
+          detail = rawData['detail']?.toString() ?? rawData['message']?.toString();
         }
-        errorMsg ??= 'Export failed. Please check your network and try again.';
+        errorMsg = detail ?? 'Export failed. Please check your network and try again.';
       }
     } catch (e) {
       errorMsg = 'Export error: $e';
     } finally {
       if (dialogOpen && context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
+        dialogOpen = false;
       }
     }
 
     if (!context.mounted) return false;
+
+    if (wasCancelled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Export cancelled'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return false;
+    }
 
     if (errorMsg != null) {
       AppAlerts.showErrorMessage(context, errorMsg);
@@ -104,24 +216,32 @@ abstract final class ExportService {
       return false;
     }
 
-    final dateStamp = DateFormat('yyyyMMdd').format(dateTo ?? DateTime.now());
-    final defaultFileName = suggestedName ?? '${dataset}_$dateStamp.$format';
+    // Write file directly to selected save path
+    await fileSaver.saveBytesToPath(savePath, fileBytes);
 
-    final savedPath = await fileSaver.saveFileWithDialog(
-      defaultFileName,
-      fileBytes,
-      extensions: [format],
-    );
-
-    if (savedPath != null && context.mounted) {
-      final fileName = savedPath.split(RegExp(r'[\\/]')).last;
+    if (context.mounted) {
+      final fileName = savePath.split(RegExp(r'[\\/]')).last;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Export saved: $fileName'),
-          duration: const Duration(seconds: 6),
-          action: SnackBarAction(
-            label: 'Open folder',
-            onPressed: () => fileSaver.openFolder(savedPath),
+          duration: const Duration(seconds: 8),
+          content: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Export saved: $fileName',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: () => fileSaver.openFile(savePath),
+                child: const Text('Open file', style: TextStyle(color: Colors.amberAccent)),
+              ),
+              const SizedBox(width: 4),
+              TextButton(
+                onPressed: () => fileSaver.openFolder(savePath),
+                child: const Text('Open folder', style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
         ),
       );
@@ -130,5 +250,11 @@ abstract final class ExportService {
 
     return false;
   }
-}
 
+  static String _formatBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}

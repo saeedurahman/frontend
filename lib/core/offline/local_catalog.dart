@@ -262,6 +262,12 @@ class LocalCatalog {
     return null;
   }
 
+  static String? _normalizeVarId(Object? v) {
+    if (v == null) return null;
+    final s = '$v'.trim();
+    return s.isEmpty || s == 'null' ? null : s;
+  }
+
   Future<Decimal?> _priceInList(
     String productId,
     String listId, {
@@ -275,17 +281,18 @@ class LocalCatalog {
     ];
     if (items.isEmpty) return null;
 
+    final targetVar = _normalizeVarId(variationId);
     final productLevel = [
       for (final i in items)
-        if (i['variation_id'] == null) i,
+        if (_normalizeVarId(i['variation_id']) == null) i,
     ];
-    var target = variationId;
+    var target = targetVar;
     if (target == null && productLevel.isEmpty) {
       target = await _defaultVariationId(productId, items);
     }
     final exact = [
       for (final i in items)
-        if (target != null && '${i['variation_id']}' == target) i,
+        if (target != null && _normalizeVarId(i['variation_id']) == target) i,
     ];
 
     final wanted = qty ?? Decimal.one;
@@ -314,22 +321,46 @@ class LocalCatalog {
   static Decimal _minQty(Map<String, dynamic> item) =>
       Decimal.tryParse('${item['min_qty'] ?? 1}') ?? Decimal.one;
 
+  static bool _isNewer(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final aId = '${a['id'] ?? ''}';
+    final bId = '${b['id'] ?? ''}';
+    final aIsPlaceholder = aId.contains('_');
+    final bIsPlaceholder = bId.contains('_');
+    if (!aIsPlaceholder && bIsPlaceholder) return true;
+    if (aIsPlaceholder && !bIsPlaceholder) return false;
+
+    final aTime = DateTime.tryParse('${a['updated_at'] ?? a['created_at'] ?? ''}');
+    final bTime = DateTime.tryParse('${b['updated_at'] ?? b['created_at'] ?? ''}');
+    if (aTime != null && bTime != null) {
+      if (aTime.isAfter(bTime)) return true;
+      if (bTime.isAfter(aTime)) return false;
+    }
+    return false;
+  }
+
   /// Price of the highest tier whose `min_qty` is reached by [wanted].
+  /// When multiple items match the same `min_qty`, the newer row is chosen.
   static Decimal? _tierPrice(List<Map<String, dynamic>> items, Decimal wanted) {
     Map<String, dynamic>? best;
     for (final i in items) {
       final min = _minQty(i);
       if (min > wanted) continue;
-      if (best == null || min > _minQty(best)) best = i;
+      if (best == null || min > _minQty(best) || (min == _minQty(best) && _isNewer(i, best))) {
+        best = i;
+      }
     }
     return best == null ? null : Decimal.tryParse('${best['unit_price']}');
   }
 
   /// Price of the lowest tier (used when the quantity reaches none).
+  /// When multiple items match the same `min_qty`, the newer row is chosen.
   static Decimal? _basePrice(List<Map<String, dynamic>> items) {
     Map<String, dynamic>? base;
     for (final i in items) {
-      if (base == null || _minQty(i) < _minQty(base)) base = i;
+      final min = _minQty(i);
+      if (base == null || min < _minQty(base) || (min == _minQty(base) && _isNewer(i, base))) {
+        base = i;
+      }
     }
     return base == null ? null : Decimal.tryParse('${base['unit_price']}');
   }
@@ -368,6 +399,7 @@ class LocalCatalog {
     String? id,
   }) async {
     final wanted = Decimal.tryParse(minQty) ?? Decimal.one;
+    final targetVar = _normalizeVarId(variationId);
     await _store.transaction(() async {
       if (await _store.entity('price_list', listId) == null) {
         // The list itself has not been pulled yet (it was just created). It
@@ -385,18 +417,36 @@ class LocalCatalog {
           }),
         );
       }
-      String? rowId;
-      for (final o in await _store.entities('price_list_item',
-          where: 'parent_id = ?', args: [productId])) {
+
+      String? existingId;
+      final existingRows = await _store.entities('price_list_item',
+          where: 'parent_id = ?', args: [productId]);
+      for (final o in existingRows) {
         if ('${o['price_list_id']}' == listId &&
-            o['variation_id']?.toString() == variationId &&
-            (Decimal.tryParse('${o['min_qty'] ?? 1}') ?? Decimal.one) ==
-                wanted) {
-          rowId = '${o['id']}';
-          break;
+            _normalizeVarId(o['variation_id']) == targetVar &&
+            (Decimal.tryParse('${o['min_qty'] ?? 1}') ?? Decimal.one) == wanted) {
+          final oId = '${o['id']}';
+          if (!oId.contains('_')) {
+            existingId = oId;
+            break;
+          }
+          existingId ??= oId;
         }
       }
-      rowId ??= id ?? '${listId}_${productId}_${variationId ?? 'base'}_$minQty';
+
+      final rowId = id ?? existingId ?? '${listId}_${productId}_${targetVar ?? 'base'}_$minQty';
+
+      // Drop any duplicate twin rows with different IDs
+      for (final o in existingRows) {
+        final oId = '${o['id']}';
+        if (oId != rowId &&
+            '${o['price_list_id']}' == listId &&
+            _normalizeVarId(o['variation_id']) == targetVar &&
+            (Decimal.tryParse('${o['min_qty'] ?? 1}') ?? Decimal.one) == wanted) {
+          await _store.deleteEntity('price_list_item', oId);
+        }
+      }
+
       await _store.putEntity(
         'price_list_item',
         rowId,
@@ -404,9 +454,10 @@ class LocalCatalog {
           'id': rowId,
           'price_list_id': listId,
           'product_id': productId,
-          'variation_id': variationId,
+          'variation_id': targetVar,
           'unit_price': price,
           'min_qty': minQty,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         }),
       );
     });

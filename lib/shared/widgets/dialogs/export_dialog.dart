@@ -43,7 +43,7 @@ class ExportDialog extends StatefulWidget {
 }
 
 class _ExportDialogState extends State<ExportDialog> {
-  String _selectedFormat = 'xlsx'; // 'xlsx' or 'csv'
+  String _selectedFormat = 'xlsx'; // 'xlsx', 'csv', or 'pdf'
 
   @override
   Widget build(BuildContext context) {
@@ -55,34 +55,45 @@ class _ExportDialogState extends State<ExportDialog> {
           Text('Export ${widget.title}'),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Choose your preferred file format to download this dataset:',
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 16),
-          RadioListTile<String>(
-            title: const Text('Excel Spreadsheet (.xlsx)'),
-            subtitle: const Text('Formatted spreadsheet for Microsoft Excel and Google Sheets'),
-            value: 'xlsx',
-            groupValue: _selectedFormat,
-            onChanged: (val) {
-              if (val != null) setState(() => _selectedFormat = val);
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('CSV Document (.csv)'),
-            subtitle: const Text('Plain text comma-separated values for data analysis'),
-            value: 'csv',
-            groupValue: _selectedFormat,
-            onChanged: (val) {
-              if (val != null) setState(() => _selectedFormat = val);
-            },
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Choose your preferred file format to download this dataset:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            RadioListTile<String>(
+              title: const Text('Excel Spreadsheet (.xlsx)'),
+              subtitle: const Text('Formatted spreadsheet for Microsoft Excel and Google Sheets'),
+              value: 'xlsx',
+              groupValue: _selectedFormat,
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedFormat = val);
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('CSV Document (.csv)'),
+              subtitle: const Text('Plain text comma-separated values for data analysis'),
+              value: 'csv',
+              groupValue: _selectedFormat,
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedFormat = val);
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('PDF Document (.pdf)'),
+              subtitle: const Text('Formatted PDF report ready for printing, sharing or filing'),
+              value: 'pdf',
+              groupValue: _selectedFormat,
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedFormat = val);
+              },
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

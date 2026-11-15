@@ -1,12 +1,21 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:file_selector/file_selector.dart';
+import 'package:file_selector/file_selector.dart' as fs;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 /// Persists a user-visible file (receipt PDF, export) and tells where.
 abstract class FileSaverService {
+  /// Prompts the user to choose a save destination upfront. Returns null if cancelled.
+  Future<String?> chooseSavePath(
+    String suggestedName, {
+    List<String> extensions = const [],
+  });
+
+  /// Writes [bytes] to the given absolute file [path].
+  Future<String> saveBytesToPath(String path, Uint8List bytes);
+
   /// Opens a native Save File dialog and writes [bytes] to the chosen location.
   /// Returns the absolute path written, or null if the user cancelled.
   Future<String?> saveFileWithDialog(
@@ -26,6 +35,9 @@ abstract class FileSaverService {
     String? label,
   });
 
+  /// Opens the file with the operating system's default viewer/application.
+  Future<void> openFile(String filePath);
+
   /// Opens the folder containing [filePath] in the native file explorer (Windows explorer /select).
   Future<void> openFolder(String filePath);
 
@@ -37,27 +49,42 @@ class WindowsFileSaverService implements FileSaverService {
   const WindowsFileSaverService();
 
   @override
+  Future<String?> chooseSavePath(
+    String suggestedName, {
+    List<String> extensions = const [],
+  }) async {
+    final cleanName = sanitizeFileName(suggestedName);
+    try {
+      final fs.FileSaveLocation? location = await fs.getSaveLocation(
+        suggestedName: cleanName,
+        acceptedTypeGroups: extensions.isNotEmpty
+            ? [fs.XTypeGroup(label: cleanName, extensions: extensions)]
+            : const <fs.XTypeGroup>[],
+      );
+      return location?.path;
+    } catch (_) {
+      final dir =
+          await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+      return p.join(dir.path, cleanName);
+    }
+  }
+
+  @override
+  Future<String> saveBytesToPath(String path, Uint8List bytes) async {
+    final file = File(path);
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
+  @override
   Future<String?> saveFileWithDialog(
     String suggestedName,
     Uint8List bytes, {
     List<String> extensions = const [],
   }) async {
-    final cleanName = sanitizeFileName(suggestedName);
-    try {
-      final FileSaveLocation? location = await getSaveLocation(
-        suggestedName: cleanName,
-        acceptedTypeGroups: extensions.isNotEmpty
-            ? [XTypeGroup(label: cleanName, extensions: extensions)]
-            : const <XTypeGroup>[],
-      );
-      if (location == null) return null;
-      final file = File(location.path);
-      await file.writeAsBytes(bytes, flush: true);
-      return file.path;
-    } catch (_) {
-      // Fallback to direct save if dialog cannot be displayed
-      return saveBytes(cleanName, bytes);
-    }
+    final path = await chooseSavePath(suggestedName, extensions: extensions);
+    if (path == null) return null;
+    return saveBytesToPath(path, bytes);
   }
 
   @override
@@ -74,12 +101,20 @@ class WindowsFileSaverService implements FileSaverService {
     List<String> extensions = const [],
     String? label,
   }) async {
-    final XFile? file = await openFile(
+    final fs.XFile? file = await fs.openFile(
       acceptedTypeGroups: extensions.isNotEmpty
-          ? [XTypeGroup(label: label ?? 'Files', extensions: extensions)]
-          : const <XTypeGroup>[],
+          ? [fs.XTypeGroup(label: label ?? 'Files', extensions: extensions)]
+          : const <fs.XTypeGroup>[],
     );
     return file?.path;
+  }
+
+  @override
+  Future<void> openFile(String filePath) async {
+    if (!Platform.isWindows) return;
+    try {
+      await Process.run('explorer.exe', [filePath]);
+    } catch (_) {}
   }
 
   @override

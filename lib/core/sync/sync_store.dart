@@ -290,7 +290,9 @@ class SyncStore {
   }) async {
     final guarded = protectedRows ?? await protectedKeys();
     var applied = 0;
+    var hasPriceChanges = false;
     for (final c in changes) {
+      if (c.entity == 'price_list_item') hasPriceChanges = true;
       if (guarded.contains(key(c.entity, c.id))) {
         await _exec(
           'INSERT INTO deferred_changes (entity, id, op, data, seq) '
@@ -302,6 +304,9 @@ class SyncStore {
       }
       await _applyOne(c);
       applied++;
+    }
+    if (hasPriceChanges) {
+      await cleanupDuplicatePriceListItems();
     }
     return applied;
   }
@@ -353,6 +358,9 @@ class SyncStore {
     Map<String, dynamic> data, {
     int seq = 0,
   }) async {
+    if (entity == 'price_list_item') {
+      await _dropPriceTwins(id, data);
+    }
     final idx = IndexedEntity.of(entity, data);
     _notePrice(entity, id, data);
     await _exec(
@@ -388,17 +396,109 @@ class SyncStore {
   void notePriceListRemoved(String listId) =>
       _notePrice('price_list', listId, null);
 
-  /// A pulled price row is authoritative for its (list, product, variation,
+  static const priceListItemsDedupMigrationKey = 'migration_price_list_items_dedup_v1';
+
+  static String? _normalizeVarId(Object? v) {
+    if (v == null) return null;
+    final s = '$v'.trim();
+    return s.isEmpty || s == 'null' ? null : s;
+  }
+
+  /// One-time local DB cleanup/migration:
+  /// For each (price_list_id, product_id, variation_id, min_qty), keeps only the newest row
+  /// (by server seq / updated time) and removes placeholder and stale duplicate rows.
+  Future<int> cleanupDuplicatePriceListItems({bool force = false}) async {
+    if (!force) {
+      final done = await meta(priceListItemsDedupMigrationKey);
+      if (done == '1') return 0;
+    }
+
+    final rawRows = await _rows(
+      "SELECT id, data, seq, rowid FROM entities WHERE entity = 'price_list_item' AND is_deleted = 0",
+    );
+    if (rawRows.isEmpty) {
+      await setMeta(priceListItemsDedupMigrationKey, '1');
+      return 0;
+    }
+
+    final groups = <String, List<Map<String, dynamic>>>{};
+    for (final r in rawRows) {
+      try {
+        final data = _decode(r['data']);
+        final listId = data['price_list_id']?.toString() ?? '';
+        final productId = data['product_id']?.toString() ?? '';
+        final varId = _normalizeVarId(data['variation_id']) ?? '';
+        final minQty = _num(data['min_qty']);
+        final key = '$listId|$productId|$varId|$minQty';
+
+        final itemWithMeta = {
+          ...data,
+          '_entity_id': r['id']?.toString() ?? data['id']?.toString() ?? '',
+          '_seq': (r['seq'] as num?)?.toInt() ?? 0,
+          '_rowid': (r['rowid'] as num?)?.toInt() ?? 0,
+        };
+        (groups[key] ??= []).add(itemWithMeta);
+      } catch (_) {}
+    }
+
+    var removed = 0;
+    for (final slotItems in groups.values) {
+      if (slotItems.length <= 1) continue;
+
+      slotItems.sort((a, b) {
+        final aId = '${a['_entity_id']}';
+        final bId = '${b['_entity_id']}';
+        final aIsPlaceholder = aId.contains('_');
+        final bIsPlaceholder = bId.contains('_');
+        if (!aIsPlaceholder && bIsPlaceholder) return -1;
+        if (aIsPlaceholder && !bIsPlaceholder) return 1;
+
+        final aSeq = a['_seq'] as int;
+        final bSeq = b['_seq'] as int;
+        if (aSeq != bSeq) return bSeq.compareTo(aSeq);
+
+        final aTime = DateTime.tryParse('${a['updated_at'] ?? a['created_at'] ?? ''}');
+        final bTime = DateTime.tryParse('${b['updated_at'] ?? b['created_at'] ?? ''}');
+        if (aTime != null && bTime != null && aTime != bTime) {
+          return bTime.compareTo(aTime);
+        }
+
+        final aRowid = a['_rowid'] as int;
+        final bRowid = b['_rowid'] as int;
+        return bRowid.compareTo(aRowid);
+      });
+
+      for (var i = 1; i < slotItems.length; i++) {
+        final toDeleteId = slotItems[i]['_entity_id'] as String;
+        await _exec(
+          "DELETE FROM entities WHERE entity = 'price_list_item' AND id = ?",
+          [toDeleteId],
+        );
+        removed++;
+      }
+    }
+
+    await setMeta(priceListItemsDedupMigrationKey, '1');
+    return removed;
+  }
+
+  /// A pulled or local price row is authoritative for its (list, product, variation,
   /// min_qty) slot: a row this device wrote earlier for the same slot under a
   /// different id would otherwise stay next to it and could still win the
   /// lookup with the old price.
   Future<void> _dropPriceTwins(String id, Map<String, dynamic> data) async {
     final productId = data['product_id']?.toString();
     if (productId == null) return;
+    final listId = data['price_list_id']?.toString();
+    if (listId == null) return;
+    final targetVar = _normalizeVarId(data['variation_id']);
+    final targetMinQty = _num(data['min_qty']);
+
     bool same(Map<String, dynamic> o) =>
-        '${o['price_list_id']}' == '${data['price_list_id']}' &&
-        '${o['variation_id']}' == '${data['variation_id']}' &&
-        _num(o['min_qty']) == _num(data['min_qty']);
+        '${o['price_list_id']}' == listId &&
+        _normalizeVarId(o['variation_id']) == targetVar &&
+        _num(o['min_qty']) == targetMinQty;
+
     for (final o in await entities('price_list_item',
         where: 'parent_id = ?', args: [productId])) {
       if ('${o['id']}' != id && same(o)) {
