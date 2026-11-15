@@ -20,6 +20,7 @@ class FakeSecureStorage implements SecureStorage {
   String? _tenant;
   String? _userId;
   String? _pinCache;
+  final Map<String, bool> _userHasPin = {};
 
   @override
   Future<String?> getAccessToken() async => _access;
@@ -52,6 +53,16 @@ class FakeSecureStorage implements SecureStorage {
   Future<void> clearAll() async {
     await clearAuthSession();
     _pinCache = null;
+    _userHasPin.clear();
+  }
+
+  @override
+  Future<bool> getUserHasPin(String userId) async =>
+      _userHasPin[userId] ?? false;
+
+  @override
+  Future<void> setUserHasPin(String userId, bool hasPin) async {
+    _userHasPin[userId] = hasPin;
   }
 
   @override

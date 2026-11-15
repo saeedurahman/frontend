@@ -1,6 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/security/pin_security_service.dart';
+import 'package:frantend/features/auth/data/datasources/pin_device_cache.dart';
 import 'package:frantend/features/users/data/datasources/users_remote_datasource.dart';
 import 'package:frantend/features/users/data/models/staff_user_model.dart';
 import 'package:frantend/features/users/domain/repositories/users_repository.dart';
@@ -117,6 +120,17 @@ class UsersRepositoryImpl implements UsersRepository {
         currentPassword: currentPassword,
         currentPin: currentPin,
       );
+      if (sl.isRegistered<PinSecurityService>()) {
+        final cache = sl.isRegistered<PinDeviceCache>()
+            ? await sl<PinDeviceCache>().read()
+            : null;
+        final slug = cache?.businessSlug.trim() ?? '';
+        await sl<PinSecurityService>().recordPinEnrolled(
+          userId: id,
+          slug: slug,
+          pin: pinCode,
+        );
+      }
       return const Right(null);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

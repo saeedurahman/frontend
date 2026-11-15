@@ -144,7 +144,41 @@ abstract final class SaleReceiptService {
     return File(path);
   }
 
-  /// Builds printable PDF using pw.MultiPage with roll80/roll57 so long receipts never truncate.
+  /// Safe maximum single page height for thermal roll printers (1,000 mm).
+  /// Content taller than this splits into multiple pages via [pw.MultiPage].
+  static const double maxThermalPageHeight = 1000 * PdfPageFormat.mm;
+
+  /// Measures the layout height of a list of widgets given a fixed [maxWidth] and [theme].
+  static double measureWidgetsHeight({
+    required List<pw.Widget> widgets,
+    required double maxWidth,
+    required pw.ThemeData theme,
+  }) {
+    final pdfDoc = PdfDocument();
+    final pdfPage =
+        PdfPage(pdfDoc, pageFormat: PdfPageFormat(maxWidth + 50, 100000));
+    final canvas = pdfPage.getGraphics();
+    final context = pw.Context(
+      document: pdfDoc,
+      page: pdfPage,
+      canvas: canvas,
+    ).inheritFromAll([
+      theme,
+      pw.InheritedDirectionality(pw.TextDirection.ltr),
+    ]);
+
+    final root = pw.Column(
+      mainAxisSize: pw.MainAxisSize.min,
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: widgets,
+    );
+
+    root.layout(context, pw.BoxConstraints(maxWidth: maxWidth));
+    return root.box?.height ?? 0.0;
+  }
+
+  /// Builds printable PDF using exact-height thermal pages on roll80/roll57 so short receipts
+  /// do not feed empty blank paper, and long receipts up to 1,000 mm stay on one page without cutting.
   static Future<pw.Document> buildPdf(
     SaleResponseModel sale, {
     required bool thermal,
@@ -157,10 +191,6 @@ abstract final class SaleReceiptService {
     final numbers = await numbersLine(sale.id);
     final theme = customTheme ?? await loadFonts();
     final doc = pw.Document(theme: theme);
-    final rawFormat = pageFormat(display.paperSize, thermal: thermal);
-    final format = rawFormat.height.isInfinite
-        ? rawFormat.copyWith(height: 297 * PdfPageFormat.mm)
-        : rawFormat;
     final date =
         sale.soldAt ?? sale.createdAt ?? DateTime.now().toIso8601String();
     DateTime? parsedDate;
@@ -171,143 +201,197 @@ abstract final class SaleReceiptService {
         ? DateFormat.yMMMd().add_jm().format(parsedDate)
         : date;
 
-    doc.addPage(
-      pw.MultiPage(
-        pageFormat: format,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        build: (context) {
-          final bizName = business?.name ?? AppBrand.current.appName;
-          final bizRtl = hasRtl(bizName);
+    List<pw.Widget> buildWidgets() => _buildSaleWidgets(
+          sale: sale,
+          display: display,
+          business: business,
+          numbers: numbers,
+          dateStr: dateStr,
+        );
 
-          return [
-            pw.Center(
-              child: pw.Text(
-                bizName,
-                textDirection:
-                    bizRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-              ),
-            ),
-            if (business?.addressLine1?.isNotEmpty == true)
-              pw.Center(
-                child: pw.Text(
-                  business!.addressLine1!,
-                  textDirection: hasRtl(business.addressLine1)
-                      ? pw.TextDirection.rtl
-                      : pw.TextDirection.ltr,
-                  style: const pw.TextStyle(fontSize: 8),
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-            if (business?.phone?.isNotEmpty == true)
-              pw.Center(
-                child: pw.Text('Tel: ${business!.phone}',
-                    style: const pw.TextStyle(fontSize: 8)),
-              ),
-            if (business?.taxId?.isNotEmpty == true)
-              pw.Center(
-                child: pw.Text('NTN: ${business!.taxId}',
-                    style: const pw.TextStyle(fontSize: 8)),
-              ),
-            pw.SizedBox(height: 4),
-            pw.Center(
-              child: pw.Text(dateStr, style: const pw.TextStyle(fontSize: 8)),
-            ),
-            if (numbers != null && numbers.isNotEmpty)
-              pw.Center(
-                child: pw.Text(numbers, style: const pw.TextStyle(fontSize: 8)),
-              )
-            else
-              pw.Center(
-                child: pw.Text('Sale: ${sale.saleNumber ?? sale.id}',
-                    style: const pw.TextStyle(fontSize: 8)),
-              ),
-            pw.Divider(thickness: 0.5),
-            ...sale.lines.map((line) {
-              final name = line.productName ?? 'Item';
-              final isUrdu = hasRtl(name);
-              final qtyStr = line.qty;
-              final priceStr =
-                  formatPKR(SaleCalculations.lineTotal(line).toDouble());
+    const margin = pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+    final rollWidth = display.paperSize == '58mm'
+        ? (57 * PdfPageFormat.mm)
+        : (80 * PdfPageFormat.mm);
 
-              return pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Expanded(
-                      child: pw.Text(
-                        '$name x $qtyStr',
-                        textDirection: isUrdu
-                            ? pw.TextDirection.rtl
-                            : pw.TextDirection.ltr,
-                        style: const pw.TextStyle(fontSize: 9),
-                      ),
-                    ),
-                    pw.SizedBox(width: 4),
-                    pw.Text(priceStr, style: const pw.TextStyle(fontSize: 9)),
-                  ],
-                ),
-              );
-            }),
-            pw.Divider(thickness: 0.5),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('TOTAL',
-                    style: pw.TextStyle(
-                        fontSize: 11, fontWeight: pw.FontWeight.bold)),
-                pw.Text(
-                  formatPKR(double.tryParse(sale.totalAmount) ?? 0),
-                  style: pw.TextStyle(
-                      fontSize: 11, fontWeight: pw.FontWeight.bold),
-                ),
-              ],
+    if (thermal) {
+      final printableWidth = rollWidth - margin.horizontal;
+      final contentHeight = measureWidgetsHeight(
+        widgets: buildWidgets(),
+        maxWidth: printableWidth,
+        theme: theme,
+      );
+      // Measured content height + vertical margins + small 4mm cutter margin
+      final exactHeight =
+          contentHeight + margin.vertical + (4 * PdfPageFormat.mm);
+
+      if (exactHeight <= maxThermalPageHeight) {
+        doc.addPage(
+          pw.Page(
+            pageFormat: PdfPageFormat(rollWidth, exactHeight),
+            margin: margin,
+            build: (_) => pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: buildWidgets(),
             ),
-            if (sale.payments.isNotEmpty) ...[
-              pw.SizedBox(height: 4),
-              ...sale.payments.map((p) => pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text('${p.paymentMethod}:',
-                          style: const pw.TextStyle(fontSize: 8)),
-                      pw.Text(
-                        formatPKR(double.tryParse(p.amount) ?? 0),
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                    ],
-                  )),
-            ],
-            if (display.footerText.isNotEmpty) ...[
-              pw.Divider(thickness: 0.5),
-              pw.Center(
-                child: pw.Text(
-                  display.footerText,
-                  textDirection: hasRtl(display.footerText)
-                      ? pw.TextDirection.rtl
-                      : pw.TextDirection.ltr,
-                  style: const pw.TextStyle(fontSize: 8),
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-            ],
-            pw.SizedBox(height: 4),
-            pw.Center(
-              child: pw.Text(
-                AppBrand.current.receiptPoweredBy,
-                style: const pw.TextStyle(fontSize: 7),
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
-          ];
-        },
-      ),
-    );
+          ),
+        );
+      } else {
+        doc.addPage(
+          pw.MultiPage(
+            pageFormat: PdfPageFormat(rollWidth, maxThermalPageHeight),
+            margin: margin,
+            build: (_) => buildWidgets(),
+          ),
+        );
+      }
+    } else {
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          build: (_) => buildWidgets(),
+        ),
+      );
+    }
     return doc;
   }
 
-  /// Builds a sample receipt to test Urdu font rendering and printer settings.
+  static List<pw.Widget> _buildSaleWidgets({
+    required SaleResponseModel sale,
+    required ReceiptDisplaySettings display,
+    required BusinessProfileModel? business,
+    required String? numbers,
+    required String dateStr,
+  }) {
+    final bizName = business?.name ?? AppBrand.current.appName;
+    final bizRtl = hasRtl(bizName);
+
+    return [
+      pw.Center(
+        child: pw.Text(
+          bizName,
+          textDirection:
+              bizRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+          style:
+              pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+        ),
+      ),
+      if (business?.addressLine1?.isNotEmpty == true)
+        pw.Center(
+          child: pw.Text(
+            business!.addressLine1!,
+            textDirection: hasRtl(business.addressLine1)
+                ? pw.TextDirection.rtl
+                : pw.TextDirection.ltr,
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+      if (business?.phone?.isNotEmpty == true)
+        pw.Center(
+          child: pw.Text('Tel: ${business!.phone}',
+              style: const pw.TextStyle(fontSize: 8)),
+        ),
+      if (business?.taxId?.isNotEmpty == true)
+        pw.Center(
+          child: pw.Text('NTN: ${business!.taxId}',
+              style: const pw.TextStyle(fontSize: 8)),
+        ),
+      pw.SizedBox(height: 4),
+      pw.Center(
+        child: pw.Text(dateStr, style: const pw.TextStyle(fontSize: 8)),
+      ),
+      if (numbers != null && numbers.isNotEmpty)
+        pw.Center(
+          child: pw.Text(numbers, style: const pw.TextStyle(fontSize: 8)),
+        )
+      else
+        pw.Center(
+          child: pw.Text('Sale: ${sale.saleNumber ?? sale.id}',
+              style: const pw.TextStyle(fontSize: 8)),
+        ),
+      pw.Divider(thickness: 0.5),
+      ...sale.lines.map((line) {
+        final name = line.productName ?? 'Item';
+        final isUrdu = hasRtl(name);
+        final qtyStr = line.qty;
+        final priceStr =
+            formatPKR(SaleCalculations.lineTotal(line).toDouble());
+
+        return pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  '$name x $qtyStr',
+                  textDirection: isUrdu
+                      ? pw.TextDirection.rtl
+                      : pw.TextDirection.ltr,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+              pw.SizedBox(width: 4),
+              pw.Text(priceStr, style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+        );
+      }),
+      pw.Divider(thickness: 0.5),
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text('TOTAL',
+              style: pw.TextStyle(
+                  fontSize: 11, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            formatPKR(double.tryParse(sale.totalAmount) ?? 0),
+            style: pw.TextStyle(
+                fontSize: 11, fontWeight: pw.FontWeight.bold),
+          ),
+        ],
+      ),
+      if (sale.payments.isNotEmpty) ...[
+        pw.SizedBox(height: 4),
+        ...sale.payments.map((p) => pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('${p.paymentMethod}:',
+                    style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(
+                  formatPKR(double.tryParse(p.amount) ?? 0),
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ],
+            )),
+      ],
+      if (display.footerText.isNotEmpty) ...[
+        pw.Divider(thickness: 0.5),
+        pw.Center(
+          child: pw.Text(
+            display.footerText,
+            textDirection: hasRtl(display.footerText)
+                ? pw.TextDirection.rtl
+                : pw.TextDirection.ltr,
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+      ],
+      pw.SizedBox(height: 4),
+      pw.Center(
+        child: pw.Text(
+          AppBrand.current.receiptPoweredBy,
+          style: const pw.TextStyle(fontSize: 7),
+          textAlign: pw.TextAlign.center,
+        ),
+      ),
+    ];
+  }
+
+  /// Builds a sample receipt to test Urdu font rendering and printer settings using exact-height thermal page.
   static Future<pw.Document> buildTestPdf({
     required String paperSize,
     pw.ThemeData? customTheme,
@@ -315,93 +399,117 @@ abstract final class SaleReceiptService {
     final business = await resolveBusinessProfile();
     final theme = customTheme ?? await loadFonts();
     final doc = pw.Document(theme: theme);
-    final rawFormat =
-        paperSize == '58mm' ? PdfPageFormat.roll57 : PdfPageFormat.roll80;
-    final format = rawFormat.height.isInfinite || rawFormat.height <= 0
-        ? rawFormat.copyWith(height: 297 * PdfPageFormat.mm)
-        : rawFormat;
+    final rollWidth =
+        paperSize == '58mm' ? (57 * PdfPageFormat.mm) : (80 * PdfPageFormat.mm);
+    const margin = pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+    final printableWidth = rollWidth - margin.horizontal;
 
-    doc.addPage(
-      pw.MultiPage(
-        pageFormat: format,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        build: (context) => [
-          pw.Center(
-            child: pw.Text(
-              business?.name ?? 'Test Receipt / ٹیسٹ پرنٹ',
-              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-            ),
-          ),
-          pw.Center(
-            child: pw.Text(
-              'تھرمل پرنٹر ٹیسٹ پیج',
-              textDirection: pw.TextDirection.rtl,
-              style: const pw.TextStyle(fontSize: 10),
-            ),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Center(
-            child: pw.Text(
-              DateFormat.yMMMd().add_jm().format(DateTime.now()),
-              style: const pw.TextStyle(fontSize: 8),
-            ),
-          ),
-          pw.Divider(thickness: 0.5),
-          pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(vertical: 2),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Expanded(
-                  child: pw.Text(
-                    'چاول باسمتی (Rice) x 1',
-                    textDirection: pw.TextDirection.rtl,
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-                pw.Text('Rs. 450.00', style: const pw.TextStyle(fontSize: 9)),
-              ],
-            ),
-          ),
-          pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(vertical: 2),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Expanded(
-                  child: pw.Text(
-                    'چائے کی پتی (Tea) x 2',
-                    textDirection: pw.TextDirection.rtl,
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-                pw.Text('Rs. 900.00', style: const pw.TextStyle(fontSize: 9)),
-              ],
-            ),
-          ),
-          pw.Divider(thickness: 0.5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('TOTAL',
-                  style: pw.TextStyle(
-                      fontSize: 11, fontWeight: pw.FontWeight.bold)),
-              pw.Text('Rs. 1,350.00',
-                  style: pw.TextStyle(
-                      fontSize: 11, fontWeight: pw.FontWeight.bold)),
-            ],
-          ),
-          pw.Divider(thickness: 0.5),
-          pw.Center(
-            child: pw.Text(
-              'Thank you! شکریہ',
-              textDirection: pw.TextDirection.rtl,
-              style: const pw.TextStyle(fontSize: 8),
-            ),
-          ),
-        ],
-      ),
+    List<pw.Widget> buildWidgets() => _buildTestWidgets(business);
+
+    final contentHeight = measureWidgetsHeight(
+      widgets: buildWidgets(),
+      maxWidth: printableWidth,
+      theme: theme,
     );
+    final exactHeight =
+        contentHeight + margin.vertical + (4 * PdfPageFormat.mm);
+
+    if (exactHeight <= maxThermalPageHeight) {
+      doc.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat(rollWidth, exactHeight),
+          margin: margin,
+          build: (_) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: buildWidgets(),
+          ),
+        ),
+      );
+    } else {
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat(rollWidth, maxThermalPageHeight),
+          margin: margin,
+          build: (_) => buildWidgets(),
+        ),
+      );
+    }
     return doc;
   }
+
+  static List<pw.Widget> _buildTestWidgets(BusinessProfileModel? business) => [
+        pw.Center(
+          child: pw.Text(
+            business?.name ?? 'Test Receipt / ٹیسٹ پرنٹ',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.Center(
+          child: pw.Text(
+            'تھرمل پرنٹر ٹیسٹ پیج',
+            textDirection: pw.TextDirection.rtl,
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+        ),
+        pw.SizedBox(height: 4),
+        pw.Center(
+          child: pw.Text(
+            DateFormat.yMMMd().add_jm().format(DateTime.now()),
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        ),
+        pw.Divider(thickness: 0.5),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  'چاول باسمتی (Rice) x 1',
+                  textDirection: pw.TextDirection.rtl,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+              pw.Text('Rs. 450.00', style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  'چائے کی پتی (Tea) x 2',
+                  textDirection: pw.TextDirection.rtl,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+              pw.Text('Rs. 900.00', style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+        ),
+        pw.Divider(thickness: 0.5),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text('TOTAL',
+                style: pw.TextStyle(
+                    fontSize: 11, fontWeight: pw.FontWeight.bold)),
+            pw.Text('Rs. 1,350.00',
+                style: pw.TextStyle(
+                    fontSize: 11, fontWeight: pw.FontWeight.bold)),
+          ],
+        ),
+        pw.Divider(thickness: 0.5),
+        pw.Center(
+          child: pw.Text(
+            'Thank you! شکریہ',
+            textDirection: pw.TextDirection.rtl,
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        ),
+      ];
 }

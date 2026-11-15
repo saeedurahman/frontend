@@ -53,6 +53,16 @@ class SecureStorage {
   Future<void> savePinDeviceCache(String json) =>
       _storage.write(_pinDeviceCacheKey, json);
 
+  static String _hasPinKey(String userId) => 'has_pin_$userId';
+
+  Future<bool> getUserHasPin(String userId) async {
+    final val = await _storage.read(_hasPinKey(userId));
+    return val == 'true';
+  }
+
+  Future<void> setUserHasPin(String userId, bool hasPin) =>
+      hasPin ? _storage.write(_hasPinKey(userId), 'true') : _storage.delete(_hasPinKey(userId));
+
   Future<bool> hasValidSession() async {
     final token = await getAccessToken();
     return token != null && token.isNotEmpty;

@@ -2,10 +2,12 @@ import 'package:frantend/core/di/foundation_module.dart';
 import 'package:frantend/core/di/injection.config.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/security/idle_lock_service.dart';
+import 'package:frantend/core/security/pin_security_service.dart';
 import 'package:frantend/core/session/session_services.dart';
 import 'package:frantend/core/storage/preferences_storage.dart';
 import 'package:frantend/core/storage/secure_storage.dart';
 import 'package:frantend/features/auth/data/datasources/pin_device_cache.dart';
+import 'package:frantend/features/auth/domain/offline/offline_credential_verifier.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 
@@ -26,6 +28,14 @@ Future<void> configureDependencies() async {
 
 /// Hand-registered (not generated) services.
 void _registerSecurityServices() {
+  if (!sl.isRegistered<PinSecurityService>()) {
+    sl.registerLazySingleton<PinSecurityService>(
+      () => PinSecurityServiceImpl(
+        offlineVerifier: sl<OfflineCredentialVerifier>(),
+        secureStorage: sl<SecureStorage>(),
+      ),
+    );
+  }
   if (sl.isRegistered<IdleLockService>()) return;
   sl.registerLazySingleton<IdleLockService>(() {
     final guard = sl<AuthGuard>();
@@ -34,14 +44,13 @@ void _registerSecurityServices() {
       authChanges: guard,
       isAuthenticated: () => guard.isAuthenticated,
       canLock: () async {
-        // Kitchen displays sit idle by design; users without a PIN could not
-        // get back in.
+        // Kitchen displays sit idle by design; users without a PIN must never be locked out.
         if (guard.isKitchenOnlyUser) return false;
         final userId = await sl<SecureStorage>().getUserId();
+        if (userId == null) return false;
         final cache = await sl<PinDeviceCache>().read();
-        if (userId == null || cache == null) return false;
-        return cache.businessSlug.trim().isNotEmpty &&
-            cache.staff.any((s) => s.id == userId);
+        final slug = cache?.businessSlug.trim() ?? '';
+        return sl<PinSecurityService>().hasPin(userId: userId, slug: slug);
       },
     );
   });
