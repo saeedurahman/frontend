@@ -4,7 +4,7 @@ import 'package:frantend/features/products/data/models/unit_model.dart';
 part 'units_state.freezed.dart';
 
 @freezed
-class UnitsState with _$UnitsState {
+sealed class UnitsState with _$UnitsState {
   const factory UnitsState.initial() = UnitsInitial;
   const factory UnitsState.loading() = UnitsLoading;
   const factory UnitsState.loaded(List<UnitModel> units) = UnitsLoaded;

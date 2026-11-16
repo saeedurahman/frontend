@@ -6,8 +6,8 @@ part of 'tax_rate_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$TaxRateModelImpl _$$TaxRateModelImplFromJson(Map<String, dynamic> json) =>
-    _$TaxRateModelImpl(
+_TaxRateModel _$TaxRateModelFromJson(Map<String, dynamic> json) =>
+    _TaxRateModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       name: json['name'] as String,
@@ -16,7 +16,7 @@ _$TaxRateModelImpl _$$TaxRateModelImplFromJson(Map<String, dynamic> json) =>
       isActive: json['is_active'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$$TaxRateModelImplToJson(_$TaxRateModelImpl instance) =>
+Map<String, dynamic> _$TaxRateModelToJson(_TaxRateModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,

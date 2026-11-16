@@ -1,7 +1,7 @@
 part of 'pos_state.dart';
 
 @freezed
-class PosCatalogState with _$PosCatalogState {
+abstract class PosCatalogState with _$PosCatalogState {
   const factory PosCatalogState({
     @Default([]) List<ProductListItemModel> products,
     @Default([]) List<CategoryModel> categories,

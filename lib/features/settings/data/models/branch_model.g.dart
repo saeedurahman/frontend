@@ -6,18 +6,17 @@ part of 'branch_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$BranchModelImpl _$$BranchModelImplFromJson(Map<String, dynamic> json) =>
-    _$BranchModelImpl(
-      id: json['id'] as String,
-      businessId: json['business_id'] as String,
-      name: json['name'] as String,
-      address: json['address'] as String?,
-      phone: json['phone'] as String?,
-      isDefault: json['is_default'] as bool? ?? false,
-      isActive: json['is_active'] as bool? ?? true,
-    );
+_BranchModel _$BranchModelFromJson(Map<String, dynamic> json) => _BranchModel(
+  id: json['id'] as String,
+  businessId: json['business_id'] as String,
+  name: json['name'] as String,
+  address: json['address'] as String?,
+  phone: json['phone'] as String?,
+  isDefault: json['is_default'] as bool? ?? false,
+  isActive: json['is_active'] as bool? ?? true,
+);
 
-Map<String, dynamic> _$$BranchModelImplToJson(_$BranchModelImpl instance) =>
+Map<String, dynamic> _$BranchModelToJson(_BranchModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,

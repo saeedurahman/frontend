@@ -4,7 +4,7 @@ part 'app_setting_model.freezed.dart';
 part 'app_setting_model.g.dart';
 
 @freezed
-class AppSettingModel with _$AppSettingModel {
+abstract class AppSettingModel with _$AppSettingModel {
   const factory AppSettingModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

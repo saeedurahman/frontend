@@ -6,7 +6,7 @@ part 'variation_model.freezed.dart';
 part 'variation_model.g.dart';
 
 @freezed
-class VariationModel with _$VariationModel {
+abstract class VariationModel with _$VariationModel {
   const factory VariationModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

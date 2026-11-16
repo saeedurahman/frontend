@@ -4,7 +4,7 @@ part 'expense_category_model.freezed.dart';
 part 'expense_category_model.g.dart';
 
 @freezed
-class ExpenseCategoryModel with _$ExpenseCategoryModel {
+abstract class ExpenseCategoryModel with _$ExpenseCategoryModel {
   const factory ExpenseCategoryModel({
     required String id,
     required String name,

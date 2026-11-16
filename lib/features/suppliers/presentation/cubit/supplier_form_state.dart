@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'supplier_form_state.freezed.dart';
 
 @freezed
-class SupplierFormState with _$SupplierFormState {
+abstract class SupplierFormState with _$SupplierFormState {
   const factory SupplierFormState({
     @Default('create') String mode,
     String? supplierId,

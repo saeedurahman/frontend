@@ -6,8 +6,8 @@ part of 'staff_user_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$StaffUserModelImpl _$$StaffUserModelImplFromJson(Map<String, dynamic> json) =>
-    _$StaffUserModelImpl(
+_StaffUserModel _$StaffUserModelFromJson(Map<String, dynamic> json) =>
+    _StaffUserModel(
       id: json['id'] as String,
       fullName: json['full_name'] as String,
       phone: json['phone'] as String?,
@@ -22,15 +22,14 @@ _$StaffUserModelImpl _$$StaffUserModelImplFromJson(Map<String, dynamic> json) =>
       lastLoginAt: json['last_login_at'] as String?,
     );
 
-Map<String, dynamic> _$$StaffUserModelImplToJson(
-  _$StaffUserModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'full_name': instance.fullName,
-  'phone': instance.phone,
-  'branch_id': instance.branchId,
-  'branch_name': instance.branchName,
-  'roles': instance.roles,
-  'is_active': instance.isActive,
-  'last_login_at': instance.lastLoginAt,
-};
+Map<String, dynamic> _$StaffUserModelToJson(_StaffUserModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'full_name': instance.fullName,
+      'phone': instance.phone,
+      'branch_id': instance.branchId,
+      'branch_name': instance.branchName,
+      'roles': instance.roles,
+      'is_active': instance.isActive,
+      'last_login_at': instance.lastLoginAt,
+    };

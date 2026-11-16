@@ -5,7 +5,7 @@ part 'discount_scheme_model.freezed.dart';
 part 'discount_scheme_model.g.dart';
 
 @freezed
-class DiscountSchemeModel with _$DiscountSchemeModel {
+abstract class DiscountSchemeModel with _$DiscountSchemeModel {
   const factory DiscountSchemeModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

@@ -43,9 +43,9 @@ class PaginatedApiResponse<T> {
       _$PaginatedApiResponseFromJson(json, fromJsonT);
 
   final List<T> items;
-  final int total;
-  final int page;
-  @JsonKey(name: 'page_size')
+  @JsonKey(fromJson: JsonNum.intOr) final int total;
+  @JsonKey(fromJson: JsonNum.intOr) final int page;
+  @JsonKey(name: 'page_size', fromJson: JsonNum.intOr)
   final int pageSize;
 
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>

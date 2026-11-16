@@ -5,7 +5,7 @@ import 'package:frantend/features/auth/domain/entities/user.dart';
 part 'auth_state.freezed.dart';
 
 @freezed
-class AuthState with _$AuthState {
+sealed class AuthState with _$AuthState {
   const factory AuthState.initial() = AuthInitial;
 
   const factory AuthState.loading() = AuthLoading;

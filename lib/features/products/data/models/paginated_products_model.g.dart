@@ -6,9 +6,9 @@ part of 'paginated_products_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PaginatedProductsModelImpl _$$PaginatedProductsModelImplFromJson(
+_PaginatedProductsModel _$PaginatedProductsModelFromJson(
   Map<String, dynamic> json,
-) => _$PaginatedProductsModelImpl(
+) => _PaginatedProductsModel(
   total: JsonNum.intOr(json['total']),
   skip: JsonNum.intOr(json['skip']),
   limit: JsonNum.intOr(json['limit']),
@@ -19,8 +19,8 @@ _$PaginatedProductsModelImpl _$$PaginatedProductsModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$PaginatedProductsModelImplToJson(
-  _$PaginatedProductsModelImpl instance,
+Map<String, dynamic> _$PaginatedProductsModelToJson(
+  _PaginatedProductsModel instance,
 ) => <String, dynamic>{
   'total': instance.total,
   'skip': instance.skip,

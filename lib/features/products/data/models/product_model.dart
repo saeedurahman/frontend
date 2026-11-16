@@ -10,7 +10,7 @@ part 'product_model.freezed.dart';
 part 'product_model.g.dart';
 
 @freezed
-class ProductModel with _$ProductModel {
+abstract class ProductModel with _$ProductModel {
   const factory ProductModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -23,7 +23,7 @@ class ProductModel with _$ProductModel {
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     String? description,
     @JsonKey(name: 'image_url') String? imageUrl,
-    @JsonKey(name: 'shelf_life_days') int? shelfLifeDays,
+    @JsonKey(name: 'shelf_life_days', fromJson: JsonNum.intOrNull) int? shelfLifeDays,
     @JsonKey(name: 'min_stock_level') String? minStockLevel,
     @JsonKey(name: 'max_stock_level') String? maxStockLevel,
     @JsonKey(name: 'created_at') String? createdAt,

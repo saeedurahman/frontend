@@ -6,8 +6,8 @@ part of 'sale_response_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SaleLineModelImpl _$$SaleLineModelImplFromJson(Map<String, dynamic> json) =>
-    _$SaleLineModelImpl(
+_SaleLineModel _$SaleLineModelFromJson(Map<String, dynamic> json) =>
+    _SaleLineModel(
       id: json['id'] as String,
       productId: json['product_id'] as String,
       variationId: json['variation_id'] as String?,
@@ -25,7 +25,7 @@ _$SaleLineModelImpl _$$SaleLineModelImplFromJson(Map<String, dynamic> json) =>
       returnedQty: json['returned_qty'] as String? ?? '0',
     );
 
-Map<String, dynamic> _$$SaleLineModelImplToJson(_$SaleLineModelImpl instance) =>
+Map<String, dynamic> _$SaleLineModelToJson(_SaleLineModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'product_id': instance.productId,
@@ -44,82 +44,78 @@ Map<String, dynamic> _$$SaleLineModelImplToJson(_$SaleLineModelImpl instance) =>
       'returned_qty': instance.returnedQty,
     };
 
-_$SalePaymentModelImpl _$$SalePaymentModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$SalePaymentModelImpl(
-  id: json['id'] as String,
-  paymentMethod: json['payment_method'] as String,
-  amount: json['amount'] as String,
-  referenceNo: json['reference_no'] as String?,
-  paidAt: json['paid_at'] as String?,
-);
+_SalePaymentModel _$SalePaymentModelFromJson(Map<String, dynamic> json) =>
+    _SalePaymentModel(
+      id: json['id'] as String,
+      paymentMethod: json['payment_method'] as String,
+      amount: json['amount'] as String,
+      referenceNo: json['reference_no'] as String?,
+      paidAt: json['paid_at'] as String?,
+    );
 
-Map<String, dynamic> _$$SalePaymentModelImplToJson(
-  _$SalePaymentModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'payment_method': instance.paymentMethod,
-  'amount': instance.amount,
-  'reference_no': instance.referenceNo,
-  'paid_at': instance.paidAt,
-};
+Map<String, dynamic> _$SalePaymentModelToJson(_SalePaymentModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'payment_method': instance.paymentMethod,
+      'amount': instance.amount,
+      'reference_no': instance.referenceNo,
+      'paid_at': instance.paidAt,
+    };
 
-_$SaleResponseModelImpl _$$SaleResponseModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$SaleResponseModelImpl(
-  id: json['id'] as String,
-  saleNumber: json['sale_number'] as String?,
-  branchId: json['branch_id'] as String,
-  customerId: json['customer_id'] as String?,
-  tableId: json['table_id'] as String?,
-  saleType: json['sale_type'] as String,
-  saleStatus: _readSaleStatus(json, 'sale_status') as String,
-  registerShiftId: json['register_shift_id'] as String?,
-  subtotal: json['subtotal'] as String?,
-  totalDiscount: json['total_discount'] as String?,
-  totalTax: json['total_tax'] as String?,
-  totalAmount: json['total_amount'] as String? ?? '0',
-  totalPaid: json['total_paid'] as String?,
-  notes: json['notes'] as String?,
-  soldAt: json['sold_at'] as String?,
-  createdAt: json['created_at'] as String?,
-  customer: json['customer'] == null
-      ? null
-      : CustomerModel.fromJson(json['customer'] as Map<String, dynamic>),
-  lines:
-      (json['lines'] as List<dynamic>?)
-          ?.map((e) => SaleLineModel.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  payments:
-      (json['payments'] as List<dynamic>?)
-          ?.map((e) => SalePaymentModel.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  offline: json['offline'] as bool? ?? false,
-);
+_SaleResponseModel _$SaleResponseModelFromJson(Map<String, dynamic> json) =>
+    _SaleResponseModel(
+      id: json['id'] as String,
+      saleNumber: json['sale_number'] as String?,
+      branchId: json['branch_id'] as String,
+      customerId: json['customer_id'] as String?,
+      tableId: json['table_id'] as String?,
+      saleType: json['sale_type'] as String,
+      saleStatus: _readSaleStatus(json, 'sale_status') as String,
+      registerShiftId: json['register_shift_id'] as String?,
+      subtotal: json['subtotal'] as String?,
+      totalDiscount: json['total_discount'] as String?,
+      totalTax: json['total_tax'] as String?,
+      totalAmount: json['total_amount'] as String? ?? '0',
+      totalPaid: json['total_paid'] as String?,
+      notes: json['notes'] as String?,
+      soldAt: json['sold_at'] as String?,
+      createdAt: json['created_at'] as String?,
+      customer: json['customer'] == null
+          ? null
+          : CustomerModel.fromJson(json['customer'] as Map<String, dynamic>),
+      lines:
+          (json['lines'] as List<dynamic>?)
+              ?.map((e) => SaleLineModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      payments:
+          (json['payments'] as List<dynamic>?)
+              ?.map((e) => SalePaymentModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      offline: json['offline'] as bool? ?? false,
+    );
 
-Map<String, dynamic> _$$SaleResponseModelImplToJson(
-  _$SaleResponseModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'sale_number': instance.saleNumber,
-  'branch_id': instance.branchId,
-  'customer_id': instance.customerId,
-  'table_id': instance.tableId,
-  'sale_type': instance.saleType,
-  'sale_status': instance.saleStatus,
-  'register_shift_id': instance.registerShiftId,
-  'subtotal': instance.subtotal,
-  'total_discount': instance.totalDiscount,
-  'total_tax': instance.totalTax,
-  'total_amount': instance.totalAmount,
-  'total_paid': instance.totalPaid,
-  'notes': instance.notes,
-  'sold_at': instance.soldAt,
-  'created_at': instance.createdAt,
-  'customer': instance.customer,
-  'lines': instance.lines,
-  'payments': instance.payments,
-  'offline': instance.offline,
-};
+Map<String, dynamic> _$SaleResponseModelToJson(_SaleResponseModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'sale_number': instance.saleNumber,
+      'branch_id': instance.branchId,
+      'customer_id': instance.customerId,
+      'table_id': instance.tableId,
+      'sale_type': instance.saleType,
+      'sale_status': instance.saleStatus,
+      'register_shift_id': instance.registerShiftId,
+      'subtotal': instance.subtotal,
+      'total_discount': instance.totalDiscount,
+      'total_tax': instance.totalTax,
+      'total_amount': instance.totalAmount,
+      'total_paid': instance.totalPaid,
+      'notes': instance.notes,
+      'sold_at': instance.soldAt,
+      'created_at': instance.createdAt,
+      'customer': instance.customer,
+      'lines': instance.lines,
+      'payments': instance.payments,
+      'offline': instance.offline,
+    };

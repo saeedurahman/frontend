@@ -29,13 +29,13 @@ Map<String, dynamic> _layoutJsonFromJson(Object? json) {
 }
 
 @freezed
-class FloorPlanModel with _$FloorPlanModel {
+abstract class FloorPlanModel with _$FloorPlanModel {
   const factory FloorPlanModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'branch_id') required String branchId,
     required String name,
-    @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
+    @JsonKey(name: 'sort_order', fromJson: JsonNum.intOr) @Default(0) int sortOrder,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'layout_json', fromJson: _layoutJsonFromJson)
     @Default({})
@@ -49,13 +49,13 @@ class FloorPlanModel with _$FloorPlanModel {
 }
 
 @freezed
-class FloorPlanWithTablesModel with _$FloorPlanWithTablesModel {
+abstract class FloorPlanWithTablesModel with _$FloorPlanWithTablesModel {
   const factory FloorPlanWithTablesModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'branch_id') required String branchId,
     required String name,
-    @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
+    @JsonKey(name: 'sort_order', fromJson: JsonNum.intOr) @Default(0) int sortOrder,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'layout_json', fromJson: _layoutJsonFromJson)
     @Default({})
@@ -72,7 +72,7 @@ class FloorPlanWithTablesModel with _$FloorPlanWithTablesModel {
 }
 
 @freezed
-class FloorLayoutModel with _$FloorLayoutModel {
+abstract class FloorLayoutModel with _$FloorLayoutModel {
   const factory FloorLayoutModel({
     @JsonKey(name: 'branch_id') required String branchId,
     @JsonKey(name: 'floor_plans', fromJson: _floorPlanWithTablesListFromJson)
@@ -88,14 +88,14 @@ class FloorLayoutModel with _$FloorLayoutModel {
 }
 
 @freezed
-class DiningTableModel with _$DiningTableModel {
+abstract class DiningTableModel with _$DiningTableModel {
   const factory DiningTableModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'branch_id') required String branchId,
     @JsonKey(name: 'floor_plan_id') String? floorPlanId,
     @JsonKey(name: 'table_number') required String tableNumber,
-    @Default(4) int capacity,
+    @Default(4) @JsonKey(fromJson: JsonNum.intOr) int capacity,
     required String status,
     @JsonKey(name: 'pos_x') String? posX,
     @JsonKey(name: 'pos_y') String? posY,

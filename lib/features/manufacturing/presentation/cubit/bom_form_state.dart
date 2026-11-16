@@ -6,7 +6,7 @@ import 'package:frantend/features/products/data/models/variation_model.dart';
 part 'bom_form_state.freezed.dart';
 
 @freezed
-class BomLineFormItem with _$BomLineFormItem {
+abstract class BomLineFormItem with _$BomLineFormItem {
   const BomLineFormItem._();
 
   const factory BomLineFormItem({
@@ -21,7 +21,7 @@ class BomLineFormItem with _$BomLineFormItem {
 }
 
 @freezed
-class BomFormState with _$BomFormState {
+abstract class BomFormState with _$BomFormState {
   const BomFormState._();
 
   const factory BomFormState({

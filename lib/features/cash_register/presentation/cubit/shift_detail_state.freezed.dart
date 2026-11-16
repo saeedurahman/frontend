@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'shift_detail_state.dart';
@@ -9,292 +9,355 @@ part of 'shift_detail_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$ShiftDetailState {
-  RegisterShiftModel? get shift => throw _privateConstructorUsedError;
-  ShiftSummaryModel? get summary => throw _privateConstructorUsedError;
-  CashRegisterModel? get register => throw _privateConstructorUsedError;
-  bool get isLoading => throw _privateConstructorUsedError;
-  String? get error => throw _privateConstructorUsedError;
 
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ShiftDetailStateCopyWith<ShiftDetailState> get copyWith =>
-      throw _privateConstructorUsedError;
+ RegisterShiftModel? get shift; ShiftSummaryModel? get summary; CashRegisterModel? get register; bool get isLoading; String? get error;
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ShiftDetailStateCopyWith<ShiftDetailState> get copyWith => _$ShiftDetailStateCopyWithImpl<ShiftDetailState>(this as ShiftDetailState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ShiftDetailState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShiftDetailState&&(identical(other.shift, _this.shift) || other.shift == _this.shift)&&(identical(other.summary, _this.summary) || other.summary == _this.summary)&&(identical(other.register, _this.register) || other.register == _this.register)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.error, _this.error) || other.error == _this.error));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ShiftDetailState;
+  return Object.hash(runtimeType,_this.shift,_this.summary,_this.register,_this.isLoading,_this.error);
+}
+
+@override
+String toString() {
+  final _this = this as ShiftDetailState;
+  return 'ShiftDetailState(shift: ${_this.shift}, summary: ${_this.summary}, register: ${_this.register}, isLoading: ${_this.isLoading}, error: ${_this.error})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ShiftDetailStateCopyWith<$Res> {
-  factory $ShiftDetailStateCopyWith(
-    ShiftDetailState value,
-    $Res Function(ShiftDetailState) then,
-  ) = _$ShiftDetailStateCopyWithImpl<$Res, ShiftDetailState>;
-  @useResult
-  $Res call({
-    RegisterShiftModel? shift,
-    ShiftSummaryModel? summary,
-    CashRegisterModel? register,
-    bool isLoading,
-    String? error,
-  });
+abstract mixin class $ShiftDetailStateCopyWith<$Res>  {
+  factory $ShiftDetailStateCopyWith(ShiftDetailState value, $Res Function(ShiftDetailState) _then) = _$ShiftDetailStateCopyWithImpl;
+@useResult
+$Res call({
+ RegisterShiftModel? shift, ShiftSummaryModel? summary, CashRegisterModel? register, bool isLoading, String? error
+});
 
-  $RegisterShiftModelCopyWith<$Res>? get shift;
-  $ShiftSummaryModelCopyWith<$Res>? get summary;
-  $CashRegisterModelCopyWith<$Res>? get register;
+
+$RegisterShiftModelCopyWith<$Res>? get shift;$ShiftSummaryModelCopyWith<$Res>? get summary;$CashRegisterModelCopyWith<$Res>? get register;
+
 }
-
 /// @nodoc
-class _$ShiftDetailStateCopyWithImpl<$Res, $Val extends ShiftDetailState>
+class _$ShiftDetailStateCopyWithImpl<$Res>
     implements $ShiftDetailStateCopyWith<$Res> {
-  _$ShiftDetailStateCopyWithImpl(this._value, this._then);
+  _$ShiftDetailStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final ShiftDetailState _self;
+  final $Res Function(ShiftDetailState) _then;
 
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? shift = freezed,
-    Object? summary = freezed,
-    Object? register = freezed,
-    Object? isLoading = null,
-    Object? error = freezed,
-  }) {
-    return _then(
-      _value.copyWith(
-            shift: freezed == shift
-                ? _value.shift
-                : shift // ignore: cast_nullable_to_non_nullable
-                      as RegisterShiftModel?,
-            summary: freezed == summary
-                ? _value.summary
-                : summary // ignore: cast_nullable_to_non_nullable
-                      as ShiftSummaryModel?,
-            register: freezed == register
-                ? _value.register
-                : register // ignore: cast_nullable_to_non_nullable
-                      as CashRegisterModel?,
-            isLoading: null == isLoading
-                ? _value.isLoading
-                : isLoading // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            error: freezed == error
-                ? _value.error
-                : error // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $RegisterShiftModelCopyWith<$Res>? get shift {
-    if (_value.shift == null) {
-      return null;
-    }
-
-    return $RegisterShiftModelCopyWith<$Res>(_value.shift!, (value) {
-      return _then(_value.copyWith(shift: value) as $Val);
-    });
-  }
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $ShiftSummaryModelCopyWith<$Res>? get summary {
-    if (_value.summary == null) {
-      return null;
-    }
-
-    return $ShiftSummaryModelCopyWith<$Res>(_value.summary!, (value) {
-      return _then(_value.copyWith(summary: value) as $Val);
-    });
-  }
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CashRegisterModelCopyWith<$Res>? get register {
-    if (_value.register == null) {
-      return null;
-    }
-
-    return $CashRegisterModelCopyWith<$Res>(_value.register!, (value) {
-      return _then(_value.copyWith(register: value) as $Val);
-    });
-  }
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? shift = freezed,Object? summary = freezed,Object? register = freezed,Object? isLoading = null,Object? error = freezed,}) {
+  return _then(ShiftDetailState(
+shift: freezed == shift ? _self.shift : shift // ignore: cast_nullable_to_non_nullable
+as RegisterShiftModel?,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as ShiftSummaryModel?,register: freezed == register ? _self.register : register // ignore: cast_nullable_to_non_nullable
+as CashRegisterModel?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RegisterShiftModelCopyWith<$Res>? get shift {
+    if (_self.shift == null) {
+    return null;
+  }
 
-/// @nodoc
-abstract class _$$ShiftDetailStateImplCopyWith<$Res>
-    implements $ShiftDetailStateCopyWith<$Res> {
-  factory _$$ShiftDetailStateImplCopyWith(
-    _$ShiftDetailStateImpl value,
-    $Res Function(_$ShiftDetailStateImpl) then,
-  ) = __$$ShiftDetailStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    RegisterShiftModel? shift,
-    ShiftSummaryModel? summary,
-    CashRegisterModel? register,
-    bool isLoading,
-    String? error,
+  return $RegisterShiftModelCopyWith<$Res>(_self.shift!, (value) {
+    return _then(_self.copyWith(shift: value));
   });
-
-  @override
-  $RegisterShiftModelCopyWith<$Res>? get shift;
-  @override
-  $ShiftSummaryModelCopyWith<$Res>? get summary;
-  @override
-  $CashRegisterModelCopyWith<$Res>? get register;
-}
-
-/// @nodoc
-class __$$ShiftDetailStateImplCopyWithImpl<$Res>
-    extends _$ShiftDetailStateCopyWithImpl<$Res, _$ShiftDetailStateImpl>
-    implements _$$ShiftDetailStateImplCopyWith<$Res> {
-  __$$ShiftDetailStateImplCopyWithImpl(
-    _$ShiftDetailStateImpl _value,
-    $Res Function(_$ShiftDetailStateImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? shift = freezed,
-    Object? summary = freezed,
-    Object? register = freezed,
-    Object? isLoading = null,
-    Object? error = freezed,
-  }) {
-    return _then(
-      _$ShiftDetailStateImpl(
-        shift: freezed == shift
-            ? _value.shift
-            : shift // ignore: cast_nullable_to_non_nullable
-                  as RegisterShiftModel?,
-        summary: freezed == summary
-            ? _value.summary
-            : summary // ignore: cast_nullable_to_non_nullable
-                  as ShiftSummaryModel?,
-        register: freezed == register
-            ? _value.register
-            : register // ignore: cast_nullable_to_non_nullable
-                  as CashRegisterModel?,
-        isLoading: null == isLoading
-            ? _value.isLoading
-            : isLoading // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        error: freezed == error
-            ? _value.error
-            : error // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+}/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ShiftSummaryModelCopyWith<$Res>? get summary {
+    if (_self.summary == null) {
+    return null;
   }
+
+  return $ShiftSummaryModelCopyWith<$Res>(_self.summary!, (value) {
+    return _then(_self.copyWith(summary: value));
+  });
+}/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CashRegisterModelCopyWith<$Res>? get register {
+    if (_self.register == null) {
+    return null;
+  }
+
+  return $CashRegisterModelCopyWith<$Res>(_self.register!, (value) {
+    return _then(_self.copyWith(register: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [ShiftDetailState].
+extension ShiftDetailStatePatterns on ShiftDetailState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ShiftDetailState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ShiftDetailState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ShiftDetailState value)  $default,){
+final _that = this;
+switch (_that) {
+case _ShiftDetailState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ShiftDetailState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ShiftDetailState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( RegisterShiftModel? shift,  ShiftSummaryModel? summary,  CashRegisterModel? register,  bool isLoading,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ShiftDetailState() when $default != null:
+return $default(_that.shift,_that.summary,_that.register,_that.isLoading,_that.error);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( RegisterShiftModel? shift,  ShiftSummaryModel? summary,  CashRegisterModel? register,  bool isLoading,  String? error)  $default,) {final _that = this;
+switch (_that) {
+case _ShiftDetailState():
+return $default(_that.shift,_that.summary,_that.register,_that.isLoading,_that.error);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( RegisterShiftModel? shift,  ShiftSummaryModel? summary,  CashRegisterModel? register,  bool isLoading,  String? error)?  $default,) {final _that = this;
+switch (_that) {
+case _ShiftDetailState() when $default != null:
+return $default(_that.shift,_that.summary,_that.register,_that.isLoading,_that.error);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 
-class _$ShiftDetailStateImpl implements _ShiftDetailState {
-  const _$ShiftDetailStateImpl({
-    this.shift,
-    this.summary,
-    this.register,
-    this.isLoading = false,
-    this.error,
-  });
 
-  @override
-  final RegisterShiftModel? shift;
-  @override
-  final ShiftSummaryModel? summary;
-  @override
-  final CashRegisterModel? register;
-  @override
-  @JsonKey()
-  final bool isLoading;
-  @override
-  final String? error;
+class _ShiftDetailState implements ShiftDetailState {
+  const _ShiftDetailState({this.shift, this.summary, this.register, this.isLoading = false, this.error});
+  
 
-  @override
-  String toString() {
+@override final  RegisterShiftModel? shift;
+@override final  ShiftSummaryModel? summary;
+@override final  CashRegisterModel? register;
+@override@JsonKey() final  bool isLoading;
+@override final  String? error;
+
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ShiftDetailStateCopyWith<_ShiftDetailState> get copyWith => __$ShiftDetailStateCopyWithImpl<_ShiftDetailState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShiftDetailState&&(identical(other.shift, shift) || other.shift == shift)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.register, register) || other.register == register)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,shift,summary,register,isLoading,error);
+}
+
+@override
+String toString() {
     return 'ShiftDetailState(shift: $shift, summary: $summary, register: $register, isLoading: $isLoading, error: $error)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ShiftDetailStateImpl &&
-            (identical(other.shift, shift) || other.shift == shift) &&
-            (identical(other.summary, summary) || other.summary == summary) &&
-            (identical(other.register, register) ||
-                other.register == register) &&
-            (identical(other.isLoading, isLoading) ||
-                other.isLoading == isLoading) &&
-            (identical(other.error, error) || other.error == error));
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, shift, summary, register, isLoading, error);
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ShiftDetailStateImplCopyWith<_$ShiftDetailStateImpl> get copyWith =>
-      __$$ShiftDetailStateImplCopyWithImpl<_$ShiftDetailStateImpl>(
-        this,
-        _$identity,
-      );
 }
 
-abstract class _ShiftDetailState implements ShiftDetailState {
-  const factory _ShiftDetailState({
-    final RegisterShiftModel? shift,
-    final ShiftSummaryModel? summary,
-    final CashRegisterModel? register,
-    final bool isLoading,
-    final String? error,
-  }) = _$ShiftDetailStateImpl;
 
-  @override
-  RegisterShiftModel? get shift;
-  @override
-  ShiftSummaryModel? get summary;
-  @override
-  CashRegisterModel? get register;
-  @override
-  bool get isLoading;
-  @override
-  String? get error;
-
-  /// Create a copy of ShiftDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ShiftDetailStateImplCopyWith<_$ShiftDetailStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$ShiftDetailStateCopyWith<$Res> implements $ShiftDetailStateCopyWith<$Res> {
+  factory _$ShiftDetailStateCopyWith(_ShiftDetailState value, $Res Function(_ShiftDetailState) _then) = __$ShiftDetailStateCopyWithImpl;
+@override @useResult
+$Res call({
+ RegisterShiftModel? shift, ShiftSummaryModel? summary, CashRegisterModel? register, bool isLoading, String? error
+});
+
+
+@override $RegisterShiftModelCopyWith<$Res>? get shift;@override $ShiftSummaryModelCopyWith<$Res>? get summary;@override $CashRegisterModelCopyWith<$Res>? get register;
+
+}
+/// @nodoc
+class __$ShiftDetailStateCopyWithImpl<$Res>
+    implements _$ShiftDetailStateCopyWith<$Res> {
+  __$ShiftDetailStateCopyWithImpl(this._self, this._then);
+
+  final _ShiftDetailState _self;
+  final $Res Function(_ShiftDetailState) _then;
+
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? shift = freezed,Object? summary = freezed,Object? register = freezed,Object? isLoading = null,Object? error = freezed,}) {
+  return _then(_ShiftDetailState(
+shift: freezed == shift ? _self.shift : shift // ignore: cast_nullable_to_non_nullable
+as RegisterShiftModel?,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as ShiftSummaryModel?,register: freezed == register ? _self.register : register // ignore: cast_nullable_to_non_nullable
+as CashRegisterModel?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RegisterShiftModelCopyWith<$Res>? get shift {
+    if (_self.shift == null) {
+    return null;
+  }
+
+  return $RegisterShiftModelCopyWith<$Res>(_self.shift!, (value) {
+    return _then(_self.copyWith(shift: value));
+  });
+}/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ShiftSummaryModelCopyWith<$Res>? get summary {
+    if (_self.summary == null) {
+    return null;
+  }
+
+  return $ShiftSummaryModelCopyWith<$Res>(_self.summary!, (value) {
+    return _then(_self.copyWith(summary: value));
+  });
+}/// Create a copy of ShiftDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CashRegisterModelCopyWith<$Res>? get register {
+    if (_self.register == null) {
+    return null;
+  }
+
+  return $CashRegisterModelCopyWith<$Res>(_self.register!, (value) {
+    return _then(_self.copyWith(register: value));
+  });
+}
+}
+
+// dart format on

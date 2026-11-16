@@ -4,7 +4,7 @@ import 'package:frantend/features/accounting/data/models/journal_entry_model.dar
 part 'journal_entry_detail_state.freezed.dart';
 
 @freezed
-class JournalEntryDetailState with _$JournalEntryDetailState {
+abstract class JournalEntryDetailState with _$JournalEntryDetailState {
   const factory JournalEntryDetailState({
     JournalEntryModel? entry,
     @Default(false) bool isLoading,

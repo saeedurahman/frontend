@@ -6,7 +6,7 @@ part 'shift_summary_model.freezed.dart';
 part 'shift_summary_model.g.dart';
 
 @freezed
-class ShiftSummaryModel with _$ShiftSummaryModel {
+abstract class ShiftSummaryModel with _$ShiftSummaryModel {
   const ShiftSummaryModel._();
 
   const factory ShiftSummaryModel({

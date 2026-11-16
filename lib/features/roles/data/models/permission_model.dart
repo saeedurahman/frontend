@@ -4,7 +4,7 @@ part 'permission_model.freezed.dart';
 part 'permission_model.g.dart';
 
 @freezed
-class PermissionModel with _$PermissionModel {
+abstract class PermissionModel with _$PermissionModel {
   const factory PermissionModel({
     @JsonKey(name: 'permission_key') required String permissionKey,
     required String description,
@@ -15,7 +15,7 @@ class PermissionModel with _$PermissionModel {
 }
 
 @freezed
-class PermissionModuleModel with _$PermissionModuleModel {
+abstract class PermissionModuleModel with _$PermissionModuleModel {
   const factory PermissionModuleModel({
     required String module,
     @Default([]) List<PermissionModel> permissions,
@@ -26,7 +26,7 @@ class PermissionModuleModel with _$PermissionModuleModel {
 }
 
 @freezed
-class PermissionsCatalogModel with _$PermissionsCatalogModel {
+abstract class PermissionsCatalogModel with _$PermissionsCatalogModel {
   const factory PermissionsCatalogModel({
     @Default([]) List<PermissionModuleModel> modules,
   }) = _PermissionsCatalogModel;

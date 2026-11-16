@@ -6,14 +6,14 @@ part of 'sale_price_preview_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SalePricePreviewLineModelImpl _$$SalePricePreviewLineModelImplFromJson(
+_SalePricePreviewLineModel _$SalePricePreviewLineModelFromJson(
   Map<String, dynamic> json,
-) => _$SalePricePreviewLineModelImpl(
+) => _SalePricePreviewLineModel(
   productId: json['product_id'] as String,
   variationId: json['variation_id'] as String?,
   qty: json['qty'] as String,
   unitPrice: json['unit_price'] as String,
-  lineOrder: JsonNum.intOrNull(json['line_order']) ?? 0,
+  lineOrder: json['line_order'] == null ? 0 : JsonNum.intOr(json['line_order']),
   lineSubtotal: json['line_subtotal'] as String,
   discountPct: json['discount_pct'] as String? ?? '0',
   discountAmount: json['discount_amount'] as String? ?? '0',
@@ -22,8 +22,8 @@ _$SalePricePreviewLineModelImpl _$$SalePricePreviewLineModelImplFromJson(
   lineTotal: json['line_total'] as String,
 );
 
-Map<String, dynamic> _$$SalePricePreviewLineModelImplToJson(
-  _$SalePricePreviewLineModelImpl instance,
+Map<String, dynamic> _$SalePricePreviewLineModelToJson(
+  _SalePricePreviewLineModel instance,
 ) => <String, dynamic>{
   'product_id': instance.productId,
   'variation_id': instance.variationId,
@@ -38,9 +38,9 @@ Map<String, dynamic> _$$SalePricePreviewLineModelImplToJson(
   'line_total': instance.lineTotal,
 };
 
-_$SalePricePreviewModelImpl _$$SalePricePreviewModelImplFromJson(
+_SalePricePreviewModel _$SalePricePreviewModelFromJson(
   Map<String, dynamic> json,
-) => _$SalePricePreviewModelImpl(
+) => _SalePricePreviewModel(
   discountSchemeId: json['discount_scheme_id'] as String?,
   subtotal: json['subtotal'] as String,
   totalDiscount: json['total_discount'] as String? ?? '0',
@@ -56,8 +56,8 @@ _$SalePricePreviewModelImpl _$$SalePricePreviewModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$SalePricePreviewModelImplToJson(
-  _$SalePricePreviewModelImpl instance,
+Map<String, dynamic> _$SalePricePreviewModelToJson(
+  _SalePricePreviewModel instance,
 ) => <String, dynamic>{
   'discount_scheme_id': instance.discountSchemeId,
   'subtotal': instance.subtotal,

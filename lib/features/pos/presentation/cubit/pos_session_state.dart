@@ -1,7 +1,7 @@
 part of 'pos_state.dart';
 
 @freezed
-class PosSessionState with _$PosSessionState {
+abstract class PosSessionState with _$PosSessionState {
   const factory PosSessionState({
     @Default(false) bool accessDenied,
     @Default(false) bool canOpenShift,

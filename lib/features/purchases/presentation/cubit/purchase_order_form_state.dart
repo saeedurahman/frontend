@@ -6,7 +6,7 @@ import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 part 'purchase_order_form_state.freezed.dart';
 
 @freezed
-class PurchaseLineFormItem with _$PurchaseLineFormItem {
+abstract class PurchaseLineFormItem with _$PurchaseLineFormItem {
   const PurchaseLineFormItem._();
 
   const factory PurchaseLineFormItem({
@@ -29,7 +29,7 @@ class PurchaseLineFormItem with _$PurchaseLineFormItem {
 }
 
 @freezed
-class PurchaseOrderFormState with _$PurchaseOrderFormState {
+abstract class PurchaseOrderFormState with _$PurchaseOrderFormState {
   const PurchaseOrderFormState._();
 
   const factory PurchaseOrderFormState({

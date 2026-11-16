@@ -5,7 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'held_order_model.freezed.dart';
 
 @freezed
-class HeldOrderModel with _$HeldOrderModel {
+abstract class HeldOrderModel with _$HeldOrderModel {
   const factory HeldOrderModel({
     required String id,
     required String label,

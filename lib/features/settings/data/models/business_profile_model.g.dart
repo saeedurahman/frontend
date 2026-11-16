@@ -6,29 +6,27 @@ part of 'business_profile_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$BusinessTypeModelImpl _$$BusinessTypeModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$BusinessTypeModelImpl(
-  id: json['id'] as String,
-  code: json['code'] as String,
-  name: json['name'] as String,
-  description: json['description'] as String?,
-  isActive: json['is_active'] as bool? ?? true,
-);
+_BusinessTypeModel _$BusinessTypeModelFromJson(Map<String, dynamic> json) =>
+    _BusinessTypeModel(
+      id: json['id'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
+    );
 
-Map<String, dynamic> _$$BusinessTypeModelImplToJson(
-  _$BusinessTypeModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'code': instance.code,
-  'name': instance.name,
-  'description': instance.description,
-  'is_active': instance.isActive,
-};
+Map<String, dynamic> _$BusinessTypeModelToJson(_BusinessTypeModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'code': instance.code,
+      'name': instance.name,
+      'description': instance.description,
+      'is_active': instance.isActive,
+    };
 
-_$BusinessProfileModelImpl _$$BusinessProfileModelImplFromJson(
+_BusinessProfileModel _$BusinessProfileModelFromJson(
   Map<String, dynamic> json,
-) => _$BusinessProfileModelImpl(
+) => _BusinessProfileModel(
   id: json['id'] as String,
   name: json['name'] as String,
   legalName: json['legal_name'] as String?,
@@ -58,8 +56,8 @@ _$BusinessProfileModelImpl _$$BusinessProfileModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$BusinessProfileModelImplToJson(
-  _$BusinessProfileModelImpl instance,
+Map<String, dynamic> _$BusinessProfileModelToJson(
+  _BusinessProfileModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,

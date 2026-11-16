@@ -6,9 +6,9 @@ part of 'sale_return_payment_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SaleReturnPaymentModelImpl _$$SaleReturnPaymentModelImplFromJson(
+_SaleReturnPaymentModel _$SaleReturnPaymentModelFromJson(
   Map<String, dynamic> json,
-) => _$SaleReturnPaymentModelImpl(
+) => _SaleReturnPaymentModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   saleReturnId: json['sale_return_id'] as String,
@@ -19,8 +19,8 @@ _$SaleReturnPaymentModelImpl _$$SaleReturnPaymentModelImplFromJson(
   createdAt: json['created_at'] as String?,
 );
 
-Map<String, dynamic> _$$SaleReturnPaymentModelImplToJson(
-  _$SaleReturnPaymentModelImpl instance,
+Map<String, dynamic> _$SaleReturnPaymentModelToJson(
+  _SaleReturnPaymentModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

@@ -19,7 +19,7 @@ class CustomerPickerCubit extends Cubit<CustomerPickerState> {
   CustomerPickerCubit({
     required customers_uc.GetCustomersUseCase getCustomersUseCase,
     required customers_uc.CreateCustomerUseCase createCustomerUseCase,
-    Future<Set<String>> Function()? unsyncedCustomerIds,
+    @ignoreParam Future<Set<String>> Function()? unsyncedCustomerIds,
   })  : _getCustomers = getCustomersUseCase,
         _createCustomer = createCustomerUseCase,
         _unsyncedCustomerIds = unsyncedCustomerIds,

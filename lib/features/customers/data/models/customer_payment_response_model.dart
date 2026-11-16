@@ -5,7 +5,7 @@ part 'customer_payment_response_model.freezed.dart';
 part 'customer_payment_response_model.g.dart';
 
 @freezed
-class CustomerPaymentResponseModel with _$CustomerPaymentResponseModel {
+abstract class CustomerPaymentResponseModel with _$CustomerPaymentResponseModel {
   const factory CustomerPaymentResponseModel({
     @JsonKey(name: 'ledger_entry_id') required String ledgerEntryId,
     @JsonKey(name: 'customer_id') required String customerId,

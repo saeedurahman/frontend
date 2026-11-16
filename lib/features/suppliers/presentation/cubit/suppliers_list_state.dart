@@ -4,7 +4,7 @@ import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 part 'suppliers_list_state.freezed.dart';
 
 @freezed
-class SupplierListRow with _$SupplierListRow {
+abstract class SupplierListRow with _$SupplierListRow {
   const factory SupplierListRow({
     required SupplierModel supplier,
     String? balance,

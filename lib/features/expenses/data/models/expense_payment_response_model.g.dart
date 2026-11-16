@@ -6,9 +6,9 @@ part of 'expense_payment_response_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExpensePaymentResponseModelImpl _$$ExpensePaymentResponseModelImplFromJson(
+_ExpensePaymentResponseModel _$ExpensePaymentResponseModelFromJson(
   Map<String, dynamic> json,
-) => _$ExpensePaymentResponseModelImpl(
+) => _ExpensePaymentResponseModel(
   id: json['id'] as String,
   expenseId: json['expense_id'] as String,
   amount: json['amount'] as String,
@@ -19,8 +19,8 @@ _$ExpensePaymentResponseModelImpl _$$ExpensePaymentResponseModelImplFromJson(
   remainingBalance: json['remaining_balance'] as String,
 );
 
-Map<String, dynamic> _$$ExpensePaymentResponseModelImplToJson(
-  _$ExpensePaymentResponseModelImpl instance,
+Map<String, dynamic> _$ExpensePaymentResponseModelToJson(
+  _ExpensePaymentResponseModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'expense_id': instance.expenseId,

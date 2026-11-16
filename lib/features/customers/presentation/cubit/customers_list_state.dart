@@ -6,7 +6,7 @@ part 'customers_list_state.freezed.dart';
 enum CustomerActiveFilter { all, active, inactive }
 
 @freezed
-class CustomerListRow with _$CustomerListRow {
+abstract class CustomerListRow with _$CustomerListRow {
   const factory CustomerListRow({
     required CustomerModel customer,
     String? balance,

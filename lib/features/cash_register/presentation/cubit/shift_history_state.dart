@@ -7,7 +7,7 @@ part 'shift_history_state.freezed.dart';
 enum ShiftDatePreset { today, last7Days, last30Days, all }
 
 @freezed
-class ShiftHistoryState with _$ShiftHistoryState {
+abstract class ShiftHistoryState with _$ShiftHistoryState {
   const factory ShiftHistoryState({
     @Default([]) List<RegisterShiftModel> shifts,
     @Default([]) List<CashRegisterModel> registers,

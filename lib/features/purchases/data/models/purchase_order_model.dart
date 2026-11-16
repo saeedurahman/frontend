@@ -5,7 +5,7 @@ part 'purchase_order_model.freezed.dart';
 part 'purchase_order_model.g.dart';
 
 @freezed
-class PurchaseLineModel with _$PurchaseLineModel {
+abstract class PurchaseLineModel with _$PurchaseLineModel {
   const PurchaseLineModel._();
 
   const factory PurchaseLineModel({
@@ -45,7 +45,7 @@ class PurchaseLineModel with _$PurchaseLineModel {
 }
 
 @freezed
-class PurchaseOrderModel with _$PurchaseOrderModel {
+abstract class PurchaseOrderModel with _$PurchaseOrderModel {
   const PurchaseOrderModel._();
 
   const factory PurchaseOrderModel({
@@ -80,7 +80,7 @@ class PurchaseOrderModel with _$PurchaseOrderModel {
 }
 
 @freezed
-class PurchaseReceiptLineModel with _$PurchaseReceiptLineModel {
+abstract class PurchaseReceiptLineModel with _$PurchaseReceiptLineModel {
   const factory PurchaseReceiptLineModel({
     required String id,
     @JsonKey(name: 'purchase_receipt_id') required String purchaseReceiptId,
@@ -98,7 +98,7 @@ class PurchaseReceiptLineModel with _$PurchaseReceiptLineModel {
 }
 
 @freezed
-class PurchaseReceiptModel with _$PurchaseReceiptModel {
+abstract class PurchaseReceiptModel with _$PurchaseReceiptModel {
   const factory PurchaseReceiptModel({
     required String id,
     @JsonKey(name: 'branch_id') required String branchId,

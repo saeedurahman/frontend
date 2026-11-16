@@ -5,7 +5,7 @@ import 'package:frantend/features/accounting/domain/utils/journal_balance.dart';
 part 'journal_entry_form_state.freezed.dart';
 
 @freezed
-class JournalEntryFormState with _$JournalEntryFormState {
+abstract class JournalEntryFormState with _$JournalEntryFormState {
   const JournalEntryFormState._();
 
   const factory JournalEntryFormState({

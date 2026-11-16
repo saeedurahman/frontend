@@ -6,9 +6,9 @@ part of 'paginated_notifications_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PaginatedNotificationsModelImpl _$$PaginatedNotificationsModelImplFromJson(
+_PaginatedNotificationsModel _$PaginatedNotificationsModelFromJson(
   Map<String, dynamic> json,
-) => _$PaginatedNotificationsModelImpl(
+) => _PaginatedNotificationsModel(
   total: JsonNum.intOr(json['total']),
   unreadCount: JsonNum.intOr(json['unread_count']),
   skip: JsonNum.intOr(json['skip']),
@@ -20,8 +20,8 @@ _$PaginatedNotificationsModelImpl _$$PaginatedNotificationsModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$PaginatedNotificationsModelImplToJson(
-  _$PaginatedNotificationsModelImpl instance,
+Map<String, dynamic> _$PaginatedNotificationsModelToJson(
+  _PaginatedNotificationsModel instance,
 ) => <String, dynamic>{
   'total': instance.total,
   'unread_count': instance.unreadCount,

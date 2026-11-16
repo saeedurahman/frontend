@@ -5,7 +5,7 @@ part 'supplier_model.freezed.dart';
 part 'supplier_model.g.dart';
 
 @freezed
-class SupplierModel with _$SupplierModel {
+abstract class SupplierModel with _$SupplierModel {
   const factory SupplierModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -16,7 +16,7 @@ class SupplierModel with _$SupplierModel {
     @JsonKey(name: 'tax_id') String? taxId,
     @JsonKey(name: 'address_line1') String? addressLine1,
     String? city,
-    @JsonKey(name: 'payment_terms_days') @Default(30) int paymentTermsDays,
+    @JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) @Default(30) int paymentTermsDays,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
@@ -27,7 +27,7 @@ class SupplierModel with _$SupplierModel {
 }
 
 @freezed
-class SupplierBalanceModel with _$SupplierBalanceModel {
+abstract class SupplierBalanceModel with _$SupplierBalanceModel {
   const factory SupplierBalanceModel({
     @JsonKey(name: 'supplier_id') required String supplierId,
     required String balance,

@@ -6,9 +6,9 @@ part of 'expense_category_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExpenseCategoryModelImpl _$$ExpenseCategoryModelImplFromJson(
+_ExpenseCategoryModel _$ExpenseCategoryModelFromJson(
   Map<String, dynamic> json,
-) => _$ExpenseCategoryModelImpl(
+) => _ExpenseCategoryModel(
   id: json['id'] as String,
   name: json['name'] as String,
   parentId: json['parent_id'] as String?,
@@ -20,8 +20,8 @@ _$ExpenseCategoryModelImpl _$$ExpenseCategoryModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$ExpenseCategoryModelImplToJson(
-  _$ExpenseCategoryModelImpl instance,
+Map<String, dynamic> _$ExpenseCategoryModelToJson(
+  _ExpenseCategoryModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,

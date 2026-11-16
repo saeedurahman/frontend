@@ -4,7 +4,7 @@ part 'journal_entry_list_model.freezed.dart';
 part 'journal_entry_list_model.g.dart';
 
 @freezed
-class JournalEntryListModel with _$JournalEntryListModel {
+abstract class JournalEntryListModel with _$JournalEntryListModel {
   const factory JournalEntryListModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

@@ -4,7 +4,7 @@ part 'brand_model.freezed.dart';
 part 'brand_model.g.dart';
 
 @freezed
-class BrandModel with _$BrandModel {
+abstract class BrandModel with _$BrandModel {
   const factory BrandModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

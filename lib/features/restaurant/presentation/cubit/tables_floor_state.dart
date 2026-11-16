@@ -6,7 +6,7 @@ part 'tables_floor_state.freezed.dart';
 enum TablesFloorStatus { initial, loading, loaded, error }
 
 @freezed
-class TablesFloorState with _$TablesFloorState {
+abstract class TablesFloorState with _$TablesFloorState {
   const TablesFloorState._();
 
   const factory TablesFloorState({

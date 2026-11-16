@@ -1771,7 +1771,19 @@ class $$MasterDataCacheTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<
+                    $MasterDataCacheTableTable,
+                    MasterDataCacheTableData
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $MasterDataCacheTableTable,
+                    MasterDataCacheTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2088,7 +2100,18 @@ class $$HeldOrdersTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$HeldOrdersTableTable, HeldOrdersTableData>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $HeldOrdersTableTable,
+                    HeldOrdersTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2412,7 +2435,16 @@ class $$UsersTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$UsersTableTable, UsersTableData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $UsersTableTable,
+                    UsersTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

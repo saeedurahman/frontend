@@ -6,7 +6,7 @@ import 'package:frantend/features/cash_register/data/models/shift_summary_model.
 part 'shift_detail_state.freezed.dart';
 
 @freezed
-class ShiftDetailState with _$ShiftDetailState {
+abstract class ShiftDetailState with _$ShiftDetailState {
   const factory ShiftDetailState({
     RegisterShiftModel? shift,
     ShiftSummaryModel? summary,

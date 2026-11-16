@@ -6,20 +6,22 @@ part of 'modifier_group_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ModifierModelImpl _$$ModifierModelImplFromJson(Map<String, dynamic> json) =>
-    _$ModifierModelImpl(
+_ModifierModel _$ModifierModelFromJson(Map<String, dynamic> json) =>
+    _ModifierModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       modifierGroupId: json['modifier_group_id'] as String,
       name: json['name'] as String,
       priceDelta: json['price_delta'] as String? ?? '0',
       isActive: json['is_active'] as bool? ?? true,
-      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
+      sortOrder: json['sort_order'] == null
+          ? 0
+          : JsonNum.intOr(json['sort_order']),
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
     );
 
-Map<String, dynamic> _$$ModifierModelImplToJson(_$ModifierModelImpl instance) =>
+Map<String, dynamic> _$ModifierModelToJson(_ModifierModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,
@@ -32,38 +34,40 @@ Map<String, dynamic> _$$ModifierModelImplToJson(_$ModifierModelImpl instance) =>
       'updated_at': instance.updatedAt,
     };
 
-_$ModifierGroupModelImpl _$$ModifierGroupModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ModifierGroupModelImpl(
-  id: json['id'] as String,
-  businessId: json['business_id'] as String,
-  name: json['name'] as String,
-  selectionType: json['selection_type'] as String,
-  minSelections: JsonNum.intOrNull(json['min_selections']) ?? 0,
-  maxSelections: JsonNum.intOrNull(json['max_selections']),
-  isRequired: json['is_required'] as bool? ?? false,
-  sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
-  isActive: json['is_active'] as bool? ?? true,
-  modifiers: json['modifiers'] == null
-      ? const []
-      : _modifierListFromJson(json['modifiers']),
-  createdAt: json['created_at'] as String?,
-  updatedAt: json['updated_at'] as String?,
-);
+_ModifierGroupModel _$ModifierGroupModelFromJson(Map<String, dynamic> json) =>
+    _ModifierGroupModel(
+      id: json['id'] as String,
+      businessId: json['business_id'] as String,
+      name: json['name'] as String,
+      selectionType: json['selection_type'] as String,
+      minSelections: json['min_selections'] == null
+          ? 0
+          : JsonNum.intOr(json['min_selections']),
+      maxSelections: JsonNum.intOrNull(json['max_selections']),
+      isRequired: json['is_required'] as bool? ?? false,
+      sortOrder: json['sort_order'] == null
+          ? 0
+          : JsonNum.intOr(json['sort_order']),
+      isActive: json['is_active'] as bool? ?? true,
+      modifiers: json['modifiers'] == null
+          ? const []
+          : _modifierListFromJson(json['modifiers']),
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+    );
 
-Map<String, dynamic> _$$ModifierGroupModelImplToJson(
-  _$ModifierGroupModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'business_id': instance.businessId,
-  'name': instance.name,
-  'selection_type': instance.selectionType,
-  'min_selections': instance.minSelections,
-  'max_selections': instance.maxSelections,
-  'is_required': instance.isRequired,
-  'sort_order': instance.sortOrder,
-  'is_active': instance.isActive,
-  'modifiers': instance.modifiers,
-  'created_at': instance.createdAt,
-  'updated_at': instance.updatedAt,
-};
+Map<String, dynamic> _$ModifierGroupModelToJson(_ModifierGroupModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'business_id': instance.businessId,
+      'name': instance.name,
+      'selection_type': instance.selectionType,
+      'min_selections': instance.minSelections,
+      'max_selections': instance.maxSelections,
+      'is_required': instance.isRequired,
+      'sort_order': instance.sortOrder,
+      'is_active': instance.isActive,
+      'modifiers': instance.modifiers,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+    };

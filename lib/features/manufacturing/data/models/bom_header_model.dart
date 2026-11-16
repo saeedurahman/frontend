@@ -6,7 +6,7 @@ part 'bom_header_model.freezed.dart';
 part 'bom_header_model.g.dart';
 
 @freezed
-class BomHeaderModel with _$BomHeaderModel {
+abstract class BomHeaderModel with _$BomHeaderModel {
   const factory BomHeaderModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -16,7 +16,7 @@ class BomHeaderModel with _$BomHeaderModel {
     required String name,
     @JsonKey(name: 'output_qty') required String outputQty,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
-    @Default(1) int version,
+    @Default(1) @JsonKey(fromJson: JsonNum.intOr) int version,
     @JsonKey(name: 'created_at') required String createdAt,
     @JsonKey(name: 'updated_at') required String updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,

@@ -6,7 +6,7 @@ part 'sale_list_item_model.freezed.dart';
 part 'sale_list_item_model.g.dart';
 
 @freezed
-class SaleListItemModel with _$SaleListItemModel {
+abstract class SaleListItemModel with _$SaleListItemModel {
   const factory SaleListItemModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -21,7 +21,7 @@ class SaleListItemModel with _$SaleListItemModel {
     @JsonKey(name: 'balance_due') String? balanceDue,
     @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'cashier_name') String? cashierName,
-    @JsonKey(name: 'item_count') int? itemCount,
+    @JsonKey(name: 'item_count', fromJson: JsonNum.intOrNull) int? itemCount,
     @JsonKey(name: 'product_names') @Default([]) List<String> productNames,
     @JsonKey(name: 'payment_methods') @Default([]) List<String> paymentMethods,
   }) = _SaleListItemModel;

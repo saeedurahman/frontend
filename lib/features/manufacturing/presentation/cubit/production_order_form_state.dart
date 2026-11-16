@@ -6,7 +6,7 @@ import 'package:frantend/features/manufacturing/domain/utils/production_availabi
 part 'production_order_form_state.freezed.dart';
 
 @freezed
-class ProductionOrderFormState with _$ProductionOrderFormState {
+abstract class ProductionOrderFormState with _$ProductionOrderFormState {
   const factory ProductionOrderFormState({
     String? branchId,
     String? bomHeaderId,

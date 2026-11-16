@@ -6,17 +6,16 @@ part of 'unit_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$UnitModelImpl _$$UnitModelImplFromJson(Map<String, dynamic> json) =>
-    _$UnitModelImpl(
-      id: json['id'] as String,
-      businessId: json['business_id'] as String,
-      name: json['name'] as String,
-      symbol: json['symbol'] as String,
-      isBaseUnit: json['is_base_unit'] as bool? ?? false,
-      isActive: json['is_active'] as bool? ?? true,
-    );
+_UnitModel _$UnitModelFromJson(Map<String, dynamic> json) => _UnitModel(
+  id: json['id'] as String,
+  businessId: json['business_id'] as String,
+  name: json['name'] as String,
+  symbol: json['symbol'] as String,
+  isBaseUnit: json['is_base_unit'] as bool? ?? false,
+  isActive: json['is_active'] as bool? ?? true,
+);
 
-Map<String, dynamic> _$$UnitModelImplToJson(_$UnitModelImpl instance) =>
+Map<String, dynamic> _$UnitModelToJson(_UnitModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,
@@ -26,17 +25,16 @@ Map<String, dynamic> _$$UnitModelImplToJson(_$UnitModelImpl instance) =>
       'is_active': instance.isActive,
     };
 
-_$UnitConversionModelImpl _$$UnitConversionModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$UnitConversionModelImpl(
-  id: json['id'] as String,
-  fromUnitId: json['from_unit_id'] as String,
-  toUnitId: json['to_unit_id'] as String,
-  conversionFactor: json['conversion_factor'] as String,
-);
+_UnitConversionModel _$UnitConversionModelFromJson(Map<String, dynamic> json) =>
+    _UnitConversionModel(
+      id: json['id'] as String,
+      fromUnitId: json['from_unit_id'] as String,
+      toUnitId: json['to_unit_id'] as String,
+      conversionFactor: json['conversion_factor'] as String,
+    );
 
-Map<String, dynamic> _$$UnitConversionModelImplToJson(
-  _$UnitConversionModelImpl instance,
+Map<String, dynamic> _$UnitConversionModelToJson(
+  _UnitConversionModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'from_unit_id': instance.fromUnitId,

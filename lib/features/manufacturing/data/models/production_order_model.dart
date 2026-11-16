@@ -5,7 +5,7 @@ part 'production_order_model.freezed.dart';
 part 'production_order_model.g.dart';
 
 @freezed
-class ProductionOrderBomSummaryModel with _$ProductionOrderBomSummaryModel {
+abstract class ProductionOrderBomSummaryModel with _$ProductionOrderBomSummaryModel {
   const factory ProductionOrderBomSummaryModel({
     required String id,
     required String name,
@@ -13,7 +13,7 @@ class ProductionOrderBomSummaryModel with _$ProductionOrderBomSummaryModel {
     @JsonKey(name: 'product_name') required String productName,
     @JsonKey(name: 'variation_id') String? variationId,
     @JsonKey(name: 'output_qty') required String outputQty,
-    @Default(1) int version,
+    @Default(1) @JsonKey(fromJson: JsonNum.intOr) int version,
   }) = _ProductionOrderBomSummaryModel;
 
   factory ProductionOrderBomSummaryModel.fromJson(Map<String, dynamic> json) =>
@@ -21,7 +21,7 @@ class ProductionOrderBomSummaryModel with _$ProductionOrderBomSummaryModel {
 }
 
 @freezed
-class ProductionLineModel with _$ProductionLineModel {
+abstract class ProductionLineModel with _$ProductionLineModel {
   const factory ProductionLineModel({
     required String id,
     @JsonKey(name: 'product_id') required String productId,
@@ -36,7 +36,7 @@ class ProductionLineModel with _$ProductionLineModel {
 }
 
 @freezed
-class ProductionOrderModel with _$ProductionOrderModel {
+abstract class ProductionOrderModel with _$ProductionOrderModel {
   const factory ProductionOrderModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

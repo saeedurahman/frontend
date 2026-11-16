@@ -5,7 +5,7 @@ part 'stock_model.freezed.dart';
 part 'stock_model.g.dart';
 
 @freezed
-class StockBalanceModel with _$StockBalanceModel {
+abstract class StockBalanceModel with _$StockBalanceModel {
   const factory StockBalanceModel({
     @JsonKey(name: 'product_id') required String productId,
     @JsonKey(name: 'variation_id') String? variationId,
@@ -19,7 +19,7 @@ class StockBalanceModel with _$StockBalanceModel {
 }
 
 @freezed
-class StockMovementModel with _$StockMovementModel {
+abstract class StockMovementModel with _$StockMovementModel {
   const factory StockMovementModel({
     required String id,
     @JsonKey(name: 'branch_id') required String branchId,
@@ -42,11 +42,11 @@ class StockMovementModel with _$StockMovementModel {
 }
 
 @freezed
-class PaginatedStockMovementsModel with _$PaginatedStockMovementsModel {
+abstract class PaginatedStockMovementsModel with _$PaginatedStockMovementsModel {
   const factory PaginatedStockMovementsModel({
-    required int total,
-    required int skip,
-    required int limit,
+    @JsonKey(fromJson: JsonNum.intOr) required int total,
+    @JsonKey(fromJson: JsonNum.intOr) required int skip,
+    @JsonKey(fromJson: JsonNum.intOr) required int limit,
     required List<StockMovementModel> items,
   }) = _PaginatedStockMovementsModel;
 
@@ -55,7 +55,7 @@ class PaginatedStockMovementsModel with _$PaginatedStockMovementsModel {
 }
 
 @freezed
-class StockAdjustmentLineModel with _$StockAdjustmentLineModel {
+abstract class StockAdjustmentLineModel with _$StockAdjustmentLineModel {
   const factory StockAdjustmentLineModel({
     required String id,
     @JsonKey(name: 'product_id') required String productId,
@@ -70,7 +70,7 @@ class StockAdjustmentLineModel with _$StockAdjustmentLineModel {
 }
 
 @freezed
-class StockAdjustmentModel with _$StockAdjustmentModel {
+abstract class StockAdjustmentModel with _$StockAdjustmentModel {
   const factory StockAdjustmentModel({
     required String id,
     @JsonKey(name: 'branch_id') required String branchId,

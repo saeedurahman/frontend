@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'products_list_state.dart';
@@ -9,955 +9,401 @@ part of 'products_list_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$ProductsListState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ProductsListInitial value) initial,
-    required TResult Function(ProductsListLoading value) loading,
-    required TResult Function(ProductsListLoaded value) loaded,
-    required TResult Function(ProductsListError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ProductsListInitial value)? initial,
-    TResult? Function(ProductsListLoading value)? loading,
-    TResult? Function(ProductsListLoaded value)? loaded,
-    TResult? Function(ProductsListError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ProductsListInitial value)? initial,
-    TResult Function(ProductsListLoading value)? loading,
-    TResult Function(ProductsListLoaded value)? loaded,
-    TResult Function(ProductsListError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductsListState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'ProductsListState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ProductsListStateCopyWith<$Res> {
-  factory $ProductsListStateCopyWith(
-    ProductsListState value,
-    $Res Function(ProductsListState) then,
-  ) = _$ProductsListStateCopyWithImpl<$Res, ProductsListState>;
+class $ProductsListStateCopyWith<$Res>  {
+$ProductsListStateCopyWith(ProductsListState _, $Res Function(ProductsListState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [ProductsListState].
+extension ProductsListStatePatterns on ProductsListState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ProductsListInitial value)?  initial,TResult Function( ProductsListLoading value)?  loading,TResult Function( ProductsListLoaded value)?  loaded,TResult Function( ProductsListError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case ProductsListInitial() when initial != null:
+return initial(_that);case ProductsListLoading() when loading != null:
+return loading(_that);case ProductsListLoaded() when loaded != null:
+return loaded(_that);case ProductsListError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ProductsListInitial value)  initial,required TResult Function( ProductsListLoading value)  loading,required TResult Function( ProductsListLoaded value)  loaded,required TResult Function( ProductsListError value)  error,}){
+final _that = this;
+switch (_that) {
+case ProductsListInitial():
+return initial(_that);case ProductsListLoading():
+return loading(_that);case ProductsListLoaded():
+return loaded(_that);case ProductsListError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ProductsListInitial value)?  initial,TResult? Function( ProductsListLoading value)?  loading,TResult? Function( ProductsListLoaded value)?  loaded,TResult? Function( ProductsListError value)?  error,}){
+final _that = this;
+switch (_that) {
+case ProductsListInitial() when initial != null:
+return initial(_that);case ProductsListLoading() when loading != null:
+return loading(_that);case ProductsListLoaded() when loaded != null:
+return loaded(_that);case ProductsListError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<ProductListItemModel> items,  int total,  int skip,  int limit,  String? currentSearch,  String? currentCategoryId,  String? currentBrandId,  bool? currentIsActive,  bool isLoadingMore)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case ProductsListInitial() when initial != null:
+return initial();case ProductsListLoading() when loading != null:
+return loading();case ProductsListLoaded() when loaded != null:
+return loaded(_that.items,_that.total,_that.skip,_that.limit,_that.currentSearch,_that.currentCategoryId,_that.currentBrandId,_that.currentIsActive,_that.isLoadingMore);case ProductsListError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<ProductListItemModel> items,  int total,  int skip,  int limit,  String? currentSearch,  String? currentCategoryId,  String? currentBrandId,  bool? currentIsActive,  bool isLoadingMore)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case ProductsListInitial():
+return initial();case ProductsListLoading():
+return loading();case ProductsListLoaded():
+return loaded(_that.items,_that.total,_that.skip,_that.limit,_that.currentSearch,_that.currentCategoryId,_that.currentBrandId,_that.currentIsActive,_that.isLoadingMore);case ProductsListError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<ProductListItemModel> items,  int total,  int skip,  int limit,  String? currentSearch,  String? currentCategoryId,  String? currentBrandId,  bool? currentIsActive,  bool isLoadingMore)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case ProductsListInitial() when initial != null:
+return initial();case ProductsListLoading() when loading != null:
+return loading();case ProductsListLoaded() when loaded != null:
+return loaded(_that.items,_that.total,_that.skip,_that.limit,_that.currentSearch,_that.currentCategoryId,_that.currentBrandId,_that.currentIsActive,_that.isLoadingMore);case ProductsListError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$ProductsListStateCopyWithImpl<$Res, $Val extends ProductsListState>
-    implements $ProductsListStateCopyWith<$Res> {
-  _$ProductsListStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
+class ProductsListInitial implements ProductsListState {
+  const ProductsListInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductsListInitial);
 }
 
-/// @nodoc
-abstract class _$$ProductsListInitialImplCopyWith<$Res> {
-  factory _$$ProductsListInitialImplCopyWith(
-    _$ProductsListInitialImpl value,
-    $Res Function(_$ProductsListInitialImpl) then,
-  ) = __$$ProductsListInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$ProductsListInitialImplCopyWithImpl<$Res>
-    extends _$ProductsListStateCopyWithImpl<$Res, _$ProductsListInitialImpl>
-    implements _$$ProductsListInitialImplCopyWith<$Res> {
-  __$$ProductsListInitialImplCopyWithImpl(
-    _$ProductsListInitialImpl _value,
-    $Res Function(_$ProductsListInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$ProductsListInitialImpl implements ProductsListInitial {
-  const _$ProductsListInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'ProductsListState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ProductsListInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ProductsListInitial value) initial,
-    required TResult Function(ProductsListLoading value) loading,
-    required TResult Function(ProductsListLoaded value) loaded,
-    required TResult Function(ProductsListError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ProductsListInitial value)? initial,
-    TResult? Function(ProductsListLoading value)? loading,
-    TResult? Function(ProductsListLoaded value)? loaded,
-    TResult? Function(ProductsListError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ProductsListInitial value)? initial,
-    TResult Function(ProductsListLoading value)? loading,
-    TResult Function(ProductsListLoaded value)? loaded,
-    TResult Function(ProductsListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ProductsListInitial implements ProductsListState {
-  const factory ProductsListInitial() = _$ProductsListInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$ProductsListLoadingImplCopyWith<$Res> {
-  factory _$$ProductsListLoadingImplCopyWith(
-    _$ProductsListLoadingImpl value,
-    $Res Function(_$ProductsListLoadingImpl) then,
-  ) = __$$ProductsListLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$ProductsListLoadingImplCopyWithImpl<$Res>
-    extends _$ProductsListStateCopyWithImpl<$Res, _$ProductsListLoadingImpl>
-    implements _$$ProductsListLoadingImplCopyWith<$Res> {
-  __$$ProductsListLoadingImplCopyWithImpl(
-    _$ProductsListLoadingImpl _value,
-    $Res Function(_$ProductsListLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$ProductsListLoadingImpl implements ProductsListLoading {
-  const _$ProductsListLoadingImpl();
 
-  @override
-  String toString() {
+class ProductsListLoading implements ProductsListState {
+  const ProductsListLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductsListLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'ProductsListState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ProductsListLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ProductsListInitial value) initial,
-    required TResult Function(ProductsListLoading value) loading,
-    required TResult Function(ProductsListLoaded value) loaded,
-    required TResult Function(ProductsListError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ProductsListInitial value)? initial,
-    TResult? Function(ProductsListLoading value)? loading,
-    TResult? Function(ProductsListLoaded value)? loaded,
-    TResult? Function(ProductsListError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ProductsListInitial value)? initial,
-    TResult Function(ProductsListLoading value)? loading,
-    TResult Function(ProductsListLoaded value)? loaded,
-    TResult Function(ProductsListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ProductsListLoading implements ProductsListState {
-  const factory ProductsListLoading() = _$ProductsListLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$ProductsListLoadedImplCopyWith<$Res> {
-  factory _$$ProductsListLoadedImplCopyWith(
-    _$ProductsListLoadedImpl value,
-    $Res Function(_$ProductsListLoadedImpl) then,
-  ) = __$$ProductsListLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({
-    List<ProductListItemModel> items,
-    int total,
-    int skip,
-    int limit,
-    String? currentSearch,
-    String? currentCategoryId,
-    String? currentBrandId,
-    bool? currentIsActive,
-    bool isLoadingMore,
-  });
-}
 
-/// @nodoc
-class __$$ProductsListLoadedImplCopyWithImpl<$Res>
-    extends _$ProductsListStateCopyWithImpl<$Res, _$ProductsListLoadedImpl>
-    implements _$$ProductsListLoadedImplCopyWith<$Res> {
-  __$$ProductsListLoadedImplCopyWithImpl(
-    _$ProductsListLoadedImpl _value,
-    $Res Function(_$ProductsListLoadedImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? items = null,
-    Object? total = null,
-    Object? skip = null,
-    Object? limit = null,
-    Object? currentSearch = freezed,
-    Object? currentCategoryId = freezed,
-    Object? currentBrandId = freezed,
-    Object? currentIsActive = freezed,
-    Object? isLoadingMore = null,
-  }) {
-    return _then(
-      _$ProductsListLoadedImpl(
-        items: null == items
-            ? _value._items
-            : items // ignore: cast_nullable_to_non_nullable
-                  as List<ProductListItemModel>,
-        total: null == total
-            ? _value.total
-            : total // ignore: cast_nullable_to_non_nullable
-                  as int,
-        skip: null == skip
-            ? _value.skip
-            : skip // ignore: cast_nullable_to_non_nullable
-                  as int,
-        limit: null == limit
-            ? _value.limit
-            : limit // ignore: cast_nullable_to_non_nullable
-                  as int,
-        currentSearch: freezed == currentSearch
-            ? _value.currentSearch
-            : currentSearch // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        currentCategoryId: freezed == currentCategoryId
-            ? _value.currentCategoryId
-            : currentCategoryId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        currentBrandId: freezed == currentBrandId
-            ? _value.currentBrandId
-            : currentBrandId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        currentIsActive: freezed == currentIsActive
-            ? _value.currentIsActive
-            : currentIsActive // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        isLoadingMore: null == isLoadingMore
-            ? _value.isLoadingMore
-            : isLoadingMore // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$ProductsListLoadedImpl implements ProductsListLoaded {
-  const _$ProductsListLoadedImpl({
-    required final List<ProductListItemModel> items,
-    required this.total,
-    required this.skip,
-    required this.limit,
-    this.currentSearch,
-    this.currentCategoryId,
-    this.currentBrandId,
-    this.currentIsActive,
-    this.isLoadingMore = false,
-  }) : _items = items;
 
-  final List<ProductListItemModel> _items;
-  @override
-  List<ProductListItemModel> get items {
-    if (_items is EqualUnmodifiableListView) return _items;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_items);
-  }
+class ProductsListLoaded implements ProductsListState {
+  const ProductsListLoaded({required  List<ProductListItemModel> items, required this.total, required this.skip, required this.limit, this.currentSearch, this.currentCategoryId, this.currentBrandId, this.currentIsActive, this.isLoadingMore = false}): _items = items;
+  
 
-  @override
-  final int total;
-  @override
-  final int skip;
-  @override
-  final int limit;
-  @override
-  final String? currentSearch;
-  @override
-  final String? currentCategoryId;
-  @override
-  final String? currentBrandId;
-  @override
-  final bool? currentIsActive;
-  @override
-  @JsonKey()
-  final bool isLoadingMore;
+ final  List<ProductListItemModel> _items;
+ List<ProductListItemModel> get items {
+  if (_items is EqualUnmodifiableListView) return _items;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_items);
+}
 
-  @override
-  String toString() {
+ final  int total;
+ final  int skip;
+ final  int limit;
+ final  String? currentSearch;
+ final  String? currentCategoryId;
+ final  String? currentBrandId;
+ final  bool? currentIsActive;
+@JsonKey() final  bool isLoadingMore;
+
+/// Create a copy of ProductsListState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ProductsListLoadedCopyWith<ProductsListLoaded> get copyWith => _$ProductsListLoadedCopyWithImpl<ProductsListLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductsListLoaded&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.total, total) || other.total == total)&&(identical(other.skip, skip) || other.skip == skip)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.currentSearch, currentSearch) || other.currentSearch == currentSearch)&&(identical(other.currentCategoryId, currentCategoryId) || other.currentCategoryId == currentCategoryId)&&(identical(other.currentBrandId, currentBrandId) || other.currentBrandId == currentBrandId)&&(identical(other.currentIsActive, currentIsActive) || other.currentIsActive == currentIsActive)&&(identical(other.isLoadingMore, isLoadingMore) || other.isLoadingMore == isLoadingMore));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),total,skip,limit,currentSearch,currentCategoryId,currentBrandId,currentIsActive,isLoadingMore);
+}
+
+@override
+String toString() {
     return 'ProductsListState.loaded(items: $items, total: $total, skip: $skip, limit: $limit, currentSearch: $currentSearch, currentCategoryId: $currentCategoryId, currentBrandId: $currentBrandId, currentIsActive: $currentIsActive, isLoadingMore: $isLoadingMore)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ProductsListLoadedImpl &&
-            const DeepCollectionEquality().equals(other._items, _items) &&
-            (identical(other.total, total) || other.total == total) &&
-            (identical(other.skip, skip) || other.skip == skip) &&
-            (identical(other.limit, limit) || other.limit == limit) &&
-            (identical(other.currentSearch, currentSearch) ||
-                other.currentSearch == currentSearch) &&
-            (identical(other.currentCategoryId, currentCategoryId) ||
-                other.currentCategoryId == currentCategoryId) &&
-            (identical(other.currentBrandId, currentBrandId) ||
-                other.currentBrandId == currentBrandId) &&
-            (identical(other.currentIsActive, currentIsActive) ||
-                other.currentIsActive == currentIsActive) &&
-            (identical(other.isLoadingMore, isLoadingMore) ||
-                other.isLoadingMore == isLoadingMore));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_items),
-    total,
-    skip,
-    limit,
-    currentSearch,
-    currentCategoryId,
-    currentBrandId,
-    currentIsActive,
-    isLoadingMore,
-  );
-
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ProductsListLoadedImplCopyWith<_$ProductsListLoadedImpl> get copyWith =>
-      __$$ProductsListLoadedImplCopyWithImpl<_$ProductsListLoadedImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(
-      items,
-      total,
-      skip,
-      limit,
-      currentSearch,
-      currentCategoryId,
-      currentBrandId,
-      currentIsActive,
-      isLoadingMore,
-    );
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(
-      items,
-      total,
-      skip,
-      limit,
-      currentSearch,
-      currentCategoryId,
-      currentBrandId,
-      currentIsActive,
-      isLoadingMore,
-    );
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(
-        items,
-        total,
-        skip,
-        limit,
-        currentSearch,
-        currentCategoryId,
-        currentBrandId,
-        currentIsActive,
-        isLoadingMore,
-      );
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ProductsListInitial value) initial,
-    required TResult Function(ProductsListLoading value) loading,
-    required TResult Function(ProductsListLoaded value) loaded,
-    required TResult Function(ProductsListError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ProductsListInitial value)? initial,
-    TResult? Function(ProductsListLoading value)? loading,
-    TResult? Function(ProductsListLoaded value)? loaded,
-    TResult? Function(ProductsListError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ProductsListInitial value)? initial,
-    TResult Function(ProductsListLoading value)? loading,
-    TResult Function(ProductsListLoaded value)? loaded,
-    TResult Function(ProductsListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ProductsListLoaded implements ProductsListState {
-  const factory ProductsListLoaded({
-    required final List<ProductListItemModel> items,
-    required final int total,
-    required final int skip,
-    required final int limit,
-    final String? currentSearch,
-    final String? currentCategoryId,
-    final String? currentBrandId,
-    final bool? currentIsActive,
-    final bool isLoadingMore,
-  }) = _$ProductsListLoadedImpl;
 
-  List<ProductListItemModel> get items;
-  int get total;
-  int get skip;
-  int get limit;
-  String? get currentSearch;
-  String? get currentCategoryId;
-  String? get currentBrandId;
-  bool? get currentIsActive;
-  bool get isLoadingMore;
-
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProductsListLoadedImplCopyWith<_$ProductsListLoadedImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ProductsListErrorImplCopyWith<$Res> {
-  factory _$$ProductsListErrorImplCopyWith(
-    _$ProductsListErrorImpl value,
-    $Res Function(_$ProductsListErrorImpl) then,
-  ) = __$$ProductsListErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
+abstract mixin class $ProductsListLoadedCopyWith<$Res> implements $ProductsListStateCopyWith<$Res> {
+  factory $ProductsListLoadedCopyWith(ProductsListLoaded value, $Res Function(ProductsListLoaded) _then) = _$ProductsListLoadedCopyWithImpl;
+@useResult
+$Res call({
+ List<ProductListItemModel> items, int total, int skip, int limit, String? currentSearch, String? currentCategoryId, String? currentBrandId, bool? currentIsActive, bool isLoadingMore
+});
+
+
+
+
+}
+/// @nodoc
+class _$ProductsListLoadedCopyWithImpl<$Res>
+    implements $ProductsListLoadedCopyWith<$Res> {
+  _$ProductsListLoadedCopyWithImpl(this._self, this._then);
+
+  final ProductsListLoaded _self;
+  final $Res Function(ProductsListLoaded) _then;
+
+/// Create a copy of ProductsListState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? items = null,Object? total = null,Object? skip = null,Object? limit = null,Object? currentSearch = freezed,Object? currentCategoryId = freezed,Object? currentBrandId = freezed,Object? currentIsActive = freezed,Object? isLoadingMore = null,}) {
+  return _then(ProductsListLoaded(
+items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+as List<ProductListItemModel>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,skip: null == skip ? _self.skip : skip // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,currentSearch: freezed == currentSearch ? _self.currentSearch : currentSearch // ignore: cast_nullable_to_non_nullable
+as String?,currentCategoryId: freezed == currentCategoryId ? _self.currentCategoryId : currentCategoryId // ignore: cast_nullable_to_non_nullable
+as String?,currentBrandId: freezed == currentBrandId ? _self.currentBrandId : currentBrandId // ignore: cast_nullable_to_non_nullable
+as String?,currentIsActive: freezed == currentIsActive ? _self.currentIsActive : currentIsActive // ignore: cast_nullable_to_non_nullable
+as bool?,isLoadingMore: null == isLoadingMore ? _self.isLoadingMore : isLoadingMore // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
 
-/// @nodoc
-class __$$ProductsListErrorImplCopyWithImpl<$Res>
-    extends _$ProductsListStateCopyWithImpl<$Res, _$ProductsListErrorImpl>
-    implements _$$ProductsListErrorImplCopyWith<$Res> {
-  __$$ProductsListErrorImplCopyWithImpl(
-    _$ProductsListErrorImpl _value,
-    $Res Function(_$ProductsListErrorImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$ProductsListErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
 }
 
 /// @nodoc
 
-class _$ProductsListErrorImpl implements ProductsListError {
-  const _$ProductsListErrorImpl(this.message);
 
-  @override
-  final String message;
+class ProductsListError implements ProductsListState {
+  const ProductsListError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of ProductsListState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ProductsListErrorCopyWith<ProductsListError> get copyWith => _$ProductsListErrorCopyWithImpl<ProductsListError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductsListError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'ProductsListState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ProductsListErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ProductsListErrorImplCopyWith<_$ProductsListErrorImpl> get copyWith =>
-      __$$ProductsListErrorImplCopyWithImpl<_$ProductsListErrorImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<ProductListItemModel> items,
-      int total,
-      int skip,
-      int limit,
-      String? currentSearch,
-      String? currentCategoryId,
-      String? currentBrandId,
-      bool? currentIsActive,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ProductsListInitial value) initial,
-    required TResult Function(ProductsListLoading value) loading,
-    required TResult Function(ProductsListLoaded value) loaded,
-    required TResult Function(ProductsListError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ProductsListInitial value)? initial,
-    TResult? Function(ProductsListLoading value)? loading,
-    TResult? Function(ProductsListLoaded value)? loaded,
-    TResult? Function(ProductsListError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ProductsListInitial value)? initial,
-    TResult Function(ProductsListLoading value)? loading,
-    TResult Function(ProductsListLoaded value)? loaded,
-    TResult Function(ProductsListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ProductsListError implements ProductsListState {
-  const factory ProductsListError(final String message) =
-      _$ProductsListErrorImpl;
 
-  String get message;
-
-  /// Create a copy of ProductsListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProductsListErrorImplCopyWith<_$ProductsListErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $ProductsListErrorCopyWith<$Res> implements $ProductsListStateCopyWith<$Res> {
+  factory $ProductsListErrorCopyWith(ProductsListError value, $Res Function(ProductsListError) _then) = _$ProductsListErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$ProductsListErrorCopyWithImpl<$Res>
+    implements $ProductsListErrorCopyWith<$Res> {
+  _$ProductsListErrorCopyWithImpl(this._self, this._then);
+
+  final ProductsListError _self;
+  final $Res Function(ProductsListError) _then;
+
+/// Create a copy of ProductsListState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(ProductsListError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

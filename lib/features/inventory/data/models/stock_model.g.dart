@@ -6,67 +6,63 @@ part of 'stock_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$StockBalanceModelImpl _$$StockBalanceModelImplFromJson(
+_StockBalanceModel _$StockBalanceModelFromJson(Map<String, dynamic> json) =>
+    _StockBalanceModel(
+      productId: json['product_id'] as String,
+      variationId: json['variation_id'] as String?,
+      branchId: json['branch_id'] as String,
+      currentQty: json['current_qty'] as String,
+      lastMovementAt: json['last_movement_at'] as String?,
+    );
+
+Map<String, dynamic> _$StockBalanceModelToJson(_StockBalanceModel instance) =>
+    <String, dynamic>{
+      'product_id': instance.productId,
+      'variation_id': instance.variationId,
+      'branch_id': instance.branchId,
+      'current_qty': instance.currentQty,
+      'last_movement_at': instance.lastMovementAt,
+    };
+
+_StockMovementModel _$StockMovementModelFromJson(Map<String, dynamic> json) =>
+    _StockMovementModel(
+      id: json['id'] as String,
+      branchId: json['branch_id'] as String,
+      productId: json['product_id'] as String,
+      variationId: json['variation_id'] as String?,
+      movementType: json['movement_type'] as String,
+      qty: json['qty'] as String,
+      costPerUnit: json['cost_per_unit'] as String,
+      referenceType: json['reference_type'] as String,
+      referenceId: json['reference_id'] as String,
+      batchNumber: json['batch_number'] as String?,
+      expiryDate: json['expiry_date'] as String?,
+      notes: json['notes'] as String?,
+      movementAt: json['movement_at'] as String,
+      createdAt: json['created_at'] as String?,
+    );
+
+Map<String, dynamic> _$StockMovementModelToJson(_StockMovementModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'branch_id': instance.branchId,
+      'product_id': instance.productId,
+      'variation_id': instance.variationId,
+      'movement_type': instance.movementType,
+      'qty': instance.qty,
+      'cost_per_unit': instance.costPerUnit,
+      'reference_type': instance.referenceType,
+      'reference_id': instance.referenceId,
+      'batch_number': instance.batchNumber,
+      'expiry_date': instance.expiryDate,
+      'notes': instance.notes,
+      'movement_at': instance.movementAt,
+      'created_at': instance.createdAt,
+    };
+
+_PaginatedStockMovementsModel _$PaginatedStockMovementsModelFromJson(
   Map<String, dynamic> json,
-) => _$StockBalanceModelImpl(
-  productId: json['product_id'] as String,
-  variationId: json['variation_id'] as String?,
-  branchId: json['branch_id'] as String,
-  currentQty: json['current_qty'] as String,
-  lastMovementAt: json['last_movement_at'] as String?,
-);
-
-Map<String, dynamic> _$$StockBalanceModelImplToJson(
-  _$StockBalanceModelImpl instance,
-) => <String, dynamic>{
-  'product_id': instance.productId,
-  'variation_id': instance.variationId,
-  'branch_id': instance.branchId,
-  'current_qty': instance.currentQty,
-  'last_movement_at': instance.lastMovementAt,
-};
-
-_$StockMovementModelImpl _$$StockMovementModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$StockMovementModelImpl(
-  id: json['id'] as String,
-  branchId: json['branch_id'] as String,
-  productId: json['product_id'] as String,
-  variationId: json['variation_id'] as String?,
-  movementType: json['movement_type'] as String,
-  qty: json['qty'] as String,
-  costPerUnit: json['cost_per_unit'] as String,
-  referenceType: json['reference_type'] as String,
-  referenceId: json['reference_id'] as String,
-  batchNumber: json['batch_number'] as String?,
-  expiryDate: json['expiry_date'] as String?,
-  notes: json['notes'] as String?,
-  movementAt: json['movement_at'] as String,
-  createdAt: json['created_at'] as String?,
-);
-
-Map<String, dynamic> _$$StockMovementModelImplToJson(
-  _$StockMovementModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'branch_id': instance.branchId,
-  'product_id': instance.productId,
-  'variation_id': instance.variationId,
-  'movement_type': instance.movementType,
-  'qty': instance.qty,
-  'cost_per_unit': instance.costPerUnit,
-  'reference_type': instance.referenceType,
-  'reference_id': instance.referenceId,
-  'batch_number': instance.batchNumber,
-  'expiry_date': instance.expiryDate,
-  'notes': instance.notes,
-  'movement_at': instance.movementAt,
-  'created_at': instance.createdAt,
-};
-
-_$PaginatedStockMovementsModelImpl _$$PaginatedStockMovementsModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$PaginatedStockMovementsModelImpl(
+) => _PaginatedStockMovementsModel(
   total: JsonNum.intOr(json['total']),
   skip: JsonNum.intOr(json['skip']),
   limit: JsonNum.intOr(json['limit']),
@@ -75,8 +71,8 @@ _$PaginatedStockMovementsModelImpl _$$PaginatedStockMovementsModelImplFromJson(
       .toList(),
 );
 
-Map<String, dynamic> _$$PaginatedStockMovementsModelImplToJson(
-  _$PaginatedStockMovementsModelImpl instance,
+Map<String, dynamic> _$PaginatedStockMovementsModelToJson(
+  _PaginatedStockMovementsModel instance,
 ) => <String, dynamic>{
   'total': instance.total,
   'skip': instance.skip,
@@ -84,9 +80,9 @@ Map<String, dynamic> _$$PaginatedStockMovementsModelImplToJson(
   'items': instance.items,
 };
 
-_$StockAdjustmentLineModelImpl _$$StockAdjustmentLineModelImplFromJson(
+_StockAdjustmentLineModel _$StockAdjustmentLineModelFromJson(
   Map<String, dynamic> json,
-) => _$StockAdjustmentLineModelImpl(
+) => _StockAdjustmentLineModel(
   id: json['id'] as String,
   productId: json['product_id'] as String,
   variationId: json['variation_id'] as String?,
@@ -95,8 +91,8 @@ _$StockAdjustmentLineModelImpl _$$StockAdjustmentLineModelImplFromJson(
   notes: json['notes'] as String?,
 );
 
-Map<String, dynamic> _$$StockAdjustmentLineModelImplToJson(
-  _$StockAdjustmentLineModelImpl instance,
+Map<String, dynamic> _$StockAdjustmentLineModelToJson(
+  _StockAdjustmentLineModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'product_id': instance.productId,
@@ -106,9 +102,9 @@ Map<String, dynamic> _$$StockAdjustmentLineModelImplToJson(
   'notes': instance.notes,
 };
 
-_$StockAdjustmentModelImpl _$$StockAdjustmentModelImplFromJson(
+_StockAdjustmentModel _$StockAdjustmentModelFromJson(
   Map<String, dynamic> json,
-) => _$StockAdjustmentModelImpl(
+) => _StockAdjustmentModel(
   id: json['id'] as String,
   branchId: json['branch_id'] as String,
   adjustmentNumber: json['adjustment_number'] as String,
@@ -124,8 +120,8 @@ _$StockAdjustmentModelImpl _$$StockAdjustmentModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$StockAdjustmentModelImplToJson(
-  _$StockAdjustmentModelImpl instance,
+Map<String, dynamic> _$StockAdjustmentModelToJson(
+  _StockAdjustmentModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'branch_id': instance.branchId,

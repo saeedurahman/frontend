@@ -6,7 +6,7 @@ part 'sale_return_response_model.freezed.dart';
 part 'sale_return_response_model.g.dart';
 
 @freezed
-class SaleReturnResponseModel with _$SaleReturnResponseModel {
+abstract class SaleReturnResponseModel with _$SaleReturnResponseModel {
   const factory SaleReturnResponseModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

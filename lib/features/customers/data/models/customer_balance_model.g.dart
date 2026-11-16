@@ -6,15 +6,15 @@ part of 'customer_balance_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$CustomerBalanceModelImpl _$$CustomerBalanceModelImplFromJson(
+_CustomerBalanceModel _$CustomerBalanceModelFromJson(
   Map<String, dynamic> json,
-) => _$CustomerBalanceModelImpl(
+) => _CustomerBalanceModel(
   customerId: json['customer_id'] as String,
   balance: json['balance'] as String,
 );
 
-Map<String, dynamic> _$$CustomerBalanceModelImplToJson(
-  _$CustomerBalanceModelImpl instance,
+Map<String, dynamic> _$CustomerBalanceModelToJson(
+  _CustomerBalanceModel instance,
 ) => <String, dynamic>{
   'customer_id': instance.customerId,
   'balance': instance.balance,

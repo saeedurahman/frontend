@@ -5,7 +5,7 @@ import 'package:frantend/features/products/data/models/product_list_item_model.d
 part 'inventory_stock_state.freezed.dart';
 
 @freezed
-class StockDisplayRow with _$StockDisplayRow {
+abstract class StockDisplayRow with _$StockDisplayRow {
   const StockDisplayRow._();
 
   const factory StockDisplayRow({

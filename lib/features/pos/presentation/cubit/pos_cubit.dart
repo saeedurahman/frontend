@@ -94,8 +94,8 @@ class PosCubitBase extends Cubit<PosState> {
     Stream<PriceChange>? priceChanges,
     PosPriceListResolver? resolvePriceList,
     Stream<void>? stockChanges,
-    void Function(Iterable<String> productIds)? warmModifiers,
-    bool Function()? askQuantityOnTap,
+    @ignoreParam void Function(Iterable<String> productIds)? warmModifiers,
+    @ignoreParam bool Function()? askQuantityOnTap,
   })  : _offlinePolicy = offlinePolicy,
         _priceChanges = priceChanges,
         _resolvePriceList = resolvePriceList,
@@ -309,7 +309,7 @@ class PosCubit extends PosCubitBase
     super.priceChanges,
     super.resolvePriceList,
     super.stockChanges,
-    super.warmModifiers,
-    super.askQuantityOnTap,
+    @ignoreParam super.warmModifiers,
+    @ignoreParam super.askQuantityOnTap,
   });
 }

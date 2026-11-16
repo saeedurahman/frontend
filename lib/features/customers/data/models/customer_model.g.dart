@@ -6,8 +6,8 @@ part of 'customer_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$CustomerModelImpl _$$CustomerModelImplFromJson(Map<String, dynamic> json) =>
-    _$CustomerModelImpl(
+_CustomerModel _$CustomerModelFromJson(Map<String, dynamic> json) =>
+    _CustomerModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       name: json['name'] as String,
@@ -23,7 +23,7 @@ _$CustomerModelImpl _$$CustomerModelImplFromJson(Map<String, dynamic> json) =>
       priceListId: json['price_list_id'] as String?,
     );
 
-Map<String, dynamic> _$$CustomerModelImplToJson(_$CustomerModelImpl instance) =>
+Map<String, dynamic> _$CustomerModelToJson(_CustomerModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,

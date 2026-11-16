@@ -4,7 +4,7 @@ part 'cash_register_model.freezed.dart';
 part 'cash_register_model.g.dart';
 
 @freezed
-class CashRegisterModel with _$CashRegisterModel {
+abstract class CashRegisterModel with _$CashRegisterModel {
   const factory CashRegisterModel({
     required String id,
     @JsonKey(name: 'branch_id') required String branchId,
