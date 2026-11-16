@@ -342,6 +342,7 @@ class _FilterDropdown<T> extends StatelessWidget {
       width: 180,
       child: DropdownButtonFormField<T>(
         initialValue: value,
+        isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
           filled: true,
