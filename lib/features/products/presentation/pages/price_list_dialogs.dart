@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -756,7 +757,7 @@ class _PriceListImportDialogState extends State<PriceListImportDialog> {
       });
       await _runValidation();
     } catch (e) {
-      setState(() => _errorMessage = 'Failed to read file: $e');
+      setState(() => _errorMessage = 'Failed to read file: ${UserErrorMessage.from(e)}');
     }
   }
 

@@ -13,6 +13,7 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
+import 'package:frantend/features/sales/presentation/utils/sale_line_display.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:intl/intl.dart';
 
@@ -71,6 +72,9 @@ abstract final class ReceiptShareService {
       final qty = line.qty;
       final total = formatPKR(SaleCalculations.lineTotal(line).toDouble());
       buffer.writeln('$name x $qty: $total');
+      for (final label in SaleLineDisplay.modifierLabels(line)) {
+        buffer.writeln('   $label');
+      }
     }
 
     buffer.writeln('--------------------------------');

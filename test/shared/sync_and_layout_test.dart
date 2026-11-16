@@ -140,7 +140,7 @@ void main() {
 
       expect(find.byKey(const Key('offline-banner')), findsOneWidget);
       expect(find.textContaining('You are offline'), findsOneWidget);
-      expect(find.textContaining('will fail'), findsOneWidget);
+      expect(find.textContaining('saved on this device'), findsOneWidget);
 
       probe.set(ReachabilityStatus.online);
       await tester.pump();

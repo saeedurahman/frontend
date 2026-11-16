@@ -1,6 +1,8 @@
+import 'package:frantend/features/restaurant/presentation/utils/table_service_errors.dart';
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/session/business_session_cubit.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
@@ -29,6 +31,22 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
   final BusinessSessionCubit _businessSession;
 
   Timer? _refreshTimer;
+  StreamSubscription<ReachabilityStatus>? _probeSub;
+
+  /// Table service needs the server. While it is unreachable nothing is
+  /// requested (so nothing can fail); the screen shows the plain notice and
+  /// loads again the moment the connection returns.
+  bool get _offline =>
+      sl.isRegistered<ConnectivityProbe>() && !sl<ConnectivityProbe>().isReachable;
+
+  void _watchConnection() {
+    if (_probeSub != null || !sl.isRegistered<ConnectivityProbe>()) return;
+    _probeSub = sl<ConnectivityProbe>().status.listen((status) {
+      if (status != ReachabilityStatus.offline && !isClosed && !state.accessDenied) {
+        unawaited(loadLayout(isRefresh: state.status == TablesFloorStatus.loaded));
+      }
+    });
+  }
   String? _branchId;
 
   Future<void> init() async {
@@ -63,6 +81,8 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
   }
 
   Future<void> loadLayout({bool isRefresh = false}) async {
+    _watchConnection();
+    if (_offline) return;
     if (state.accessDenied) return;
 
     if (!isRefresh) {
@@ -85,7 +105,7 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
           state.copyWith(
             status: TablesFloorStatus.error,
             isRefreshing: false,
-            errorMessage: failure.message,
+            errorMessage: TableServiceErrors.message(failure),
           ),
         );
       },
@@ -141,6 +161,7 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
   @override
   Future<void> close() {
     _refreshTimer?.cancel();
+    unawaited(_probeSub?.cancel());
     return super.close();
   }
 }

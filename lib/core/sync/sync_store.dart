@@ -90,6 +90,43 @@ class IndexedEntity {
           branchId: s('branch_id'),
           searchText: search([s('name')]),
         );
+      case 'modifier_group':
+        return IndexedEntity(
+          searchText: search([s('name')]),
+          active: isActive,
+        );
+      case 'modifier':
+        return IndexedEntity(
+          parentId: s('modifier_group_id'),
+          searchText: search([s('name')]),
+          active: isActive,
+        );
+      case 'product_modifier_group':
+        return IndexedEntity(parentId: s('product_id'), active: isActive);
+      case 'customer_balance':
+        return IndexedEntity(parentId: s('customer_id') ?? s('id'));
+      case 'sale_summary':
+        // Searchable by number, customer, receipt number and date.
+        final customer = data['customer'];
+        final sold = s('sold_at') ?? '';
+        return IndexedEntity(
+          branchId: s('branch_id'),
+          parentId: s('customer_id'),
+          searchText: search([
+            s('sale_number'),
+            s('number'),
+            s('client_receipt_no'),
+            s('customer_name') ??
+                (customer is Map ? customer['name']?.toString() : null),
+            customer is Map ? customer['phone']?.toString() : null,
+            sold.length >= 10 ? sold.substring(0, 10) : sold,
+          ]),
+        );
+      case 'register_shift':
+        return IndexedEntity(
+          branchId: s('branch_id'),
+          parentId: s('cash_register_id'),
+        );
       default:
         return IndexedEntity(
           branchId: s('branch_id'),
@@ -1045,28 +1082,70 @@ class SyncStore {
   }
 
   /// Credit still owed by a customer from sales the server has not seen.
+  ///
+  /// Counts sales still `pending`, and sales the server accepted whose effect
+  /// on the customer's balance has not been pulled yet (same rule as stock,
+  /// see [stockUnconfirmedSales]), so the balance never jumps back for the
+  /// moment between the push answer and the next pull.
   Future<Decimal> pendingCreditFor(String customerId) async {
+    final unconfirmed = await stockUnconfirmedSales();
     final rows = await _rows(
-      "SELECT credit_amount FROM local_sales WHERE customer_id = ? AND sync_state = 'pending' "
-      "AND status = 'completed'",
+      'SELECT id, sync_state, credit_amount FROM local_sales WHERE customer_id = ? '
+      "AND status = 'completed' AND sync_state IN ('pending','synced')",
       [customerId],
     );
-    return rows.fold<Decimal>(
-      Decimal.zero,
-      (sum, r) => sum + (Decimal.tryParse('${r['credit_amount']}') ?? Decimal.zero),
-    );
-  }
-
-  /// Customer payments queued but not yet confirmed.
-  Future<Decimal> pendingPaymentsFor(String customerId) async {
-    final pending = await ops(statuses: OutboxStatus.unfinished);
     var total = Decimal.zero;
-    for (final o in pending) {
-      if (o.type == OpTypes.customerPayment && '${o.payload['customer_id']}' == customerId) {
-        total += Decimal.tryParse('${o.payload['amount']}') ?? Decimal.zero;
-      }
+    for (final r in rows) {
+      if (r['sync_state'] != 'pending' && !unconfirmed.contains(r['id'])) continue;
+      total += Decimal.tryParse('${r['credit_amount']}') ?? Decimal.zero;
     }
     return total;
+  }
+
+  /// Customer payments queued but not yet confirmed: still in the outbox, or
+  /// accepted by the server but not yet pulled back into the balance.
+  Future<Decimal> pendingPaymentsFor(String customerId) async {
+    final awaiting = await unconfirmedPaymentOps();
+    final all = await ops(statuses: [...OutboxStatus.unfinished, OutboxStatus.applied]);
+    var total = Decimal.zero;
+    for (final o in all) {
+      if (o.type != OpTypes.customerPayment) continue;
+      if ('${o.payload['customer_id']}' != customerId) continue;
+      if (o.status == OutboxStatus.applied && !awaiting.contains(o.opId)) continue;
+      total += Decimal.tryParse('${o.payload['amount']}') ?? Decimal.zero;
+    }
+    return total;
+  }
+
+  static const balanceUnconfirmedKey = 'balance_unconfirmed_payments';
+
+  /// Ids of `customer.payment` ops the server accepted whose effect on the
+  /// customer balance has not been pulled yet.
+  Future<Set<String>> unconfirmedPaymentOps() async {
+    final raw = await meta(balanceUnconfirmedKey);
+    if (raw == null || raw.isEmpty) return <String>{};
+    try {
+      return {for (final id in jsonDecode(raw) as List) '$id'};
+    } catch (_) {
+      return <String>{};
+    }
+  }
+
+  Future<void> _setUnconfirmedPayments(Set<String> ids) =>
+      setMeta(balanceUnconfirmedKey, ids.isEmpty ? null : jsonEncode(ids.toList()));
+
+  /// The server accepted [opId] (a customer payment): its amount keeps being
+  /// added to the pulled balance until the next completed pull.
+  Future<void> noteBalanceUnconfirmed(String opId) async =>
+      _setUnconfirmedPayments({...await unconfirmedPaymentOps(), opId});
+
+  /// A completed pull delivered balances that contain [opIds].
+  Future<void> confirmPaymentsFor(Set<String> opIds) async {
+    if (opIds.isEmpty) return;
+    final current = await unconfirmedPaymentOps();
+    final left = current.difference(opIds);
+    if (left.length == current.length) return;
+    await _setUnconfirmedPayments(left);
   }
 
   // ── local shifts ─────────────────────────────────────────────────────
@@ -1079,6 +1158,12 @@ class SyncStore {
       [for (final c in cols) row[c]],
     );
   }
+
+  /// Every shift this device opened (newest first), for the shift history.
+  Future<List<Map<String, Object?>>> shifts({int limit = 500}) => _rows(
+        "SELECT * FROM local_shifts WHERE sync_state != 'discarded' "
+        'ORDER BY opened_at DESC LIMIT $limit',
+      );
 
   Future<Map<String, Object?>?> shift(String id) async {
     final rows = await _rows('SELECT * FROM local_shifts WHERE id = ?', [id]);

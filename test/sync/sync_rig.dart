@@ -143,6 +143,7 @@ class SyncRig {
       'credit_limit': '5000',
       'is_active': true,
       'balance': '-1000.00', // negative = owes
+      'balance_owed': '1000.00', // the same debt, as an explicit positive
     });
   }
 

@@ -1,3 +1,4 @@
+import 'package:frantend/features/restaurant/presentation/utils/table_service_errors.dart';
 import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';

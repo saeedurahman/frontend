@@ -31,11 +31,11 @@ class OfflineBannerView extends StatelessWidget {
   static String? messageFor(ReachabilityStatus status) => switch (status) {
         ReachabilityStatus.online => null,
         ReachabilityStatus.offline =>
-          'You are offline. Saving sales and other changes will fail until '
-              'the connection returns.',
+          'You are offline. Sales and customer work are saved on this device '
+              'and sync when the connection returns.',
         ReachabilityStatus.degraded =>
-          'The connection is slow or unstable. Saving may take longer or '
-              'fail; retry if it does.',
+          'The connection is slow or unstable. Your work is saved on this '
+              'device and syncs when the connection is good.',
       };
 
   @override

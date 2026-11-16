@@ -1,3 +1,5 @@
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
@@ -89,6 +91,16 @@ class _InventoryStockViewState extends State<_InventoryStockView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            OfflineAwareBuilder(
+              builder: (context, offline) => offline
+                  ? const Padding(
+                      padding: EdgeInsets.only(bottom: AppDimensions.spacingMd),
+                      child: OnlineOnlyBanner(
+                        message: OfflineMessages.editingNotice,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
             _Toolbar(total: count),
             const SizedBox(height: AppDimensions.spacingMd),
             _FilterBar(searchController: _searchController),
@@ -395,6 +407,14 @@ class _StockTable extends StatelessWidget {
                   icon: Icons.tune,
                   tooltip: 'Adjust',
                   onPressed: () async {
+                    if (OfflineAwareBuilder.resolve(null)?.current ==
+                        ReachabilityStatus.offline) {
+                      AppAlerts.showErrorMessage(
+                        context,
+                        OfflineMessages.editingNeedsInternet,
+                      );
+                      return;
+                    }
                     final saved = await StockAdjustmentDialog.show(
                       context,
                       row: row,

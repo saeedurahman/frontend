@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
+import 'package:frantend/core/offline/local_history.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
 
 class SaleStatusChip extends StatelessWidget {
@@ -39,6 +40,39 @@ class SaleStatusChip extends StatelessWidget {
       ),
       child: Text(
         labelFor(status),
+        style: AppTextStyles.bodySmall.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// "Not synced yet" / "Needs attention" for a sale this device has not
+/// finished sending. Renders nothing for a sale the server has.
+class SaleSyncBadgeChip extends StatelessWidget {
+  const SaleSyncBadgeChip({super.key, required this.badge});
+
+  final SaleSyncBadge badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = badge.label;
+    if (label == null) return const SizedBox.shrink();
+    final color = badge == SaleSyncBadge.needsAttention
+        ? AppColors.error
+        : AppColors.offline;
+    return Container(
+      key: Key('sale-sync-badge-${badge.name}'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        label,
         style: AppTextStyles.bodySmall.copyWith(
           color: color,
           fontWeight: FontWeight.w600,

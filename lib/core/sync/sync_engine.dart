@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'dart:async';
 
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
@@ -278,7 +279,7 @@ class SyncEngine {
       _emit(_state.copyWith(clearError: true));
     } catch (e, st) {
       AppLogger.error('Sync cycle failed', error: e, stackTrace: st);
-      _failedContact(e.toString());
+      _failedContact(UserErrorMessage.from(e));
     } finally {
       await refreshState();
       _emit(_state.copyWith(syncing: false, clearProgress: true));

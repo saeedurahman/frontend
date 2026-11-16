@@ -73,6 +73,10 @@ import 'package:frantend/features/products/domain/usecases/product_pricing_useca
     as pricing;
 import 'package:frantend/features/products/domain/usecases/update_product_usecase.dart';
 import 'package:frantend/features/products/domain/repositories/products_repository.dart';
+import 'package:frantend/features/products/data/datasources/products_local_datasource.dart';
+import 'package:frantend/features/products/data/datasources/products_remote_datasource.dart';
+import 'package:frantend/features/inventory/data/datasources/inventory_remote_datasource.dart';
+import 'package:frantend/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:frantend/features/products/presentation/cubit/price_lists_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/product_form_cubit.dart';
 import 'package:frantend/features/products/domain/usecases/get_categories_usecase.dart';
@@ -272,6 +276,10 @@ void registerFoundationServices(GetIt sl) {
     () => ProductModifierCache.onStore(
       store: sl<SyncStore>(),
       fetch: (productId) => sl<GetProductModifierGroupsUseCase>()(productId),
+      // Pulled modifier groups first (works offline); null = none pulled.
+      local: (productId) async => await sl<LocalCatalog>().hasModifierData()
+          ? sl<LocalCatalog>().modifierGroupsFor(productId)
+          : null,
       enabled: () {
         if (!sl.isRegistered<BusinessSessionCubit>()) return true;
         final session = sl<BusinessSessionCubit>().state;
@@ -286,10 +294,7 @@ void registerFoundationServices(GetIt sl) {
     () => ReceiptBrandingSource(
       store: sl<SyncStore>(),
       localSettings: sl<LocalSettingsRepository>(),
-      fetchProfile: () => sl<GetBusinessProfileUseCase>()(),
-      fetchSettings: ({String? branchId}) =>
-          sl<GetSettingsUseCase>()(branchId: branchId),
-      isReachable: reachable,
+      catalog: sl<LocalCatalog>(),
     ),
   );
 
@@ -321,6 +326,7 @@ void registerFoundationServices(GetIt sl) {
       catalog: sl<LocalCatalog>(),
       store: sl<SyncStore>(),
       userId: userId,
+      isReachable: reachable,
     ),
   );
   replace<ExpensesRepository>(
@@ -349,6 +355,26 @@ void registerFoundationServices(GetIt sl) {
   );
 
   // ── POS use cases bound to the local readers ─────────────────────────
+  // Master data: readable offline, editing stays online-only.
+  replace<ProductsRepository>(
+    () => OfflineProductsRepository(
+      remoteDataSource: sl<ProductsRemoteDataSource>(),
+      localDataSource: sl<ProductsLocalDataSource>(),
+      connectivityProbe: sl<ConnectivityProbe>(),
+      errorHandler: sl<ErrorHandler>(),
+      catalog: sl<LocalCatalog>(),
+      isReachable: reachable,
+    ),
+  );
+  replace<InventoryRepository>(
+    () => OfflineInventoryRepository(
+      remoteDataSource: sl<InventoryRemoteDataSource>(),
+      errorHandler: sl<ErrorHandler>(),
+      catalog: sl<LocalCatalog>(),
+      isReachable: reachable,
+    ),
+  );
+
   once<ResolvePosSessionUseCase>(
     () => ResolvePosSessionUseCase(
       sl<AuthLocalDataSource>(),

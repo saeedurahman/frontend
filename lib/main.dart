@@ -103,10 +103,12 @@ Future<void> _startup() async {
     // (blocked subscription / missing permission) instead of flashing.
     await step('Checking subscription', () async {
       try {
-        await sl<SubscriptionCubit>().load().timeout(const Duration(seconds: 8));
-        await sl<AccessCubit>().refresh(force: true).timeout(
+        await sl<SubscriptionCubit>().load().timeout(
           const Duration(seconds: 8),
         );
+        await sl<AccessCubit>()
+            .refresh(force: true)
+            .timeout(const Duration(seconds: 8));
       } catch (e) {
         debugPrint('[startup] subscription/access check skipped: $e');
       }

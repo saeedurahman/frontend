@@ -784,27 +784,47 @@ void main() {
       plain(unknown);
     });
 
-    test('receipt branding: stored copy, else defaults; never an error',
-        () async {
-      // Nothing stored: no header, default footer, no exception.
-      expect(await world.branding.businessProfile(), isNull);
+    test('receipt branding: pulled settings, never the network', () async {
+      // The pulled `settings` entity is the source (name only so far).
+      final before = world.adapter.requests.length;
+      expect((await world.branding.businessProfile())?.name, 'Demo');
       final defaults = await world.branding.displaySettings(branchId: kBranch);
       expect(defaults.footerText, ReceiptBrandingSource.defaults.footerText);
       expect(defaults.paperSize, '80mm');
 
-      // What a sync stored earlier.
+      // Full branding arrives with the next pull.
+      world.rig.server.put('settings', 'biz', {
+        'business_name': 'Demo Mart',
+        'address_line1': '12 Mall Road',
+        'phone': '0300-1112223',
+        'ntn': '1234567-8',
+        'receipt_footer': 'Come again!',
+      });
+      world.goOnline();
+      await world.rig.sync();
+      world.goOffline();
+      final profile = await world.branding.businessProfile();
+      expect(profile?.name, 'Demo Mart');
+      expect(profile?.addressLine1, '12 Mall Road');
+      expect(profile?.phone, '0300-1112223');
+      expect(profile?.taxId, '1234567-8');
+      final display = await world.branding.displaySettings(branchId: kBranch);
+      expect(display.footerText, 'Come again!');
+      expect(world.adapter.requests.length, before,
+          reason: 'printing offline does not touch the network');
+    });
+
+    test('receipt branding: older stored copy when nothing is pulled',
+        () async {
+      await world.rig.store.deleteEntity('settings', 'biz');
+      expect(await world.branding.businessProfile(), isNull);
       await world.rig.store.setMeta(
         ReceiptBrandingSource.profileKey,
         jsonEncode(
-          const BusinessProfileModel(id: kBusiness, name: 'Demo Mart').toJson(),
+          const BusinessProfileModel(id: kBusiness, name: 'Old Mart').toJson(),
         ),
       );
-      world.goOffline();
-      final before = world.adapter.requests.length;
-      final profile = await world.branding.businessProfile();
-      expect(profile?.name, 'Demo Mart');
-      expect(world.adapter.requests.length, before,
-          reason: 'printing offline does not touch the network');
+      expect((await world.branding.businessProfile())?.name, 'Old Mart');
     });
 
     test('sale save cannot fail for connectivity reasons', () async {

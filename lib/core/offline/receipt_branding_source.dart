@@ -1,45 +1,33 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/offline/repos/local_repositories.dart';
 import 'package:frantend/core/sync/sync_store.dart';
-import 'package:frantend/features/settings/data/models/app_setting_model.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 
-/// What a receipt needs besides the sale: the business name / address and
-/// the footer / paper size.
+/// What a receipt needs besides the sale: the business name, address, phone,
+/// NTN, and the footer / paper size.
 ///
-/// Printing happens at the counter, so both come from the device: the copies
-/// kept in `sync_meta` (refreshed after every online sync and whenever this
-/// class does reach the server). The server is only asked in the foreground
-/// when nothing has ever been stored *and* it is reachable; a receipt is
-/// never held up by, or fails because of, the network.
+/// **Never a network call.** Printing (and reprinting an old sale) happens at
+/// the counter, so everything comes from the device:
+///
+/// 1. the pulled `settings` entity (`business_name`, `address_line1`,
+///    `phone`, `tax_id` / `ntn`, `receipt_footer`), kept fresh by the sync;
+/// 2. only when that is missing (an install from before settings were
+///    pulled), the older copies kept in `sync_meta`.
+///
+/// When neither exists the defaults below still print a valid receipt.
 class ReceiptBrandingSource {
   ReceiptBrandingSource({
     required SyncStore store,
     required LocalSettingsRepository localSettings,
-    required Future<Either<Failure, BusinessProfileModel>> Function()
-        fetchProfile,
-    required Future<Either<Failure, List<AppSettingModel>>> Function({
-      String? branchId,
-    }) fetchSettings,
-    bool Function()? isReachable,
+    LocalCatalog? catalog,
   })  : _store = store,
         _localSettings = localSettings,
-        _fetchProfile = fetchProfile,
-        _fetchSettings = fetchSettings,
-        _isReachable = isReachable;
+        _catalog = catalog ?? LocalCatalog(store, businessId: () async => null);
 
   final SyncStore _store;
   final LocalSettingsRepository _localSettings;
-  final Future<Either<Failure, BusinessProfileModel>> Function() _fetchProfile;
-  final Future<Either<Failure, List<AppSettingModel>>> Function({
-    String? branchId,
-  }) _fetchSettings;
-  final bool Function()? _isReachable;
+  final LocalCatalog _catalog;
 
   static const profileKey = 'business_profile_cache';
 
@@ -48,7 +36,13 @@ class ReceiptBrandingSource {
     paperSize: '80mm',
   );
 
-  bool get _reachable => _isReachable?.call() ?? true;
+  static String? _text(Map<String, dynamic> data, List<String> keys) {
+    for (final k in keys) {
+      final v = data[k]?.toString().trim();
+      if (v != null && v.isNotEmpty) return v;
+    }
+    return null;
+  }
 
   Future<BusinessProfileModel?> _cachedProfile() async {
     final json = await _store.metaJson(profileKey);
@@ -60,48 +54,34 @@ class ReceiptBrandingSource {
     }
   }
 
-  Future<BusinessProfileModel?> _refreshProfile() async {
-    try {
-      final result = await _fetchProfile();
-      return await result.fold((_) async => null, (profile) async {
-        await _store.setMeta(profileKey, jsonEncode(profile.toJson()));
-        return profile;
-      });
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Stored business profile; null when none is known yet.
+  /// The business as the receipt header shows it; null when nothing is known.
   Future<BusinessProfileModel?> businessProfile() async {
-    final cached = await _cachedProfile();
-    if (cached != null) {
-      if (_reachable) unawaited(_refreshProfile());
-      return cached;
+    final pulled = await _catalog.settings();
+    final name = pulled == null ? null : _text(pulled, ['business_name', 'name']);
+    if (pulled != null && name != null) {
+      final cached = await _cachedProfile();
+      final base = cached ??
+          BusinessProfileModel(id: '${pulled['id'] ?? ''}', name: name);
+      return base.copyWith(
+        name: name,
+        phone: _text(pulled, ['phone']) ?? base.phone,
+        taxId: _text(pulled, ['tax_id', 'ntn']) ?? base.taxId,
+        addressLine1:
+            _text(pulled, ['address_line1', 'address']) ?? base.addressLine1,
+      );
     }
-    return _reachable ? _refreshProfile() : null;
+    return _cachedProfile();
   }
 
-  /// Receipt footer and paper size from the stored settings.
+  /// Receipt footer and paper size.
   Future<ReceiptDisplaySettings> displaySettings({String? branchId}) async {
-    final hasCopy =
-        await _store.meta(LocalSettingsRepository.cacheKey) != null;
-    if (!hasCopy && _reachable) {
-      try {
-        final fetched = await _fetchSettings(branchId: branchId);
-        await fetched.fold((_) async {}, (settings) async {
-          await _store.setMeta(
-            LocalSettingsRepository.cacheKey,
-            jsonEncode([for (final s in settings) s.toJson()]),
-          );
-        });
-      } catch (_) {
-        // The defaults below still print a valid receipt.
-      }
-    }
-    final result = await GetReceiptDisplaySettingsUseCase(_localSettings)(
+    final legacy = await GetReceiptDisplaySettingsUseCase(_localSettings)(
       branchId: branchId,
     );
-    return result.fold((_) => defaults, (settings) => settings);
+    final stored = legacy.fold((_) => defaults, (s) => s);
+    final pulled = await _catalog.settings();
+    final footer = pulled == null ? null : _text(pulled, ['receipt_footer']);
+    if (footer == null) return stored;
+    return ReceiptDisplaySettings(footerText: footer, paperSize: stored.paperSize);
   }
 }

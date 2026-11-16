@@ -110,7 +110,7 @@ void main() {
   });
 
   group('buildSaleLines', () {
-    test('includes modifier_ids and base unit price', () {
+    test('includes modifier_ids, modifier details and the final unit price', () {
       final item = CartItemModel(
         productId: 'prod-1',
         productName: 'Burger',
@@ -133,8 +133,13 @@ void main() {
         cartDiscountValue: Decimal.zero,
       );
 
-      expect(lines.single['unit_price'], '500.00');
+      // 500 base + 50 modifier: the line carries the price of one unit
+      // including its modifiers; the modifiers travel along for the record.
+      expect(lines.single['unit_price'], '550.00');
       expect(lines.single['modifier_ids'], ['mod-1']);
+      expect(lines.single['modifiers'], [
+        {'modifier_id': 'mod-1', 'name': 'Cheese', 'price': '50.00', 'qty': '1'},
+      ]);
     });
   });
 }

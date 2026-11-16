@@ -9,6 +9,7 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_c
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_header.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_table.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/utils/app_alerts.dart';
 
 class CustomerLedgerPage extends StatelessWidget {
@@ -29,7 +30,12 @@ class CustomerLedgerPage extends StatelessWidget {
               .read<CustomerLedgerCubit>()
               .onBranchChanged(branchState.selectedBranchId);
         },
-        child: const _CustomerLedgerView(),
+        child: const OfflineAwareScaffold(
+          message: 'The full ledger needs internet. '
+              "The customer's balance is still available on the customer screen.",
+          replaceChildWhenOffline: true,
+          child: _CustomerLedgerView(),
+        ),
       ),
     );
   }

@@ -50,7 +50,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
 
       await saleResult.fold(
         (failure) async {
-          throw Exception(failure.message);
+          throw Exception(TableServiceErrors.message(failure));
         },
         (sale) async {
           _safeEmit(state.patch(
@@ -69,7 +69,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     } catch (e) {
       _safeEmit(state.patch(
         dineIn: state.dineIn?.copyWith(
-          syncError: UserErrorMessage.from(e),
+          syncError: TableServiceErrors.from(e),
         ),
       ));
     }
@@ -88,7 +88,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     );
 
     return result.fold(
-      (failure) => throw Exception(failure.message),
+      (failure) => throw Exception(TableServiceErrors.message(failure)),
       (sale) => sale.id,
     );
   }
@@ -210,10 +210,10 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
         _safeEmit(state.patch(
           dineIn: state.dineIn?.copyWith(
             isSyncingLine: false,
-            syncError: failure.message,
+            syncError: TableServiceErrors.message(failure),
           ),
         ));
-        return failure.message;
+        return TableServiceErrors.message(failure);
       },
       (sale) {
         final serverLineId = _matchServerLineId(sale, item);
@@ -264,7 +264,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
 
       result.fold(
         (failure) => _safeEmit(state.patch(
-          dineIn: state.dineIn?.copyWith(syncError: failure.message),
+          dineIn: state.dineIn?.copyWith(syncError: TableServiceErrors.message(failure)),
         )),
         (_) => _safeEmit(state.patch(
           dineIn: state.dineIn?.copyWith(
@@ -291,7 +291,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
 
       result.fold(
         (failure) => _safeEmit(state.patch(
-          dineIn: state.dineIn?.copyWith(syncError: failure.message),
+          dineIn: state.dineIn?.copyWith(syncError: TableServiceErrors.message(failure)),
         )),
         (_) => _safeEmit(state.patch(
           dineIn: state.dineIn?.copyWith(
@@ -338,7 +338,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
       }
 
       return await result.fold(
-        (failure) => throw Exception(failure.message),
+        (failure) => throw Exception(TableServiceErrors.message(failure)),
         (sale) {
           clearCart();
           _safeEmit(state.patch(

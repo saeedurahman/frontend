@@ -170,6 +170,8 @@ class PushService {
         await _store.updateShift('${op.payload['id']}', {'sync_state': 'synced'});
       case OpTypes.shiftClose:
         await _store.updateShift('${op.payload['shift_id']}', {'sync_state': 'synced'});
+      case OpTypes.customerPayment:
+        await _store.noteBalanceUnconfirmed(op.opId);
       case OpTypes.saleVoid:
         await _store.setSaleStatus('${op.payload['sale_id']}', 'voided');
         await _store.setSaleState('${op.payload['sale_id']}', 'synced');

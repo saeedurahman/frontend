@@ -9,6 +9,7 @@ import 'package:frantend/features/cash_register/data/models/shift_summary_model.
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
+import 'package:frantend/features/restaurant/data/models/modifier_group_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
@@ -158,6 +159,61 @@ class LocalCatalog {
     }
     return list;
   }
+
+  // ── restaurant modifiers (pulled: modifier_group / modifier /
+  //    product_modifier_group) ─────────────────────────────────────────────
+
+  /// True once this device holds any pulled modifier data. Distinguishes
+  /// "this product has no modifiers" from "modifiers were never synced".
+  Future<bool> hasModifierData() async =>
+      await _store.countEntities('modifier_group') > 0 ||
+      await _store.countEntities('product_modifier_group') > 0;
+
+  /// The product's usable modifier groups (active group, active modifiers),
+  /// sorted, from the pulled copy only. Never touches the network.
+  Future<List<ModifierGroupModel>> modifierGroupsFor(String productId) async {
+    final links = await _store.entities(
+      'product_modifier_group',
+      where: 'parent_id = ?',
+      args: [productId],
+      orderBy: 'id',
+    );
+    final groups = <ModifierGroupModel>[];
+    final seen = <String>{};
+    for (final link in links) {
+      if (link['deleted_at'] != null || link['is_active'] == false) continue;
+      final groupId = '${link['modifier_group_id']}';
+      if (!seen.add(groupId)) continue;
+      final group = await _store.entity('modifier_group', groupId);
+      if (group == null ||
+          group['is_active'] == false ||
+          group['deleted_at'] != null) {
+        continue;
+      }
+      final rows = await _store.entities(
+        'modifier',
+        where: 'parent_id = ?',
+        args: [groupId],
+        orderBy: 'search_text',
+      );
+      final modifiers = [
+        for (final m in rows)
+          if (m['deleted_at'] == null && m['is_active'] != false)
+            {...await _withBusiness(m), 'modifier_group_id': groupId},
+      ]..sort((a, b) => _order(a).compareTo(_order(b)));
+      final model = ModifierGroupModel.fromJson({
+        ...await _withBusiness(group),
+        'selection_type': group['selection_type'] ?? 'single',
+        'modifiers': modifiers,
+      });
+      if (model.modifiers.isNotEmpty) groups.add(model);
+    }
+    groups.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return groups;
+  }
+
+  static int _order(Map<String, dynamic> row) =>
+      int.tryParse('${row['sort_order'] ?? 0}') ?? 0;
 
   // ── prices, tax, discounts ───────────────────────────────────────────
 
@@ -641,11 +697,38 @@ class LocalCatalog {
   /// owes us**. Server balance, minus credit sold offline (they owe more),
   /// plus payments taken offline (they owe less).
   Future<Decimal> customerBalance(String id) async {
-    final row = await _store.entity('customer', id);
-    final server = Decimal.tryParse('${row?['balance'] ?? 0}') ?? Decimal.zero;
-    return server -
+    return await pulledBalance(id) -
         await _store.pendingCreditFor(id) +
         await _store.pendingPaymentsFor(id);
+  }
+
+  /// The ledger balance exactly as the server last delivered it, in the
+  /// app's convention (**negative = the customer owes us**).
+  ///
+  /// Backend contract (README "Customer Ledger Balance Convention"): `balance`
+  /// is `payments - credit sales`, so `< 0` means the customer owes the shop,
+  /// and `balance_owed` is the explicit positive amount owed (`-balance`).
+  /// `balance_owed` is preferred when present (it cannot be misread); the
+  /// dedicated `customer_balance` feed wins over the balance riding on the
+  /// `customer` row.
+  Future<Decimal> pulledBalance(String id) async {
+    final row = await _store.entity('customer_balance', id) ??
+        await _store.entity('customer', id);
+    return balanceOf(row);
+  }
+
+  /// [pulledBalance] of one pulled row (`customer` or `customer_balance`).
+  static Decimal balanceOf(Map<String, dynamic>? row) {
+    if (row == null) return Decimal.zero;
+    final owed = Decimal.tryParse('${row['balance_owed'] ?? ''}');
+    if (owed != null) return -owed;
+    return Decimal.tryParse('${row['balance'] ?? 0}') ?? Decimal.zero;
+  }
+
+  /// What the customer owes the shop right now (never negative).
+  Future<Decimal> balanceOwed(String id) async {
+    final balance = await customerBalance(id);
+    return balance < Decimal.zero ? -balance : Decimal.zero;
   }
 
   // ── registers & shifts ───────────────────────────────────────────────
@@ -684,6 +767,114 @@ class LocalCatalog {
                     name: '${row['register_name']}',
                   )),
       );
+
+  /// Shift history: the pulled shifts (`register_shift`) merged with the
+  /// shifts opened on this device. A shift both sides know is shown from the
+  /// local row (it has the device's own, newer, numbers until it syncs).
+  Future<List<RegisterShiftModel>> shifts({
+    String? branchId,
+    String? registerId,
+    String? status,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final byId = <String, RegisterShiftModel>{};
+    final registers = {for (final r in await this.registers()) r.id: r};
+    for (final data in await _store.entities('register_shift')) {
+      final m = _pulledShift(data, registers);
+      if (m != null) byId[m.id] = m;
+    }
+    for (final row in await _store.shifts()) {
+      byId['${row['id']}'] = await shiftModelWithTotals(
+        row,
+        register: registers['${row['register_id']}'],
+      );
+    }
+    final all = byId.values.where((s) {
+      if (branchId != null && s.branchId != branchId) return false;
+      if (registerId != null && s.cashRegisterId != registerId) return false;
+      if (status != null && s.status != status) return false;
+      return true;
+    }).toList()
+      ..sort((a, b) => '${b.openedAt}'.compareTo('${a.openedAt}'));
+    return all.skip(skip).take(limit).toList();
+  }
+
+  Future<RegisterShiftModel?> shiftById(String id) async {
+    final registers = {for (final r in await this.registers()) r.id: r};
+    final row = await _store.shift(id);
+    if (row != null) {
+      return shiftModelWithTotals(row, register: registers['${row['register_id']}']);
+    }
+    final data = await _store.entity('register_shift', id);
+    return data == null ? null : _pulledShift(data, registers);
+  }
+
+  RegisterShiftModel? _pulledShift(
+    Map<String, dynamic> data,
+    Map<String, CashRegisterModel> registers,
+  ) {
+    final id = data['id']?.toString();
+    final registerId = (data['cash_register_id'] ?? data['register_id'])?.toString();
+    if (id == null || registerId == null) return null;
+    String? str(String k) => data[k]?.toString();
+    return RegisterShiftModel(
+      id: id,
+      cashRegisterId: registerId,
+      branchId: str('branch_id') ?? registers[registerId]?.branchId,
+      openedBy: str('opened_by'),
+      closedBy: str('closed_by'),
+      openedByName: str('opened_by_name'),
+      closedByName: str('closed_by_name'),
+      openingFloat: str('opening_float') ?? '0',
+      expectedCash: str('expected_cash'),
+      actualCash: str('actual_cash'),
+      cashDifference: str('cash_difference'),
+      openedAt: str('opened_at'),
+      closedAt: str('closed_at'),
+      status: str('status') ?? 'open',
+      notes: str('notes'),
+      register: registers[registerId],
+    );
+  }
+
+  /// A local shift with its expected cash and (once closed) the difference.
+  Future<RegisterShiftModel> shiftModelWithTotals(
+    Map<String, Object?> row, {
+    CashRegisterModel? register,
+  }) async {
+    final base = shiftModel(row, register: register);
+    final summary = await shiftSummary('${row['id']}');
+    return base.copyWith(
+      expectedCash: summary.expectedCash,
+      cashDifference: summary.cashDifference,
+    );
+  }
+
+  /// Totals of a pulled shift (one this device holds no sales for): what the
+  /// pulled record carries (opening float, expected, actual, difference and
+  /// any per-method totals).
+  Future<ShiftSummaryModel?> pulledShiftSummary(String shiftId) async {
+    final data = await _store.entity('register_shift', shiftId);
+    if (data == null) return null;
+    String s(String k) => data[k]?.toString() ?? '0';
+    return ShiftSummaryModel(
+      shiftId: shiftId,
+      status: data['status']?.toString(),
+      openingFloat: s('opening_float'),
+      totalCashSales: s('total_cash_sales'),
+      totalCardSales: s('total_card_sales'),
+      totalWalletSales: s('total_wallet_sales'),
+      totalOtherSales: s('total_other_sales'),
+      totalReturns: s('total_returns'),
+      totalCashIn: s('total_cash_in'),
+      totalCashOut: s('total_cash_out'),
+      totalExpenses: s('total_expenses'),
+      expectedCash: s('expected_cash'),
+      actualCash: data['actual_cash']?.toString(),
+      cashDifference: data['cash_difference']?.toString(),
+    );
+  }
 
   /// Cash drawer maths from what happened on this device for [shiftId].
   /// (Server totals replace this once the shift has synced and is re-read.)

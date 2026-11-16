@@ -23,6 +23,8 @@ import 'package:frantend/features/sales/presentation/widgets/sale_status_chip.da
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/features/sales/presentation/widgets/void_sale_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/core/offline/local_history.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
@@ -400,6 +402,14 @@ class _SaleInvoiceHeaderCard extends StatelessWidget {
                       ),
                     ),
                     SaleStatusChip(status: sale.saleStatus),
+                    if (sale.offline) ...[
+                      const SizedBox(width: 6),
+                      SaleSyncBadgeChip(
+                        badge: SaleSyncBadges.of(sale.id) == SaleSyncBadge.none
+                            ? SaleSyncBadge.notSynced
+                            : SaleSyncBadges.of(sale.id),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -524,9 +534,16 @@ class _SaleLineItemsCard extends StatelessWidget {
             ),
           ),
           if (sale.lines.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: Text('No line items')),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Text(
+                  SaleLineDisplay.isSummaryOnly(sale)
+                      ? OfflineMessages.fullDetailsNeedInternet
+                      : 'No line items',
+                  key: const Key('sale-summary-only-notice'),
+                ),
+              ),
             )
           else
             ...sale.lines.map(_SaleLineRow.new),
@@ -602,6 +619,13 @@ class _SaleLineRow extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
+                      for (final label in SaleLineDisplay.modifierLabels(line))
+                        Text(
+                          label,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       if (line.variationName != null &&
                           line.variationName!.isNotEmpty)
                         Padding(

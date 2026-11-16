@@ -1,3 +1,4 @@
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -1178,6 +1179,23 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ProductFormCubit>();
 
+    return OfflineAwareBuilder(
+      builder: (context, offline) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (offline)
+            const Padding(
+              padding: EdgeInsets.all(AppDimensions.spacingMd),
+              child: OnlineOnlyBanner(message: OfflineMessages.editingNotice),
+            ),
+          _barBody(context, cubit, offline),
+        ],
+      ),
+    );
+  }
+
+  Widget _barBody(BuildContext context, ProductFormCubit cubit, bool offline) {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
       decoration: BoxDecoration(
@@ -1206,7 +1224,7 @@ class _BottomBar extends StatelessWidget {
             child: PrimaryButton(
               label: isEdit ? 'Update Product' : 'Save Product',
               isLoading: state.isSubmitting,
-              onPressed: state.isSubmitting
+              onPressed: state.isSubmitting || offline
                   ? null
                   : () async {
                       final id = await cubit.submit();

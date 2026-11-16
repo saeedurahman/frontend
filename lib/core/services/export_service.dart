@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -237,7 +238,7 @@ abstract final class ExportService {
       }
     } catch (e, st) {
       debugPrint('[ExportFlow] Unexpected exception: $e\n$st');
-      errorMsg = 'Export error: $e';
+      errorMsg = 'Export error: ${UserErrorMessage.from(e)}';
     } finally {
       if (dialogOpen && context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -281,7 +282,7 @@ abstract final class ExportService {
     } catch (e, st) {
       debugPrint('[ExportFlow] Exception in saveBytesToPath: $e\n$st');
       if (context.mounted) {
-        AppAlerts.showErrorMessage(context, 'Failed to save export file: $e');
+        AppAlerts.showErrorMessage(context, 'Failed to save export file: ${UserErrorMessage.from(e)}');
       }
       return false;
     }

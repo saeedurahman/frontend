@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -98,7 +99,7 @@ class _ProductImportDialogState extends State<ProductImportDialog> {
       await _runValidation(text);
     } catch (e) {
       if (mounted) {
-        AppAlerts.showErrorMessage(context, 'Could not read CSV file: $e');
+        AppAlerts.showErrorMessage(context, 'Could not read CSV file: ${UserErrorMessage.from(e)}');
       }
     }
   }
@@ -141,7 +142,7 @@ class _ProductImportDialogState extends State<ProductImportDialog> {
       msg ??= e.message ?? 'Validation failed';
       if (mounted) setState(() => _errorMessage = msg);
     } catch (e) {
-      if (mounted) setState(() => _errorMessage = 'Validation error: $e');
+      if (mounted) setState(() => _errorMessage = 'Validation error: ${UserErrorMessage.from(e)}');
     } finally {
       if (mounted) setState(() => _isValidating = false);
     }
@@ -193,7 +194,7 @@ class _ProductImportDialogState extends State<ProductImportDialog> {
       }
     } catch (e) {
       if (mounted) {
-        AppAlerts.showErrorMessage(context, 'Import apply error: $e');
+        AppAlerts.showErrorMessage(context, 'Import apply error: ${UserErrorMessage.from(e)}');
       }
     } finally {
       if (mounted) setState(() => _isApplying = false);

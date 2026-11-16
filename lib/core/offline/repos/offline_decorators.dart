@@ -5,6 +5,7 @@ import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
+import 'package:frantend/core/offline/local_history.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
 import 'package:frantend/core/sync/sync_store.dart';
@@ -22,6 +23,14 @@ import 'package:frantend/features/expenses/data/models/expense_model.dart';
 import 'package:frantend/features/expenses/data/repositories/expenses_repository_impl.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
 import 'package:frantend/features/returns/data/repositories/returns_repository_impl.dart';
+import 'package:frantend/features/inventory/data/models/stock_model.dart';
+import 'package:frantend/features/inventory/data/repositories/inventory_repository_impl.dart';
+import 'package:frantend/features/products/data/models/category_model.dart';
+import 'package:frantend/features/products/data/models/paginated_products_model.dart';
+import 'package:frantend/features/products/data/models/product_model.dart';
+import 'package:frantend/features/products/data/repositories/products_repository_impl.dart';
+import 'package:frantend/features/sales/data/models/paginated_sales_model.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/data/repositories/sales_repository_impl.dart';
 
@@ -162,15 +171,86 @@ class OfflineCashRegisterRepository extends CashRegisterRepositoryImpl {
     required LocalCatalog catalog,
     required SyncStore store,
     required Future<String?> Function() userId,
+    bool Function()? isReachable,
   })  : _writer = writer,
         _catalog = catalog,
         _store = store,
-        _userId = userId;
+        _userId = userId,
+        _isReachable = isReachable;
 
   final OfflineWriter _writer;
   final LocalCatalog _catalog;
   final SyncStore _store;
   final Future<String?> Function() _userId;
+  final bool Function()? _isReachable;
+
+  static const _notOnDevice =
+      'This shift is not saved on this device. Connect to the internet to open it.';
+
+  /// Shift history: the server's list when reachable (plus shifts only this
+  /// device has), otherwise pulled + local shifts.
+  @override
+  Future<Either<Failure, List<RegisterShiftModel>>> getShifts({
+    String? branchId,
+    String? registerId,
+    String? status,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    Future<Either<Failure, List<RegisterShiftModel>>> local() async => Right(
+          await _catalog.shifts(
+            branchId: branchId,
+            registerId: registerId,
+            status: status,
+            skip: skip,
+            limit: limit,
+          ),
+        );
+    if (_isReachable?.call() == false) return local();
+    final remote = await super.getShifts(
+      branchId: branchId,
+      registerId: registerId,
+      status: status,
+      skip: skip,
+      limit: limit,
+    );
+    return remote.fold(
+      (failure) => failure is NetworkFailure || failure is ServerFailure
+          ? local()
+          : Left(failure),
+      (list) async {
+        if (skip != 0) return Right(list);
+        final known = {for (final s in list) s.id};
+        final mine = <RegisterShiftModel>[];
+        for (final row in await _store.shifts()) {
+          if (row['sync_state'] == 'synced' || known.contains('${row['id']}')) continue;
+          final s = await _catalog.shiftModelWithTotals(row);
+          if ((branchId == null || s.branchId == branchId) &&
+              (registerId == null || s.cashRegisterId == registerId) &&
+              (status == null || s.status == status)) {
+            mine.add(s);
+          }
+        }
+        return Right([...mine, ...list]);
+      },
+    );
+  }
+
+  @override
+  Future<Either<Failure, RegisterShiftModel>> getShiftById(String shiftId) async {
+    final row = await _store.shift(shiftId);
+    final offline = _isReachable?.call() == false;
+    if (row != null && (row['sync_state'] != 'synced' || offline)) {
+      return Right(await _catalog.shiftModelWithTotals(row));
+    }
+    if (!offline) {
+      final remote = await super.getShiftById(shiftId);
+      if (remote.isRight()) return remote;
+    }
+    final pulled = await _catalog.shiftById(shiftId);
+    if (pulled != null) return Right(pulled);
+    return const Left(NetworkFailure(_notOnDevice));
+  }
 
   @override
   Future<Either<Failure, List<CashRegisterModel>>> getRegisters({String? branchId}) async =>
@@ -209,10 +289,19 @@ class OfflineCashRegisterRepository extends CashRegisterRepositoryImpl {
 
   @override
   Future<Either<Failure, ShiftSummaryModel>> getShiftSummary(String shiftId) async {
-    if (await _store.shift(shiftId) != null) {
+    final local = await _store.shift(shiftId);
+    final offline = _isReachable?.call() == false;
+    if (local != null && (local['sync_state'] != 'synced' || offline)) {
       return Right(await _catalog.shiftSummary(shiftId));
     }
-    return super.getShiftSummary(shiftId);
+    if (!offline) {
+      final remote = await super.getShiftSummary(shiftId);
+      if (remote.isRight()) return remote;
+    }
+    if (local != null) return Right(await _catalog.shiftSummary(shiftId));
+    final pulled = await _catalog.pulledShiftSummary(shiftId);
+    if (pulled != null) return Right(pulled);
+    return const Left(NetworkFailure(_notOnDevice));
   }
 
   @override
@@ -337,7 +426,78 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
     bool Function()? isReachable,
   })  : _writer = writer,
         _store = store,
+        _history = LocalHistory(store),
         _isReachable = isReachable;
+
+  final LocalHistory _history;
+
+  /// Online: the server's page plus this device's unsent sales (so a sale
+  /// never vanishes between "saved" and "synced"). Offline (or the server
+  /// not answering): pulled recent sales merged with the local ones.
+  @override
+  Future<Either<Failure, PaginatedSalesModel>> getSales({
+    String? branchId,
+    String? customerId,
+    String? status,
+    String? saleType,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    Future<Either<Failure, PaginatedSalesModel>> local() async => Right(
+          await _history.sales(
+            branchId: branchId,
+            customerId: customerId,
+            status: status,
+            saleType: saleType,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            search: search,
+            skip: skip,
+            limit: limit,
+          ),
+        );
+    if (_isReachable?.call() == false) return local();
+    final remote = await super.getSales(
+      branchId: branchId,
+      customerId: customerId,
+      status: status,
+      saleType: saleType,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      search: search,
+      skip: skip,
+      limit: limit,
+    );
+    return remote.fold(
+      (failure) => failure is NetworkFailure || failure is ServerFailure
+          ? local()
+          : Left(failure),
+      (page) async {
+        final remoteIds = {for (final i in page.items) i.id};
+        for (final i in page.items) {
+          SaleSyncBadges.set(i.id, SaleSyncBadge.none);
+        }
+        if (skip != 0 || status != null || (search ?? '').isNotEmpty) {
+          return Right(page);
+        }
+        final pending = [
+          for (final p in await _history.pendingOnly(
+            branchId: branchId,
+            customerId: customerId,
+          ))
+            if (!remoteIds.contains(p.id)) p,
+        ];
+        if (pending.isEmpty) return Right(page);
+        return Right(page.copyWith(
+          total: page.total + pending.length,
+          items: [...pending, ...page.items],
+        ));
+      },
+    );
+  }
 
   final OfflineWriter _writer;
   final SyncStore _store;
@@ -354,9 +514,18 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
         (local['sync_state'] != 'synced' || _isReachable?.call() == false)) {
       return Right(LocalSaleMapper.toResponse(local));
     }
+    // Not made here: a pulled summary answers while the server is out of
+    // reach (no lines; the screen says full details need internet).
+    if (local == null && _isReachable?.call() == false) {
+      final summary = await _store.entity('sale_summary', id);
+      if (summary != null) return Right(LocalSaleMapper.fromSummary(summary));
+    }
     final remote = await super.getSaleById(id);
-    if (remote.isRight() || local == null) return remote;
-    return Right(LocalSaleMapper.toResponse(local));
+    if (remote.isRight()) return remote;
+    if (local != null) return Right(LocalSaleMapper.toResponse(local));
+    final summary = await _store.entity('sale_summary', id);
+    if (summary != null) return Right(LocalSaleMapper.fromSummary(summary));
+    return remote;
   }
 
   /// Void is only for sales the server already has; it is queued and applied
@@ -376,5 +545,149 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
     } catch (e) {
       return Left(_localWriteFailure(e));
     }
+  }
+}
+
+/// Products: **reading** works offline (list, detail, categories come from
+/// the pulled catalog); editing stays online-only and says so plainly.
+class OfflineProductsRepository extends ProductsRepositoryImpl {
+  OfflineProductsRepository({
+    required super.remoteDataSource,
+    required super.localDataSource,
+    required super.connectivityProbe,
+    required super.errorHandler,
+    required LocalCatalog catalog,
+    bool Function()? isReachable,
+  })  : _catalog = catalog,
+        _isReachable = isReachable;
+
+  final LocalCatalog _catalog;
+  final bool Function()? _isReachable;
+
+  bool get _offline => _isReachable?.call() == false;
+
+  static bool _network(Failure f) => f is NetworkFailure || f is ServerFailure;
+
+  @override
+  Future<Either<Failure, PaginatedProductsModel>> getProducts({
+    String? categoryId,
+    String? brandId,
+    bool? isActive,
+    String? search,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    Future<Either<Failure, PaginatedProductsModel>> local() async => Right(
+          await _catalog.products(
+            search: search,
+            categoryId: categoryId,
+            activeOnly: isActive ?? false,
+            skip: skip,
+            limit: limit,
+          ),
+        );
+    if (_offline) return local();
+    final remote = await super.getProducts(
+      categoryId: categoryId,
+      brandId: brandId,
+      isActive: isActive,
+      search: search,
+      skip: skip,
+      limit: limit,
+    );
+    return remote.fold((f) => _network(f) ? local() : Left(f), (_) => remote);
+  }
+
+  @override
+  Future<Either<Failure, ProductModel>> getProductById(String id) async {
+    Future<Either<Failure, ProductModel>> local(Failure original) async {
+      final p = await _catalog.product(id);
+      return p == null
+          ? const Left(NetworkFailure(UserErrorMessage.offline))
+          : Right(p);
+    }
+
+    if (_offline) return local(const NetworkFailure());
+    final remote = await super.getProductById(id);
+    return remote.fold((f) => _network(f) ? local(f) : Left(f), (_) => remote);
+  }
+
+  @override
+  Future<Either<Failure, List<CategoryModel>>> getCategories({String? parentId}) async {
+    Future<Either<Failure, List<CategoryModel>>> local() async =>
+        Right(await _catalog.categories(parentId: parentId));
+    if (_offline) return local();
+    final remote = await super.getCategories(parentId: parentId);
+    return remote.fold((f) => _network(f) ? local() : Left(f), (_) => remote);
+  }
+
+  /// Nothing is queued: say so, so nobody thinks the product was saved.
+  @override
+  Future<Either<Failure, ProductModel>> createProduct(Map<String, dynamic> body) async {
+    if (_offline) return const Left(NetworkFailure(OfflineMessages.editingNeedsInternet));
+    final result = await super.createProduct(body);
+    return result.fold(
+      (f) => f is NetworkFailure
+          ? const Left(NetworkFailure(OfflineMessages.editingNeedsInternet))
+          : Left(f),
+      (_) => result,
+    );
+  }
+}
+
+/// Inventory: stock levels read from the pulled stock offline; adjustments
+/// and movement history need the server.
+class OfflineInventoryRepository extends InventoryRepositoryImpl {
+  OfflineInventoryRepository({
+    required super.remoteDataSource,
+    required super.errorHandler,
+    required LocalCatalog catalog,
+    bool Function()? isReachable,
+  })  : _catalog = catalog,
+        _isReachable = isReachable;
+
+  final LocalCatalog _catalog;
+  final bool Function()? _isReachable;
+
+  bool get _offline => _isReachable?.call() == false;
+
+  static bool _network(Failure f) => f is NetworkFailure || f is ServerFailure;
+
+  @override
+  Future<Either<Failure, StockBalanceModel>> getStockBalance({
+    required String branchId,
+    required String productId,
+    String? variationId,
+  }) async {
+    Future<Either<Failure, StockBalanceModel>> local() async {
+      final qty = await _catalog.availableStock(branchId, productId, variationId: variationId);
+      if (qty == null) return const Left(NetworkFailure(UserErrorMessage.offline));
+      return Right(StockBalanceModel(
+        productId: productId,
+        variationId: variationId,
+        branchId: branchId,
+        currentQty: qty.toString(),
+      ));
+    }
+
+    if (_offline) return local();
+    final remote = await super.getStockBalance(
+      branchId: branchId,
+      productId: productId,
+      variationId: variationId,
+    );
+    return remote.fold((f) => _network(f) ? local() : Left(f), (_) => remote);
+  }
+
+  @override
+  Future<Either<Failure, List<StockBalanceModel>>> getStockBalances({
+    required String branchId,
+    List<String>? productIds,
+  }) async {
+    Future<Either<Failure, List<StockBalanceModel>>> local() async =>
+        Right(await _catalog.stockBalances(branchId, productIds: productIds));
+    if (_offline) return local();
+    final remote = await super.getStockBalances(branchId: branchId, productIds: productIds);
+    return remote.fold((f) => _network(f) ? local() : Left(f), (_) => remote);
   }
 }

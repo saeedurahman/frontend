@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/offline/local_history.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
@@ -385,7 +386,14 @@ class _SalesTable extends StatelessWidget {
               balanceDue: item.balanceDue,
               formatAmount: _formatAmount,
             ),
-            SaleStatusChip(status: item.status),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                SaleStatusChip(status: item.status),
+                SaleSyncBadgeChip(badge: SaleSyncBadges.of(item.id)),
+              ],
+            ),
           ],
           actions: AppTableActionButton(
             icon: Icons.chevron_right,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/identity/id_generator.dart';
+import 'package:frantend/core/offline/sale_line_modifiers.dart';
 import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -119,6 +120,9 @@ class OfflineWriter {
         taxRate: rate,
       );
       amounts.add(calc);
+      // `unit_price` already includes the modifiers (the contract the server
+      // checks); the modifiers are recorded next to it, never added again.
+      final modifiers = SaleLineModifier.listFrom(l['modifiers']);
       final line = <String, dynamic>{
         'id': _ids.newId(),
         'product_id': l['product_id'],
@@ -131,6 +135,8 @@ class OfflineWriter {
         'tax_amount': DecimalUtils.format(calc.taxAmount),
         'notes': l['notes'],
         'line_order': l['line_order'] ?? order,
+        if (modifiers.isNotEmpty)
+          'modifiers': [for (final m in modifiers) m.toPayload()],
       };
       lines.add(line);
       final pid = '${l['product_id']}';

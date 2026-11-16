@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
@@ -104,7 +105,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
       );
     } catch (e) {
       if (mounted) {
-        AppAlerts.showErrorMessage(context, 'Unable to preview receipt: $e');
+        AppAlerts.showErrorMessage(context, 'Unable to preview receipt: ${UserErrorMessage.from(e)}');
       }
     }
   }
@@ -187,7 +188,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Print error: $e'),
+              content: Text('Print error: ${UserErrorMessage.from(e)}'),
               action: SnackBarAction(
                 label: 'Print again',
                 onPressed: _testPrint,

@@ -210,7 +210,7 @@ class FakeSyncServer implements SyncApi {
           );
           break;
         }
-        put('customer', id, {...payload, 'is_active': true, 'balance': '0.00'});
+        put('customer', id, {...payload, 'is_active': true, 'balance': '0.00', 'balance_owed': '0.00'});
         result = OpResult(opId: opId, status: 'applied', serverId: id);
       case 'shift.open':
         final id = '${payload['id']}';
@@ -235,7 +235,11 @@ class FakeSyncServer implements SyncApi {
         }
         final newBal = (double.parse('${c.data!['balance']}') + double.parse('${payload['amount']}'))
             .toStringAsFixed(2);
-        put('customer', cid, {...c.data!, 'balance': newBal});
+        put('customer', cid, {
+          ...c.data!,
+          'balance': newBal,
+          'balance_owed': (-double.parse(newBal)).toStringAsFixed(2),
+        });
         result = OpResult(opId: opId, status: 'applied', serverId: '${payload['id'] ?? opId}');
       case 'expense.create':
         result = OpResult(opId: opId, status: 'applied', serverId: opId, officialNumber: 'EXP-1');
@@ -286,7 +290,11 @@ class FakeSyncServer implements SyncApi {
       }
       if (c != null && credit > 0) {
         final bal = double.parse('${c.data!['balance']}') - credit; // negative = owes
-        put('customer', '$customerId', {...c.data!, 'balance': bal.toStringAsFixed(2)});
+        put('customer', '$customerId', {
+          ...c.data!,
+          'balance': bal.toStringAsFixed(2),
+          'balance_owed': (-bal).toStringAsFixed(2),
+        });
         final limit = double.tryParse('${c.data!['credit_limit']}') ?? 0;
         if (limit > 0 && -bal > limit) flags.add('credit_limit_exceeded');
       }

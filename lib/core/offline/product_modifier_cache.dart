@@ -11,26 +11,31 @@ typedef ModifierGroupsFetcher = Future<Either<Failure, List<ModifierGroupModel>>
 
 /// Modifier groups of a product, answered from the device.
 ///
-/// Adding a product to the cart asks "does this item have modifiers?". That
-/// question used to be a `GET /restaurant/products/{id}/modifier-groups` the
-/// cashier waited on (seconds when the server is unreachable). Here
-/// [groupsFor] only ever reads the local copy; the server is asked in the
-/// background ([warm] for the products on screen, and a refresh behind every
-/// lookup) and its answer is stored for the next tap.
+/// Adding a product to the cart asks "does this item have modifiers?". The
+/// answer comes from the **pulled** modifier groups / modifiers / product
+/// links (`local`, see `LocalCatalog.modifierGroupsFor`): they are part of
+/// the sync feed, so they work offline and are as fresh as the last pull.
+/// The server is then not asked at all.
 ///
-/// Stored in `sync_meta` (`modifier_groups:<productId>`), so it is wiped with
-/// the rest of the tenant data.
+/// Only when the device holds no pulled modifier data (`local` answers null:
+/// an older install, or a user the feed does not deliver them to) does the
+/// older path apply: [groupsFor] reads the answer stored in `sync_meta`
+/// (`modifier_groups:<productId>`, wiped with the rest of the tenant data)
+/// and the server is asked in the background ([warm], and a refresh behind
+/// a stale lookup) as an optional refresh of that copy.
 class ProductModifierCache {
   ProductModifierCache({
     required Future<String?> Function(String key) read,
     required Future<void> Function(String key, String value) write,
     required ModifierGroupsFetcher fetch,
+    Future<List<ModifierGroupModel>?> Function(String productId)? local,
     DateTime Function()? clock,
     bool Function()? enabled,
     bool Function()? isReachable,
     this.maxAge = const Duration(minutes: 10),
     this.concurrency = 4,
-  })  : _readRaw = read,
+  })  : _local = local,
+        _readRaw = read,
         _writeRaw = write,
         _clock = clock ?? DateTime.now,
         _fetch = fetch,
@@ -41,11 +46,13 @@ class ProductModifierCache {
   factory ProductModifierCache.onStore({
     required SyncStore store,
     required ModifierGroupsFetcher fetch,
+    Future<List<ModifierGroupModel>?> Function(String productId)? local,
     bool Function()? enabled,
     bool Function()? isReachable,
     Duration maxAge = const Duration(minutes: 10),
   }) =>
       ProductModifierCache(
+        local: local,
         read: store.meta,
         write: store.setMeta,
         clock: store.now,
@@ -54,6 +61,10 @@ class ProductModifierCache {
         isReachable: isReachable,
         maxAge: maxAge,
       );
+
+  /// Pulled data: the product's groups, or null when the device holds no
+  /// pulled modifier data at all.
+  final Future<List<ModifierGroupModel>?> Function(String productId)? _local;
 
   final Future<String?> Function(String key) _readRaw;
   final Future<void> Function(String key, String value) _writeRaw;
@@ -83,6 +94,8 @@ class ProductModifierCache {
   /// is then fetched in the background for the next time.
   Future<List<ModifierGroupModel>> groupsFor(String productId) async {
     if (!enabled) return const [];
+    final pulled = await _local?.call(productId);
+    if (pulled != null) return usable(pulled);
     final entry = await _read(productId);
     if (entry == null || _isStale(entry.fetchedAt)) {
       unawaited(refresh(productId));
@@ -95,6 +108,7 @@ class ProductModifierCache {
     if (!enabled || !_reachable) return;
     final pending = <String>[];
     for (final id in productIds.toSet()) {
+      if (await _local?.call(id) != null) continue; // pulled: nothing to fetch
       final entry = await _read(id);
       if (entry == null || _isStale(entry.fetchedAt)) pending.add(id);
     }

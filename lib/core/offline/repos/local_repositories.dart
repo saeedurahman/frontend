@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/user_error_message.dart';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
@@ -43,7 +44,7 @@ class LocalProductsRepository implements ProductsRepository {
         limit: limit,
       ));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(CacheFailure(UserErrorMessage.from(e)));
     }
   }
 
@@ -53,7 +54,7 @@ class LocalProductsRepository implements ProductsRepository {
       final p = await _catalog.product(id);
       return p == null ? const Left(_notAvailable) : Right(p);
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(CacheFailure(UserErrorMessage.from(e)));
     }
   }
 
@@ -94,7 +95,7 @@ class LocalInventoryRepository implements InventoryRepository {
     } catch (e) {
       // A repository answers with a Failure; callers refresh in the
       // background and must not get an unhandled error.
-      return Left(CacheFailure('$e'));
+      return Left(CacheFailure(UserErrorMessage.from(e)));
     }
   }
 
@@ -106,7 +107,7 @@ class LocalInventoryRepository implements InventoryRepository {
     try {
       return Right(await _catalog.stockBalances(branchId, productIds: productIds));
     } catch (e) {
-      return Left(CacheFailure('$e'));
+      return Left(CacheFailure(UserErrorMessage.from(e)));
     }
   }
 

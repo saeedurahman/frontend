@@ -116,9 +116,10 @@ abstract final class PosCalculations {
         'product_id': item.productId,
         if (item.variationId != null) 'variation_id': item.variationId,
         'qty': DecimalUtils.format(item.qty),
-        'unit_price': DecimalUtils.format(
-          item.modifiers.isEmpty ? item.unitPrice : item.baseUnitPrice,
-        ),
+        // Final price of ONE unit, modifiers included (the offline sync
+        // contract: the server accepts `catalog` or `catalog + modifiers`).
+        // Totals, receipts and the recorded sale all derive from this.
+        'unit_price': DecimalUtils.format(item.unitPrice),
         'discount_pct': DecimalUtils.format(discountPct),
         'discount_amount': DecimalUtils.format(discountAmount),
         'tax_rate': DecimalUtils.format(item.effectiveTaxRate),
@@ -127,6 +128,16 @@ abstract final class PosCalculations {
         if (item.modifiers.isNotEmpty)
           'modifier_ids':
               item.modifiers.map((modifier) => modifier.modifierId).toList(),
+        if (item.modifiers.isNotEmpty)
+          'modifiers': [
+            for (final modifier in item.modifiers)
+              {
+                'modifier_id': modifier.modifierId,
+                'name': modifier.modifierName,
+                'price': DecimalUtils.format(modifier.priceDelta),
+                'qty': '1',
+              },
+          ],
         'line_order': index + 1,
       };
     });

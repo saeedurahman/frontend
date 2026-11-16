@@ -25,7 +25,11 @@ import 'package:frantend/features/customers/domain/usecases/customer_usecases.da
 import 'package:frantend/features/customers/domain/usecases/record_customer_payment_usecase.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/expenses/data/datasources/expenses_remote_datasource.dart';
+import 'package:frantend/features/inventory/data/datasources/inventory_remote_datasource.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
+import 'package:frantend/features/products/data/datasources/products_local_datasource.dart';
+import 'package:frantend/features/products/data/datasources/products_remote_datasource.dart';
+import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/pos/data/datasources/pos_remote_datasource.dart';
 import 'package:frantend/features/pos/data/repositories/barcode_cache_repository_impl.dart';
 import 'package:frantend/features/pos/data/repositories/held_orders_repository_impl.dart';
@@ -120,6 +124,14 @@ void expectPlainLanguage(String? text) {
   }
 }
 
+/// No device-side product list cache: the pulled catalog is the only copy.
+class _NoProductCache extends Fake implements ProductsLocalDataSource {
+  @override
+  Future<void> cacheProducts(List<ProductListItemModel> products) async {}
+  @override
+  Future<List<ProductListItemModel>> getCachedProducts() async => const [];
+}
+
 class _Auth extends Fake implements AuthLocalDataSource {
   @override
   Future<UserModel?> getCachedUser() async => const UserModel(
@@ -176,6 +188,21 @@ class OfflineWorld {
       catalog: this.rig.catalog,
       store: this.rig.store,
       userId: () async => kUser,
+      isReachable: reachable,
+    );
+    productsRepo = OfflineProductsRepository(
+      remoteDataSource: ProductsRemoteDataSourceImpl(client),
+      localDataSource: _NoProductCache(),
+      connectivityProbe: this.rig.probe,
+      errorHandler: errors,
+      catalog: this.rig.catalog,
+      isReachable: reachable,
+    );
+    inventoryRepo = OfflineInventoryRepository(
+      remoteDataSource: InventoryRemoteDataSourceImpl(client),
+      errorHandler: errors,
+      catalog: this.rig.catalog,
+      isReachable: reachable,
     );
     expenses = OfflineExpensesRepository(
       remoteDataSource: ExpensesRemoteDataSourceImpl(client),
@@ -206,15 +233,15 @@ class OfflineWorld {
     modifiers = ProductModifierCache.onStore(
       store: this.rig.store,
       fetch: GetProductModifierGroupsUseCase(restaurant).call,
+      local: (productId) async => await this.rig.catalog.hasModifierData()
+          ? this.rig.catalog.modifierGroupsFor(productId)
+          : null,
       isReachable: reachable,
     );
     branding = ReceiptBrandingSource(
       store: this.rig.store,
       localSettings: localSettings,
-      fetchProfile: GetBusinessProfileUseCase(settings).call,
-      fetchSettings: ({String? branchId}) =>
-          GetSettingsUseCase(settings)(branchId: branchId),
-      isReachable: reachable,
+      catalog: this.rig.catalog,
     );
   }
 
@@ -222,6 +249,8 @@ class OfflineWorld {
   final UnreachableAdapter adapter;
   late final Dio dio;
 
+  late final OfflineProductsRepository productsRepo;
+  late final OfflineInventoryRepository inventoryRepo;
   late final LocalProductsRepository products;
   late final LocalInventoryRepository inventory;
   late final LocalSettingsRepository localSettings;

@@ -13,6 +13,7 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/presentation/services/receipt_text_renderer.dart';
 import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
+import 'package:frantend/features/sales/presentation/utils/sale_line_display.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:intl/intl.dart';
@@ -438,12 +439,25 @@ abstract final class SaleReceiptService {
         ],
       );
 
+      // Chosen modifiers (and the kitchen note) print under the item.
+      final modifierLabels = SaleLineDisplay.modifierLabels(line);
+      final lineNote = SaleLineDisplay.note(line);
       return pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 2.0),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             nameWidget,
+            for (final label in modifierLabels)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 6, top: 0.5),
+                child: pw.Text(label, style: const pw.TextStyle(fontSize: 8)),
+              ),
+            if (lineNote != null && lineNote.isNotEmpty)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 6, top: 0.5),
+                child: pw.Text(lineNote, style: const pw.TextStyle(fontSize: 8)),
+              ),
             pw.SizedBox(height: 1.5),
             detailsRow,
           ],

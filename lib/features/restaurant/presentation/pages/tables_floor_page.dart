@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
@@ -16,7 +20,10 @@ import 'package:frantend/utils/app_alerts.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TablesFloorPage extends StatelessWidget {
-  const TablesFloorPage({super.key});
+  const TablesFloorPage({super.key, this.probe});
+
+  /// Reachability source (the app's own unless a test passes one).
+  final ConnectivityProbe? probe;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,16 @@ class TablesFloorPage extends StatelessWidget {
               .read<TablesFloorCubit>()
               .onBranchChanged(branchState.selectedBranchId);
         },
-        child: const _TablesFloorView(),
+        child: Builder(
+          builder: (context) => OfflineAwareScaffold(
+            probe: probe,
+            message: OfflineMessages.tableService,
+            actionLabel: OfflineMessages.goToCounterSale,
+            onAction: () => context.go(RouteNames.pos),
+            replaceChildWhenOffline: true,
+            child: const _TablesFloorView(),
+          ),
+        ),
       ),
     );
   }
