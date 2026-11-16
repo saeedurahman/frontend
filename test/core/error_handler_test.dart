@@ -33,9 +33,16 @@ void main() {
       );
     });
 
-    test('403 -> PermissionDeniedFailure with a clear message', () {
-      final failure =
-          handler.mapExceptionToFailure(_bad(403, {'detail': 'x'}));
+    test('403 -> PermissionDeniedFailure carries the server detail', () {
+      final failure = handler
+          .mapExceptionToFailure(_bad(403, {'detail': 'No access to branch'}));
+      expect(failure, isA<PermissionDeniedFailure>());
+      expect(failure.message, 'No access to branch');
+    });
+
+    test('403 without a detail -> PermissionDeniedFailure with a clear message',
+        () {
+      final failure = handler.mapExceptionToFailure(_bad(403, {}));
       expect(failure, isA<PermissionDeniedFailure>());
       expect(failure.message, "You don't have permission to do this.");
     });

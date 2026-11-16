@@ -9,12 +9,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:frantend/core/platform/file_saver_service.dart';
 
+// Live integration test: needs a running backend plus the fixture written by
+// backend/setup_test_business.py. Without that fixture it is skipped (with a
+// reason) instead of failing the offline unit-test run.
+final _authFile = File('D:/flutter/sas/backend/test_export_auth.json');
+
 void main() {
-  test('Live Backend Export Test for Sales (CSV, XLSX, PDF) and other datasets', () async {
-    final authFile = File('D:/flutter/sas/backend/test_export_auth.json');
-    if (!authFile.existsSync()) {
-      fail('test_export_auth.json does not exist. Run setup_test_business.py first.');
-    }
+  test('Live Backend Export Test for Sales (CSV, XLSX, PDF) and other datasets',
+      skip: _authFile.existsSync()
+          ? false
+          : 'needs backend/test_export_auth.json (run setup_test_business.py)',
+      () async {
+    final authFile = _authFile;
     final authData = jsonDecode(authFile.readAsStringSync()) as Map<String, dynamic>;
     final baseUrl = authData['base_url'] as String;
     final token = authData['token'] as String;
