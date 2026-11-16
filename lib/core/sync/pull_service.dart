@@ -191,7 +191,12 @@ class PullService {
       await _store.setMeta(SyncStore.permissionsFingerprintKey, version);
     }
     final access = await resolveAccess(version.isEmpty ? (previous ?? '') : version);
-    if (access != null) onAccess?.call(access);
+    if (access != null) {
+      if (access.branchIds.isNotEmpty) {
+        await _store.purgeRevokedBranches(access.branchIds);
+      }
+      onAccess?.call(access);
+    }
   }
 
   /// Permission keys = union of the pulled roles of the signed-in user.

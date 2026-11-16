@@ -18,6 +18,7 @@ class RecordCustomerPaymentUseCase {
     String? referenceNo,
     String? notes,
     String? registerShiftId,
+    String? branchId,
   }) =>
       _repository.recordPayment(
         customerId,
@@ -26,5 +27,6 @@ class RecordCustomerPaymentUseCase {
         referenceNo: referenceNo,
         notes: notes,
         registerShiftId: registerShiftId,
+        branchId: branchId,
       );
 }

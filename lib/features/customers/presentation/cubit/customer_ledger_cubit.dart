@@ -1,7 +1,9 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
@@ -40,6 +42,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   final GetMyActiveShiftUseCase _getMyActiveShift;
 
   String? _customerId;
+  String? _branchId;
   List<CustomerLedgerEntryModel> _allEntries = [];
 
   /// The ledger lines live on the server only. True while they could not be
@@ -132,8 +135,13 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     return shiftResult.fold((_) => null, (shift) => shift?.id);
   }
 
-  Future<void> load(String customerId) async {
+  Future<void> load(String customerId, {String? branchId}) async {
     _customerId = customerId;
+    if (branchId != null) {
+      _branchId = branchId;
+    } else if (sl.isRegistered<BranchSelectorCubit>()) {
+      _branchId = sl<BranchSelectorCubit>().state.selectedBranchId;
+    }
     _allEntries = [];
     _pageSize = _defaultPageSize;
     ledgerNeedsConnection = false;
@@ -143,9 +151,9 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     await customerResult.fold(
       (failure) async => emit(CustomerLedgerState.error(failure.message)),
       (customer) async {
-        final balanceResult = await _getBalance(customerId);
+        final balanceResult = await _getBalance(customerId, branchId: _branchId);
         final ledgerResult =
-            await _getLedger(customerId, skip: 0, limit: _fetchSize);
+            await _getLedger(customerId, branchId: _branchId, skip: 0, limit: _fetchSize);
 
         balanceResult.fold(
           (failure) => emit(CustomerLedgerState.error(failure.message)),
@@ -190,6 +198,11 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     );
   }
 
+  Future<void> onBranchChanged(String? branchId) async {
+    if (_customerId == null || branchId == _branchId) return;
+    await load(_customerId!, branchId: branchId);
+  }
+
   Future<CustomerPaymentResponseModel?> recordPayment({
     required Decimal amount,
     required String paymentMethod,
@@ -218,6 +231,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       referenceNo: referenceNo,
       notes: notes,
       registerShiftId: registerShiftId,
+      branchId: _branchId,
     );
 
     return await result.fold(
@@ -235,7 +249,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         // the server cannot be reached the lines on screen stay as they are
         // and no error is shown for a payment that succeeded.
         final ledgerResult =
-            await _getLedger(_customerId!, skip: 0, limit: _fetchSize);
+            await _getLedger(_customerId!, branchId: _branchId, skip: 0, limit: _fetchSize);
 
         ledgerResult.fold(
           (failure) {
@@ -298,6 +312,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
 
     final result = await _getLedger(
       _customerId!,
+      branchId: _branchId,
       skip: _allEntries.length,
       limit: _fetchSize,
     );

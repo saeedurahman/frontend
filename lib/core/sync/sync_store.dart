@@ -600,6 +600,21 @@ class SyncStore {
     }
   }
 
+  /// Removes cached entities and stock levels for branches no longer in [allowedBranchIds].
+  /// Does nothing when [allowedBranchIds] is empty (unrestricted).
+  Future<void> purgeRevokedBranches(List<String> allowedBranchIds) async {
+    if (allowedBranchIds.isEmpty) return;
+    final placeholders = List.filled(allowedBranchIds.length, '?').join(',');
+    await _exec(
+      'DELETE FROM entities WHERE branch_id IS NOT NULL AND branch_id NOT IN ($placeholders)',
+      allowedBranchIds,
+    );
+    await _exec(
+      'DELETE FROM stock_levels WHERE branch_id NOT IN ($placeholders)',
+      allowedBranchIds,
+    );
+  }
+
   // ── stock ────────────────────────────────────────────────────────────
 
   /// Pulled balance for a product (+variation) at a branch; null if unknown.

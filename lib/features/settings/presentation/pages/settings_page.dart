@@ -8,8 +8,10 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:frantend/features/settings/presentation/widgets/offline_settings_section.dart';
 import 'package:frantend/features/settings/presentation/widgets/pos_settings_section.dart';
@@ -59,11 +61,20 @@ class _SettingsViewState extends State<_SettingsView>
   }
 
   int _tabCountFor(SettingsState state) {
-    final branchCount = switch (state) {
-      SettingsLoaded(:final business) => business.branches.length,
-      _ => 1,
-    };
-    return branchCount > 1 ? 4 : 3;
+    return _showBranchTabFor(state) ? 4 : 3;
+  }
+
+  bool _showBranchTabFor(SettingsState state) {
+    if (state is! SettingsLoaded) return false;
+    final branchIds = sl<AccessCubit>().state.branchIds;
+    final allowed = BranchSelectorCubit.allowedBranches(
+      state.business.branches,
+      branchIds,
+    );
+    if (branchIds.isNotEmpty) {
+      return allowed.isNotEmpty;
+    }
+    return state.business.branches.length > 1;
   }
 
   void _syncTabController(int count) {
@@ -87,11 +98,7 @@ class _SettingsViewState extends State<_SettingsView>
         }
       },
       builder: (context, state) {
-        final branchCount = switch (state) {
-          SettingsLoaded(:final business) => business.branches.length,
-          _ => 0,
-        };
-        final showBranchTab = branchCount > 1;
+        final showBranchTab = _showBranchTabFor(state);
         final tabController = _tabController!;
 
         return Column(
@@ -956,7 +963,14 @@ class _BranchOverridesTabState extends State<_BranchOverridesTab> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<SettingsCubit>();
-    final branches = widget.state.business.branches;
+    final branchIds = sl<AccessCubit>().state.branchIds;
+    final branches = BranchSelectorCubit.allowedBranches(
+      widget.state.business.branches,
+      branchIds,
+    );
+    final selectedBranchId = branches.any((b) => b.id == widget.state.branchOverrideId)
+        ? widget.state.branchOverrideId
+        : null;
 
     return SingleChildScrollView(
       child: Center(
@@ -967,7 +981,7 @@ class _BranchOverridesTabState extends State<_BranchOverridesTab> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String?>(
-                  initialValue: widget.state.branchOverrideId,
+                  value: selectedBranchId,
                   decoration: const InputDecoration(labelText: 'Branch'),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('Select branch')),

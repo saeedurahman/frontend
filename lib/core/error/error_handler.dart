@@ -67,7 +67,10 @@ class ErrorHandler {
       case 402:
         return SubscriptionFailure.fromBody(data);
       case 403:
-        return const PermissionDeniedFailure();
+        final msg = ApiErrorParser.message(data, fallback: '');
+        return PermissionDeniedFailure(
+          msg.isNotEmpty ? msg : "You don't have permission to do this.",
+        );
       case 404:
         return NotFoundFailure(
           data is Map && data['detail'] is String ? message : 'Not found',

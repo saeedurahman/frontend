@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/notifications/data/datasources/notifications_remote_datasource.dart';
@@ -19,6 +19,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
 
   @override
   Future<Either<Failure, PaginatedNotificationsModel>> getNotifications({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,
@@ -27,6 +28,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     try {
       return Right(
         await _remote.getNotifications(
+          branchId: branchId,
           isRead: isRead,
           notificationType: notificationType,
           skip: skip,

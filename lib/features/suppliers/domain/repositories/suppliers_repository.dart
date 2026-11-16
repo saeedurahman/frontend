@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 
@@ -19,6 +19,7 @@ abstract class SuppliersRepository {
   Future<Either<Failure, void>> deleteSupplier(String id);
 
   Future<Either<Failure, SupplierBalanceModel>> getSupplierBalance(
-    String supplierId,
-  );
+    String supplierId, {
+    String? branchId,
+  });
 }

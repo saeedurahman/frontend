@@ -21,6 +21,7 @@ class _FakeRepo extends Fake implements NotificationsRepository {
 
   @override
   Future<Either<Failure, PaginatedNotificationsModel>> getNotifications({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,

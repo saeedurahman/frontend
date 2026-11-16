@@ -91,13 +91,14 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
 
   @override
   Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(
-    String customerId,
-  ) async {
+    String customerId, {
+    String? branchId,
+  }) async {
     final known = await _catalog.customer(customerId) != null;
     final localOnly =
         known && (await _catalog.unsyncedCustomerIds()).contains(customerId);
     if (_reachable && !localOnly) {
-      final remote = await super.getCustomerBalance(customerId);
+      final remote = await super.getCustomerBalance(customerId, branchId: branchId);
       if (remote.isRight() || !_isNetwork(remote) || !known) return remote;
     }
     if (!known) return const Left(NetworkFailure(UserErrorMessage.offline));
@@ -130,6 +131,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
     String? referenceNo,
     String? notes,
     String? registerShiftId,
+    String? branchId,
   }) async {
     try {
       final ledgerId = await _writer.recordCustomerPayment(

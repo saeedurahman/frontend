@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/restaurant/presentation/cubit/tables_floor_cubit.dart';
 import 'package:frantend/features/restaurant/presentation/cubit/tables_floor_state.dart';
 import 'package:frantend/features/restaurant/presentation/widgets/floor_plan_grid.dart';
@@ -20,7 +22,17 @@ class TablesFloorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<TablesFloorCubit>()..init(),
-      child: const _TablesFloorView(),
+      child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
+        bloc: sl.isRegistered<BranchSelectorCubit>()
+            ? sl<BranchSelectorCubit>()
+            : null,
+        listener: (context, branchState) {
+          context
+              .read<TablesFloorCubit>()
+              .onBranchChanged(branchState.selectedBranchId);
+        },
+        child: const _TablesFloorView(),
+      ),
     );
   }
 }

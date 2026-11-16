@@ -11,12 +11,14 @@ class GetNotificationsUseCase {
   final NotificationsRepository _repository;
 
   Future<Either<Failure, PaginatedNotificationsModel>> call({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,
     int limit = 50,
   }) =>
       _repository.getNotifications(
+        branchId: branchId,
         isRead: isRead,
         notificationType: notificationType,
         skip: skip,

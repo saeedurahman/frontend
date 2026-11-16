@@ -1,9 +1,10 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/notifications/data/models/paginated_notifications_model.dart';
 
 abstract class NotificationsRepository {
   Future<Either<Failure, PaginatedNotificationsModel>> getNotifications({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,

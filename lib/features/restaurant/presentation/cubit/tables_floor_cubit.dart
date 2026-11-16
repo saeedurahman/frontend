@@ -44,10 +44,19 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
       return;
     }
 
-    final selector = sl<BranchSelectorCubit>().state;
-    _branchId = selector.isInitialized && selector.selectedBranchId != null
-        ? selector.selectedBranchId
-        : user?.branchId;
+    final allowedBranches = user?.branchIds ?? const [];
+    if (sl.isRegistered<BranchSelectorCubit>()) {
+      final selector = sl<BranchSelectorCubit>().state;
+      if (selector.isInitialized && selector.selectedBranchId != null) {
+        _branchId = selector.selectedBranchId;
+      }
+    }
+    _branchId ??= user?.branchId;
+    if (allowedBranches.isNotEmpty) {
+      if (_branchId == null || !allowedBranches.contains(_branchId)) {
+        _branchId = allowedBranches.first;
+      }
+    }
 
     await loadLayout();
     _startAutoRefresh();
@@ -96,6 +105,15 @@ class TablesFloorCubit extends Cubit<TablesFloorState> {
   }
 
   Future<void> refresh() => loadLayout(isRefresh: true);
+
+  Future<void> onBranchChanged(String? branchId) async {
+    if (branchId == null || branchId == _branchId) return;
+    final user = await _authLocal.getCachedUser();
+    final allowedBranches = user?.branchIds ?? const [];
+    if (allowedBranches.isNotEmpty && !allowedBranches.contains(branchId)) return;
+    _branchId = branchId;
+    await loadLayout(isRefresh: true);
+  }
 
   void selectFloorPlan(String floorPlanId) {
     emit(state.copyWith(selectedFloorPlanId: floorPlanId));

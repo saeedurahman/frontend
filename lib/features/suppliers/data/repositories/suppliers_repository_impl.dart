@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/suppliers/data/datasources/suppliers_remote_datasource.dart';
@@ -74,10 +74,11 @@ class SuppliersRepositoryImpl implements SuppliersRepository {
 
   @override
   Future<Either<Failure, SupplierBalanceModel>> getSupplierBalance(
-    String supplierId,
-  ) async {
+    String supplierId, {
+    String? branchId,
+  }) async {
     try {
-      final result = await _remote.getSupplierBalance(supplierId);
+      final result = await _remote.getSupplierBalance(supplierId, branchId: branchId);
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));

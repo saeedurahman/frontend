@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/services/image_upload_service.dart';
 import 'package:frantend/features/settings/data/models/app_setting_model.dart';
 import 'package:frantend/features/settings/data/models/business_profile_model.dart';
@@ -46,6 +47,15 @@ class SettingsCubit extends Cubit<SettingsState> {
   final UpdateTaxRateUseCase _updateTaxRate;
   final ImageUploadService _imageUpload;
   final ImagePickerService _imagePicker;
+
+  /// Allowed branch IDs provider. Falls back to AccessCubit when unset.
+  List<String> Function()? branchIdsProvider;
+
+  List<String> _allowedBranchIds() =>
+      branchIdsProvider?.call() ??
+      (sl.isRegistered<AccessCubit>()
+          ? sl<AccessCubit>().state.branchIds
+          : const <String>[]);
 
   Future<void> loadAll() async {
     emit(const SettingsState.loading());
@@ -309,6 +319,12 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
 
+    final allowed = _allowedBranchIds();
+    if (allowed.isNotEmpty && !allowed.contains(branchId)) {
+      emit(current.copyWith(errorMessage: "You don't have access to this branch."));
+      return;
+    }
+
     final settingsResult = await _getSettings(branchId: branchId);
     settingsResult.fold(
       (f) => emit(current.copyWith(errorMessage: f.message)),
@@ -342,6 +358,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<bool> saveBranchOverride() async {
     final current = state;
     if (current is! SettingsLoaded || current.branchOverrideId == null) {
+      return false;
+    }
+
+    final allowed = _allowedBranchIds();
+    if (allowed.isNotEmpty && !allowed.contains(current.branchOverrideId)) {
+      emit(current.copyWith(errorMessage: "You don't have access to this branch."));
       return false;
     }
 
@@ -380,6 +402,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<bool> removeBranchOverride() async {
     final current = state;
     if (current is! SettingsLoaded || current.branchOverrideId == null) {
+      return false;
+    }
+
+    final allowed = _allowedBranchIds();
+    if (allowed.isNotEmpty && !allowed.contains(current.branchOverrideId)) {
+      emit(current.copyWith(errorMessage: "You don't have access to this branch."));
       return false;
     }
 

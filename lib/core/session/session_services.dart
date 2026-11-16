@@ -67,6 +67,7 @@ abstract final class SessionServices {
     final access = sl<AccessCubit>();
     final subscription = sl<SubscriptionCubit>();
     final branches = sl<BranchSelectorCubit>();
+    final notifications = sl<NotificationsCubit>();
 
     SessionSignals.onSubscriptionFailure = subscription.onSubscriptionFailure;
     SessionSignals.onForbiddenRequest = (request) {
@@ -78,6 +79,7 @@ abstract final class SessionServices {
           access: access.state.access,
           branchIds: access.state.branchIds,
         );
+    notifications.branchIdsProvider = () => access.state.branchIds;
 
     subscription.stream.listen(
       (state) => guard.setSubscriptionBlocked(state.isBlocked),
@@ -107,6 +109,7 @@ abstract final class SessionServices {
       previous = state;
       if (scopeChanged && user != null && guard.isAuthenticated) {
         unawaited(branches.startSession());
+        unawaited(notifications.refresh());
       }
     });
 

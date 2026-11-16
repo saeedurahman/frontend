@@ -31,9 +31,25 @@ mixin PosCubitSessionMixin
       return;
     }
 
+    final allowedBranches = user?.branchIds ?? const [];
+    String? effectiveBranchId;
+    if (sl.isRegistered<BranchSelectorCubit>()) {
+      final selected = sl<BranchSelectorCubit>().state.selectedBranchId;
+      if (selected != null &&
+          (allowedBranches.isEmpty || allowedBranches.contains(selected))) {
+        effectiveBranchId = selected;
+      }
+    }
+    effectiveBranchId ??= user?.branchId;
+    if (allowedBranches.isNotEmpty) {
+      if (effectiveBranchId == null || !allowedBranches.contains(effectiveBranchId)) {
+        effectiveBranchId = allowedBranches.first;
+      }
+    }
+
     _safeEmit(state.patch(
       cashierName: user?.name ?? 'Cashier',
-      branchId: user?.branchId,
+      branchId: effectiveBranchId,
       businessName: user?.businessName,
       userId: user?.id,
       businessId: user?.businessId,
@@ -65,5 +81,19 @@ mixin PosCubitSessionMixin
         tableStatus: dineInTableStatus,
       );
     }
+  }
+
+  /// Switches the POS branch if allowed. Never allows a branch-limited user
+  /// to switch to an unassigned / foreign branch.
+  Future<bool> switchBranch(String newBranchId) async {
+    final session = await _resolvePosSession();
+    final allowedBranches = session.user?.branchIds ?? const [];
+    if (allowedBranches.isNotEmpty && !allowedBranches.contains(newBranchId)) {
+      return false;
+    }
+    _safeEmit(state.patch(branchId: newBranchId));
+    await checkActiveShift();
+    await _loadStockBalances();
+    return true;
   }
 }

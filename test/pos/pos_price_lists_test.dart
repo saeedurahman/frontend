@@ -126,7 +126,10 @@ class _GetCustomer extends Fake implements customers_uc.GetCustomerUseCase {
 class _GetBalance extends Fake
     implements customers_uc.GetCustomerBalanceUseCase {
   @override
-  Future<Either<Failure, CustomerBalanceModel>> call(String customerId) async =>
+  Future<Either<Failure, CustomerBalanceModel>> call(
+    String customerId, {
+    String? branchId,
+  }) async =>
       const Left(ServerFailure('local only'));
 }
 

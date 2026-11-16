@@ -21,11 +21,13 @@ abstract class CustomersRepository {
   );
 
   Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(
-    String customerId,
-  );
+    String customerId, {
+    String? branchId,
+  });
 
   Future<Either<Failure, List<CustomerLedgerEntryModel>>> getCustomerLedger(
     String customerId, {
+    String? branchId,
     int? skip,
     int? limit,
   });
@@ -37,5 +39,6 @@ abstract class CustomersRepository {
     String? referenceNo,
     String? notes,
     String? registerShiftId,
+    String? branchId,
   });
 }

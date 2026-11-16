@@ -63,6 +63,9 @@ class GetSupplierBalanceUseCase {
 
   final SuppliersRepository _repository;
 
-  Future<Either<Failure, SupplierBalanceModel>> call(String supplierId) =>
-      _repository.getSupplierBalance(supplierId);
+  Future<Either<Failure, SupplierBalanceModel>> call(
+    String supplierId, {
+    String? branchId,
+  }) =>
+      _repository.getSupplierBalance(supplierId, branchId: branchId);
 }

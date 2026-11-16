@@ -16,10 +16,14 @@ abstract class CustomersRemoteDataSource {
 
   Future<CustomerModel> updateCustomer(String id, Map<String, dynamic> body);
 
-  Future<CustomerBalanceModel> getCustomerBalance(String customerId);
+  Future<CustomerBalanceModel> getCustomerBalance(
+    String customerId, {
+    String? branchId,
+  });
 
   Future<List<CustomerLedgerEntryModel>> getCustomerLedger(
     String customerId, {
+    String? branchId,
     int? skip,
     int? limit,
   });
@@ -78,9 +82,13 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
   }
 
   @override
-  Future<CustomerBalanceModel> getCustomerBalance(String customerId) async {
+  Future<CustomerBalanceModel> getCustomerBalance(
+    String customerId, {
+    String? branchId,
+  }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.customerBalance(customerId),
+      queryParameters: branchId != null ? {'branch_id': branchId} : null,
     );
     return CustomerBalanceModel.fromJson(response.data ?? const {});
   }
@@ -88,10 +96,12 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
   @override
   Future<List<CustomerLedgerEntryModel>> getCustomerLedger(
     String customerId, {
+    String? branchId,
     int? skip,
     int? limit,
   }) async {
     final queryParams = <String, dynamic>{};
+    if (branchId != null) queryParams['branch_id'] = branchId;
     if (skip != null) queryParams['skip'] = skip;
     if (limit != null) queryParams['limit'] = limit;
 

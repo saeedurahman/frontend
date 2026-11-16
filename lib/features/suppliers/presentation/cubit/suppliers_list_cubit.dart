@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
@@ -59,8 +61,11 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
   }
 
   Future<void> _loadBalances(List<SupplierListRow> rows) async {
+    final branchId = sl.isRegistered<BranchSelectorCubit>()
+        ? sl<BranchSelectorCubit>().state.selectedBranchId
+        : null;
     final futures = rows.map((row) async {
-      final result = await _getBalance(row.supplier.id);
+      final result = await _getBalance(row.supplier.id, branchId: branchId);
       return result.fold(
         (_) => row.copyWith(balanceLoading: false, balance: '—'),
         (balance) => row.copyWith(
@@ -79,6 +84,12 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
         ),
       );
     }
+  }
+
+  Future<void> onBranchChanged(String? branchId) async {
+    final current = state;
+    if (current is! SuppliersListLoaded) return;
+    await _loadBalances(current.allItems);
   }
 
   void search(String query) {

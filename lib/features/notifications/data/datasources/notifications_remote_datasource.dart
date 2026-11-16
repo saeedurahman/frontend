@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 
 abstract class NotificationsRemoteDataSource {
   Future<PaginatedNotificationsModel> getNotifications({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,
@@ -32,6 +33,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
 
   @override
   Future<PaginatedNotificationsModel> getNotifications({
+    String? branchId,
     bool? isRead,
     String? notificationType,
     int skip = 0,
@@ -40,6 +42,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.notifications,
       queryParameters: {
+        if (branchId != null) 'branch_id': branchId,
         if (isRead != null) 'is_read': isRead,
         if (notificationType != null) 'notification_type': notificationType,
         'skip': skip,

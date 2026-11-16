@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_header.dart';
@@ -18,7 +20,17 @@ class CustomerLedgerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<CustomerLedgerCubit>()..load(customerId),
-      child: const _CustomerLedgerView(),
+      child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
+        bloc: sl.isRegistered<BranchSelectorCubit>()
+            ? sl<BranchSelectorCubit>()
+            : null,
+        listener: (context, branchState) {
+          context
+              .read<CustomerLedgerCubit>()
+              .onBranchChanged(branchState.selectedBranchId);
+        },
+        child: const _CustomerLedgerView(),
+      ),
     );
   }
 }

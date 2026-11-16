@@ -49,10 +49,19 @@ class KitchenDisplayCubit extends Cubit<KitchenDisplayState> {
       return;
     }
 
-    final selector = sl<BranchSelectorCubit>().state;
-    _branchId = selector.isInitialized && selector.selectedBranchId != null
-        ? selector.selectedBranchId
-        : user?.branchId;
+    final allowedBranches = user?.branchIds ?? const [];
+    if (sl.isRegistered<BranchSelectorCubit>()) {
+      final selector = sl<BranchSelectorCubit>().state;
+      if (selector.isInitialized && selector.selectedBranchId != null) {
+        _branchId = selector.selectedBranchId;
+      }
+    }
+    _branchId ??= user?.branchId;
+    if (allowedBranches.isNotEmpty) {
+      if (_branchId == null || !allowedBranches.contains(_branchId)) {
+        _branchId = allowedBranches.first;
+      }
+    }
 
     await loadTickets();
     _startAutoRefresh();
@@ -103,6 +112,9 @@ class KitchenDisplayCubit extends Cubit<KitchenDisplayState> {
 
   Future<void> onBranchChanged(String? branchId) async {
     if (branchId == null || branchId == _branchId) return;
+    final user = await _authLocal.getCachedUser();
+    final allowedBranches = user?.branchIds ?? const [];
+    if (allowedBranches.isNotEmpty && !allowedBranches.contains(branchId)) return;
     _branchId = branchId;
     await loadTickets(isRefresh: true);
   }

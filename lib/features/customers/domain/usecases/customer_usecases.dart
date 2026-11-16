@@ -55,8 +55,11 @@ class GetCustomerBalanceUseCase {
 
   final CustomersRepository _repository;
 
-  Future<Either<Failure, CustomerBalanceModel>> call(String customerId) =>
-      _repository.getCustomerBalance(customerId);
+  Future<Either<Failure, CustomerBalanceModel>> call(
+    String customerId, {
+    String? branchId,
+  }) =>
+      _repository.getCustomerBalance(customerId, branchId: branchId);
 }
 
 @injectable
@@ -67,8 +70,14 @@ class GetCustomerLedgerUseCase {
 
   Future<Either<Failure, List<CustomerLedgerEntryModel>>> call(
     String customerId, {
+    String? branchId,
     int? skip,
     int? limit,
   }) =>
-      _repository.getCustomerLedger(customerId, skip: skip, limit: limit);
+      _repository.getCustomerLedger(
+        customerId,
+        branchId: branchId,
+        skip: skip,
+        limit: limit,
+      );
 }

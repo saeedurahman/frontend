@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/notifications/data/models/notification_model.dart';
@@ -43,6 +45,20 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Timer? _checkAlertsTimer;
   int _listLimit = _pageSize;
+
+  /// Allowed branch IDs provider. Falls back to AccessCubit / cached user when unset.
+  List<String> Function()? branchIdsProvider;
+
+  Future<List<String>> _resolveAllowedBranchIds() async {
+    final fromProvider = branchIdsProvider?.call();
+    if (fromProvider != null) return fromProvider;
+    if (sl.isRegistered<AccessCubit>()) {
+      final ids = sl<AccessCubit>().state.branchIds;
+      if (ids.isNotEmpty) return ids;
+    }
+    final user = await _authLocal.getCachedUser();
+    return user?.branchIds ?? const [];
+  }
 
   List<NotificationModel> get previewNotifications {
     final current = state;
@@ -98,7 +114,12 @@ class NotificationsCubit extends Cubit<NotificationsState> {
             _ => 0,
           };
 
+    final allowedBranches = await _resolveAllowedBranchIds();
+    final branchIdParam =
+        allowedBranches.length == 1 ? allowedBranches.first : null;
+
     final result = await _getNotifications(
+      branchId: branchIdParam,
       isRead: filter == NotificationFilter.unread ? false : null,
       skip: skip,
       limit: _listLimit,
@@ -116,15 +137,31 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         }
       },
       (page) {
+        final scopedItems = allowedBranches.isEmpty
+            ? page.items
+            : page.items
+                .where((n) =>
+                    n.branchId == null || allowedBranches.contains(n.branchId))
+                .toList();
+        final scopedUnreadCount = allowedBranches.isEmpty
+            ? page.unreadCount
+            : scopedItems.where((n) => !n.isRead).length;
+        final scopedTotal = allowedBranches.isEmpty
+            ? page.total
+            : scopedItems.length;
+
         if (!reset && state is NotificationsLoaded) {
           final prev = state as NotificationsLoaded;
+          final combined = [...prev.notifications, ...scopedItems];
           emit(
             prev.copyWith(
-              notifications: [...prev.notifications, ...page.items],
-              total: page.total,
+              notifications: combined,
+              total: allowedBranches.isEmpty ? page.total : combined.length,
               skip: page.skip,
               limit: page.limit,
-              unreadCount: page.unreadCount,
+              unreadCount: allowedBranches.isEmpty
+                  ? page.unreadCount
+                  : combined.where((n) => !n.isRead).length,
               isLoadingMore: false,
               errorMessage: null,
             ),
@@ -132,11 +169,11 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         } else {
           emit(
             NotificationsLoaded(
-              notifications: page.items,
-              total: page.total,
+              notifications: scopedItems,
+              total: scopedTotal,
               skip: page.skip,
               limit: page.limit,
-              unreadCount: page.unreadCount,
+              unreadCount: scopedUnreadCount,
               filter: filter,
             ),
           );

@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
@@ -71,10 +71,11 @@ class CustomersRepositoryImpl implements CustomersRepository {
 
   @override
   Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(
-    String customerId,
-  ) async {
+    String customerId, {
+    String? branchId,
+  }) async {
     try {
-      final result = await _remote.getCustomerBalance(customerId);
+      final result = await _remote.getCustomerBalance(customerId, branchId: branchId);
       return Right(result);
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
@@ -84,12 +85,14 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Either<Failure, List<CustomerLedgerEntryModel>>> getCustomerLedger(
     String customerId, {
+    String? branchId,
     int? skip,
     int? limit,
   }) async {
     try {
       final result = await _remote.getCustomerLedger(
         customerId,
+        branchId: branchId,
         skip: skip,
         limit: limit,
       );
@@ -107,6 +110,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
     String? referenceNo,
     String? notes,
     String? registerShiftId,
+    String? branchId,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -121,6 +125,9 @@ class CustomersRepositoryImpl implements CustomersRepository {
       }
       if (registerShiftId != null && registerShiftId.isNotEmpty) {
         body['register_shift_id'] = registerShiftId;
+      }
+      if (branchId != null && branchId.isNotEmpty) {
+        body['branch_id'] = branchId;
       }
       final result = await _remote.recordPayment(customerId, body);
       return Right(result);

@@ -15,7 +15,10 @@ abstract class SuppliersRemoteDataSource {
 
   Future<void> deleteSupplier(String id);
 
-  Future<SupplierBalanceModel> getSupplierBalance(String supplierId);
+  Future<SupplierBalanceModel> getSupplierBalance(
+    String supplierId, {
+    String? branchId,
+  });
 }
 
 @LazySingleton(as: SuppliersRemoteDataSource)
@@ -67,9 +70,13 @@ class SuppliersRemoteDataSourceImpl implements SuppliersRemoteDataSource {
   }
 
   @override
-  Future<SupplierBalanceModel> getSupplierBalance(String supplierId) async {
+  Future<SupplierBalanceModel> getSupplierBalance(
+    String supplierId, {
+    String? branchId,
+  }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.supplierBalance(supplierId),
+      queryParameters: branchId != null ? {'branch_id': branchId} : null,
     );
     return SupplierBalanceModel.fromJson(response.data ?? const {});
   }

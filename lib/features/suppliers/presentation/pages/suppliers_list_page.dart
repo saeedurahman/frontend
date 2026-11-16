@@ -4,6 +4,8 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
 import 'package:frantend/features/suppliers/presentation/widgets/suppliers_data_table.dart';
@@ -20,7 +22,17 @@ class SuppliersListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<SuppliersListCubit>()..load(),
-      child: const _SuppliersListView(),
+      child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
+        bloc: sl.isRegistered<BranchSelectorCubit>()
+            ? sl<BranchSelectorCubit>()
+            : null,
+        listener: (context, branchState) {
+          context
+              .read<SuppliersListCubit>()
+              .onBranchChanged(branchState.selectedBranchId);
+        },
+        child: const _SuppliersListView(),
+      ),
     );
   }
 }

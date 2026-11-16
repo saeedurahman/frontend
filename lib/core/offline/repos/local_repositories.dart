@@ -161,7 +161,10 @@ class LocalCustomersRepository implements CustomersRepository {
   }
 
   @override
-  Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(String id) async =>
+  Future<Either<Failure, CustomerBalanceModel>> getCustomerBalance(
+    String id, {
+    String? branchId,
+  }) async =>
       Right(CustomerBalanceModel(
         customerId: id,
         balance: (await _catalog.customerBalance(id)).toString(),
