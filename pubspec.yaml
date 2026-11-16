@@ -91,3 +91,16 @@ flutter:
   assets:
     - assets/app_logos/
     - assets/fonts/
+
+  fonts:
+    - family: NotoNastaliqUrdu
+      fonts:
+        - asset: assets/fonts/NotoNastaliqUrdu-Regular.ttf
+        - asset: assets/fonts/NotoNastaliqUrdu-Bold.ttf
+          weight: 700
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: assets/fonts/NotoNaskhArabic-Regular.ttf
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf

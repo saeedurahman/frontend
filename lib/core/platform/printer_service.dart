@@ -12,6 +12,7 @@ class PrinterConfig {
     this.copies = 1,
     this.autoPrintAfterSale = false,
     this.openCashDrawer = false,
+    this.urduStyle = 'nastaliq', // 'nastaliq' | 'naskh'
   });
 
   final String? printerName;
@@ -19,9 +20,12 @@ class PrinterConfig {
   final int copies;
   final bool autoPrintAfterSale;
   final bool openCashDrawer;
+  final String urduStyle;
 
   bool get is80mm => paperSize == '80mm';
   bool get is58mm => paperSize == '58mm';
+  bool get isNastaliq => urduStyle == 'nastaliq';
+  bool get isNaskh => urduStyle == 'naskh';
 
   PdfPageFormat get pageFormat =>
       is58mm ? PdfPageFormat.roll57 : PdfPageFormat.roll80;
@@ -32,6 +36,7 @@ class PrinterConfig {
     int? copies,
     bool? autoPrintAfterSale,
     bool? openCashDrawer,
+    String? urduStyle,
   }) {
     return PrinterConfig(
       printerName: printerName ?? this.printerName,
@@ -39,6 +44,7 @@ class PrinterConfig {
       copies: copies ?? this.copies,
       autoPrintAfterSale: autoPrintAfterSale ?? this.autoPrintAfterSale,
       openCashDrawer: openCashDrawer ?? this.openCashDrawer,
+      urduStyle: urduStyle ?? this.urduStyle,
     );
   }
 }
@@ -76,6 +82,7 @@ class WindowsPrinterService implements PrinterService {
   static const _keyCopies = 'printer_setting_copies';
   static const _keyAutoPrint = 'printer_setting_auto_print';
   static const _keyCashDrawer = 'printer_setting_cash_drawer';
+  static const _keyUrduStyle = 'printer_setting_urdu_style';
 
   @override
   Future<List<Printer>> listPrinters() async {
@@ -96,6 +103,7 @@ class WindowsPrinterService implements PrinterService {
         copies: prefs.getInt(_keyCopies) ?? 1,
         autoPrintAfterSale: prefs.getBool(_keyAutoPrint) ?? false,
         openCashDrawer: prefs.getBool(_keyCashDrawer) ?? false,
+        urduStyle: prefs.getString(_keyUrduStyle) ?? 'nastaliq',
       );
     } catch (_) {
       return const PrinterConfig();
@@ -115,6 +123,7 @@ class WindowsPrinterService implements PrinterService {
       await prefs.setInt(_keyCopies, config.copies);
       await prefs.setBool(_keyAutoPrint, config.autoPrintAfterSale);
       await prefs.setBool(_keyCashDrawer, config.openCashDrawer);
+      await prefs.setString(_keyUrduStyle, config.urduStyle);
     } catch (_) {}
   }
 

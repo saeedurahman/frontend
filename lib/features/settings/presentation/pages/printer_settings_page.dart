@@ -53,6 +53,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
     try {
       final doc = await SaleReceiptService.buildTestPdf(
         paperSize: _config.paperSize,
+        urduStyle: _config.urduStyle,
       );
       final bytes = await doc.save();
       if (!mounted) return;
@@ -131,6 +132,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
     try {
       final doc = await SaleReceiptService.buildTestPdf(
         paperSize: _config.paperSize,
+        urduStyle: _config.urduStyle,
       );
       final bytes = await doc.save();
       final success = await sl<PrinterService>().printPdf(
@@ -418,6 +420,42 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
                           : null,
                     ),
                   ],
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            const Text(
+              'Urdu Style / اسلوب اردو',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Nastaliq (نستعلیق)'),
+                    subtitle: const Text('Traditional Urdu Nastaliq calligraphy (recommended for Pakistan)'),
+                    value: 'nastaliq',
+                    groupValue: _config.urduStyle,
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _config = _config.copyWith(urduStyle: val));
+                      }
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Naskh (نسخ)'),
+                    subtitle: const Text('Modern Arabic Naskh style (compact line height)'),
+                    value: 'naskh',
+                    groupValue: _config.urduStyle,
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _config = _config.copyWith(urduStyle: val));
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
