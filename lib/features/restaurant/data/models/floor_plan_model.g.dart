@@ -6,13 +6,15 @@ part of 'floor_plan_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FloorPlanModelImpl _$$FloorPlanModelImplFromJson(Map<String, dynamic> json) =>
-    _$FloorPlanModelImpl(
+_FloorPlanModel _$FloorPlanModelFromJson(Map<String, dynamic> json) =>
+    _FloorPlanModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       branchId: json['branch_id'] as String,
       name: json['name'] as String,
-      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
+      sortOrder: json['sort_order'] == null
+          ? 0
+          : JsonNum.intOr(json['sort_order']),
       isActive: json['is_active'] as bool? ?? true,
       layoutJson: json['layout_json'] == null
           ? const {}
@@ -21,28 +23,27 @@ _$FloorPlanModelImpl _$$FloorPlanModelImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updated_at'] as String?,
     );
 
-Map<String, dynamic> _$$FloorPlanModelImplToJson(
-  _$FloorPlanModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'business_id': instance.businessId,
-  'branch_id': instance.branchId,
-  'name': instance.name,
-  'sort_order': instance.sortOrder,
-  'is_active': instance.isActive,
-  'layout_json': instance.layoutJson,
-  'created_at': instance.createdAt,
-  'updated_at': instance.updatedAt,
-};
+Map<String, dynamic> _$FloorPlanModelToJson(_FloorPlanModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'business_id': instance.businessId,
+      'branch_id': instance.branchId,
+      'name': instance.name,
+      'sort_order': instance.sortOrder,
+      'is_active': instance.isActive,
+      'layout_json': instance.layoutJson,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+    };
 
-_$FloorPlanWithTablesModelImpl _$$FloorPlanWithTablesModelImplFromJson(
+_FloorPlanWithTablesModel _$FloorPlanWithTablesModelFromJson(
   Map<String, dynamic> json,
-) => _$FloorPlanWithTablesModelImpl(
+) => _FloorPlanWithTablesModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   branchId: json['branch_id'] as String,
   name: json['name'] as String,
-  sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
+  sortOrder: json['sort_order'] == null ? 0 : JsonNum.intOr(json['sort_order']),
   isActive: json['is_active'] as bool? ?? true,
   layoutJson: json['layout_json'] == null
       ? const {}
@@ -54,8 +55,8 @@ _$FloorPlanWithTablesModelImpl _$$FloorPlanWithTablesModelImplFromJson(
   updatedAt: json['updated_at'] as String?,
 );
 
-Map<String, dynamic> _$$FloorPlanWithTablesModelImplToJson(
-  _$FloorPlanWithTablesModelImpl instance,
+Map<String, dynamic> _$FloorPlanWithTablesModelToJson(
+  _FloorPlanWithTablesModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,
@@ -69,58 +70,54 @@ Map<String, dynamic> _$$FloorPlanWithTablesModelImplToJson(
   'updated_at': instance.updatedAt,
 };
 
-_$FloorLayoutModelImpl _$$FloorLayoutModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$FloorLayoutModelImpl(
-  branchId: json['branch_id'] as String,
-  floorPlans: json['floor_plans'] == null
-      ? const []
-      : _floorPlanWithTablesListFromJson(json['floor_plans']),
-  unassignedTables: json['unassigned_tables'] == null
-      ? const []
-      : _diningTableListFromJson(json['unassigned_tables']),
-);
+_FloorLayoutModel _$FloorLayoutModelFromJson(Map<String, dynamic> json) =>
+    _FloorLayoutModel(
+      branchId: json['branch_id'] as String,
+      floorPlans: json['floor_plans'] == null
+          ? const []
+          : _floorPlanWithTablesListFromJson(json['floor_plans']),
+      unassignedTables: json['unassigned_tables'] == null
+          ? const []
+          : _diningTableListFromJson(json['unassigned_tables']),
+    );
 
-Map<String, dynamic> _$$FloorLayoutModelImplToJson(
-  _$FloorLayoutModelImpl instance,
-) => <String, dynamic>{
-  'branch_id': instance.branchId,
-  'floor_plans': instance.floorPlans,
-  'unassigned_tables': instance.unassignedTables,
-};
+Map<String, dynamic> _$FloorLayoutModelToJson(_FloorLayoutModel instance) =>
+    <String, dynamic>{
+      'branch_id': instance.branchId,
+      'floor_plans': instance.floorPlans,
+      'unassigned_tables': instance.unassignedTables,
+    };
 
-_$DiningTableModelImpl _$$DiningTableModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$DiningTableModelImpl(
-  id: json['id'] as String,
-  businessId: json['business_id'] as String,
-  branchId: json['branch_id'] as String,
-  floorPlanId: json['floor_plan_id'] as String?,
-  tableNumber: json['table_number'] as String,
-  capacity: JsonNum.intOrNull(json['capacity']) ?? 4,
-  status: json['status'] as String,
-  posX: json['pos_x'] as String?,
-  posY: json['pos_y'] as String?,
-  isActive: json['is_active'] as bool? ?? true,
-  activeSaleId: json['active_sale_id'] as String?,
-  createdAt: json['created_at'] as String?,
-  updatedAt: json['updated_at'] as String?,
-);
+_DiningTableModel _$DiningTableModelFromJson(Map<String, dynamic> json) =>
+    _DiningTableModel(
+      id: json['id'] as String,
+      businessId: json['business_id'] as String,
+      branchId: json['branch_id'] as String,
+      floorPlanId: json['floor_plan_id'] as String?,
+      tableNumber: json['table_number'] as String,
+      capacity: json['capacity'] == null ? 4 : JsonNum.intOr(json['capacity']),
+      status: json['status'] as String,
+      posX: json['pos_x'] as String?,
+      posY: json['pos_y'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
+      activeSaleId: json['active_sale_id'] as String?,
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+    );
 
-Map<String, dynamic> _$$DiningTableModelImplToJson(
-  _$DiningTableModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'business_id': instance.businessId,
-  'branch_id': instance.branchId,
-  'floor_plan_id': instance.floorPlanId,
-  'table_number': instance.tableNumber,
-  'capacity': instance.capacity,
-  'status': instance.status,
-  'pos_x': instance.posX,
-  'pos_y': instance.posY,
-  'is_active': instance.isActive,
-  'active_sale_id': instance.activeSaleId,
-  'created_at': instance.createdAt,
-  'updated_at': instance.updatedAt,
-};
+Map<String, dynamic> _$DiningTableModelToJson(_DiningTableModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'business_id': instance.businessId,
+      'branch_id': instance.branchId,
+      'floor_plan_id': instance.floorPlanId,
+      'table_number': instance.tableNumber,
+      'capacity': instance.capacity,
+      'status': instance.status,
+      'pos_x': instance.posX,
+      'pos_y': instance.posY,
+      'is_active': instance.isActive,
+      'active_sale_id': instance.activeSaleId,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+    };

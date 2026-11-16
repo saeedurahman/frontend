@@ -6,7 +6,7 @@ part 'sale_response_model.freezed.dart';
 part 'sale_response_model.g.dart';
 
 @freezed
-class SaleLineModel with _$SaleLineModel {
+abstract class SaleLineModel with _$SaleLineModel {
   const factory SaleLineModel({
     required String id,
     @JsonKey(name: 'product_id') required String productId,
@@ -19,7 +19,7 @@ class SaleLineModel with _$SaleLineModel {
     @JsonKey(name: 'tax_amount') String? taxAmount,
     @JsonKey(name: 'line_total') String? lineTotal,
     String? notes,
-    @JsonKey(name: 'line_order') int? lineOrder,
+    @JsonKey(name: 'line_order', fromJson: JsonNum.intOrNull) int? lineOrder,
     @JsonKey(name: 'product_name') String? productName,
     @JsonKey(name: 'variation_name') String? variationName,
     @JsonKey(name: 'returned_qty') @Default('0') String returnedQty,
@@ -30,7 +30,7 @@ class SaleLineModel with _$SaleLineModel {
 }
 
 @freezed
-class SalePaymentModel with _$SalePaymentModel {
+abstract class SalePaymentModel with _$SalePaymentModel {
   const factory SalePaymentModel({
     required String id,
     @JsonKey(name: 'payment_method') required String paymentMethod,
@@ -44,7 +44,7 @@ class SalePaymentModel with _$SalePaymentModel {
 }
 
 @freezed
-class SaleResponseModel with _$SaleResponseModel {
+abstract class SaleResponseModel with _$SaleResponseModel {
   const factory SaleResponseModel({
     required String id,
     @JsonKey(name: 'sale_number') String? saleNumber,

@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'stock_movements_state.dart';
@@ -9,1056 +9,682 @@ part of 'stock_movements_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$StockMovementRow {
-  StockMovementModel get movement => throw _privateConstructorUsedError;
-  double get runningBalance => throw _privateConstructorUsedError;
 
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $StockMovementRowCopyWith<StockMovementRow> get copyWith =>
-      throw _privateConstructorUsedError;
+ StockMovementModel get movement; double get runningBalance;
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StockMovementRowCopyWith<StockMovementRow> get copyWith => _$StockMovementRowCopyWithImpl<StockMovementRow>(this as StockMovementRow, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as StockMovementRow;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementRow&&(identical(other.movement, _this.movement) || other.movement == _this.movement)&&(identical(other.runningBalance, _this.runningBalance) || other.runningBalance == _this.runningBalance));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as StockMovementRow;
+  return Object.hash(runtimeType,_this.movement,_this.runningBalance);
+}
+
+@override
+String toString() {
+  final _this = this as StockMovementRow;
+  return 'StockMovementRow(movement: ${_this.movement}, runningBalance: ${_this.runningBalance})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $StockMovementRowCopyWith<$Res> {
-  factory $StockMovementRowCopyWith(
-    StockMovementRow value,
-    $Res Function(StockMovementRow) then,
-  ) = _$StockMovementRowCopyWithImpl<$Res, StockMovementRow>;
-  @useResult
-  $Res call({StockMovementModel movement, double runningBalance});
+abstract mixin class $StockMovementRowCopyWith<$Res>  {
+  factory $StockMovementRowCopyWith(StockMovementRow value, $Res Function(StockMovementRow) _then) = _$StockMovementRowCopyWithImpl;
+@useResult
+$Res call({
+ StockMovementModel movement, double runningBalance
+});
 
-  $StockMovementModelCopyWith<$Res> get movement;
+
+$StockMovementModelCopyWith<$Res> get movement;
+
 }
-
 /// @nodoc
-class _$StockMovementRowCopyWithImpl<$Res, $Val extends StockMovementRow>
+class _$StockMovementRowCopyWithImpl<$Res>
     implements $StockMovementRowCopyWith<$Res> {
-  _$StockMovementRowCopyWithImpl(this._value, this._then);
+  _$StockMovementRowCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final StockMovementRow _self;
+  final $Res Function(StockMovementRow) _then;
 
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? movement = null, Object? runningBalance = null}) {
-    return _then(
-      _value.copyWith(
-            movement: null == movement
-                ? _value.movement
-                : movement // ignore: cast_nullable_to_non_nullable
-                      as StockMovementModel,
-            runningBalance: null == runningBalance
-                ? _value.runningBalance
-                : runningBalance // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $StockMovementModelCopyWith<$Res> get movement {
-    return $StockMovementModelCopyWith<$Res>(_value.movement, (value) {
-      return _then(_value.copyWith(movement: value) as $Val);
-    });
-  }
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? movement = null,Object? runningBalance = null,}) {
+  return _then(StockMovementRow(
+movement: null == movement ? _self.movement : movement // ignore: cast_nullable_to_non_nullable
+as StockMovementModel,runningBalance: null == runningBalance ? _self.runningBalance : runningBalance // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
 }
-
-/// @nodoc
-abstract class _$$StockMovementRowImplCopyWith<$Res>
-    implements $StockMovementRowCopyWith<$Res> {
-  factory _$$StockMovementRowImplCopyWith(
-    _$StockMovementRowImpl value,
-    $Res Function(_$StockMovementRowImpl) then,
-  ) = __$$StockMovementRowImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({StockMovementModel movement, double runningBalance});
-
-  @override
-  $StockMovementModelCopyWith<$Res> get movement;
-}
-
-/// @nodoc
-class __$$StockMovementRowImplCopyWithImpl<$Res>
-    extends _$StockMovementRowCopyWithImpl<$Res, _$StockMovementRowImpl>
-    implements _$$StockMovementRowImplCopyWith<$Res> {
-  __$$StockMovementRowImplCopyWithImpl(
-    _$StockMovementRowImpl _value,
-    $Res Function(_$StockMovementRowImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? movement = null, Object? runningBalance = null}) {
-    return _then(
-      _$StockMovementRowImpl(
-        movement: null == movement
-            ? _value.movement
-            : movement // ignore: cast_nullable_to_non_nullable
-                  as StockMovementModel,
-        runningBalance: null == runningBalance
-            ? _value.runningBalance
-            : runningBalance // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
-  }
-}
-
-/// @nodoc
-
-class _$StockMovementRowImpl implements _StockMovementRow {
-  const _$StockMovementRowImpl({
-    required this.movement,
-    required this.runningBalance,
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StockMovementModelCopyWith<$Res> get movement {
+  
+  return $StockMovementModelCopyWith<$Res>(_self.movement, (value) {
+    return _then(_self.copyWith(movement: value));
   });
-
-  @override
-  final StockMovementModel movement;
-  @override
-  final double runningBalance;
-
-  @override
-  String toString() {
-    return 'StockMovementRow(movement: $movement, runningBalance: $runningBalance)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$StockMovementRowImpl &&
-            (identical(other.movement, movement) ||
-                other.movement == movement) &&
-            (identical(other.runningBalance, runningBalance) ||
-                other.runningBalance == runningBalance));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, movement, runningBalance);
-
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$StockMovementRowImplCopyWith<_$StockMovementRowImpl> get copyWith =>
-      __$$StockMovementRowImplCopyWithImpl<_$StockMovementRowImpl>(
-        this,
-        _$identity,
-      );
+}
 }
 
-abstract class _StockMovementRow implements StockMovementRow {
-  const factory _StockMovementRow({
-    required final StockMovementModel movement,
-    required final double runningBalance,
-  }) = _$StockMovementRowImpl;
 
-  @override
-  StockMovementModel get movement;
-  @override
-  double get runningBalance;
+/// Adds pattern-matching-related methods to [StockMovementRow].
+extension StockMovementRowPatterns on StockMovementRow {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  /// Create a copy of StockMovementRow
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$StockMovementRowImplCopyWith<_$StockMovementRowImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StockMovementRow value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _StockMovementRow() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StockMovementRow value)  $default,){
+final _that = this;
+switch (_that) {
+case _StockMovementRow():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StockMovementRow value)?  $default,){
+final _that = this;
+switch (_that) {
+case _StockMovementRow() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StockMovementModel movement,  double runningBalance)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _StockMovementRow() when $default != null:
+return $default(_that.movement,_that.runningBalance);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StockMovementModel movement,  double runningBalance)  $default,) {final _that = this;
+switch (_that) {
+case _StockMovementRow():
+return $default(_that.movement,_that.runningBalance);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StockMovementModel movement,  double runningBalance)?  $default,) {final _that = this;
+switch (_that) {
+case _StockMovementRow() when $default != null:
+return $default(_that.movement,_that.runningBalance);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _StockMovementRow implements StockMovementRow {
+  const _StockMovementRow({required this.movement, required this.runningBalance});
+  
+
+@override final  StockMovementModel movement;
+@override final  double runningBalance;
+
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StockMovementRowCopyWith<_StockMovementRow> get copyWith => __$StockMovementRowCopyWithImpl<_StockMovementRow>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StockMovementRow&&(identical(other.movement, movement) || other.movement == movement)&&(identical(other.runningBalance, runningBalance) || other.runningBalance == runningBalance));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,movement,runningBalance);
+}
+
+@override
+String toString() {
+    return 'StockMovementRow(movement: $movement, runningBalance: $runningBalance)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$StockMovementRowCopyWith<$Res> implements $StockMovementRowCopyWith<$Res> {
+  factory _$StockMovementRowCopyWith(_StockMovementRow value, $Res Function(_StockMovementRow) _then) = __$StockMovementRowCopyWithImpl;
+@override @useResult
+$Res call({
+ StockMovementModel movement, double runningBalance
+});
+
+
+@override $StockMovementModelCopyWith<$Res> get movement;
+
+}
+/// @nodoc
+class __$StockMovementRowCopyWithImpl<$Res>
+    implements _$StockMovementRowCopyWith<$Res> {
+  __$StockMovementRowCopyWithImpl(this._self, this._then);
+
+  final _StockMovementRow _self;
+  final $Res Function(_StockMovementRow) _then;
+
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? movement = null,Object? runningBalance = null,}) {
+  return _then(_StockMovementRow(
+movement: null == movement ? _self.movement : movement // ignore: cast_nullable_to_non_nullable
+as StockMovementModel,runningBalance: null == runningBalance ? _self.runningBalance : runningBalance // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+/// Create a copy of StockMovementRow
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StockMovementModelCopyWith<$Res> get movement {
+  
+  return $StockMovementModelCopyWith<$Res>(_self.movement, (value) {
+    return _then(_self.copyWith(movement: value));
+  });
+}
 }
 
 /// @nodoc
 mixin _$StockMovementsState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(StockMovementsInitial value) initial,
-    required TResult Function(StockMovementsLoading value) loading,
-    required TResult Function(StockMovementsLoaded value) loaded,
-    required TResult Function(StockMovementsError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(StockMovementsInitial value)? initial,
-    TResult? Function(StockMovementsLoading value)? loading,
-    TResult? Function(StockMovementsLoaded value)? loaded,
-    TResult? Function(StockMovementsError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(StockMovementsInitial value)? initial,
-    TResult Function(StockMovementsLoading value)? loading,
-    TResult Function(StockMovementsLoaded value)? loaded,
-    TResult Function(StockMovementsError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementsState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'StockMovementsState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $StockMovementsStateCopyWith<$Res> {
-  factory $StockMovementsStateCopyWith(
-    StockMovementsState value,
-    $Res Function(StockMovementsState) then,
-  ) = _$StockMovementsStateCopyWithImpl<$Res, StockMovementsState>;
+class $StockMovementsStateCopyWith<$Res>  {
+$StockMovementsStateCopyWith(StockMovementsState _, $Res Function(StockMovementsState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [StockMovementsState].
+extension StockMovementsStatePatterns on StockMovementsState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( StockMovementsInitial value)?  initial,TResult Function( StockMovementsLoading value)?  loading,TResult Function( StockMovementsLoaded value)?  loaded,TResult Function( StockMovementsError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case StockMovementsInitial() when initial != null:
+return initial(_that);case StockMovementsLoading() when loading != null:
+return loading(_that);case StockMovementsLoaded() when loaded != null:
+return loaded(_that);case StockMovementsError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( StockMovementsInitial value)  initial,required TResult Function( StockMovementsLoading value)  loading,required TResult Function( StockMovementsLoaded value)  loaded,required TResult Function( StockMovementsError value)  error,}){
+final _that = this;
+switch (_that) {
+case StockMovementsInitial():
+return initial(_that);case StockMovementsLoading():
+return loading(_that);case StockMovementsLoaded():
+return loaded(_that);case StockMovementsError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( StockMovementsInitial value)?  initial,TResult? Function( StockMovementsLoading value)?  loading,TResult? Function( StockMovementsLoaded value)?  loaded,TResult? Function( StockMovementsError value)?  error,}){
+final _that = this;
+switch (_that) {
+case StockMovementsInitial() when initial != null:
+return initial(_that);case StockMovementsLoading() when loading != null:
+return loading(_that);case StockMovementsLoaded() when loaded != null:
+return loaded(_that);case StockMovementsError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<StockMovementRow> rows,  int total,  int skip,  int limit,  String? productId,  String? branchId,  bool isLoadingMore)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case StockMovementsInitial() when initial != null:
+return initial();case StockMovementsLoading() when loading != null:
+return loading();case StockMovementsLoaded() when loaded != null:
+return loaded(_that.rows,_that.total,_that.skip,_that.limit,_that.productId,_that.branchId,_that.isLoadingMore);case StockMovementsError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<StockMovementRow> rows,  int total,  int skip,  int limit,  String? productId,  String? branchId,  bool isLoadingMore)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case StockMovementsInitial():
+return initial();case StockMovementsLoading():
+return loading();case StockMovementsLoaded():
+return loaded(_that.rows,_that.total,_that.skip,_that.limit,_that.productId,_that.branchId,_that.isLoadingMore);case StockMovementsError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<StockMovementRow> rows,  int total,  int skip,  int limit,  String? productId,  String? branchId,  bool isLoadingMore)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case StockMovementsInitial() when initial != null:
+return initial();case StockMovementsLoading() when loading != null:
+return loading();case StockMovementsLoaded() when loaded != null:
+return loaded(_that.rows,_that.total,_that.skip,_that.limit,_that.productId,_that.branchId,_that.isLoadingMore);case StockMovementsError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$StockMovementsStateCopyWithImpl<$Res, $Val extends StockMovementsState>
-    implements $StockMovementsStateCopyWith<$Res> {
-  _$StockMovementsStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
+class StockMovementsInitial implements StockMovementsState {
+  const StockMovementsInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementsInitial);
 }
 
-/// @nodoc
-abstract class _$$StockMovementsInitialImplCopyWith<$Res> {
-  factory _$$StockMovementsInitialImplCopyWith(
-    _$StockMovementsInitialImpl value,
-    $Res Function(_$StockMovementsInitialImpl) then,
-  ) = __$$StockMovementsInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$StockMovementsInitialImplCopyWithImpl<$Res>
-    extends _$StockMovementsStateCopyWithImpl<$Res, _$StockMovementsInitialImpl>
-    implements _$$StockMovementsInitialImplCopyWith<$Res> {
-  __$$StockMovementsInitialImplCopyWithImpl(
-    _$StockMovementsInitialImpl _value,
-    $Res Function(_$StockMovementsInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$StockMovementsInitialImpl implements StockMovementsInitial {
-  const _$StockMovementsInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'StockMovementsState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$StockMovementsInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(StockMovementsInitial value) initial,
-    required TResult Function(StockMovementsLoading value) loading,
-    required TResult Function(StockMovementsLoaded value) loaded,
-    required TResult Function(StockMovementsError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(StockMovementsInitial value)? initial,
-    TResult? Function(StockMovementsLoading value)? loading,
-    TResult? Function(StockMovementsLoaded value)? loaded,
-    TResult? Function(StockMovementsError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(StockMovementsInitial value)? initial,
-    TResult Function(StockMovementsLoading value)? loading,
-    TResult Function(StockMovementsLoaded value)? loaded,
-    TResult Function(StockMovementsError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class StockMovementsInitial implements StockMovementsState {
-  const factory StockMovementsInitial() = _$StockMovementsInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$StockMovementsLoadingImplCopyWith<$Res> {
-  factory _$$StockMovementsLoadingImplCopyWith(
-    _$StockMovementsLoadingImpl value,
-    $Res Function(_$StockMovementsLoadingImpl) then,
-  ) = __$$StockMovementsLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$StockMovementsLoadingImplCopyWithImpl<$Res>
-    extends _$StockMovementsStateCopyWithImpl<$Res, _$StockMovementsLoadingImpl>
-    implements _$$StockMovementsLoadingImplCopyWith<$Res> {
-  __$$StockMovementsLoadingImplCopyWithImpl(
-    _$StockMovementsLoadingImpl _value,
-    $Res Function(_$StockMovementsLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$StockMovementsLoadingImpl implements StockMovementsLoading {
-  const _$StockMovementsLoadingImpl();
 
-  @override
-  String toString() {
+class StockMovementsLoading implements StockMovementsState {
+  const StockMovementsLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementsLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'StockMovementsState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$StockMovementsLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(StockMovementsInitial value) initial,
-    required TResult Function(StockMovementsLoading value) loading,
-    required TResult Function(StockMovementsLoaded value) loaded,
-    required TResult Function(StockMovementsError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(StockMovementsInitial value)? initial,
-    TResult? Function(StockMovementsLoading value)? loading,
-    TResult? Function(StockMovementsLoaded value)? loaded,
-    TResult? Function(StockMovementsError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(StockMovementsInitial value)? initial,
-    TResult Function(StockMovementsLoading value)? loading,
-    TResult Function(StockMovementsLoaded value)? loaded,
-    TResult Function(StockMovementsError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class StockMovementsLoading implements StockMovementsState {
-  const factory StockMovementsLoading() = _$StockMovementsLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$StockMovementsLoadedImplCopyWith<$Res> {
-  factory _$$StockMovementsLoadedImplCopyWith(
-    _$StockMovementsLoadedImpl value,
-    $Res Function(_$StockMovementsLoadedImpl) then,
-  ) = __$$StockMovementsLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({
-    List<StockMovementRow> rows,
-    int total,
-    int skip,
-    int limit,
-    String? productId,
-    String? branchId,
-    bool isLoadingMore,
-  });
-}
 
-/// @nodoc
-class __$$StockMovementsLoadedImplCopyWithImpl<$Res>
-    extends _$StockMovementsStateCopyWithImpl<$Res, _$StockMovementsLoadedImpl>
-    implements _$$StockMovementsLoadedImplCopyWith<$Res> {
-  __$$StockMovementsLoadedImplCopyWithImpl(
-    _$StockMovementsLoadedImpl _value,
-    $Res Function(_$StockMovementsLoadedImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? rows = null,
-    Object? total = null,
-    Object? skip = null,
-    Object? limit = null,
-    Object? productId = freezed,
-    Object? branchId = freezed,
-    Object? isLoadingMore = null,
-  }) {
-    return _then(
-      _$StockMovementsLoadedImpl(
-        rows: null == rows
-            ? _value._rows
-            : rows // ignore: cast_nullable_to_non_nullable
-                  as List<StockMovementRow>,
-        total: null == total
-            ? _value.total
-            : total // ignore: cast_nullable_to_non_nullable
-                  as int,
-        skip: null == skip
-            ? _value.skip
-            : skip // ignore: cast_nullable_to_non_nullable
-                  as int,
-        limit: null == limit
-            ? _value.limit
-            : limit // ignore: cast_nullable_to_non_nullable
-                  as int,
-        productId: freezed == productId
-            ? _value.productId
-            : productId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        branchId: freezed == branchId
-            ? _value.branchId
-            : branchId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        isLoadingMore: null == isLoadingMore
-            ? _value.isLoadingMore
-            : isLoadingMore // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$StockMovementsLoadedImpl implements StockMovementsLoaded {
-  const _$StockMovementsLoadedImpl({
-    required final List<StockMovementRow> rows,
-    required this.total,
-    required this.skip,
-    required this.limit,
-    this.productId,
-    this.branchId,
-    this.isLoadingMore = false,
-  }) : _rows = rows;
 
-  final List<StockMovementRow> _rows;
-  @override
-  List<StockMovementRow> get rows {
-    if (_rows is EqualUnmodifiableListView) return _rows;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_rows);
-  }
+class StockMovementsLoaded implements StockMovementsState {
+  const StockMovementsLoaded({required  List<StockMovementRow> rows, required this.total, required this.skip, required this.limit, this.productId, this.branchId, this.isLoadingMore = false}): _rows = rows;
+  
 
-  @override
-  final int total;
-  @override
-  final int skip;
-  @override
-  final int limit;
-  @override
-  final String? productId;
-  @override
-  final String? branchId;
-  @override
-  @JsonKey()
-  final bool isLoadingMore;
+ final  List<StockMovementRow> _rows;
+ List<StockMovementRow> get rows {
+  if (_rows is EqualUnmodifiableListView) return _rows;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_rows);
+}
 
-  @override
-  String toString() {
+ final  int total;
+ final  int skip;
+ final  int limit;
+ final  String? productId;
+ final  String? branchId;
+@JsonKey() final  bool isLoadingMore;
+
+/// Create a copy of StockMovementsState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StockMovementsLoadedCopyWith<StockMovementsLoaded> get copyWith => _$StockMovementsLoadedCopyWithImpl<StockMovementsLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementsLoaded&&const DeepCollectionEquality().equals(other.rows, _rows)&&(identical(other.total, total) || other.total == total)&&(identical(other.skip, skip) || other.skip == skip)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.isLoadingMore, isLoadingMore) || other.isLoadingMore == isLoadingMore));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_rows),total,skip,limit,productId,branchId,isLoadingMore);
+}
+
+@override
+String toString() {
     return 'StockMovementsState.loaded(rows: $rows, total: $total, skip: $skip, limit: $limit, productId: $productId, branchId: $branchId, isLoadingMore: $isLoadingMore)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$StockMovementsLoadedImpl &&
-            const DeepCollectionEquality().equals(other._rows, _rows) &&
-            (identical(other.total, total) || other.total == total) &&
-            (identical(other.skip, skip) || other.skip == skip) &&
-            (identical(other.limit, limit) || other.limit == limit) &&
-            (identical(other.productId, productId) ||
-                other.productId == productId) &&
-            (identical(other.branchId, branchId) ||
-                other.branchId == branchId) &&
-            (identical(other.isLoadingMore, isLoadingMore) ||
-                other.isLoadingMore == isLoadingMore));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_rows),
-    total,
-    skip,
-    limit,
-    productId,
-    branchId,
-    isLoadingMore,
-  );
-
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$StockMovementsLoadedImplCopyWith<_$StockMovementsLoadedImpl>
-  get copyWith =>
-      __$$StockMovementsLoadedImplCopyWithImpl<_$StockMovementsLoadedImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(rows, total, skip, limit, productId, branchId, isLoadingMore);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(
-      rows,
-      total,
-      skip,
-      limit,
-      productId,
-      branchId,
-      isLoadingMore,
-    );
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(
-        rows,
-        total,
-        skip,
-        limit,
-        productId,
-        branchId,
-        isLoadingMore,
-      );
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(StockMovementsInitial value) initial,
-    required TResult Function(StockMovementsLoading value) loading,
-    required TResult Function(StockMovementsLoaded value) loaded,
-    required TResult Function(StockMovementsError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(StockMovementsInitial value)? initial,
-    TResult? Function(StockMovementsLoading value)? loading,
-    TResult? Function(StockMovementsLoaded value)? loaded,
-    TResult? Function(StockMovementsError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(StockMovementsInitial value)? initial,
-    TResult Function(StockMovementsLoading value)? loading,
-    TResult Function(StockMovementsLoaded value)? loaded,
-    TResult Function(StockMovementsError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class StockMovementsLoaded implements StockMovementsState {
-  const factory StockMovementsLoaded({
-    required final List<StockMovementRow> rows,
-    required final int total,
-    required final int skip,
-    required final int limit,
-    final String? productId,
-    final String? branchId,
-    final bool isLoadingMore,
-  }) = _$StockMovementsLoadedImpl;
 
-  List<StockMovementRow> get rows;
-  int get total;
-  int get skip;
-  int get limit;
-  String? get productId;
-  String? get branchId;
-  bool get isLoadingMore;
-
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$StockMovementsLoadedImplCopyWith<_$StockMovementsLoadedImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$StockMovementsErrorImplCopyWith<$Res> {
-  factory _$$StockMovementsErrorImplCopyWith(
-    _$StockMovementsErrorImpl value,
-    $Res Function(_$StockMovementsErrorImpl) then,
-  ) = __$$StockMovementsErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
+abstract mixin class $StockMovementsLoadedCopyWith<$Res> implements $StockMovementsStateCopyWith<$Res> {
+  factory $StockMovementsLoadedCopyWith(StockMovementsLoaded value, $Res Function(StockMovementsLoaded) _then) = _$StockMovementsLoadedCopyWithImpl;
+@useResult
+$Res call({
+ List<StockMovementRow> rows, int total, int skip, int limit, String? productId, String? branchId, bool isLoadingMore
+});
+
+
+
+
+}
+/// @nodoc
+class _$StockMovementsLoadedCopyWithImpl<$Res>
+    implements $StockMovementsLoadedCopyWith<$Res> {
+  _$StockMovementsLoadedCopyWithImpl(this._self, this._then);
+
+  final StockMovementsLoaded _self;
+  final $Res Function(StockMovementsLoaded) _then;
+
+/// Create a copy of StockMovementsState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? rows = null,Object? total = null,Object? skip = null,Object? limit = null,Object? productId = freezed,Object? branchId = freezed,Object? isLoadingMore = null,}) {
+  return _then(StockMovementsLoaded(
+rows: null == rows ? _self._rows : rows // ignore: cast_nullable_to_non_nullable
+as List<StockMovementRow>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,skip: null == skip ? _self.skip : skip // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,productId: freezed == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
+as String?,branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
+as String?,isLoadingMore: null == isLoadingMore ? _self.isLoadingMore : isLoadingMore // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
 
-/// @nodoc
-class __$$StockMovementsErrorImplCopyWithImpl<$Res>
-    extends _$StockMovementsStateCopyWithImpl<$Res, _$StockMovementsErrorImpl>
-    implements _$$StockMovementsErrorImplCopyWith<$Res> {
-  __$$StockMovementsErrorImplCopyWithImpl(
-    _$StockMovementsErrorImpl _value,
-    $Res Function(_$StockMovementsErrorImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$StockMovementsErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
 }
 
 /// @nodoc
 
-class _$StockMovementsErrorImpl implements StockMovementsError {
-  const _$StockMovementsErrorImpl(this.message);
 
-  @override
-  final String message;
+class StockMovementsError implements StockMovementsState {
+  const StockMovementsError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of StockMovementsState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StockMovementsErrorCopyWith<StockMovementsError> get copyWith => _$StockMovementsErrorCopyWithImpl<StockMovementsError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementsError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'StockMovementsState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$StockMovementsErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$StockMovementsErrorImplCopyWith<_$StockMovementsErrorImpl> get copyWith =>
-      __$$StockMovementsErrorImplCopyWithImpl<_$StockMovementsErrorImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      List<StockMovementRow> rows,
-      int total,
-      int skip,
-      int limit,
-      String? productId,
-      String? branchId,
-      bool isLoadingMore,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(StockMovementsInitial value) initial,
-    required TResult Function(StockMovementsLoading value) loading,
-    required TResult Function(StockMovementsLoaded value) loaded,
-    required TResult Function(StockMovementsError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(StockMovementsInitial value)? initial,
-    TResult? Function(StockMovementsLoading value)? loading,
-    TResult? Function(StockMovementsLoaded value)? loaded,
-    TResult? Function(StockMovementsError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(StockMovementsInitial value)? initial,
-    TResult Function(StockMovementsLoading value)? loading,
-    TResult Function(StockMovementsLoaded value)? loaded,
-    TResult Function(StockMovementsError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class StockMovementsError implements StockMovementsState {
-  const factory StockMovementsError(final String message) =
-      _$StockMovementsErrorImpl;
 
-  String get message;
-
-  /// Create a copy of StockMovementsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$StockMovementsErrorImplCopyWith<_$StockMovementsErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $StockMovementsErrorCopyWith<$Res> implements $StockMovementsStateCopyWith<$Res> {
+  factory $StockMovementsErrorCopyWith(StockMovementsError value, $Res Function(StockMovementsError) _then) = _$StockMovementsErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$StockMovementsErrorCopyWithImpl<$Res>
+    implements $StockMovementsErrorCopyWith<$Res> {
+  _$StockMovementsErrorCopyWithImpl(this._self, this._then);
+
+  final StockMovementsError _self;
+  final $Res Function(StockMovementsError) _then;
+
+/// Create a copy of StockMovementsState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(StockMovementsError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

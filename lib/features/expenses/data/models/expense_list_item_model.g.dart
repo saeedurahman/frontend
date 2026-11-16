@@ -6,9 +6,9 @@ part of 'expense_list_item_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExpenseListItemModelImpl _$$ExpenseListItemModelImplFromJson(
+_ExpenseListItemModel _$ExpenseListItemModelFromJson(
   Map<String, dynamic> json,
-) => _$ExpenseListItemModelImpl(
+) => _ExpenseListItemModel(
   id: json['id'] as String,
   branchId: json['branch_id'] as String,
   expenseCategoryId: json['expense_category_id'] as String,
@@ -21,8 +21,8 @@ _$ExpenseListItemModelImpl _$$ExpenseListItemModelImplFromJson(
   createdAt: json['created_at'] as String?,
 );
 
-Map<String, dynamic> _$$ExpenseListItemModelImplToJson(
-  _$ExpenseListItemModelImpl instance,
+Map<String, dynamic> _$ExpenseListItemModelToJson(
+  _ExpenseListItemModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'branch_id': instance.branchId,

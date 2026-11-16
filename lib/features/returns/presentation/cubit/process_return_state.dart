@@ -8,7 +8,7 @@ import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 part 'process_return_state.freezed.dart';
 
 @freezed
-class ReturnLineFormItem with _$ReturnLineFormItem {
+abstract class ReturnLineFormItem with _$ReturnLineFormItem {
   const ReturnLineFormItem._();
 
   const factory ReturnLineFormItem({
@@ -64,7 +64,7 @@ class ReturnLineFormItem with _$ReturnLineFormItem {
 }
 
 @freezed
-class ProcessReturnState with _$ProcessReturnState {
+abstract class ProcessReturnState with _$ProcessReturnState {
   const ProcessReturnState._();
 
   const factory ProcessReturnState({

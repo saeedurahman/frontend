@@ -24,7 +24,7 @@ part 'pos_state_mutators.dart';
 part 'pos_state.freezed.dart';
 
 @freezed
-class PosState with _$PosState {
+abstract class PosState with _$PosState {
   const PosState._();
 
   const factory PosState({

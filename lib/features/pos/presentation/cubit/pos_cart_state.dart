@@ -1,7 +1,7 @@
 part of 'pos_state.dart';
 
 @freezed
-class PosCartState with _$PosCartState {
+abstract class PosCartState with _$PosCartState {
   const PosCartState._();
 
   const factory PosCartState({

@@ -42,8 +42,8 @@ PaginatedApiResponse<T> _$PaginatedApiResponseFromJson<T>(
 ) => PaginatedApiResponse<T>(
   items: (json['items'] as List<dynamic>).map(fromJsonT).toList(),
   total: JsonNum.intOr(json['total']),
-  page: JsonNum.intOrNull(json['page']) ?? 1,
-  pageSize: JsonNum.intOrNull(json['page_size']) ?? 20,
+  page: json['page'] == null ? 1 : JsonNum.intOr(json['page']),
+  pageSize: json['page_size'] == null ? 20 : JsonNum.intOr(json['page_size']),
 );
 
 Map<String, dynamic> _$PaginatedApiResponseToJson<T>(

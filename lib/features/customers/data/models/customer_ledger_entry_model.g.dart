@@ -6,9 +6,9 @@ part of 'customer_ledger_entry_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$CustomerLedgerEntryModelImpl _$$CustomerLedgerEntryModelImplFromJson(
+_CustomerLedgerEntryModel _$CustomerLedgerEntryModelFromJson(
   Map<String, dynamic> json,
-) => _$CustomerLedgerEntryModelImpl(
+) => _CustomerLedgerEntryModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   customerId: json['customer_id'] as String,
@@ -21,8 +21,8 @@ _$CustomerLedgerEntryModelImpl _$$CustomerLedgerEntryModelImplFromJson(
   createdAt: json['created_at'] as String?,
 );
 
-Map<String, dynamic> _$$CustomerLedgerEntryModelImplToJson(
-  _$CustomerLedgerEntryModelImpl instance,
+Map<String, dynamic> _$CustomerLedgerEntryModelToJson(
+  _CustomerLedgerEntryModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

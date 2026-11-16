@@ -5,7 +5,7 @@ import 'package:frantend/features/customers/data/models/customer_model.dart';
 part 'customer_ledger_state.freezed.dart';
 
 @freezed
-class LedgerDisplayRow with _$LedgerDisplayRow {
+abstract class LedgerDisplayRow with _$LedgerDisplayRow {
   const factory LedgerDisplayRow({
     required CustomerLedgerEntryModel entry,
     required String runningBalance,

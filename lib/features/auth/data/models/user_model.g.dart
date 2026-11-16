@@ -27,7 +27,9 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       const [],
   permissionsVersion: JsonNum.stringOrNull(json['permissions_version']),
   branchIds:
-      (json['branch_ids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      (json['branch_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
       [],
 );
 

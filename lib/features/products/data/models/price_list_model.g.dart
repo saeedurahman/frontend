@@ -6,8 +6,8 @@ part of 'price_list_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PriceListModelImpl _$$PriceListModelImplFromJson(Map<String, dynamic> json) =>
-    _$PriceListModelImpl(
+_PriceListModel _$PriceListModelFromJson(Map<String, dynamic> json) =>
+    _PriceListModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       name: json['name'] as String,
@@ -16,63 +16,58 @@ _$PriceListModelImpl _$$PriceListModelImplFromJson(Map<String, dynamic> json) =>
       validFrom: json['valid_from'] as String?,
       validTo: json['valid_to'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      itemCount: json['item_count'] as int? ?? 0,
-      customerCount: json['customer_count'] as int? ?? 0,
+      itemCount: (json['item_count'] as num?)?.toInt() ?? 0,
+      customerCount: (json['customer_count'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$$PriceListModelImplToJson(
-  _$PriceListModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'business_id': instance.businessId,
-  'name': instance.name,
-  'list_type': instance.listType,
-  'is_default': instance.isDefault,
-  'valid_from': instance.validFrom,
-  'valid_to': instance.validTo,
-  'is_active': instance.isActive,
-  'item_count': instance.itemCount,
-  'customer_count': instance.customerCount,
-};
+Map<String, dynamic> _$PriceListModelToJson(_PriceListModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'business_id': instance.businessId,
+      'name': instance.name,
+      'list_type': instance.listType,
+      'is_default': instance.isDefault,
+      'valid_from': instance.validFrom,
+      'valid_to': instance.validTo,
+      'is_active': instance.isActive,
+      'item_count': instance.itemCount,
+      'customer_count': instance.customerCount,
+    };
 
-_$PriceListItemModelImpl _$$PriceListItemModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$PriceListItemModelImpl(
-  id: json['id'] as String,
-  priceListId: json['price_list_id'] as String,
-  productId: json['product_id'] as String,
-  variationId: json['variation_id'] as String?,
-  unitPrice: json['unit_price'] as String,
-  minQty: json['min_qty'] as String?,
-);
+_PriceListItemModel _$PriceListItemModelFromJson(Map<String, dynamic> json) =>
+    _PriceListItemModel(
+      id: json['id'] as String,
+      priceListId: json['price_list_id'] as String,
+      productId: json['product_id'] as String,
+      variationId: json['variation_id'] as String?,
+      unitPrice: json['unit_price'] as String,
+      minQty: json['min_qty'] as String?,
+    );
 
-Map<String, dynamic> _$$PriceListItemModelImplToJson(
-  _$PriceListItemModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'price_list_id': instance.priceListId,
-  'product_id': instance.productId,
-  'variation_id': instance.variationId,
-  'unit_price': instance.unitPrice,
-  'min_qty': instance.minQty,
-};
+Map<String, dynamic> _$PriceListItemModelToJson(_PriceListItemModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'price_list_id': instance.priceListId,
+      'product_id': instance.productId,
+      'variation_id': instance.variationId,
+      'unit_price': instance.unitPrice,
+      'min_qty': instance.minQty,
+    };
 
-_$ProductPriceModelImpl _$$ProductPriceModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ProductPriceModelImpl(
-  id: json['id'] as String?,
-  unitPrice: json['unit_price'] as String?,
-  minQty: json['min_qty'] as String?,
-  priceListId: json['price_list_id'] as String?,
-  variationId: json['variation_id'] as String?,
-);
+_ProductPriceModel _$ProductPriceModelFromJson(Map<String, dynamic> json) =>
+    _ProductPriceModel(
+      id: json['id'] as String?,
+      unitPrice: json['unit_price'] as String?,
+      minQty: json['min_qty'] as String?,
+      priceListId: json['price_list_id'] as String?,
+      variationId: json['variation_id'] as String?,
+    );
 
-Map<String, dynamic> _$$ProductPriceModelImplToJson(
-  _$ProductPriceModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'unit_price': instance.unitPrice,
-  'min_qty': instance.minQty,
-  'price_list_id': instance.priceListId,
-  'variation_id': instance.variationId,
-};
+Map<String, dynamic> _$ProductPriceModelToJson(_ProductPriceModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'unit_price': instance.unitPrice,
+      'min_qty': instance.minQty,
+      'price_list_id': instance.priceListId,
+      'variation_id': instance.variationId,
+    };

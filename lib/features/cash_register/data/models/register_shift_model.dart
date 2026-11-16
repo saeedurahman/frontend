@@ -5,7 +5,7 @@ part 'register_shift_model.freezed.dart';
 part 'register_shift_model.g.dart';
 
 @freezed
-class RegisterShiftModel with _$RegisterShiftModel {
+abstract class RegisterShiftModel with _$RegisterShiftModel {
   const factory RegisterShiftModel({
     required String id,
     @JsonKey(name: 'cash_register_id') required String cashRegisterId,

@@ -7,7 +7,7 @@ enum DineInTabStatus {
 }
 
 @freezed
-class PosDineInContext with _$PosDineInContext {
+abstract class PosDineInContext with _$PosDineInContext {
   const PosDineInContext._();
 
   const factory PosDineInContext({

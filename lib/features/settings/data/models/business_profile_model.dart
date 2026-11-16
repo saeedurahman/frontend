@@ -6,7 +6,7 @@ part 'business_profile_model.freezed.dart';
 part 'business_profile_model.g.dart';
 
 @freezed
-class BusinessTypeModel with _$BusinessTypeModel {
+abstract class BusinessTypeModel with _$BusinessTypeModel {
   const factory BusinessTypeModel({
     required String id,
     required String code,
@@ -20,7 +20,7 @@ class BusinessTypeModel with _$BusinessTypeModel {
 }
 
 @freezed
-class BusinessProfileModel with _$BusinessProfileModel {
+abstract class BusinessProfileModel with _$BusinessProfileModel {
   const factory BusinessProfileModel({
     required String id,
     required String name,

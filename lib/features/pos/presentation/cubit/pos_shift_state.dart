@@ -1,7 +1,7 @@
 part of 'pos_state.dart';
 
 @freezed
-class PosShiftState with _$PosShiftState {
+abstract class PosShiftState with _$PosShiftState {
   const factory PosShiftState({
     RegisterShiftModel? activeShift,
     ShiftSummaryModel? shiftSummary,

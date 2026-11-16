@@ -6,9 +6,9 @@ part of 'sale_return_response_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SaleReturnResponseModelImpl _$$SaleReturnResponseModelImplFromJson(
+_SaleReturnResponseModel _$SaleReturnResponseModelFromJson(
   Map<String, dynamic> json,
-) => _$SaleReturnResponseModelImpl(
+) => _SaleReturnResponseModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   branchId: json['branch_id'] as String,
@@ -32,8 +32,8 @@ _$SaleReturnResponseModelImpl _$$SaleReturnResponseModelImplFromJson(
   createdAt: json['created_at'] as String?,
 );
 
-Map<String, dynamic> _$$SaleReturnResponseModelImplToJson(
-  _$SaleReturnResponseModelImpl instance,
+Map<String, dynamic> _$SaleReturnResponseModelToJson(
+  _SaleReturnResponseModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'journal_entry_detail_state.dart';
@@ -9,320 +9,313 @@ part of 'journal_entry_detail_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$JournalEntryDetailState {
-  JournalEntryModel? get entry => throw _privateConstructorUsedError;
-  bool get isLoading => throw _privateConstructorUsedError;
-  bool get isPosting => throw _privateConstructorUsedError;
-  bool get isDeleting => throw _privateConstructorUsedError;
-  bool get canCreate => throw _privateConstructorUsedError;
-  bool get canPost => throw _privateConstructorUsedError;
-  String? get loadError => throw _privateConstructorUsedError;
 
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $JournalEntryDetailStateCopyWith<JournalEntryDetailState> get copyWith =>
-      throw _privateConstructorUsedError;
+ JournalEntryModel? get entry; bool get isLoading; bool get isPosting; bool get isDeleting; bool get canCreate; bool get canPost; String? get loadError;
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$JournalEntryDetailStateCopyWith<JournalEntryDetailState> get copyWith => _$JournalEntryDetailStateCopyWithImpl<JournalEntryDetailState>(this as JournalEntryDetailState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as JournalEntryDetailState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JournalEntryDetailState&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isPosting, _this.isPosting) || other.isPosting == _this.isPosting)&&(identical(other.isDeleting, _this.isDeleting) || other.isDeleting == _this.isDeleting)&&(identical(other.canCreate, _this.canCreate) || other.canCreate == _this.canCreate)&&(identical(other.canPost, _this.canPost) || other.canPost == _this.canPost)&&(identical(other.loadError, _this.loadError) || other.loadError == _this.loadError));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as JournalEntryDetailState;
+  return Object.hash(runtimeType,_this.entry,_this.isLoading,_this.isPosting,_this.isDeleting,_this.canCreate,_this.canPost,_this.loadError);
+}
+
+@override
+String toString() {
+  final _this = this as JournalEntryDetailState;
+  return 'JournalEntryDetailState(entry: ${_this.entry}, isLoading: ${_this.isLoading}, isPosting: ${_this.isPosting}, isDeleting: ${_this.isDeleting}, canCreate: ${_this.canCreate}, canPost: ${_this.canPost}, loadError: ${_this.loadError})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $JournalEntryDetailStateCopyWith<$Res> {
-  factory $JournalEntryDetailStateCopyWith(
-    JournalEntryDetailState value,
-    $Res Function(JournalEntryDetailState) then,
-  ) = _$JournalEntryDetailStateCopyWithImpl<$Res, JournalEntryDetailState>;
-  @useResult
-  $Res call({
-    JournalEntryModel? entry,
-    bool isLoading,
-    bool isPosting,
-    bool isDeleting,
-    bool canCreate,
-    bool canPost,
-    String? loadError,
-  });
+abstract mixin class $JournalEntryDetailStateCopyWith<$Res>  {
+  factory $JournalEntryDetailStateCopyWith(JournalEntryDetailState value, $Res Function(JournalEntryDetailState) _then) = _$JournalEntryDetailStateCopyWithImpl;
+@useResult
+$Res call({
+ JournalEntryModel? entry, bool isLoading, bool isPosting, bool isDeleting, bool canCreate, bool canPost, String? loadError
+});
 
-  $JournalEntryModelCopyWith<$Res>? get entry;
+
+$JournalEntryModelCopyWith<$Res>? get entry;
+
 }
-
 /// @nodoc
-class _$JournalEntryDetailStateCopyWithImpl<
-  $Res,
-  $Val extends JournalEntryDetailState
->
+class _$JournalEntryDetailStateCopyWithImpl<$Res>
     implements $JournalEntryDetailStateCopyWith<$Res> {
-  _$JournalEntryDetailStateCopyWithImpl(this._value, this._then);
+  _$JournalEntryDetailStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final JournalEntryDetailState _self;
+  final $Res Function(JournalEntryDetailState) _then;
 
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? entry = freezed,
-    Object? isLoading = null,
-    Object? isPosting = null,
-    Object? isDeleting = null,
-    Object? canCreate = null,
-    Object? canPost = null,
-    Object? loadError = freezed,
-  }) {
-    return _then(
-      _value.copyWith(
-            entry: freezed == entry
-                ? _value.entry
-                : entry // ignore: cast_nullable_to_non_nullable
-                      as JournalEntryModel?,
-            isLoading: null == isLoading
-                ? _value.isLoading
-                : isLoading // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isPosting: null == isPosting
-                ? _value.isPosting
-                : isPosting // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isDeleting: null == isDeleting
-                ? _value.isDeleting
-                : isDeleting // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            canCreate: null == canCreate
-                ? _value.canCreate
-                : canCreate // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            canPost: null == canPost
-                ? _value.canPost
-                : canPost // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            loadError: freezed == loadError
-                ? _value.loadError
-                : loadError // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $JournalEntryModelCopyWith<$Res>? get entry {
-    if (_value.entry == null) {
-      return null;
-    }
-
-    return $JournalEntryModelCopyWith<$Res>(_value.entry!, (value) {
-      return _then(_value.copyWith(entry: value) as $Val);
-    });
-  }
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? entry = freezed,Object? isLoading = null,Object? isPosting = null,Object? isDeleting = null,Object? canCreate = null,Object? canPost = null,Object? loadError = freezed,}) {
+  return _then(JournalEntryDetailState(
+entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as JournalEntryModel?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isPosting: null == isPosting ? _self.isPosting : isPosting // ignore: cast_nullable_to_non_nullable
+as bool,isDeleting: null == isDeleting ? _self.isDeleting : isDeleting // ignore: cast_nullable_to_non_nullable
+as bool,canCreate: null == canCreate ? _self.canCreate : canCreate // ignore: cast_nullable_to_non_nullable
+as bool,canPost: null == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool,loadError: freezed == loadError ? _self.loadError : loadError // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$JournalEntryModelCopyWith<$Res>? get entry {
+    if (_self.entry == null) {
+    return null;
+  }
 
-/// @nodoc
-abstract class _$$JournalEntryDetailStateImplCopyWith<$Res>
-    implements $JournalEntryDetailStateCopyWith<$Res> {
-  factory _$$JournalEntryDetailStateImplCopyWith(
-    _$JournalEntryDetailStateImpl value,
-    $Res Function(_$JournalEntryDetailStateImpl) then,
-  ) = __$$JournalEntryDetailStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    JournalEntryModel? entry,
-    bool isLoading,
-    bool isPosting,
-    bool isDeleting,
-    bool canCreate,
-    bool canPost,
-    String? loadError,
+  return $JournalEntryModelCopyWith<$Res>(_self.entry!, (value) {
+    return _then(_self.copyWith(entry: value));
   });
+}
+}
 
-  @override
-  $JournalEntryModelCopyWith<$Res>? get entry;
+
+/// Adds pattern-matching-related methods to [JournalEntryDetailState].
+extension JournalEntryDetailStatePatterns on JournalEntryDetailState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _JournalEntryDetailState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _JournalEntryDetailState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _JournalEntryDetailState value)  $default,){
+final _that = this;
+switch (_that) {
+case _JournalEntryDetailState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _JournalEntryDetailState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _JournalEntryDetailState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JournalEntryModel? entry,  bool isLoading,  bool isPosting,  bool isDeleting,  bool canCreate,  bool canPost,  String? loadError)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _JournalEntryDetailState() when $default != null:
+return $default(_that.entry,_that.isLoading,_that.isPosting,_that.isDeleting,_that.canCreate,_that.canPost,_that.loadError);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JournalEntryModel? entry,  bool isLoading,  bool isPosting,  bool isDeleting,  bool canCreate,  bool canPost,  String? loadError)  $default,) {final _that = this;
+switch (_that) {
+case _JournalEntryDetailState():
+return $default(_that.entry,_that.isLoading,_that.isPosting,_that.isDeleting,_that.canCreate,_that.canPost,_that.loadError);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JournalEntryModel? entry,  bool isLoading,  bool isPosting,  bool isDeleting,  bool canCreate,  bool canPost,  String? loadError)?  $default,) {final _that = this;
+switch (_that) {
+case _JournalEntryDetailState() when $default != null:
+return $default(_that.entry,_that.isLoading,_that.isPosting,_that.isDeleting,_that.canCreate,_that.canPost,_that.loadError);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class __$$JournalEntryDetailStateImplCopyWithImpl<$Res>
-    extends
-        _$JournalEntryDetailStateCopyWithImpl<
-          $Res,
-          _$JournalEntryDetailStateImpl
-        >
-    implements _$$JournalEntryDetailStateImplCopyWith<$Res> {
-  __$$JournalEntryDetailStateImplCopyWithImpl(
-    _$JournalEntryDetailStateImpl _value,
-    $Res Function(_$JournalEntryDetailStateImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? entry = freezed,
-    Object? isLoading = null,
-    Object? isPosting = null,
-    Object? isDeleting = null,
-    Object? canCreate = null,
-    Object? canPost = null,
-    Object? loadError = freezed,
-  }) {
-    return _then(
-      _$JournalEntryDetailStateImpl(
-        entry: freezed == entry
-            ? _value.entry
-            : entry // ignore: cast_nullable_to_non_nullable
-                  as JournalEntryModel?,
-        isLoading: null == isLoading
-            ? _value.isLoading
-            : isLoading // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isPosting: null == isPosting
-            ? _value.isPosting
-            : isPosting // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isDeleting: null == isDeleting
-            ? _value.isDeleting
-            : isDeleting // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        canCreate: null == canCreate
-            ? _value.canCreate
-            : canCreate // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        canPost: null == canPost
-            ? _value.canPost
-            : canPost // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        loadError: freezed == loadError
-            ? _value.loadError
-            : loadError // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
-  }
+
+class _JournalEntryDetailState implements JournalEntryDetailState {
+  const _JournalEntryDetailState({this.entry, this.isLoading = false, this.isPosting = false, this.isDeleting = false, this.canCreate = false, this.canPost = false, this.loadError});
+  
+
+@override final  JournalEntryModel? entry;
+@override@JsonKey() final  bool isLoading;
+@override@JsonKey() final  bool isPosting;
+@override@JsonKey() final  bool isDeleting;
+@override@JsonKey() final  bool canCreate;
+@override@JsonKey() final  bool canPost;
+@override final  String? loadError;
+
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$JournalEntryDetailStateCopyWith<_JournalEntryDetailState> get copyWith => __$JournalEntryDetailStateCopyWithImpl<_JournalEntryDetailState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JournalEntryDetailState&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isPosting, isPosting) || other.isPosting == isPosting)&&(identical(other.isDeleting, isDeleting) || other.isDeleting == isDeleting)&&(identical(other.canCreate, canCreate) || other.canCreate == canCreate)&&(identical(other.canPost, canPost) || other.canPost == canPost)&&(identical(other.loadError, loadError) || other.loadError == loadError));
 }
 
-/// @nodoc
 
-class _$JournalEntryDetailStateImpl implements _JournalEntryDetailState {
-  const _$JournalEntryDetailStateImpl({
-    this.entry,
-    this.isLoading = false,
-    this.isPosting = false,
-    this.isDeleting = false,
-    this.canCreate = false,
-    this.canPost = false,
-    this.loadError,
-  });
+@override
+int get hashCode {
+    return Object.hash(runtimeType,entry,isLoading,isPosting,isDeleting,canCreate,canPost,loadError);
+}
 
-  @override
-  final JournalEntryModel? entry;
-  @override
-  @JsonKey()
-  final bool isLoading;
-  @override
-  @JsonKey()
-  final bool isPosting;
-  @override
-  @JsonKey()
-  final bool isDeleting;
-  @override
-  @JsonKey()
-  final bool canCreate;
-  @override
-  @JsonKey()
-  final bool canPost;
-  @override
-  final String? loadError;
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'JournalEntryDetailState(entry: $entry, isLoading: $isLoading, isPosting: $isPosting, isDeleting: $isDeleting, canCreate: $canCreate, canPost: $canPost, loadError: $loadError)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$JournalEntryDetailStateImpl &&
-            (identical(other.entry, entry) || other.entry == entry) &&
-            (identical(other.isLoading, isLoading) ||
-                other.isLoading == isLoading) &&
-            (identical(other.isPosting, isPosting) ||
-                other.isPosting == isPosting) &&
-            (identical(other.isDeleting, isDeleting) ||
-                other.isDeleting == isDeleting) &&
-            (identical(other.canCreate, canCreate) ||
-                other.canCreate == canCreate) &&
-            (identical(other.canPost, canPost) || other.canPost == canPost) &&
-            (identical(other.loadError, loadError) ||
-                other.loadError == loadError));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    entry,
-    isLoading,
-    isPosting,
-    isDeleting,
-    canCreate,
-    canPost,
-    loadError,
-  );
-
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$JournalEntryDetailStateImplCopyWith<_$JournalEntryDetailStateImpl>
-  get copyWith =>
-      __$$JournalEntryDetailStateImplCopyWithImpl<
-        _$JournalEntryDetailStateImpl
-      >(this, _$identity);
 }
 
-abstract class _JournalEntryDetailState implements JournalEntryDetailState {
-  const factory _JournalEntryDetailState({
-    final JournalEntryModel? entry,
-    final bool isLoading,
-    final bool isPosting,
-    final bool isDeleting,
-    final bool canCreate,
-    final bool canPost,
-    final String? loadError,
-  }) = _$JournalEntryDetailStateImpl;
 
-  @override
-  JournalEntryModel? get entry;
-  @override
-  bool get isLoading;
-  @override
-  bool get isPosting;
-  @override
-  bool get isDeleting;
-  @override
-  bool get canCreate;
-  @override
-  bool get canPost;
-  @override
-  String? get loadError;
-
-  /// Create a copy of JournalEntryDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$JournalEntryDetailStateImplCopyWith<_$JournalEntryDetailStateImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$JournalEntryDetailStateCopyWith<$Res> implements $JournalEntryDetailStateCopyWith<$Res> {
+  factory _$JournalEntryDetailStateCopyWith(_JournalEntryDetailState value, $Res Function(_JournalEntryDetailState) _then) = __$JournalEntryDetailStateCopyWithImpl;
+@override @useResult
+$Res call({
+ JournalEntryModel? entry, bool isLoading, bool isPosting, bool isDeleting, bool canCreate, bool canPost, String? loadError
+});
+
+
+@override $JournalEntryModelCopyWith<$Res>? get entry;
+
+}
+/// @nodoc
+class __$JournalEntryDetailStateCopyWithImpl<$Res>
+    implements _$JournalEntryDetailStateCopyWith<$Res> {
+  __$JournalEntryDetailStateCopyWithImpl(this._self, this._then);
+
+  final _JournalEntryDetailState _self;
+  final $Res Function(_JournalEntryDetailState) _then;
+
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? entry = freezed,Object? isLoading = null,Object? isPosting = null,Object? isDeleting = null,Object? canCreate = null,Object? canPost = null,Object? loadError = freezed,}) {
+  return _then(_JournalEntryDetailState(
+entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as JournalEntryModel?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isPosting: null == isPosting ? _self.isPosting : isPosting // ignore: cast_nullable_to_non_nullable
+as bool,isDeleting: null == isDeleting ? _self.isDeleting : isDeleting // ignore: cast_nullable_to_non_nullable
+as bool,canCreate: null == canCreate ? _self.canCreate : canCreate // ignore: cast_nullable_to_non_nullable
+as bool,canPost: null == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool,loadError: freezed == loadError ? _self.loadError : loadError // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+/// Create a copy of JournalEntryDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$JournalEntryModelCopyWith<$Res>? get entry {
+    if (_self.entry == null) {
+    return null;
+  }
+
+  return $JournalEntryModelCopyWith<$Res>(_self.entry!, (value) {
+    return _then(_self.copyWith(entry: value));
+  });
+}
+}
+
+// dart format on

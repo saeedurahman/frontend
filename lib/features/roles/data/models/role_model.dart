@@ -4,7 +4,7 @@ part 'role_model.freezed.dart';
 part 'role_model.g.dart';
 
 @freezed
-class RoleModel with _$RoleModel {
+abstract class RoleModel with _$RoleModel {
   const factory RoleModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

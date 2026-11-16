@@ -6,8 +6,8 @@ part of 'supplier_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SupplierModelImpl _$$SupplierModelImplFromJson(Map<String, dynamic> json) =>
-    _$SupplierModelImpl(
+_SupplierModel _$SupplierModelFromJson(Map<String, dynamic> json) =>
+    _SupplierModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       name: json['name'] as String,
@@ -17,13 +17,15 @@ _$SupplierModelImpl _$$SupplierModelImplFromJson(Map<String, dynamic> json) =>
       taxId: json['tax_id'] as String?,
       addressLine1: json['address_line1'] as String?,
       city: json['city'] as String?,
-      paymentTermsDays: JsonNum.intOrNull(json['payment_terms_days']) ?? 30,
+      paymentTermsDays: json['payment_terms_days'] == null
+          ? 30
+          : JsonNum.intOr(json['payment_terms_days']),
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
     );
 
-Map<String, dynamic> _$$SupplierModelImplToJson(_$SupplierModelImpl instance) =>
+Map<String, dynamic> _$SupplierModelToJson(_SupplierModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,
@@ -40,15 +42,15 @@ Map<String, dynamic> _$$SupplierModelImplToJson(_$SupplierModelImpl instance) =>
       'updated_at': instance.updatedAt,
     };
 
-_$SupplierBalanceModelImpl _$$SupplierBalanceModelImplFromJson(
+_SupplierBalanceModel _$SupplierBalanceModelFromJson(
   Map<String, dynamic> json,
-) => _$SupplierBalanceModelImpl(
+) => _SupplierBalanceModel(
   supplierId: json['supplier_id'] as String,
   balance: json['balance'] as String,
 );
 
-Map<String, dynamic> _$$SupplierBalanceModelImplToJson(
-  _$SupplierBalanceModelImpl instance,
+Map<String, dynamic> _$SupplierBalanceModelToJson(
+  _SupplierBalanceModel instance,
 ) => <String, dynamic>{
   'supplier_id': instance.supplierId,
   'balance': instance.balance,

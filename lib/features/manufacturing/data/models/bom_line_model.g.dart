@@ -6,8 +6,8 @@ part of 'bom_line_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$BomLineModelImpl _$$BomLineModelImplFromJson(Map<String, dynamic> json) =>
-    _$BomLineModelImpl(
+_BomLineModel _$BomLineModelFromJson(Map<String, dynamic> json) =>
+    _BomLineModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       bomHeaderId: json['bom_header_id'] as String,
@@ -17,10 +17,12 @@ _$BomLineModelImpl _$$BomLineModelImplFromJson(Map<String, dynamic> json) =>
       qtyRequired: json['qty_required'] as String,
       unitId: json['unit_id'] as String?,
       wastagePct: json['wastage_pct'] as String? ?? '0',
-      sortOrder: JsonNum.intOrNull(json['sort_order']) ?? 0,
+      sortOrder: json['sort_order'] == null
+          ? 0
+          : JsonNum.intOr(json['sort_order']),
     );
 
-Map<String, dynamic> _$$BomLineModelImplToJson(_$BomLineModelImpl instance) =>
+Map<String, dynamic> _$BomLineModelToJson(_BomLineModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'business_id': instance.businessId,

@@ -4,7 +4,7 @@ import 'package:frantend/features/inventory/data/models/stock_model.dart';
 part 'stock_movements_state.freezed.dart';
 
 @freezed
-class StockMovementRow with _$StockMovementRow {
+abstract class StockMovementRow with _$StockMovementRow {
   const factory StockMovementRow({
     required StockMovementModel movement,
     required double runningBalance,

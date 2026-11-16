@@ -5,7 +5,7 @@ import 'package:frantend/features/settings/data/models/branch_model.dart';
 part 'user_form_state.freezed.dart';
 
 @freezed
-class UserFormState with _$UserFormState {
+abstract class UserFormState with _$UserFormState {
   const UserFormState._();
 
   const factory UserFormState({

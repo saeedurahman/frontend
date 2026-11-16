@@ -6,7 +6,7 @@ import 'package:frantend/features/cash_register/data/models/shift_summary_model.
 part 'current_shift_state.freezed.dart';
 
 @freezed
-class OpenShiftEntry with _$OpenShiftEntry {
+abstract class OpenShiftEntry with _$OpenShiftEntry {
   const factory OpenShiftEntry({
     required RegisterShiftModel shift,
     required CashRegisterModel register,
@@ -15,7 +15,7 @@ class OpenShiftEntry with _$OpenShiftEntry {
 }
 
 @freezed
-class CurrentShiftState with _$CurrentShiftState {
+abstract class CurrentShiftState with _$CurrentShiftState {
   const factory CurrentShiftState({
     @Default([]) List<CashRegisterModel> registers,
     @Default([]) List<OpenShiftEntry> openShifts,

@@ -6,11 +6,11 @@ part 'paginated_expenses_model.freezed.dart';
 part 'paginated_expenses_model.g.dart';
 
 @freezed
-class PaginatedExpensesModel with _$PaginatedExpensesModel {
+abstract class PaginatedExpensesModel with _$PaginatedExpensesModel {
   const factory PaginatedExpensesModel({
-    required int total,
-    required int skip,
-    required int limit,
+    @JsonKey(fromJson: JsonNum.intOr) required int total,
+    @JsonKey(fromJson: JsonNum.intOr) required int skip,
+    @JsonKey(fromJson: JsonNum.intOr) required int limit,
     @Default([]) List<ExpenseListItemModel> items,
   }) = _PaginatedExpensesModel;
 

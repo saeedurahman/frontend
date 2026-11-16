@@ -4,7 +4,7 @@ part 'unit_model.freezed.dart';
 part 'unit_model.g.dart';
 
 @freezed
-class UnitModel with _$UnitModel {
+abstract class UnitModel with _$UnitModel {
   const factory UnitModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -19,7 +19,7 @@ class UnitModel with _$UnitModel {
 }
 
 @freezed
-class UnitConversionModel with _$UnitConversionModel {
+abstract class UnitConversionModel with _$UnitConversionModel {
   const factory UnitConversionModel({
     required String id,
     @JsonKey(name: 'from_unit_id') required String fromUnitId,

@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'product_form_state.freezed.dart';
 
 @freezed
-class VariationFormItem with _$VariationFormItem {
+abstract class VariationFormItem with _$VariationFormItem {
   const factory VariationFormItem({
     String? id,
     @Default('') String name,
@@ -16,7 +16,7 @@ class VariationFormItem with _$VariationFormItem {
 }
 
 @freezed
-class BarcodeFormItem with _$BarcodeFormItem {
+abstract class BarcodeFormItem with _$BarcodeFormItem {
   const factory BarcodeFormItem({
     String? id,
     @Default('') String barcode,
@@ -27,7 +27,7 @@ class BarcodeFormItem with _$BarcodeFormItem {
 }
 
 @freezed
-class ProductFormState with _$ProductFormState {
+abstract class ProductFormState with _$ProductFormState {
   const factory ProductFormState({
     @Default('create') String mode,
     String? productId,

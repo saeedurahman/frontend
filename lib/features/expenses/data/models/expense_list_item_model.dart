@@ -4,7 +4,7 @@ part 'expense_list_item_model.freezed.dart';
 part 'expense_list_item_model.g.dart';
 
 @freezed
-class ExpenseListItemModel with _$ExpenseListItemModel {
+abstract class ExpenseListItemModel with _$ExpenseListItemModel {
   const factory ExpenseListItemModel({
     required String id,
     @JsonKey(name: 'branch_id') required String branchId,

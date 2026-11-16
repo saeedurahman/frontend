@@ -6,9 +6,9 @@ part of 'journal_entry_list_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$JournalEntryListModelImpl _$$JournalEntryListModelImplFromJson(
+_JournalEntryListModel _$JournalEntryListModelFromJson(
   Map<String, dynamic> json,
-) => _$JournalEntryListModelImpl(
+) => _JournalEntryListModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   branchId: json['branch_id'] as String?,
@@ -23,8 +23,8 @@ _$JournalEntryListModelImpl _$$JournalEntryListModelImplFromJson(
   createdAt: json['created_at'] as String,
 );
 
-Map<String, dynamic> _$$JournalEntryListModelImplToJson(
-  _$JournalEntryListModelImpl instance,
+Map<String, dynamic> _$JournalEntryListModelToJson(
+  _JournalEntryListModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

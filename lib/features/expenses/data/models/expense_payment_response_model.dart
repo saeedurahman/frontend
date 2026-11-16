@@ -5,7 +5,7 @@ part 'expense_payment_response_model.freezed.dart';
 part 'expense_payment_response_model.g.dart';
 
 @freezed
-class ExpensePaymentResponseModel with _$ExpensePaymentResponseModel {
+abstract class ExpensePaymentResponseModel with _$ExpensePaymentResponseModel {
   const factory ExpensePaymentResponseModel({
     required String id,
     @JsonKey(name: 'expense_id') required String expenseId,

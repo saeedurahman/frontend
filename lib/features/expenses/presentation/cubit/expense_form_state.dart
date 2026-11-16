@@ -5,7 +5,7 @@ import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 part 'expense_form_state.freezed.dart';
 
 @freezed
-class ExpenseFormState with _$ExpenseFormState {
+abstract class ExpenseFormState with _$ExpenseFormState {
   const factory ExpenseFormState({
     @Default(false) bool isLoading,
     @Default(false) bool isSaving,

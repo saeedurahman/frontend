@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'return_detail_state.dart';
@@ -9,804 +9,426 @@ part of 'return_detail_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$ReturnDetailState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'ReturnDetailState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ReturnDetailStateCopyWith<$Res> {
-  factory $ReturnDetailStateCopyWith(
-    ReturnDetailState value,
-    $Res Function(ReturnDetailState) then,
-  ) = _$ReturnDetailStateCopyWithImpl<$Res, ReturnDetailState>;
+class $ReturnDetailStateCopyWith<$Res>  {
+$ReturnDetailStateCopyWith(ReturnDetailState _, $Res Function(ReturnDetailState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [ReturnDetailState].
+extension ReturnDetailStatePatterns on ReturnDetailState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ReturnDetailInitial value)?  initial,TResult Function( ReturnDetailLoading value)?  loading,TResult Function( ReturnDetailLoaded value)?  loaded,TResult Function( ReturnDetailAccessDenied value)?  accessDenied,TResult Function( ReturnDetailError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case ReturnDetailInitial() when initial != null:
+return initial(_that);case ReturnDetailLoading() when loading != null:
+return loading(_that);case ReturnDetailLoaded() when loaded != null:
+return loaded(_that);case ReturnDetailAccessDenied() when accessDenied != null:
+return accessDenied(_that);case ReturnDetailError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ReturnDetailInitial value)  initial,required TResult Function( ReturnDetailLoading value)  loading,required TResult Function( ReturnDetailLoaded value)  loaded,required TResult Function( ReturnDetailAccessDenied value)  accessDenied,required TResult Function( ReturnDetailError value)  error,}){
+final _that = this;
+switch (_that) {
+case ReturnDetailInitial():
+return initial(_that);case ReturnDetailLoading():
+return loading(_that);case ReturnDetailLoaded():
+return loaded(_that);case ReturnDetailAccessDenied():
+return accessDenied(_that);case ReturnDetailError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ReturnDetailInitial value)?  initial,TResult? Function( ReturnDetailLoading value)?  loading,TResult? Function( ReturnDetailLoaded value)?  loaded,TResult? Function( ReturnDetailAccessDenied value)?  accessDenied,TResult? Function( ReturnDetailError value)?  error,}){
+final _that = this;
+switch (_that) {
+case ReturnDetailInitial() when initial != null:
+return initial(_that);case ReturnDetailLoading() when loading != null:
+return loading(_that);case ReturnDetailLoaded() when loaded != null:
+return loaded(_that);case ReturnDetailAccessDenied() when accessDenied != null:
+return accessDenied(_that);case ReturnDetailError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( SaleReturnResponseModel item)?  loaded,TResult Function()?  accessDenied,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case ReturnDetailInitial() when initial != null:
+return initial();case ReturnDetailLoading() when loading != null:
+return loading();case ReturnDetailLoaded() when loaded != null:
+return loaded(_that.item);case ReturnDetailAccessDenied() when accessDenied != null:
+return accessDenied();case ReturnDetailError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( SaleReturnResponseModel item)  loaded,required TResult Function()  accessDenied,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case ReturnDetailInitial():
+return initial();case ReturnDetailLoading():
+return loading();case ReturnDetailLoaded():
+return loaded(_that.item);case ReturnDetailAccessDenied():
+return accessDenied();case ReturnDetailError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( SaleReturnResponseModel item)?  loaded,TResult? Function()?  accessDenied,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case ReturnDetailInitial() when initial != null:
+return initial();case ReturnDetailLoading() when loading != null:
+return loading();case ReturnDetailLoaded() when loaded != null:
+return loaded(_that.item);case ReturnDetailAccessDenied() when accessDenied != null:
+return accessDenied();case ReturnDetailError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$ReturnDetailStateCopyWithImpl<$Res, $Val extends ReturnDetailState>
-    implements $ReturnDetailStateCopyWith<$Res> {
-  _$ReturnDetailStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
+class ReturnDetailInitial implements ReturnDetailState {
+  const ReturnDetailInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailInitial);
 }
 
-/// @nodoc
-abstract class _$$ReturnDetailInitialImplCopyWith<$Res> {
-  factory _$$ReturnDetailInitialImplCopyWith(
-    _$ReturnDetailInitialImpl value,
-    $Res Function(_$ReturnDetailInitialImpl) then,
-  ) = __$$ReturnDetailInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$ReturnDetailInitialImplCopyWithImpl<$Res>
-    extends _$ReturnDetailStateCopyWithImpl<$Res, _$ReturnDetailInitialImpl>
-    implements _$$ReturnDetailInitialImplCopyWith<$Res> {
-  __$$ReturnDetailInitialImplCopyWithImpl(
-    _$ReturnDetailInitialImpl _value,
-    $Res Function(_$ReturnDetailInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$ReturnDetailInitialImpl implements ReturnDetailInitial {
-  const _$ReturnDetailInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'ReturnDetailState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReturnDetailInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ReturnDetailInitial implements ReturnDetailState {
-  const factory ReturnDetailInitial() = _$ReturnDetailInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$ReturnDetailLoadingImplCopyWith<$Res> {
-  factory _$$ReturnDetailLoadingImplCopyWith(
-    _$ReturnDetailLoadingImpl value,
-    $Res Function(_$ReturnDetailLoadingImpl) then,
-  ) = __$$ReturnDetailLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$ReturnDetailLoadingImplCopyWithImpl<$Res>
-    extends _$ReturnDetailStateCopyWithImpl<$Res, _$ReturnDetailLoadingImpl>
-    implements _$$ReturnDetailLoadingImplCopyWith<$Res> {
-  __$$ReturnDetailLoadingImplCopyWithImpl(
-    _$ReturnDetailLoadingImpl _value,
-    $Res Function(_$ReturnDetailLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$ReturnDetailLoadingImpl implements ReturnDetailLoading {
-  const _$ReturnDetailLoadingImpl();
 
-  @override
-  String toString() {
+class ReturnDetailLoading implements ReturnDetailState {
+  const ReturnDetailLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'ReturnDetailState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReturnDetailLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ReturnDetailLoading implements ReturnDetailState {
-  const factory ReturnDetailLoading() = _$ReturnDetailLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$ReturnDetailLoadedImplCopyWith<$Res> {
-  factory _$$ReturnDetailLoadedImplCopyWith(
-    _$ReturnDetailLoadedImpl value,
-    $Res Function(_$ReturnDetailLoadedImpl) then,
-  ) = __$$ReturnDetailLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({SaleReturnResponseModel item});
 
-  $SaleReturnResponseModelCopyWith<$Res> get item;
-}
 
-/// @nodoc
-class __$$ReturnDetailLoadedImplCopyWithImpl<$Res>
-    extends _$ReturnDetailStateCopyWithImpl<$Res, _$ReturnDetailLoadedImpl>
-    implements _$$ReturnDetailLoadedImplCopyWith<$Res> {
-  __$$ReturnDetailLoadedImplCopyWithImpl(
-    _$ReturnDetailLoadedImpl _value,
-    $Res Function(_$ReturnDetailLoadedImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? item = null}) {
-    return _then(
-      _$ReturnDetailLoadedImpl(
-        item: null == item
-            ? _value.item
-            : item // ignore: cast_nullable_to_non_nullable
-                  as SaleReturnResponseModel,
-      ),
-    );
-  }
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SaleReturnResponseModelCopyWith<$Res> get item {
-    return $SaleReturnResponseModelCopyWith<$Res>(_value.item, (value) {
-      return _then(_value.copyWith(item: value));
-    });
-  }
-}
 
 /// @nodoc
 
-class _$ReturnDetailLoadedImpl implements ReturnDetailLoaded {
-  const _$ReturnDetailLoadedImpl({required this.item});
 
-  @override
-  final SaleReturnResponseModel item;
+class ReturnDetailLoaded implements ReturnDetailState {
+  const ReturnDetailLoaded({required this.item});
+  
 
-  @override
-  String toString() {
+ final  SaleReturnResponseModel item;
+
+/// Create a copy of ReturnDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ReturnDetailLoadedCopyWith<ReturnDetailLoaded> get copyWith => _$ReturnDetailLoadedCopyWithImpl<ReturnDetailLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailLoaded&&(identical(other.item, item) || other.item == item));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,item);
+}
+
+@override
+String toString() {
     return 'ReturnDetailState.loaded(item: $item)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReturnDetailLoadedImpl &&
-            (identical(other.item, item) || other.item == item));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, item);
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ReturnDetailLoadedImplCopyWith<_$ReturnDetailLoadedImpl> get copyWith =>
-      __$$ReturnDetailLoadedImplCopyWithImpl<_$ReturnDetailLoadedImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(item);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(item);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(item);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ReturnDetailLoaded implements ReturnDetailState {
-  const factory ReturnDetailLoaded({
-    required final SaleReturnResponseModel item,
-  }) = _$ReturnDetailLoadedImpl;
 
-  SaleReturnResponseModel get item;
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ReturnDetailLoadedImplCopyWith<_$ReturnDetailLoadedImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ReturnDetailAccessDeniedImplCopyWith<$Res> {
-  factory _$$ReturnDetailAccessDeniedImplCopyWith(
-    _$ReturnDetailAccessDeniedImpl value,
-    $Res Function(_$ReturnDetailAccessDeniedImpl) then,
-  ) = __$$ReturnDetailAccessDeniedImplCopyWithImpl<$Res>;
+abstract mixin class $ReturnDetailLoadedCopyWith<$Res> implements $ReturnDetailStateCopyWith<$Res> {
+  factory $ReturnDetailLoadedCopyWith(ReturnDetailLoaded value, $Res Function(ReturnDetailLoaded) _then) = _$ReturnDetailLoadedCopyWithImpl;
+@useResult
+$Res call({
+ SaleReturnResponseModel item
+});
+
+
+$SaleReturnResponseModelCopyWith<$Res> get item;
+
+}
+/// @nodoc
+class _$ReturnDetailLoadedCopyWithImpl<$Res>
+    implements $ReturnDetailLoadedCopyWith<$Res> {
+  _$ReturnDetailLoadedCopyWithImpl(this._self, this._then);
+
+  final ReturnDetailLoaded _self;
+  final $Res Function(ReturnDetailLoaded) _then;
+
+/// Create a copy of ReturnDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? item = null,}) {
+  return _then(ReturnDetailLoaded(
+item: null == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
+as SaleReturnResponseModel,
+  ));
 }
 
-/// @nodoc
-class __$$ReturnDetailAccessDeniedImplCopyWithImpl<$Res>
-    extends
-        _$ReturnDetailStateCopyWithImpl<$Res, _$ReturnDetailAccessDeniedImpl>
-    implements _$$ReturnDetailAccessDeniedImplCopyWith<$Res> {
-  __$$ReturnDetailAccessDeniedImplCopyWithImpl(
-    _$ReturnDetailAccessDeniedImpl _value,
-    $Res Function(_$ReturnDetailAccessDeniedImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
+/// Create a copy of ReturnDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SaleReturnResponseModelCopyWith<$Res> get item {
+  
+  return $SaleReturnResponseModelCopyWith<$Res>(_self.item, (value) {
+    return _then(_self.copyWith(item: value));
+  });
+}
 }
 
 /// @nodoc
 
-class _$ReturnDetailAccessDeniedImpl implements ReturnDetailAccessDenied {
-  const _$ReturnDetailAccessDeniedImpl();
 
-  @override
-  String toString() {
+class ReturnDetailAccessDenied implements ReturnDetailState {
+  const ReturnDetailAccessDenied();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailAccessDenied);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'ReturnDetailState.accessDenied()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReturnDetailAccessDeniedImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return accessDenied();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return accessDenied?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (accessDenied != null) {
-      return accessDenied();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) {
-    return accessDenied(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) {
-    return accessDenied?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (accessDenied != null) {
-      return accessDenied(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ReturnDetailAccessDenied implements ReturnDetailState {
-  const factory ReturnDetailAccessDenied() = _$ReturnDetailAccessDeniedImpl;
+
 }
 
-/// @nodoc
-abstract class _$$ReturnDetailErrorImplCopyWith<$Res> {
-  factory _$$ReturnDetailErrorImplCopyWith(
-    _$ReturnDetailErrorImpl value,
-    $Res Function(_$ReturnDetailErrorImpl) then,
-  ) = __$$ReturnDetailErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
-}
 
-/// @nodoc
-class __$$ReturnDetailErrorImplCopyWithImpl<$Res>
-    extends _$ReturnDetailStateCopyWithImpl<$Res, _$ReturnDetailErrorImpl>
-    implements _$$ReturnDetailErrorImplCopyWith<$Res> {
-  __$$ReturnDetailErrorImplCopyWithImpl(
-    _$ReturnDetailErrorImpl _value,
-    $Res Function(_$ReturnDetailErrorImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$ReturnDetailErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$ReturnDetailErrorImpl implements ReturnDetailError {
-  const _$ReturnDetailErrorImpl(this.message);
 
-  @override
-  final String message;
+class ReturnDetailError implements ReturnDetailState {
+  const ReturnDetailError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of ReturnDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ReturnDetailErrorCopyWith<ReturnDetailError> get copyWith => _$ReturnDetailErrorCopyWithImpl<ReturnDetailError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnDetailError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'ReturnDetailState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReturnDetailErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ReturnDetailErrorImplCopyWith<_$ReturnDetailErrorImpl> get copyWith =>
-      __$$ReturnDetailErrorImplCopyWithImpl<_$ReturnDetailErrorImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(SaleReturnResponseModel item) loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(SaleReturnResponseModel item)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(SaleReturnResponseModel item)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ReturnDetailInitial value) initial,
-    required TResult Function(ReturnDetailLoading value) loading,
-    required TResult Function(ReturnDetailLoaded value) loaded,
-    required TResult Function(ReturnDetailAccessDenied value) accessDenied,
-    required TResult Function(ReturnDetailError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ReturnDetailInitial value)? initial,
-    TResult? Function(ReturnDetailLoading value)? loading,
-    TResult? Function(ReturnDetailLoaded value)? loaded,
-    TResult? Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult? Function(ReturnDetailError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ReturnDetailInitial value)? initial,
-    TResult Function(ReturnDetailLoading value)? loading,
-    TResult Function(ReturnDetailLoaded value)? loaded,
-    TResult Function(ReturnDetailAccessDenied value)? accessDenied,
-    TResult Function(ReturnDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class ReturnDetailError implements ReturnDetailState {
-  const factory ReturnDetailError(final String message) =
-      _$ReturnDetailErrorImpl;
 
-  String get message;
-
-  /// Create a copy of ReturnDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ReturnDetailErrorImplCopyWith<_$ReturnDetailErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $ReturnDetailErrorCopyWith<$Res> implements $ReturnDetailStateCopyWith<$Res> {
+  factory $ReturnDetailErrorCopyWith(ReturnDetailError value, $Res Function(ReturnDetailError) _then) = _$ReturnDetailErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$ReturnDetailErrorCopyWithImpl<$Res>
+    implements $ReturnDetailErrorCopyWith<$Res> {
+  _$ReturnDetailErrorCopyWithImpl(this._self, this._then);
+
+  final ReturnDetailError _self;
+  final $Res Function(ReturnDetailError) _then;
+
+/// Create a copy of ReturnDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(ReturnDetailError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

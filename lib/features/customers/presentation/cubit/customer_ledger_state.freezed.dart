@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'customer_ledger_state.dart';
@@ -9,1209 +9,699 @@ part of 'customer_ledger_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$LedgerDisplayRow {
-  CustomerLedgerEntryModel get entry => throw _privateConstructorUsedError;
-  String get runningBalance => throw _privateConstructorUsedError;
 
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $LedgerDisplayRowCopyWith<LedgerDisplayRow> get copyWith =>
-      throw _privateConstructorUsedError;
+ CustomerLedgerEntryModel get entry; String get runningBalance;
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LedgerDisplayRowCopyWith<LedgerDisplayRow> get copyWith => _$LedgerDisplayRowCopyWithImpl<LedgerDisplayRow>(this as LedgerDisplayRow, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as LedgerDisplayRow;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LedgerDisplayRow&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.runningBalance, _this.runningBalance) || other.runningBalance == _this.runningBalance));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as LedgerDisplayRow;
+  return Object.hash(runtimeType,_this.entry,_this.runningBalance);
+}
+
+@override
+String toString() {
+  final _this = this as LedgerDisplayRow;
+  return 'LedgerDisplayRow(entry: ${_this.entry}, runningBalance: ${_this.runningBalance})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $LedgerDisplayRowCopyWith<$Res> {
-  factory $LedgerDisplayRowCopyWith(
-    LedgerDisplayRow value,
-    $Res Function(LedgerDisplayRow) then,
-  ) = _$LedgerDisplayRowCopyWithImpl<$Res, LedgerDisplayRow>;
-  @useResult
-  $Res call({CustomerLedgerEntryModel entry, String runningBalance});
+abstract mixin class $LedgerDisplayRowCopyWith<$Res>  {
+  factory $LedgerDisplayRowCopyWith(LedgerDisplayRow value, $Res Function(LedgerDisplayRow) _then) = _$LedgerDisplayRowCopyWithImpl;
+@useResult
+$Res call({
+ CustomerLedgerEntryModel entry, String runningBalance
+});
 
-  $CustomerLedgerEntryModelCopyWith<$Res> get entry;
+
+$CustomerLedgerEntryModelCopyWith<$Res> get entry;
+
 }
-
 /// @nodoc
-class _$LedgerDisplayRowCopyWithImpl<$Res, $Val extends LedgerDisplayRow>
+class _$LedgerDisplayRowCopyWithImpl<$Res>
     implements $LedgerDisplayRowCopyWith<$Res> {
-  _$LedgerDisplayRowCopyWithImpl(this._value, this._then);
+  _$LedgerDisplayRowCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final LedgerDisplayRow _self;
+  final $Res Function(LedgerDisplayRow) _then;
 
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? entry = null, Object? runningBalance = null}) {
-    return _then(
-      _value.copyWith(
-            entry: null == entry
-                ? _value.entry
-                : entry // ignore: cast_nullable_to_non_nullable
-                      as CustomerLedgerEntryModel,
-            runningBalance: null == runningBalance
-                ? _value.runningBalance
-                : runningBalance // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CustomerLedgerEntryModelCopyWith<$Res> get entry {
-    return $CustomerLedgerEntryModelCopyWith<$Res>(_value.entry, (value) {
-      return _then(_value.copyWith(entry: value) as $Val);
-    });
-  }
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? entry = null,Object? runningBalance = null,}) {
+  return _then(LedgerDisplayRow(
+entry: null == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as CustomerLedgerEntryModel,runningBalance: null == runningBalance ? _self.runningBalance : runningBalance // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
-
-/// @nodoc
-abstract class _$$LedgerDisplayRowImplCopyWith<$Res>
-    implements $LedgerDisplayRowCopyWith<$Res> {
-  factory _$$LedgerDisplayRowImplCopyWith(
-    _$LedgerDisplayRowImpl value,
-    $Res Function(_$LedgerDisplayRowImpl) then,
-  ) = __$$LedgerDisplayRowImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({CustomerLedgerEntryModel entry, String runningBalance});
-
-  @override
-  $CustomerLedgerEntryModelCopyWith<$Res> get entry;
-}
-
-/// @nodoc
-class __$$LedgerDisplayRowImplCopyWithImpl<$Res>
-    extends _$LedgerDisplayRowCopyWithImpl<$Res, _$LedgerDisplayRowImpl>
-    implements _$$LedgerDisplayRowImplCopyWith<$Res> {
-  __$$LedgerDisplayRowImplCopyWithImpl(
-    _$LedgerDisplayRowImpl _value,
-    $Res Function(_$LedgerDisplayRowImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? entry = null, Object? runningBalance = null}) {
-    return _then(
-      _$LedgerDisplayRowImpl(
-        entry: null == entry
-            ? _value.entry
-            : entry // ignore: cast_nullable_to_non_nullable
-                  as CustomerLedgerEntryModel,
-        runningBalance: null == runningBalance
-            ? _value.runningBalance
-            : runningBalance // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
-}
-
-/// @nodoc
-
-class _$LedgerDisplayRowImpl implements _LedgerDisplayRow {
-  const _$LedgerDisplayRowImpl({
-    required this.entry,
-    required this.runningBalance,
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CustomerLedgerEntryModelCopyWith<$Res> get entry {
+  
+  return $CustomerLedgerEntryModelCopyWith<$Res>(_self.entry, (value) {
+    return _then(_self.copyWith(entry: value));
   });
-
-  @override
-  final CustomerLedgerEntryModel entry;
-  @override
-  final String runningBalance;
-
-  @override
-  String toString() {
-    return 'LedgerDisplayRow(entry: $entry, runningBalance: $runningBalance)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$LedgerDisplayRowImpl &&
-            (identical(other.entry, entry) || other.entry == entry) &&
-            (identical(other.runningBalance, runningBalance) ||
-                other.runningBalance == runningBalance));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, entry, runningBalance);
-
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$LedgerDisplayRowImplCopyWith<_$LedgerDisplayRowImpl> get copyWith =>
-      __$$LedgerDisplayRowImplCopyWithImpl<_$LedgerDisplayRowImpl>(
-        this,
-        _$identity,
-      );
+}
 }
 
-abstract class _LedgerDisplayRow implements LedgerDisplayRow {
-  const factory _LedgerDisplayRow({
-    required final CustomerLedgerEntryModel entry,
-    required final String runningBalance,
-  }) = _$LedgerDisplayRowImpl;
 
-  @override
-  CustomerLedgerEntryModel get entry;
-  @override
-  String get runningBalance;
+/// Adds pattern-matching-related methods to [LedgerDisplayRow].
+extension LedgerDisplayRowPatterns on LedgerDisplayRow {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  /// Create a copy of LedgerDisplayRow
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LedgerDisplayRowImplCopyWith<_$LedgerDisplayRowImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LedgerDisplayRow value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LedgerDisplayRow() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LedgerDisplayRow value)  $default,){
+final _that = this;
+switch (_that) {
+case _LedgerDisplayRow():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LedgerDisplayRow value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LedgerDisplayRow() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CustomerLedgerEntryModel entry,  String runningBalance)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LedgerDisplayRow() when $default != null:
+return $default(_that.entry,_that.runningBalance);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CustomerLedgerEntryModel entry,  String runningBalance)  $default,) {final _that = this;
+switch (_that) {
+case _LedgerDisplayRow():
+return $default(_that.entry,_that.runningBalance);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CustomerLedgerEntryModel entry,  String runningBalance)?  $default,) {final _that = this;
+switch (_that) {
+case _LedgerDisplayRow() when $default != null:
+return $default(_that.entry,_that.runningBalance);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _LedgerDisplayRow implements LedgerDisplayRow {
+  const _LedgerDisplayRow({required this.entry, required this.runningBalance});
+  
+
+@override final  CustomerLedgerEntryModel entry;
+@override final  String runningBalance;
+
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LedgerDisplayRowCopyWith<_LedgerDisplayRow> get copyWith => __$LedgerDisplayRowCopyWithImpl<_LedgerDisplayRow>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LedgerDisplayRow&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.runningBalance, runningBalance) || other.runningBalance == runningBalance));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,entry,runningBalance);
+}
+
+@override
+String toString() {
+    return 'LedgerDisplayRow(entry: $entry, runningBalance: $runningBalance)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LedgerDisplayRowCopyWith<$Res> implements $LedgerDisplayRowCopyWith<$Res> {
+  factory _$LedgerDisplayRowCopyWith(_LedgerDisplayRow value, $Res Function(_LedgerDisplayRow) _then) = __$LedgerDisplayRowCopyWithImpl;
+@override @useResult
+$Res call({
+ CustomerLedgerEntryModel entry, String runningBalance
+});
+
+
+@override $CustomerLedgerEntryModelCopyWith<$Res> get entry;
+
+}
+/// @nodoc
+class __$LedgerDisplayRowCopyWithImpl<$Res>
+    implements _$LedgerDisplayRowCopyWith<$Res> {
+  __$LedgerDisplayRowCopyWithImpl(this._self, this._then);
+
+  final _LedgerDisplayRow _self;
+  final $Res Function(_LedgerDisplayRow) _then;
+
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? entry = null,Object? runningBalance = null,}) {
+  return _then(_LedgerDisplayRow(
+entry: null == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as CustomerLedgerEntryModel,runningBalance: null == runningBalance ? _self.runningBalance : runningBalance // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+/// Create a copy of LedgerDisplayRow
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CustomerLedgerEntryModelCopyWith<$Res> get entry {
+  
+  return $CustomerLedgerEntryModelCopyWith<$Res>(_self.entry, (value) {
+    return _then(_self.copyWith(entry: value));
+  });
+}
 }
 
 /// @nodoc
 mixin _$CustomerLedgerState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(CustomerLedgerInitial value) initial,
-    required TResult Function(CustomerLedgerLoading value) loading,
-    required TResult Function(CustomerLedgerLoaded value) loaded,
-    required TResult Function(CustomerLedgerError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(CustomerLedgerInitial value)? initial,
-    TResult? Function(CustomerLedgerLoading value)? loading,
-    TResult? Function(CustomerLedgerLoaded value)? loaded,
-    TResult? Function(CustomerLedgerError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(CustomerLedgerInitial value)? initial,
-    TResult Function(CustomerLedgerLoading value)? loading,
-    TResult Function(CustomerLedgerLoaded value)? loaded,
-    TResult Function(CustomerLedgerError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'CustomerLedgerState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $CustomerLedgerStateCopyWith<$Res> {
-  factory $CustomerLedgerStateCopyWith(
-    CustomerLedgerState value,
-    $Res Function(CustomerLedgerState) then,
-  ) = _$CustomerLedgerStateCopyWithImpl<$Res, CustomerLedgerState>;
+class $CustomerLedgerStateCopyWith<$Res>  {
+$CustomerLedgerStateCopyWith(CustomerLedgerState _, $Res Function(CustomerLedgerState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [CustomerLedgerState].
+extension CustomerLedgerStatePatterns on CustomerLedgerState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CustomerLedgerInitial value)?  initial,TResult Function( CustomerLedgerLoading value)?  loading,TResult Function( CustomerLedgerLoaded value)?  loaded,TResult Function( CustomerLedgerError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case CustomerLedgerInitial() when initial != null:
+return initial(_that);case CustomerLedgerLoading() when loading != null:
+return loading(_that);case CustomerLedgerLoaded() when loaded != null:
+return loaded(_that);case CustomerLedgerError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CustomerLedgerInitial value)  initial,required TResult Function( CustomerLedgerLoading value)  loading,required TResult Function( CustomerLedgerLoaded value)  loaded,required TResult Function( CustomerLedgerError value)  error,}){
+final _that = this;
+switch (_that) {
+case CustomerLedgerInitial():
+return initial(_that);case CustomerLedgerLoading():
+return loading(_that);case CustomerLedgerLoaded():
+return loaded(_that);case CustomerLedgerError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CustomerLedgerInitial value)?  initial,TResult? Function( CustomerLedgerLoading value)?  loading,TResult? Function( CustomerLedgerLoaded value)?  loaded,TResult? Function( CustomerLedgerError value)?  error,}){
+final _that = this;
+switch (_that) {
+case CustomerLedgerInitial() when initial != null:
+return initial(_that);case CustomerLedgerLoading() when loading != null:
+return loading(_that);case CustomerLedgerLoaded() when loaded != null:
+return loaded(_that);case CustomerLedgerError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case CustomerLedgerInitial() when initial != null:
+return initial();case CustomerLedgerLoading() when loading != null:
+return loading();case CustomerLedgerLoaded() when loaded != null:
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case CustomerLedgerInitial():
+return initial();case CustomerLedgerLoading():
+return loading();case CustomerLedgerLoaded():
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case CustomerLedgerInitial() when initial != null:
+return initial();case CustomerLedgerLoading() when loading != null:
+return loading();case CustomerLedgerLoaded() when loaded != null:
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$CustomerLedgerStateCopyWithImpl<$Res, $Val extends CustomerLedgerState>
-    implements $CustomerLedgerStateCopyWith<$Res> {
-  _$CustomerLedgerStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
+class CustomerLedgerInitial implements CustomerLedgerState {
+  const CustomerLedgerInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerInitial);
 }
 
-/// @nodoc
-abstract class _$$CustomerLedgerInitialImplCopyWith<$Res> {
-  factory _$$CustomerLedgerInitialImplCopyWith(
-    _$CustomerLedgerInitialImpl value,
-    $Res Function(_$CustomerLedgerInitialImpl) then,
-  ) = __$$CustomerLedgerInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$CustomerLedgerInitialImplCopyWithImpl<$Res>
-    extends _$CustomerLedgerStateCopyWithImpl<$Res, _$CustomerLedgerInitialImpl>
-    implements _$$CustomerLedgerInitialImplCopyWith<$Res> {
-  __$$CustomerLedgerInitialImplCopyWithImpl(
-    _$CustomerLedgerInitialImpl _value,
-    $Res Function(_$CustomerLedgerInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$CustomerLedgerInitialImpl implements CustomerLedgerInitial {
-  const _$CustomerLedgerInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'CustomerLedgerState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CustomerLedgerInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(CustomerLedgerInitial value) initial,
-    required TResult Function(CustomerLedgerLoading value) loading,
-    required TResult Function(CustomerLedgerLoaded value) loaded,
-    required TResult Function(CustomerLedgerError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(CustomerLedgerInitial value)? initial,
-    TResult? Function(CustomerLedgerLoading value)? loading,
-    TResult? Function(CustomerLedgerLoaded value)? loaded,
-    TResult? Function(CustomerLedgerError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(CustomerLedgerInitial value)? initial,
-    TResult Function(CustomerLedgerLoading value)? loading,
-    TResult Function(CustomerLedgerLoaded value)? loaded,
-    TResult Function(CustomerLedgerError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class CustomerLedgerInitial implements CustomerLedgerState {
-  const factory CustomerLedgerInitial() = _$CustomerLedgerInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$CustomerLedgerLoadingImplCopyWith<$Res> {
-  factory _$$CustomerLedgerLoadingImplCopyWith(
-    _$CustomerLedgerLoadingImpl value,
-    $Res Function(_$CustomerLedgerLoadingImpl) then,
-  ) = __$$CustomerLedgerLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$CustomerLedgerLoadingImplCopyWithImpl<$Res>
-    extends _$CustomerLedgerStateCopyWithImpl<$Res, _$CustomerLedgerLoadingImpl>
-    implements _$$CustomerLedgerLoadingImplCopyWith<$Res> {
-  __$$CustomerLedgerLoadingImplCopyWithImpl(
-    _$CustomerLedgerLoadingImpl _value,
-    $Res Function(_$CustomerLedgerLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$CustomerLedgerLoadingImpl implements CustomerLedgerLoading {
-  const _$CustomerLedgerLoadingImpl();
 
-  @override
-  String toString() {
+class CustomerLedgerLoading implements CustomerLedgerState {
+  const CustomerLedgerLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'CustomerLedgerState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CustomerLedgerLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(CustomerLedgerInitial value) initial,
-    required TResult Function(CustomerLedgerLoading value) loading,
-    required TResult Function(CustomerLedgerLoaded value) loaded,
-    required TResult Function(CustomerLedgerError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(CustomerLedgerInitial value)? initial,
-    TResult? Function(CustomerLedgerLoading value)? loading,
-    TResult? Function(CustomerLedgerLoaded value)? loaded,
-    TResult? Function(CustomerLedgerError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(CustomerLedgerInitial value)? initial,
-    TResult Function(CustomerLedgerLoading value)? loading,
-    TResult Function(CustomerLedgerLoaded value)? loaded,
-    TResult Function(CustomerLedgerError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class CustomerLedgerLoading implements CustomerLedgerState {
-  const factory CustomerLedgerLoading() = _$CustomerLedgerLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$CustomerLedgerLoadedImplCopyWith<$Res> {
-  factory _$$CustomerLedgerLoadedImplCopyWith(
-    _$CustomerLedgerLoadedImpl value,
-    $Res Function(_$CustomerLedgerLoadedImpl) then,
-  ) = __$$CustomerLedgerLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({
-    CustomerModel customer,
-    String balance,
-    List<LedgerDisplayRow> entries,
-    bool isLoadingMore,
-    bool hasMore,
-    int currentPage,
-    int pageSize,
-    bool isRecordingPayment,
-    String? paymentError,
-    bool isCheckingPaymentShift,
-    String? activePaymentShiftId,
-  });
 
-  $CustomerModelCopyWith<$Res> get customer;
-}
 
-/// @nodoc
-class __$$CustomerLedgerLoadedImplCopyWithImpl<$Res>
-    extends _$CustomerLedgerStateCopyWithImpl<$Res, _$CustomerLedgerLoadedImpl>
-    implements _$$CustomerLedgerLoadedImplCopyWith<$Res> {
-  __$$CustomerLedgerLoadedImplCopyWithImpl(
-    _$CustomerLedgerLoadedImpl _value,
-    $Res Function(_$CustomerLedgerLoadedImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? customer = null,
-    Object? balance = null,
-    Object? entries = null,
-    Object? isLoadingMore = null,
-    Object? hasMore = null,
-    Object? currentPage = null,
-    Object? pageSize = null,
-    Object? isRecordingPayment = null,
-    Object? paymentError = freezed,
-    Object? isCheckingPaymentShift = null,
-    Object? activePaymentShiftId = freezed,
-  }) {
-    return _then(
-      _$CustomerLedgerLoadedImpl(
-        customer: null == customer
-            ? _value.customer
-            : customer // ignore: cast_nullable_to_non_nullable
-                  as CustomerModel,
-        balance: null == balance
-            ? _value.balance
-            : balance // ignore: cast_nullable_to_non_nullable
-                  as String,
-        entries: null == entries
-            ? _value._entries
-            : entries // ignore: cast_nullable_to_non_nullable
-                  as List<LedgerDisplayRow>,
-        isLoadingMore: null == isLoadingMore
-            ? _value.isLoadingMore
-            : isLoadingMore // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        hasMore: null == hasMore
-            ? _value.hasMore
-            : hasMore // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        currentPage: null == currentPage
-            ? _value.currentPage
-            : currentPage // ignore: cast_nullable_to_non_nullable
-                  as int,
-        pageSize: null == pageSize
-            ? _value.pageSize
-            : pageSize // ignore: cast_nullable_to_non_nullable
-                  as int,
-        isRecordingPayment: null == isRecordingPayment
-            ? _value.isRecordingPayment
-            : isRecordingPayment // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        paymentError: freezed == paymentError
-            ? _value.paymentError
-            : paymentError // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        isCheckingPaymentShift: null == isCheckingPaymentShift
-            ? _value.isCheckingPaymentShift
-            : isCheckingPaymentShift // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        activePaymentShiftId: freezed == activePaymentShiftId
-            ? _value.activePaymentShiftId
-            : activePaymentShiftId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
-  }
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CustomerModelCopyWith<$Res> get customer {
-    return $CustomerModelCopyWith<$Res>(_value.customer, (value) {
-      return _then(_value.copyWith(customer: value));
-    });
-  }
-}
 
 /// @nodoc
 
-class _$CustomerLedgerLoadedImpl implements CustomerLedgerLoaded {
-  const _$CustomerLedgerLoadedImpl({
-    required this.customer,
-    required this.balance,
-    required final List<LedgerDisplayRow> entries,
-    this.isLoadingMore = false,
-    this.hasMore = true,
-    this.currentPage = 1,
-    this.pageSize = 10,
-    this.isRecordingPayment = false,
-    this.paymentError,
-    this.isCheckingPaymentShift = false,
-    this.activePaymentShiftId,
-  }) : _entries = entries;
 
-  @override
-  final CustomerModel customer;
-  @override
-  final String balance;
-  final List<LedgerDisplayRow> _entries;
-  @override
-  List<LedgerDisplayRow> get entries {
-    if (_entries is EqualUnmodifiableListView) return _entries;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_entries);
-  }
+class CustomerLedgerLoaded implements CustomerLedgerState {
+  const CustomerLedgerLoaded({required this.customer, required this.balance, required  List<LedgerDisplayRow> entries, this.isLoadingMore = false, this.hasMore = true, this.currentPage = 1, this.pageSize = 10, this.isRecordingPayment = false, this.paymentError, this.isCheckingPaymentShift = false, this.activePaymentShiftId}): _entries = entries;
+  
 
-  @override
-  @JsonKey()
-  final bool isLoadingMore;
-  @override
-  @JsonKey()
-  final bool hasMore;
-  @override
-  @JsonKey()
-  final int currentPage;
-  @override
-  @JsonKey()
-  final int pageSize;
-  @override
-  @JsonKey()
-  final bool isRecordingPayment;
-  @override
-  final String? paymentError;
-  @override
-  @JsonKey()
-  final bool isCheckingPaymentShift;
-  @override
-  final String? activePaymentShiftId;
+ final  CustomerModel customer;
+ final  String balance;
+ final  List<LedgerDisplayRow> _entries;
+ List<LedgerDisplayRow> get entries {
+  if (_entries is EqualUnmodifiableListView) return _entries;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_entries);
+}
 
-  @override
-  String toString() {
+@JsonKey() final  bool isLoadingMore;
+@JsonKey() final  bool hasMore;
+@JsonKey() final  int currentPage;
+@JsonKey() final  int pageSize;
+@JsonKey() final  bool isRecordingPayment;
+ final  String? paymentError;
+@JsonKey() final  bool isCheckingPaymentShift;
+ final  String? activePaymentShiftId;
+
+/// Create a copy of CustomerLedgerState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CustomerLedgerLoadedCopyWith<CustomerLedgerLoaded> get copyWith => _$CustomerLedgerLoadedCopyWithImpl<CustomerLedgerLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerLoaded&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.balance, balance) || other.balance == balance)&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.isLoadingMore, isLoadingMore) || other.isLoadingMore == isLoadingMore)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.isRecordingPayment, isRecordingPayment) || other.isRecordingPayment == isRecordingPayment)&&(identical(other.paymentError, paymentError) || other.paymentError == paymentError)&&(identical(other.isCheckingPaymentShift, isCheckingPaymentShift) || other.isCheckingPaymentShift == isCheckingPaymentShift)&&(identical(other.activePaymentShiftId, activePaymentShiftId) || other.activePaymentShiftId == activePaymentShiftId));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,customer,balance,const DeepCollectionEquality().hash(_entries),isLoadingMore,hasMore,currentPage,pageSize,isRecordingPayment,paymentError,isCheckingPaymentShift,activePaymentShiftId);
+}
+
+@override
+String toString() {
     return 'CustomerLedgerState.loaded(customer: $customer, balance: $balance, entries: $entries, isLoadingMore: $isLoadingMore, hasMore: $hasMore, currentPage: $currentPage, pageSize: $pageSize, isRecordingPayment: $isRecordingPayment, paymentError: $paymentError, isCheckingPaymentShift: $isCheckingPaymentShift, activePaymentShiftId: $activePaymentShiftId)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CustomerLedgerLoadedImpl &&
-            (identical(other.customer, customer) ||
-                other.customer == customer) &&
-            (identical(other.balance, balance) || other.balance == balance) &&
-            const DeepCollectionEquality().equals(other._entries, _entries) &&
-            (identical(other.isLoadingMore, isLoadingMore) ||
-                other.isLoadingMore == isLoadingMore) &&
-            (identical(other.hasMore, hasMore) || other.hasMore == hasMore) &&
-            (identical(other.currentPage, currentPage) ||
-                other.currentPage == currentPage) &&
-            (identical(other.pageSize, pageSize) ||
-                other.pageSize == pageSize) &&
-            (identical(other.isRecordingPayment, isRecordingPayment) ||
-                other.isRecordingPayment == isRecordingPayment) &&
-            (identical(other.paymentError, paymentError) ||
-                other.paymentError == paymentError) &&
-            (identical(other.isCheckingPaymentShift, isCheckingPaymentShift) ||
-                other.isCheckingPaymentShift == isCheckingPaymentShift) &&
-            (identical(other.activePaymentShiftId, activePaymentShiftId) ||
-                other.activePaymentShiftId == activePaymentShiftId));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    customer,
-    balance,
-    const DeepCollectionEquality().hash(_entries),
-    isLoadingMore,
-    hasMore,
-    currentPage,
-    pageSize,
-    isRecordingPayment,
-    paymentError,
-    isCheckingPaymentShift,
-    activePaymentShiftId,
-  );
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CustomerLedgerLoadedImplCopyWith<_$CustomerLedgerLoadedImpl>
-  get copyWith =>
-      __$$CustomerLedgerLoadedImplCopyWithImpl<_$CustomerLedgerLoadedImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(
-      customer,
-      balance,
-      entries,
-      isLoadingMore,
-      hasMore,
-      currentPage,
-      pageSize,
-      isRecordingPayment,
-      paymentError,
-      isCheckingPaymentShift,
-      activePaymentShiftId,
-    );
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(
-      customer,
-      balance,
-      entries,
-      isLoadingMore,
-      hasMore,
-      currentPage,
-      pageSize,
-      isRecordingPayment,
-      paymentError,
-      isCheckingPaymentShift,
-      activePaymentShiftId,
-    );
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(
-        customer,
-        balance,
-        entries,
-        isLoadingMore,
-        hasMore,
-        currentPage,
-        pageSize,
-        isRecordingPayment,
-        paymentError,
-        isCheckingPaymentShift,
-        activePaymentShiftId,
-      );
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(CustomerLedgerInitial value) initial,
-    required TResult Function(CustomerLedgerLoading value) loading,
-    required TResult Function(CustomerLedgerLoaded value) loaded,
-    required TResult Function(CustomerLedgerError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(CustomerLedgerInitial value)? initial,
-    TResult? Function(CustomerLedgerLoading value)? loading,
-    TResult? Function(CustomerLedgerLoaded value)? loaded,
-    TResult? Function(CustomerLedgerError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(CustomerLedgerInitial value)? initial,
-    TResult Function(CustomerLedgerLoading value)? loading,
-    TResult Function(CustomerLedgerLoaded value)? loaded,
-    TResult Function(CustomerLedgerError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class CustomerLedgerLoaded implements CustomerLedgerState {
-  const factory CustomerLedgerLoaded({
-    required final CustomerModel customer,
-    required final String balance,
-    required final List<LedgerDisplayRow> entries,
-    final bool isLoadingMore,
-    final bool hasMore,
-    final int currentPage,
-    final int pageSize,
-    final bool isRecordingPayment,
-    final String? paymentError,
-    final bool isCheckingPaymentShift,
-    final String? activePaymentShiftId,
-  }) = _$CustomerLedgerLoadedImpl;
 
-  CustomerModel get customer;
-  String get balance;
-  List<LedgerDisplayRow> get entries;
-  bool get isLoadingMore;
-  bool get hasMore;
-  int get currentPage;
-  int get pageSize;
-  bool get isRecordingPayment;
-  String? get paymentError;
-  bool get isCheckingPaymentShift;
-  String? get activePaymentShiftId;
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CustomerLedgerLoadedImplCopyWith<_$CustomerLedgerLoadedImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$CustomerLedgerErrorImplCopyWith<$Res> {
-  factory _$$CustomerLedgerErrorImplCopyWith(
-    _$CustomerLedgerErrorImpl value,
-    $Res Function(_$CustomerLedgerErrorImpl) then,
-  ) = __$$CustomerLedgerErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
+abstract mixin class $CustomerLedgerLoadedCopyWith<$Res> implements $CustomerLedgerStateCopyWith<$Res> {
+  factory $CustomerLedgerLoadedCopyWith(CustomerLedgerLoaded value, $Res Function(CustomerLedgerLoaded) _then) = _$CustomerLedgerLoadedCopyWithImpl;
+@useResult
+$Res call({
+ CustomerModel customer, String balance, List<LedgerDisplayRow> entries, bool isLoadingMore, bool hasMore, int currentPage, int pageSize, bool isRecordingPayment, String? paymentError, bool isCheckingPaymentShift, String? activePaymentShiftId
+});
+
+
+$CustomerModelCopyWith<$Res> get customer;
+
+}
+/// @nodoc
+class _$CustomerLedgerLoadedCopyWithImpl<$Res>
+    implements $CustomerLedgerLoadedCopyWith<$Res> {
+  _$CustomerLedgerLoadedCopyWithImpl(this._self, this._then);
+
+  final CustomerLedgerLoaded _self;
+  final $Res Function(CustomerLedgerLoaded) _then;
+
+/// Create a copy of CustomerLedgerState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? customer = null,Object? balance = null,Object? entries = null,Object? isLoadingMore = null,Object? hasMore = null,Object? currentPage = null,Object? pageSize = null,Object? isRecordingPayment = null,Object? paymentError = freezed,Object? isCheckingPaymentShift = null,Object? activePaymentShiftId = freezed,}) {
+  return _then(CustomerLedgerLoaded(
+customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
+as CustomerModel,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
+as String,entries: null == entries ? _self._entries : entries // ignore: cast_nullable_to_non_nullable
+as List<LedgerDisplayRow>,isLoadingMore: null == isLoadingMore ? _self.isLoadingMore : isLoadingMore // ignore: cast_nullable_to_non_nullable
+as bool,hasMore: null == hasMore ? _self.hasMore : hasMore // ignore: cast_nullable_to_non_nullable
+as bool,currentPage: null == currentPage ? _self.currentPage : currentPage // ignore: cast_nullable_to_non_nullable
+as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
+as int,isRecordingPayment: null == isRecordingPayment ? _self.isRecordingPayment : isRecordingPayment // ignore: cast_nullable_to_non_nullable
+as bool,paymentError: freezed == paymentError ? _self.paymentError : paymentError // ignore: cast_nullable_to_non_nullable
+as String?,isCheckingPaymentShift: null == isCheckingPaymentShift ? _self.isCheckingPaymentShift : isCheckingPaymentShift // ignore: cast_nullable_to_non_nullable
+as bool,activePaymentShiftId: freezed == activePaymentShiftId ? _self.activePaymentShiftId : activePaymentShiftId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-class __$$CustomerLedgerErrorImplCopyWithImpl<$Res>
-    extends _$CustomerLedgerStateCopyWithImpl<$Res, _$CustomerLedgerErrorImpl>
-    implements _$$CustomerLedgerErrorImplCopyWith<$Res> {
-  __$$CustomerLedgerErrorImplCopyWithImpl(
-    _$CustomerLedgerErrorImpl _value,
-    $Res Function(_$CustomerLedgerErrorImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$CustomerLedgerErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Create a copy of CustomerLedgerState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CustomerModelCopyWith<$Res> get customer {
+  
+  return $CustomerModelCopyWith<$Res>(_self.customer, (value) {
+    return _then(_self.copyWith(customer: value));
+  });
+}
 }
 
 /// @nodoc
 
-class _$CustomerLedgerErrorImpl implements CustomerLedgerError {
-  const _$CustomerLedgerErrorImpl(this.message);
 
-  @override
-  final String message;
+class CustomerLedgerError implements CustomerLedgerState {
+  const CustomerLedgerError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of CustomerLedgerState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CustomerLedgerErrorCopyWith<CustomerLedgerError> get copyWith => _$CustomerLedgerErrorCopyWithImpl<CustomerLedgerError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'CustomerLedgerState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CustomerLedgerErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CustomerLedgerErrorImplCopyWith<_$CustomerLedgerErrorImpl> get copyWith =>
-      __$$CustomerLedgerErrorImplCopyWithImpl<_$CustomerLedgerErrorImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )
-    loaded,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(
-      CustomerModel customer,
-      String balance,
-      List<LedgerDisplayRow> entries,
-      bool isLoadingMore,
-      bool hasMore,
-      int currentPage,
-      int pageSize,
-      bool isRecordingPayment,
-      String? paymentError,
-      bool isCheckingPaymentShift,
-      String? activePaymentShiftId,
-    )?
-    loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(CustomerLedgerInitial value) initial,
-    required TResult Function(CustomerLedgerLoading value) loading,
-    required TResult Function(CustomerLedgerLoaded value) loaded,
-    required TResult Function(CustomerLedgerError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(CustomerLedgerInitial value)? initial,
-    TResult? Function(CustomerLedgerLoading value)? loading,
-    TResult? Function(CustomerLedgerLoaded value)? loaded,
-    TResult? Function(CustomerLedgerError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(CustomerLedgerInitial value)? initial,
-    TResult Function(CustomerLedgerLoading value)? loading,
-    TResult Function(CustomerLedgerLoaded value)? loaded,
-    TResult Function(CustomerLedgerError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class CustomerLedgerError implements CustomerLedgerState {
-  const factory CustomerLedgerError(final String message) =
-      _$CustomerLedgerErrorImpl;
 
-  String get message;
-
-  /// Create a copy of CustomerLedgerState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CustomerLedgerErrorImplCopyWith<_$CustomerLedgerErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $CustomerLedgerErrorCopyWith<$Res> implements $CustomerLedgerStateCopyWith<$Res> {
+  factory $CustomerLedgerErrorCopyWith(CustomerLedgerError value, $Res Function(CustomerLedgerError) _then) = _$CustomerLedgerErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$CustomerLedgerErrorCopyWithImpl<$Res>
+    implements $CustomerLedgerErrorCopyWith<$Res> {
+  _$CustomerLedgerErrorCopyWithImpl(this._self, this._then);
+
+  final CustomerLedgerError _self;
+  final $Res Function(CustomerLedgerError) _then;
+
+/// Create a copy of CustomerLedgerState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(CustomerLedgerError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

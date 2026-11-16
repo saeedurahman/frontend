@@ -6,13 +6,13 @@ part 'sale_price_preview_model.freezed.dart';
 part 'sale_price_preview_model.g.dart';
 
 @freezed
-class SalePricePreviewLineModel with _$SalePricePreviewLineModel {
+abstract class SalePricePreviewLineModel with _$SalePricePreviewLineModel {
   const factory SalePricePreviewLineModel({
     @JsonKey(name: 'product_id') required String productId,
     @JsonKey(name: 'variation_id') String? variationId,
     required String qty,
     @JsonKey(name: 'unit_price') required String unitPrice,
-    @JsonKey(name: 'line_order') @Default(0) int lineOrder,
+    @JsonKey(name: 'line_order', fromJson: JsonNum.intOr) @Default(0) int lineOrder,
     @JsonKey(name: 'line_subtotal') required String lineSubtotal,
     @JsonKey(name: 'discount_pct') @Default('0') String discountPct,
     @JsonKey(name: 'discount_amount') @Default('0') String discountAmount,
@@ -26,7 +26,7 @@ class SalePricePreviewLineModel with _$SalePricePreviewLineModel {
 }
 
 @freezed
-class SalePricePreviewModel with _$SalePricePreviewModel {
+abstract class SalePricePreviewModel with _$SalePricePreviewModel {
   const SalePricePreviewModel._();
 
   const factory SalePricePreviewModel({

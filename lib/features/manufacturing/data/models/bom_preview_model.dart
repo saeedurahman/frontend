@@ -4,7 +4,7 @@ part 'bom_preview_model.freezed.dart';
 part 'bom_preview_model.g.dart';
 
 @freezed
-class BomPreviewLineModel with _$BomPreviewLineModel {
+abstract class BomPreviewLineModel with _$BomPreviewLineModel {
   const factory BomPreviewLineModel({
     @JsonKey(name: 'ingredient_product_id') required String ingredientProductId,
     @JsonKey(name: 'ingredient_product_name') required String ingredientProductName,
@@ -19,7 +19,7 @@ class BomPreviewLineModel with _$BomPreviewLineModel {
 }
 
 @freezed
-class BomPreviewModel with _$BomPreviewModel {
+abstract class BomPreviewModel with _$BomPreviewModel {
   const factory BomPreviewModel({
     @JsonKey(name: 'bom_header_id') required String bomHeaderId,
     @JsonKey(name: 'product_id') required String productId,

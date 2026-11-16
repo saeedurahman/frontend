@@ -4,7 +4,7 @@ part 'branch_model.freezed.dart';
 part 'branch_model.g.dart';
 
 @freezed
-class BranchModel with _$BranchModel {
+abstract class BranchModel with _$BranchModel {
   const factory BranchModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

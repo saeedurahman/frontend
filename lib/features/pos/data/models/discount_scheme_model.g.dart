@@ -6,22 +6,21 @@ part of 'discount_scheme_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DiscountSchemeModelImpl _$$DiscountSchemeModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$DiscountSchemeModelImpl(
-  id: json['id'] as String,
-  businessId: json['business_id'] as String,
-  name: json['name'] as String,
-  discountType: json['discount_type'] as String,
-  discountValue: json['discount_value'] as String,
-  minPurchaseAmount: json['min_purchase_amount'] as String?,
-  validFrom: json['valid_from'] as String?,
-  validTo: json['valid_to'] as String?,
-  isActive: json['is_active'] as bool? ?? true,
-);
+_DiscountSchemeModel _$DiscountSchemeModelFromJson(Map<String, dynamic> json) =>
+    _DiscountSchemeModel(
+      id: json['id'] as String,
+      businessId: json['business_id'] as String,
+      name: json['name'] as String,
+      discountType: json['discount_type'] as String,
+      discountValue: json['discount_value'] as String,
+      minPurchaseAmount: json['min_purchase_amount'] as String?,
+      validFrom: json['valid_from'] as String?,
+      validTo: json['valid_to'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
+    );
 
-Map<String, dynamic> _$$DiscountSchemeModelImplToJson(
-  _$DiscountSchemeModelImpl instance,
+Map<String, dynamic> _$DiscountSchemeModelToJson(
+  _DiscountSchemeModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

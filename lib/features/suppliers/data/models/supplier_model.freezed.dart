@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'supplier_model.dart';
@@ -9,639 +9,586 @@ part of 'supplier_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-SupplierModel _$SupplierModelFromJson(Map<String, dynamic> json) {
-  return _SupplierModel.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SupplierModel {
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'business_id')
-  String get businessId => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'contact_person')
-  String? get contactPerson => throw _privateConstructorUsedError;
-  String? get email => throw _privateConstructorUsedError;
-  String? get phone => throw _privateConstructorUsedError;
-  @JsonKey(name: 'tax_id')
-  String? get taxId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'address_line1')
-  String? get addressLine1 => throw _privateConstructorUsedError;
-  String? get city => throw _privateConstructorUsedError;
-  @JsonKey(name: 'payment_terms_days')
-  int get paymentTermsDays => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_active')
-  bool get isActive => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
-  String? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'updated_at')
-  String? get updatedAt => throw _privateConstructorUsedError;
+
+ String get id;@JsonKey(name: 'business_id') String get businessId; String get name;@JsonKey(name: 'contact_person') String? get contactPerson; String? get email; String? get phone;@JsonKey(name: 'tax_id') String? get taxId;@JsonKey(name: 'address_line1') String? get addressLine1; String? get city;@JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) int get paymentTermsDays;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'updated_at') String? get updatedAt;
+/// Create a copy of SupplierModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SupplierModelCopyWith<SupplierModel> get copyWith => _$SupplierModelCopyWithImpl<SupplierModel>(this as SupplierModel, _$identity);
 
   /// Serializes this SupplierModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of SupplierModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $SupplierModelCopyWith<SupplierModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as SupplierModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SupplierModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.businessId, _this.businessId) || other.businessId == _this.businessId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.contactPerson, _this.contactPerson) || other.contactPerson == _this.contactPerson)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.phone, _this.phone) || other.phone == _this.phone)&&(identical(other.taxId, _this.taxId) || other.taxId == _this.taxId)&&(identical(other.addressLine1, _this.addressLine1) || other.addressLine1 == _this.addressLine1)&&(identical(other.city, _this.city) || other.city == _this.city)&&(identical(other.paymentTermsDays, _this.paymentTermsDays) || other.paymentTermsDays == _this.paymentTermsDays)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as SupplierModel;
+  return Object.hash(runtimeType,_this.id,_this.businessId,_this.name,_this.contactPerson,_this.email,_this.phone,_this.taxId,_this.addressLine1,_this.city,_this.paymentTermsDays,_this.isActive,_this.createdAt,_this.updatedAt);
+}
+
+@override
+String toString() {
+  final _this = this as SupplierModel;
+  return 'SupplierModel(id: ${_this.id}, businessId: ${_this.businessId}, name: ${_this.name}, contactPerson: ${_this.contactPerson}, email: ${_this.email}, phone: ${_this.phone}, taxId: ${_this.taxId}, addressLine1: ${_this.addressLine1}, city: ${_this.city}, paymentTermsDays: ${_this.paymentTermsDays}, isActive: ${_this.isActive}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $SupplierModelCopyWith<$Res> {
-  factory $SupplierModelCopyWith(
-    SupplierModel value,
-    $Res Function(SupplierModel) then,
-  ) = _$SupplierModelCopyWithImpl<$Res, SupplierModel>;
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'business_id') String businessId,
-    String name,
-    @JsonKey(name: 'contact_person') String? contactPerson,
-    String? email,
-    String? phone,
-    @JsonKey(name: 'tax_id') String? taxId,
-    @JsonKey(name: 'address_line1') String? addressLine1,
-    String? city,
-    @JsonKey(name: 'payment_terms_days') int paymentTermsDays,
-    @JsonKey(name: 'is_active') bool isActive,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-  });
-}
+abstract mixin class $SupplierModelCopyWith<$Res>  {
+  factory $SupplierModelCopyWith(SupplierModel value, $Res Function(SupplierModel) _then) = _$SupplierModelCopyWithImpl;
+@useResult
+$Res call({
+ String id,@JsonKey(name: 'business_id') String businessId, String name,@JsonKey(name: 'contact_person') String? contactPerson, String? email, String? phone,@JsonKey(name: 'tax_id') String? taxId,@JsonKey(name: 'address_line1') String? addressLine1, String? city,@JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) int paymentTermsDays,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt
+});
 
+
+
+
+}
 /// @nodoc
-class _$SupplierModelCopyWithImpl<$Res, $Val extends SupplierModel>
+class _$SupplierModelCopyWithImpl<$Res>
     implements $SupplierModelCopyWith<$Res> {
-  _$SupplierModelCopyWithImpl(this._value, this._then);
+  _$SupplierModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SupplierModel _self;
+  final $Res Function(SupplierModel) _then;
 
-  /// Create a copy of SupplierModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? businessId = null,
-    Object? name = null,
-    Object? contactPerson = freezed,
-    Object? email = freezed,
-    Object? phone = freezed,
-    Object? taxId = freezed,
-    Object? addressLine1 = freezed,
-    Object? city = freezed,
-    Object? paymentTermsDays = null,
-    Object? isActive = null,
-    Object? createdAt = freezed,
-    Object? updatedAt = freezed,
-  }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            businessId: null == businessId
-                ? _value.businessId
-                : businessId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            contactPerson: freezed == contactPerson
-                ? _value.contactPerson
-                : contactPerson // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phone: freezed == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            taxId: freezed == taxId
-                ? _value.taxId
-                : taxId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            addressLine1: freezed == addressLine1
-                ? _value.addressLine1
-                : addressLine1 // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            city: freezed == city
-                ? _value.city
-                : city // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            paymentTermsDays: null == paymentTermsDays
-                ? _value.paymentTermsDays
-                : paymentTermsDays // ignore: cast_nullable_to_non_nullable
-                      as int,
-            isActive: null == isActive
-                ? _value.isActive
-                : isActive // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of SupplierModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? contactPerson = freezed,Object? email = freezed,Object? phone = freezed,Object? taxId = freezed,Object? addressLine1 = freezed,Object? city = freezed,Object? paymentTermsDays = null,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+  return _then(SupplierModel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,taxId: freezed == taxId ? _self.taxId : taxId // ignore: cast_nullable_to_non_nullable
+as String?,addressLine1: freezed == addressLine1 ? _self.addressLine1 : addressLine1 // ignore: cast_nullable_to_non_nullable
+as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,paymentTermsDays: null == paymentTermsDays ? _self.paymentTermsDays : paymentTermsDays // ignore: cast_nullable_to_non_nullable
+as int,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$SupplierModelImplCopyWith<$Res>
-    implements $SupplierModelCopyWith<$Res> {
-  factory _$$SupplierModelImplCopyWith(
-    _$SupplierModelImpl value,
-    $Res Function(_$SupplierModelImpl) then,
-  ) = __$$SupplierModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'business_id') String businessId,
-    String name,
-    @JsonKey(name: 'contact_person') String? contactPerson,
-    String? email,
-    String? phone,
-    @JsonKey(name: 'tax_id') String? taxId,
-    @JsonKey(name: 'address_line1') String? addressLine1,
-    String? city,
-    @JsonKey(name: 'payment_terms_days') int paymentTermsDays,
-    @JsonKey(name: 'is_active') bool isActive,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-  });
 }
 
-/// @nodoc
-class __$$SupplierModelImplCopyWithImpl<$Res>
-    extends _$SupplierModelCopyWithImpl<$Res, _$SupplierModelImpl>
-    implements _$$SupplierModelImplCopyWith<$Res> {
-  __$$SupplierModelImplCopyWithImpl(
-    _$SupplierModelImpl _value,
-    $Res Function(_$SupplierModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of SupplierModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? businessId = null,
-    Object? name = null,
-    Object? contactPerson = freezed,
-    Object? email = freezed,
-    Object? phone = freezed,
-    Object? taxId = freezed,
-    Object? addressLine1 = freezed,
-    Object? city = freezed,
-    Object? paymentTermsDays = null,
-    Object? isActive = null,
-    Object? createdAt = freezed,
-    Object? updatedAt = freezed,
-  }) {
-    return _then(
-      _$SupplierModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        businessId: null == businessId
-            ? _value.businessId
-            : businessId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        contactPerson: freezed == contactPerson
-            ? _value.contactPerson
-            : contactPerson // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phone: freezed == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        taxId: freezed == taxId
-            ? _value.taxId
-            : taxId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        addressLine1: freezed == addressLine1
-            ? _value.addressLine1
-            : addressLine1 // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        city: freezed == city
-            ? _value.city
-            : city // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        paymentTermsDays: null == paymentTermsDays
-            ? _value.paymentTermsDays
-            : paymentTermsDays // ignore: cast_nullable_to_non_nullable
-                  as int,
-        isActive: null == isActive
-            ? _value.isActive
-            : isActive // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [SupplierModel].
+extension SupplierModelPatterns on SupplierModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SupplierModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SupplierModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SupplierModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _SupplierModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SupplierModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SupplierModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name, @JsonKey(name: 'contact_person')  String? contactPerson,  String? email,  String? phone, @JsonKey(name: 'tax_id')  String? taxId, @JsonKey(name: 'address_line1')  String? addressLine1,  String? city, @JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr)  int paymentTermsDays, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SupplierModel() when $default != null:
+return $default(_that.id,_that.businessId,_that.name,_that.contactPerson,_that.email,_that.phone,_that.taxId,_that.addressLine1,_that.city,_that.paymentTermsDays,_that.isActive,_that.createdAt,_that.updatedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name, @JsonKey(name: 'contact_person')  String? contactPerson,  String? email,  String? phone, @JsonKey(name: 'tax_id')  String? taxId, @JsonKey(name: 'address_line1')  String? addressLine1,  String? city, @JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr)  int paymentTermsDays, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SupplierModel():
+return $default(_that.id,_that.businessId,_that.name,_that.contactPerson,_that.email,_that.phone,_that.taxId,_that.addressLine1,_that.city,_that.paymentTermsDays,_that.isActive,_that.createdAt,_that.updatedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name, @JsonKey(name: 'contact_person')  String? contactPerson,  String? email,  String? phone, @JsonKey(name: 'tax_id')  String? taxId, @JsonKey(name: 'address_line1')  String? addressLine1,  String? city, @JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr)  int paymentTermsDays, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SupplierModel() when $default != null:
+return $default(_that.id,_that.businessId,_that.name,_that.contactPerson,_that.email,_that.phone,_that.taxId,_that.addressLine1,_that.city,_that.paymentTermsDays,_that.isActive,_that.createdAt,_that.updatedAt);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$SupplierModelImpl implements _SupplierModel {
-  const _$SupplierModelImpl({
-    required this.id,
-    @JsonKey(name: 'business_id') required this.businessId,
-    required this.name,
-    @JsonKey(name: 'contact_person') this.contactPerson,
-    this.email,
-    this.phone,
-    @JsonKey(name: 'tax_id') this.taxId,
-    @JsonKey(name: 'address_line1') this.addressLine1,
-    this.city,
-    @JsonKey(name: 'payment_terms_days') this.paymentTermsDays = 30,
-    @JsonKey(name: 'is_active') this.isActive = true,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-  });
 
-  factory _$SupplierModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SupplierModelImplFromJson(json);
+class _SupplierModel implements SupplierModel {
+  const _SupplierModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, required this.name, @JsonKey(name: 'contact_person') this.contactPerson, this.email, this.phone, @JsonKey(name: 'tax_id') this.taxId, @JsonKey(name: 'address_line1') this.addressLine1, this.city, @JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) this.paymentTermsDays = 30, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
+  factory _SupplierModel.fromJson(Map<String, dynamic> json) => _$SupplierModelFromJson(json);
 
-  @override
-  final String id;
-  @override
-  @JsonKey(name: 'business_id')
-  final String businessId;
-  @override
-  final String name;
-  @override
-  @JsonKey(name: 'contact_person')
-  final String? contactPerson;
-  @override
-  final String? email;
-  @override
-  final String? phone;
-  @override
-  @JsonKey(name: 'tax_id')
-  final String? taxId;
-  @override
-  @JsonKey(name: 'address_line1')
-  final String? addressLine1;
-  @override
-  final String? city;
-  @override
-  @JsonKey(name: 'payment_terms_days')
-  final int paymentTermsDays;
-  @override
-  @JsonKey(name: 'is_active')
-  final bool isActive;
-  @override
-  @JsonKey(name: 'created_at')
-  final String? createdAt;
-  @override
-  @JsonKey(name: 'updated_at')
-  final String? updatedAt;
+@override final  String id;
+@override@JsonKey(name: 'business_id') final  String businessId;
+@override final  String name;
+@override@JsonKey(name: 'contact_person') final  String? contactPerson;
+@override final  String? email;
+@override final  String? phone;
+@override@JsonKey(name: 'tax_id') final  String? taxId;
+@override@JsonKey(name: 'address_line1') final  String? addressLine1;
+@override final  String? city;
+@override@JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) final  int paymentTermsDays;
+@override@JsonKey(name: 'is_active') final  bool isActive;
+@override@JsonKey(name: 'created_at') final  String? createdAt;
+@override@JsonKey(name: 'updated_at') final  String? updatedAt;
 
-  @override
-  String toString() {
+/// Create a copy of SupplierModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SupplierModelCopyWith<_SupplierModel> get copyWith => __$SupplierModelCopyWithImpl<_SupplierModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SupplierModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SupplierModel&&(identical(other.id, id) || other.id == id)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.name, name) || other.name == name)&&(identical(other.contactPerson, contactPerson) || other.contactPerson == contactPerson)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.taxId, taxId) || other.taxId == taxId)&&(identical(other.addressLine1, addressLine1) || other.addressLine1 == addressLine1)&&(identical(other.city, city) || other.city == city)&&(identical(other.paymentTermsDays, paymentTermsDays) || other.paymentTermsDays == paymentTermsDays)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,businessId,name,contactPerson,email,phone,taxId,addressLine1,city,paymentTermsDays,isActive,createdAt,updatedAt);
+}
+
+@override
+String toString() {
     return 'SupplierModel(id: $id, businessId: $businessId, name: $name, contactPerson: $contactPerson, email: $email, phone: $phone, taxId: $taxId, addressLine1: $addressLine1, city: $city, paymentTermsDays: $paymentTermsDays, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$SupplierModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.businessId, businessId) ||
-                other.businessId == businessId) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.contactPerson, contactPerson) ||
-                other.contactPerson == contactPerson) &&
-            (identical(other.email, email) || other.email == email) &&
-            (identical(other.phone, phone) || other.phone == phone) &&
-            (identical(other.taxId, taxId) || other.taxId == taxId) &&
-            (identical(other.addressLine1, addressLine1) ||
-                other.addressLine1 == addressLine1) &&
-            (identical(other.city, city) || other.city == city) &&
-            (identical(other.paymentTermsDays, paymentTermsDays) ||
-                other.paymentTermsDays == paymentTermsDays) &&
-            (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    businessId,
-    name,
-    contactPerson,
-    email,
-    phone,
-    taxId,
-    addressLine1,
-    city,
-    paymentTermsDays,
-    isActive,
-    createdAt,
-    updatedAt,
-  );
-
-  /// Create a copy of SupplierModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$SupplierModelImplCopyWith<_$SupplierModelImpl> get copyWith =>
-      __$$SupplierModelImplCopyWithImpl<_$SupplierModelImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SupplierModelImplToJson(this);
-  }
 }
 
-abstract class _SupplierModel implements SupplierModel {
-  const factory _SupplierModel({
-    required final String id,
-    @JsonKey(name: 'business_id') required final String businessId,
-    required final String name,
-    @JsonKey(name: 'contact_person') final String? contactPerson,
-    final String? email,
-    final String? phone,
-    @JsonKey(name: 'tax_id') final String? taxId,
-    @JsonKey(name: 'address_line1') final String? addressLine1,
-    final String? city,
-    @JsonKey(name: 'payment_terms_days') final int paymentTermsDays,
-    @JsonKey(name: 'is_active') final bool isActive,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-  }) = _$SupplierModelImpl;
 
-  factory _SupplierModel.fromJson(Map<String, dynamic> json) =
-      _$SupplierModelImpl.fromJson;
-
-  @override
-  String get id;
-  @override
-  @JsonKey(name: 'business_id')
-  String get businessId;
-  @override
-  String get name;
-  @override
-  @JsonKey(name: 'contact_person')
-  String? get contactPerson;
-  @override
-  String? get email;
-  @override
-  String? get phone;
-  @override
-  @JsonKey(name: 'tax_id')
-  String? get taxId;
-  @override
-  @JsonKey(name: 'address_line1')
-  String? get addressLine1;
-  @override
-  String? get city;
-  @override
-  @JsonKey(name: 'payment_terms_days')
-  int get paymentTermsDays;
-  @override
-  @JsonKey(name: 'is_active')
-  bool get isActive;
-  @override
-  @JsonKey(name: 'created_at')
-  String? get createdAt;
-  @override
-  @JsonKey(name: 'updated_at')
-  String? get updatedAt;
-
-  /// Create a copy of SupplierModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SupplierModelImplCopyWith<_$SupplierModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-SupplierBalanceModel _$SupplierBalanceModelFromJson(Map<String, dynamic> json) {
-  return _SupplierBalanceModel.fromJson(json);
+/// @nodoc
+abstract mixin class _$SupplierModelCopyWith<$Res> implements $SupplierModelCopyWith<$Res> {
+  factory _$SupplierModelCopyWith(_SupplierModel value, $Res Function(_SupplierModel) _then) = __$SupplierModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String id,@JsonKey(name: 'business_id') String businessId, String name,@JsonKey(name: 'contact_person') String? contactPerson, String? email, String? phone,@JsonKey(name: 'tax_id') String? taxId,@JsonKey(name: 'address_line1') String? addressLine1, String? city,@JsonKey(name: 'payment_terms_days', fromJson: JsonNum.intOr) int paymentTermsDays,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt
+});
+
+
+
+
 }
+/// @nodoc
+class __$SupplierModelCopyWithImpl<$Res>
+    implements _$SupplierModelCopyWith<$Res> {
+  __$SupplierModelCopyWithImpl(this._self, this._then);
+
+  final _SupplierModel _self;
+  final $Res Function(_SupplierModel) _then;
+
+/// Create a copy of SupplierModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? contactPerson = freezed,Object? email = freezed,Object? phone = freezed,Object? taxId = freezed,Object? addressLine1 = freezed,Object? city = freezed,Object? paymentTermsDays = null,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+  return _then(_SupplierModel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,taxId: freezed == taxId ? _self.taxId : taxId // ignore: cast_nullable_to_non_nullable
+as String?,addressLine1: freezed == addressLine1 ? _self.addressLine1 : addressLine1 // ignore: cast_nullable_to_non_nullable
+as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,paymentTermsDays: null == paymentTermsDays ? _self.paymentTermsDays : paymentTermsDays // ignore: cast_nullable_to_non_nullable
+as int,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$SupplierBalanceModel {
-  @JsonKey(name: 'supplier_id')
-  String get supplierId => throw _privateConstructorUsedError;
-  String get balance => throw _privateConstructorUsedError;
+
+@JsonKey(name: 'supplier_id') String get supplierId; String get balance;
+/// Create a copy of SupplierBalanceModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SupplierBalanceModelCopyWith<SupplierBalanceModel> get copyWith => _$SupplierBalanceModelCopyWithImpl<SupplierBalanceModel>(this as SupplierBalanceModel, _$identity);
 
   /// Serializes this SupplierBalanceModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of SupplierBalanceModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $SupplierBalanceModelCopyWith<SupplierBalanceModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as SupplierBalanceModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SupplierBalanceModel&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.balance, _this.balance) || other.balance == _this.balance));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as SupplierBalanceModel;
+  return Object.hash(runtimeType,_this.supplierId,_this.balance);
+}
+
+@override
+String toString() {
+  final _this = this as SupplierBalanceModel;
+  return 'SupplierBalanceModel(supplierId: ${_this.supplierId}, balance: ${_this.balance})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $SupplierBalanceModelCopyWith<$Res> {
-  factory $SupplierBalanceModelCopyWith(
-    SupplierBalanceModel value,
-    $Res Function(SupplierBalanceModel) then,
-  ) = _$SupplierBalanceModelCopyWithImpl<$Res, SupplierBalanceModel>;
-  @useResult
-  $Res call({@JsonKey(name: 'supplier_id') String supplierId, String balance});
-}
+abstract mixin class $SupplierBalanceModelCopyWith<$Res>  {
+  factory $SupplierBalanceModelCopyWith(SupplierBalanceModel value, $Res Function(SupplierBalanceModel) _then) = _$SupplierBalanceModelCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'supplier_id') String supplierId, String balance
+});
 
+
+
+
+}
 /// @nodoc
-class _$SupplierBalanceModelCopyWithImpl<
-  $Res,
-  $Val extends SupplierBalanceModel
->
+class _$SupplierBalanceModelCopyWithImpl<$Res>
     implements $SupplierBalanceModelCopyWith<$Res> {
-  _$SupplierBalanceModelCopyWithImpl(this._value, this._then);
+  _$SupplierBalanceModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SupplierBalanceModel _self;
+  final $Res Function(SupplierBalanceModel) _then;
 
-  /// Create a copy of SupplierBalanceModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? supplierId = null, Object? balance = null}) {
-    return _then(
-      _value.copyWith(
-            supplierId: null == supplierId
-                ? _value.supplierId
-                : supplierId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            balance: null == balance
-                ? _value.balance
-                : balance // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of SupplierBalanceModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? supplierId = null,Object? balance = null,}) {
+  return _then(SupplierBalanceModel(
+supplierId: null == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
+as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$SupplierBalanceModelImplCopyWith<$Res>
-    implements $SupplierBalanceModelCopyWith<$Res> {
-  factory _$$SupplierBalanceModelImplCopyWith(
-    _$SupplierBalanceModelImpl value,
-    $Res Function(_$SupplierBalanceModelImpl) then,
-  ) = __$$SupplierBalanceModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({@JsonKey(name: 'supplier_id') String supplierId, String balance});
 }
 
-/// @nodoc
-class __$$SupplierBalanceModelImplCopyWithImpl<$Res>
-    extends _$SupplierBalanceModelCopyWithImpl<$Res, _$SupplierBalanceModelImpl>
-    implements _$$SupplierBalanceModelImplCopyWith<$Res> {
-  __$$SupplierBalanceModelImplCopyWithImpl(
-    _$SupplierBalanceModelImpl _value,
-    $Res Function(_$SupplierBalanceModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of SupplierBalanceModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? supplierId = null, Object? balance = null}) {
-    return _then(
-      _$SupplierBalanceModelImpl(
-        supplierId: null == supplierId
-            ? _value.supplierId
-            : supplierId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        balance: null == balance
-            ? _value.balance
-            : balance // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [SupplierBalanceModel].
+extension SupplierBalanceModelPatterns on SupplierBalanceModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SupplierBalanceModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SupplierBalanceModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SupplierBalanceModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _SupplierBalanceModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SupplierBalanceModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SupplierBalanceModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SupplierBalanceModel() when $default != null:
+return $default(_that.supplierId,_that.balance);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)  $default,) {final _that = this;
+switch (_that) {
+case _SupplierBalanceModel():
+return $default(_that.supplierId,_that.balance);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)?  $default,) {final _that = this;
+switch (_that) {
+case _SupplierBalanceModel() when $default != null:
+return $default(_that.supplierId,_that.balance);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$SupplierBalanceModelImpl implements _SupplierBalanceModel {
-  const _$SupplierBalanceModelImpl({
-    @JsonKey(name: 'supplier_id') required this.supplierId,
-    required this.balance,
-  });
 
-  factory _$SupplierBalanceModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SupplierBalanceModelImplFromJson(json);
+class _SupplierBalanceModel implements SupplierBalanceModel {
+  const _SupplierBalanceModel({@JsonKey(name: 'supplier_id') required this.supplierId, required this.balance});
+  factory _SupplierBalanceModel.fromJson(Map<String, dynamic> json) => _$SupplierBalanceModelFromJson(json);
 
-  @override
-  @JsonKey(name: 'supplier_id')
-  final String supplierId;
-  @override
-  final String balance;
+@override@JsonKey(name: 'supplier_id') final  String supplierId;
+@override final  String balance;
 
-  @override
-  String toString() {
+/// Create a copy of SupplierBalanceModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SupplierBalanceModelCopyWith<_SupplierBalanceModel> get copyWith => __$SupplierBalanceModelCopyWithImpl<_SupplierBalanceModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SupplierBalanceModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SupplierBalanceModel&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.balance, balance) || other.balance == balance));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,supplierId,balance);
+}
+
+@override
+String toString() {
     return 'SupplierBalanceModel(supplierId: $supplierId, balance: $balance)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$SupplierBalanceModelImpl &&
-            (identical(other.supplierId, supplierId) ||
-                other.supplierId == supplierId) &&
-            (identical(other.balance, balance) || other.balance == balance));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, supplierId, balance);
-
-  /// Create a copy of SupplierBalanceModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$SupplierBalanceModelImplCopyWith<_$SupplierBalanceModelImpl>
-  get copyWith =>
-      __$$SupplierBalanceModelImplCopyWithImpl<_$SupplierBalanceModelImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SupplierBalanceModelImplToJson(this);
-  }
 }
 
-abstract class _SupplierBalanceModel implements SupplierBalanceModel {
-  const factory _SupplierBalanceModel({
-    @JsonKey(name: 'supplier_id') required final String supplierId,
-    required final String balance,
-  }) = _$SupplierBalanceModelImpl;
 
-  factory _SupplierBalanceModel.fromJson(Map<String, dynamic> json) =
-      _$SupplierBalanceModelImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'supplier_id')
-  String get supplierId;
-  @override
-  String get balance;
-
-  /// Create a copy of SupplierBalanceModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SupplierBalanceModelImplCopyWith<_$SupplierBalanceModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$SupplierBalanceModelCopyWith<$Res> implements $SupplierBalanceModelCopyWith<$Res> {
+  factory _$SupplierBalanceModelCopyWith(_SupplierBalanceModel value, $Res Function(_SupplierBalanceModel) _then) = __$SupplierBalanceModelCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'supplier_id') String supplierId, String balance
+});
+
+
+
+
+}
+/// @nodoc
+class __$SupplierBalanceModelCopyWithImpl<$Res>
+    implements _$SupplierBalanceModelCopyWith<$Res> {
+  __$SupplierBalanceModelCopyWithImpl(this._self, this._then);
+
+  final _SupplierBalanceModel _self;
+  final $Res Function(_SupplierBalanceModel) _then;
+
+/// Create a copy of SupplierBalanceModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? supplierId = null,Object? balance = null,}) {
+  return _then(_SupplierBalanceModel(
+supplierId: null == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
+as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

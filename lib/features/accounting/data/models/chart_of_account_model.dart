@@ -4,7 +4,7 @@ part 'chart_of_account_model.freezed.dart';
 part 'chart_of_account_model.g.dart';
 
 @freezed
-class ChartOfAccountModel with _$ChartOfAccountModel {
+abstract class ChartOfAccountModel with _$ChartOfAccountModel {
   const factory ChartOfAccountModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

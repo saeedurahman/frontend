@@ -6,12 +6,12 @@ part 'paginated_notifications_model.freezed.dart';
 part 'paginated_notifications_model.g.dart';
 
 @freezed
-class PaginatedNotificationsModel with _$PaginatedNotificationsModel {
+abstract class PaginatedNotificationsModel with _$PaginatedNotificationsModel {
   const factory PaginatedNotificationsModel({
-    required int total,
-    @JsonKey(name: 'unread_count') required int unreadCount,
-    required int skip,
-    required int limit,
+    @JsonKey(fromJson: JsonNum.intOr) required int total,
+    @JsonKey(name: 'unread_count', fromJson: JsonNum.intOr) required int unreadCount,
+    @JsonKey(fromJson: JsonNum.intOr) required int skip,
+    @JsonKey(fromJson: JsonNum.intOr) required int limit,
     @Default([]) List<NotificationModel> items,
   }) = _PaginatedNotificationsModel;
 

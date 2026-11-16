@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'purchase_order_detail_state.dart';
@@ -9,680 +9,390 @@ part of 'purchase_order_detail_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$PurchaseOrderDetailState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(PurchaseOrderModel order, bool isUpdating) loaded,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(PurchaseOrderDetailInitial value) initial,
-    required TResult Function(PurchaseOrderDetailLoading value) loading,
-    required TResult Function(PurchaseOrderDetailLoaded value) loaded,
-    required TResult Function(PurchaseOrderDetailError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(PurchaseOrderDetailInitial value)? initial,
-    TResult? Function(PurchaseOrderDetailLoading value)? loading,
-    TResult? Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult? Function(PurchaseOrderDetailError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(PurchaseOrderDetailInitial value)? initial,
-    TResult Function(PurchaseOrderDetailLoading value)? loading,
-    TResult Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult Function(PurchaseOrderDetailError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderDetailState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'PurchaseOrderDetailState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $PurchaseOrderDetailStateCopyWith<$Res> {
-  factory $PurchaseOrderDetailStateCopyWith(
-    PurchaseOrderDetailState value,
-    $Res Function(PurchaseOrderDetailState) then,
-  ) = _$PurchaseOrderDetailStateCopyWithImpl<$Res, PurchaseOrderDetailState>;
+class $PurchaseOrderDetailStateCopyWith<$Res>  {
+$PurchaseOrderDetailStateCopyWith(PurchaseOrderDetailState _, $Res Function(PurchaseOrderDetailState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [PurchaseOrderDetailState].
+extension PurchaseOrderDetailStatePatterns on PurchaseOrderDetailState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PurchaseOrderDetailInitial value)?  initial,TResult Function( PurchaseOrderDetailLoading value)?  loading,TResult Function( PurchaseOrderDetailLoaded value)?  loaded,TResult Function( PurchaseOrderDetailError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial() when initial != null:
+return initial(_that);case PurchaseOrderDetailLoading() when loading != null:
+return loading(_that);case PurchaseOrderDetailLoaded() when loaded != null:
+return loaded(_that);case PurchaseOrderDetailError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PurchaseOrderDetailInitial value)  initial,required TResult Function( PurchaseOrderDetailLoading value)  loading,required TResult Function( PurchaseOrderDetailLoaded value)  loaded,required TResult Function( PurchaseOrderDetailError value)  error,}){
+final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial():
+return initial(_that);case PurchaseOrderDetailLoading():
+return loading(_that);case PurchaseOrderDetailLoaded():
+return loaded(_that);case PurchaseOrderDetailError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PurchaseOrderDetailInitial value)?  initial,TResult? Function( PurchaseOrderDetailLoading value)?  loading,TResult? Function( PurchaseOrderDetailLoaded value)?  loaded,TResult? Function( PurchaseOrderDetailError value)?  error,}){
+final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial() when initial != null:
+return initial(_that);case PurchaseOrderDetailLoading() when loading != null:
+return loading(_that);case PurchaseOrderDetailLoaded() when loaded != null:
+return loaded(_that);case PurchaseOrderDetailError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( PurchaseOrderModel order,  bool isUpdating)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial() when initial != null:
+return initial();case PurchaseOrderDetailLoading() when loading != null:
+return loading();case PurchaseOrderDetailLoaded() when loaded != null:
+return loaded(_that.order,_that.isUpdating);case PurchaseOrderDetailError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( PurchaseOrderModel order,  bool isUpdating)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial():
+return initial();case PurchaseOrderDetailLoading():
+return loading();case PurchaseOrderDetailLoaded():
+return loaded(_that.order,_that.isUpdating);case PurchaseOrderDetailError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( PurchaseOrderModel order,  bool isUpdating)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case PurchaseOrderDetailInitial() when initial != null:
+return initial();case PurchaseOrderDetailLoading() when loading != null:
+return loading();case PurchaseOrderDetailLoaded() when loaded != null:
+return loaded(_that.order,_that.isUpdating);case PurchaseOrderDetailError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$PurchaseOrderDetailStateCopyWithImpl<
-  $Res,
-  $Val extends PurchaseOrderDetailState
->
-    implements $PurchaseOrderDetailStateCopyWith<$Res> {
-  _$PurchaseOrderDetailStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
+class PurchaseOrderDetailInitial implements PurchaseOrderDetailState {
+  const PurchaseOrderDetailInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderDetailInitial);
 }
 
-/// @nodoc
-abstract class _$$PurchaseOrderDetailInitialImplCopyWith<$Res> {
-  factory _$$PurchaseOrderDetailInitialImplCopyWith(
-    _$PurchaseOrderDetailInitialImpl value,
-    $Res Function(_$PurchaseOrderDetailInitialImpl) then,
-  ) = __$$PurchaseOrderDetailInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$PurchaseOrderDetailInitialImplCopyWithImpl<$Res>
-    extends
-        _$PurchaseOrderDetailStateCopyWithImpl<
-          $Res,
-          _$PurchaseOrderDetailInitialImpl
-        >
-    implements _$$PurchaseOrderDetailInitialImplCopyWith<$Res> {
-  __$$PurchaseOrderDetailInitialImplCopyWithImpl(
-    _$PurchaseOrderDetailInitialImpl _value,
-    $Res Function(_$PurchaseOrderDetailInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$PurchaseOrderDetailInitialImpl implements PurchaseOrderDetailInitial {
-  const _$PurchaseOrderDetailInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'PurchaseOrderDetailState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PurchaseOrderDetailInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(PurchaseOrderModel order, bool isUpdating) loaded,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(PurchaseOrderDetailInitial value) initial,
-    required TResult Function(PurchaseOrderDetailLoading value) loading,
-    required TResult Function(PurchaseOrderDetailLoaded value) loaded,
-    required TResult Function(PurchaseOrderDetailError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(PurchaseOrderDetailInitial value)? initial,
-    TResult? Function(PurchaseOrderDetailLoading value)? loading,
-    TResult? Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult? Function(PurchaseOrderDetailError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(PurchaseOrderDetailInitial value)? initial,
-    TResult Function(PurchaseOrderDetailLoading value)? loading,
-    TResult Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult Function(PurchaseOrderDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class PurchaseOrderDetailInitial implements PurchaseOrderDetailState {
-  const factory PurchaseOrderDetailInitial() = _$PurchaseOrderDetailInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$PurchaseOrderDetailLoadingImplCopyWith<$Res> {
-  factory _$$PurchaseOrderDetailLoadingImplCopyWith(
-    _$PurchaseOrderDetailLoadingImpl value,
-    $Res Function(_$PurchaseOrderDetailLoadingImpl) then,
-  ) = __$$PurchaseOrderDetailLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$PurchaseOrderDetailLoadingImplCopyWithImpl<$Res>
-    extends
-        _$PurchaseOrderDetailStateCopyWithImpl<
-          $Res,
-          _$PurchaseOrderDetailLoadingImpl
-        >
-    implements _$$PurchaseOrderDetailLoadingImplCopyWith<$Res> {
-  __$$PurchaseOrderDetailLoadingImplCopyWithImpl(
-    _$PurchaseOrderDetailLoadingImpl _value,
-    $Res Function(_$PurchaseOrderDetailLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$PurchaseOrderDetailLoadingImpl implements PurchaseOrderDetailLoading {
-  const _$PurchaseOrderDetailLoadingImpl();
 
-  @override
-  String toString() {
+class PurchaseOrderDetailLoading implements PurchaseOrderDetailState {
+  const PurchaseOrderDetailLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderDetailLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'PurchaseOrderDetailState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PurchaseOrderDetailLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(PurchaseOrderModel order, bool isUpdating) loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(PurchaseOrderDetailInitial value) initial,
-    required TResult Function(PurchaseOrderDetailLoading value) loading,
-    required TResult Function(PurchaseOrderDetailLoaded value) loaded,
-    required TResult Function(PurchaseOrderDetailError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(PurchaseOrderDetailInitial value)? initial,
-    TResult? Function(PurchaseOrderDetailLoading value)? loading,
-    TResult? Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult? Function(PurchaseOrderDetailError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(PurchaseOrderDetailInitial value)? initial,
-    TResult Function(PurchaseOrderDetailLoading value)? loading,
-    TResult Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult Function(PurchaseOrderDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class PurchaseOrderDetailLoading implements PurchaseOrderDetailState {
-  const factory PurchaseOrderDetailLoading() = _$PurchaseOrderDetailLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$PurchaseOrderDetailLoadedImplCopyWith<$Res> {
-  factory _$$PurchaseOrderDetailLoadedImplCopyWith(
-    _$PurchaseOrderDetailLoadedImpl value,
-    $Res Function(_$PurchaseOrderDetailLoadedImpl) then,
-  ) = __$$PurchaseOrderDetailLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({PurchaseOrderModel order, bool isUpdating});
 
-  $PurchaseOrderModelCopyWith<$Res> get order;
-}
 
-/// @nodoc
-class __$$PurchaseOrderDetailLoadedImplCopyWithImpl<$Res>
-    extends
-        _$PurchaseOrderDetailStateCopyWithImpl<
-          $Res,
-          _$PurchaseOrderDetailLoadedImpl
-        >
-    implements _$$PurchaseOrderDetailLoadedImplCopyWith<$Res> {
-  __$$PurchaseOrderDetailLoadedImplCopyWithImpl(
-    _$PurchaseOrderDetailLoadedImpl _value,
-    $Res Function(_$PurchaseOrderDetailLoadedImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? order = null, Object? isUpdating = null}) {
-    return _then(
-      _$PurchaseOrderDetailLoadedImpl(
-        order: null == order
-            ? _value.order
-            : order // ignore: cast_nullable_to_non_nullable
-                  as PurchaseOrderModel,
-        isUpdating: null == isUpdating
-            ? _value.isUpdating
-            : isUpdating // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
-  }
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $PurchaseOrderModelCopyWith<$Res> get order {
-    return $PurchaseOrderModelCopyWith<$Res>(_value.order, (value) {
-      return _then(_value.copyWith(order: value));
-    });
-  }
-}
 
 /// @nodoc
 
-class _$PurchaseOrderDetailLoadedImpl implements PurchaseOrderDetailLoaded {
-  const _$PurchaseOrderDetailLoadedImpl({
-    required this.order,
-    this.isUpdating = false,
-  });
 
-  @override
-  final PurchaseOrderModel order;
-  @override
-  @JsonKey()
-  final bool isUpdating;
+class PurchaseOrderDetailLoaded implements PurchaseOrderDetailState {
+  const PurchaseOrderDetailLoaded({required this.order, this.isUpdating = false});
+  
 
-  @override
-  String toString() {
+ final  PurchaseOrderModel order;
+@JsonKey() final  bool isUpdating;
+
+/// Create a copy of PurchaseOrderDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PurchaseOrderDetailLoadedCopyWith<PurchaseOrderDetailLoaded> get copyWith => _$PurchaseOrderDetailLoadedCopyWithImpl<PurchaseOrderDetailLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderDetailLoaded&&(identical(other.order, order) || other.order == order)&&(identical(other.isUpdating, isUpdating) || other.isUpdating == isUpdating));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,order,isUpdating);
+}
+
+@override
+String toString() {
     return 'PurchaseOrderDetailState.loaded(order: $order, isUpdating: $isUpdating)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PurchaseOrderDetailLoadedImpl &&
-            (identical(other.order, order) || other.order == order) &&
-            (identical(other.isUpdating, isUpdating) ||
-                other.isUpdating == isUpdating));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, order, isUpdating);
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PurchaseOrderDetailLoadedImplCopyWith<_$PurchaseOrderDetailLoadedImpl>
-  get copyWith =>
-      __$$PurchaseOrderDetailLoadedImplCopyWithImpl<
-        _$PurchaseOrderDetailLoadedImpl
-      >(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(PurchaseOrderModel order, bool isUpdating) loaded,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(order, isUpdating);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(order, isUpdating);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(order, isUpdating);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(PurchaseOrderDetailInitial value) initial,
-    required TResult Function(PurchaseOrderDetailLoading value) loading,
-    required TResult Function(PurchaseOrderDetailLoaded value) loaded,
-    required TResult Function(PurchaseOrderDetailError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(PurchaseOrderDetailInitial value)? initial,
-    TResult? Function(PurchaseOrderDetailLoading value)? loading,
-    TResult? Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult? Function(PurchaseOrderDetailError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(PurchaseOrderDetailInitial value)? initial,
-    TResult Function(PurchaseOrderDetailLoading value)? loading,
-    TResult Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult Function(PurchaseOrderDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class PurchaseOrderDetailLoaded implements PurchaseOrderDetailState {
-  const factory PurchaseOrderDetailLoaded({
-    required final PurchaseOrderModel order,
-    final bool isUpdating,
-  }) = _$PurchaseOrderDetailLoadedImpl;
 
-  PurchaseOrderModel get order;
-  bool get isUpdating;
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PurchaseOrderDetailLoadedImplCopyWith<_$PurchaseOrderDetailLoadedImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PurchaseOrderDetailErrorImplCopyWith<$Res> {
-  factory _$$PurchaseOrderDetailErrorImplCopyWith(
-    _$PurchaseOrderDetailErrorImpl value,
-    $Res Function(_$PurchaseOrderDetailErrorImpl) then,
-  ) = __$$PurchaseOrderDetailErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
+abstract mixin class $PurchaseOrderDetailLoadedCopyWith<$Res> implements $PurchaseOrderDetailStateCopyWith<$Res> {
+  factory $PurchaseOrderDetailLoadedCopyWith(PurchaseOrderDetailLoaded value, $Res Function(PurchaseOrderDetailLoaded) _then) = _$PurchaseOrderDetailLoadedCopyWithImpl;
+@useResult
+$Res call({
+ PurchaseOrderModel order, bool isUpdating
+});
+
+
+$PurchaseOrderModelCopyWith<$Res> get order;
+
+}
+/// @nodoc
+class _$PurchaseOrderDetailLoadedCopyWithImpl<$Res>
+    implements $PurchaseOrderDetailLoadedCopyWith<$Res> {
+  _$PurchaseOrderDetailLoadedCopyWithImpl(this._self, this._then);
+
+  final PurchaseOrderDetailLoaded _self;
+  final $Res Function(PurchaseOrderDetailLoaded) _then;
+
+/// Create a copy of PurchaseOrderDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? order = null,Object? isUpdating = null,}) {
+  return _then(PurchaseOrderDetailLoaded(
+order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
+as PurchaseOrderModel,isUpdating: null == isUpdating ? _self.isUpdating : isUpdating // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
 
-/// @nodoc
-class __$$PurchaseOrderDetailErrorImplCopyWithImpl<$Res>
-    extends
-        _$PurchaseOrderDetailStateCopyWithImpl<
-          $Res,
-          _$PurchaseOrderDetailErrorImpl
-        >
-    implements _$$PurchaseOrderDetailErrorImplCopyWith<$Res> {
-  __$$PurchaseOrderDetailErrorImplCopyWithImpl(
-    _$PurchaseOrderDetailErrorImpl _value,
-    $Res Function(_$PurchaseOrderDetailErrorImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$PurchaseOrderDetailErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Create a copy of PurchaseOrderDetailState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PurchaseOrderModelCopyWith<$Res> get order {
+  
+  return $PurchaseOrderModelCopyWith<$Res>(_self.order, (value) {
+    return _then(_self.copyWith(order: value));
+  });
+}
 }
 
 /// @nodoc
 
-class _$PurchaseOrderDetailErrorImpl implements PurchaseOrderDetailError {
-  const _$PurchaseOrderDetailErrorImpl(this.message);
 
-  @override
-  final String message;
+class PurchaseOrderDetailError implements PurchaseOrderDetailState {
+  const PurchaseOrderDetailError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of PurchaseOrderDetailState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PurchaseOrderDetailErrorCopyWith<PurchaseOrderDetailError> get copyWith => _$PurchaseOrderDetailErrorCopyWithImpl<PurchaseOrderDetailError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderDetailError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'PurchaseOrderDetailState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PurchaseOrderDetailErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PurchaseOrderDetailErrorImplCopyWith<_$PurchaseOrderDetailErrorImpl>
-  get copyWith =>
-      __$$PurchaseOrderDetailErrorImplCopyWithImpl<
-        _$PurchaseOrderDetailErrorImpl
-      >(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(PurchaseOrderModel order, bool isUpdating) loaded,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(PurchaseOrderModel order, bool isUpdating)? loaded,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(PurchaseOrderDetailInitial value) initial,
-    required TResult Function(PurchaseOrderDetailLoading value) loading,
-    required TResult Function(PurchaseOrderDetailLoaded value) loaded,
-    required TResult Function(PurchaseOrderDetailError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(PurchaseOrderDetailInitial value)? initial,
-    TResult? Function(PurchaseOrderDetailLoading value)? loading,
-    TResult? Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult? Function(PurchaseOrderDetailError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(PurchaseOrderDetailInitial value)? initial,
-    TResult Function(PurchaseOrderDetailLoading value)? loading,
-    TResult Function(PurchaseOrderDetailLoaded value)? loaded,
-    TResult Function(PurchaseOrderDetailError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class PurchaseOrderDetailError implements PurchaseOrderDetailState {
-  const factory PurchaseOrderDetailError(final String message) =
-      _$PurchaseOrderDetailErrorImpl;
 
-  String get message;
-
-  /// Create a copy of PurchaseOrderDetailState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PurchaseOrderDetailErrorImplCopyWith<_$PurchaseOrderDetailErrorImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $PurchaseOrderDetailErrorCopyWith<$Res> implements $PurchaseOrderDetailStateCopyWith<$Res> {
+  factory $PurchaseOrderDetailErrorCopyWith(PurchaseOrderDetailError value, $Res Function(PurchaseOrderDetailError) _then) = _$PurchaseOrderDetailErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$PurchaseOrderDetailErrorCopyWithImpl<$Res>
+    implements $PurchaseOrderDetailErrorCopyWith<$Res> {
+  _$PurchaseOrderDetailErrorCopyWithImpl(this._self, this._then);
+
+  final PurchaseOrderDetailError _self;
+  final $Res Function(PurchaseOrderDetailError) _then;
+
+/// Create a copy of PurchaseOrderDetailState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(PurchaseOrderDetailError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

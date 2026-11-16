@@ -7,7 +7,7 @@ import 'package:frantend/features/manufacturing/domain/utils/production_availabi
 part 'production_order_detail_state.freezed.dart';
 
 @freezed
-class ProductionOrderDetailState with _$ProductionOrderDetailState {
+abstract class ProductionOrderDetailState with _$ProductionOrderDetailState {
   const factory ProductionOrderDetailState({
     ProductionOrderModel? order,
     @Default(false) bool isLoading,

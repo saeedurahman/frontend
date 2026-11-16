@@ -6,20 +6,20 @@ part of 'production_order_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ProductionOrderBomSummaryModelImpl
-_$$ProductionOrderBomSummaryModelImplFromJson(Map<String, dynamic> json) =>
-    _$ProductionOrderBomSummaryModelImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      productId: json['product_id'] as String,
-      productName: json['product_name'] as String,
-      variationId: json['variation_id'] as String?,
-      outputQty: json['output_qty'] as String,
-      version: JsonNum.intOrNull(json['version']) ?? 1,
-    );
+_ProductionOrderBomSummaryModel _$ProductionOrderBomSummaryModelFromJson(
+  Map<String, dynamic> json,
+) => _ProductionOrderBomSummaryModel(
+  id: json['id'] as String,
+  name: json['name'] as String,
+  productId: json['product_id'] as String,
+  productName: json['product_name'] as String,
+  variationId: json['variation_id'] as String?,
+  outputQty: json['output_qty'] as String,
+  version: json['version'] == null ? 1 : JsonNum.intOr(json['version']),
+);
 
-Map<String, dynamic> _$$ProductionOrderBomSummaryModelImplToJson(
-  _$ProductionOrderBomSummaryModelImpl instance,
+Map<String, dynamic> _$ProductionOrderBomSummaryModelToJson(
+  _ProductionOrderBomSummaryModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
@@ -30,19 +30,18 @@ Map<String, dynamic> _$$ProductionOrderBomSummaryModelImplToJson(
   'version': instance.version,
 };
 
-_$ProductionLineModelImpl _$$ProductionLineModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ProductionLineModelImpl(
-  id: json['id'] as String,
-  productId: json['product_id'] as String,
-  productName: json['product_name'] as String,
-  variationId: json['variation_id'] as String?,
-  qtyConsumed: json['qty_consumed'] as String,
-  costPerUnit: json['cost_per_unit'] as String,
-);
+_ProductionLineModel _$ProductionLineModelFromJson(Map<String, dynamic> json) =>
+    _ProductionLineModel(
+      id: json['id'] as String,
+      productId: json['product_id'] as String,
+      productName: json['product_name'] as String,
+      variationId: json['variation_id'] as String?,
+      qtyConsumed: json['qty_consumed'] as String,
+      costPerUnit: json['cost_per_unit'] as String,
+    );
 
-Map<String, dynamic> _$$ProductionLineModelImplToJson(
-  _$ProductionLineModelImpl instance,
+Map<String, dynamic> _$ProductionLineModelToJson(
+  _ProductionLineModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'product_id': instance.productId,
@@ -52,9 +51,9 @@ Map<String, dynamic> _$$ProductionLineModelImplToJson(
   'cost_per_unit': instance.costPerUnit,
 };
 
-_$ProductionOrderModelImpl _$$ProductionOrderModelImplFromJson(
+_ProductionOrderModel _$ProductionOrderModelFromJson(
   Map<String, dynamic> json,
-) => _$ProductionOrderModelImpl(
+) => _ProductionOrderModel(
   id: json['id'] as String,
   businessId: json['business_id'] as String,
   branchId: json['branch_id'] as String,
@@ -79,8 +78,8 @@ _$ProductionOrderModelImpl _$$ProductionOrderModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$ProductionOrderModelImplToJson(
-  _$ProductionOrderModelImpl instance,
+Map<String, dynamic> _$ProductionOrderModelToJson(
+  _ProductionOrderModel instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'business_id': instance.businessId,

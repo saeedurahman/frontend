@@ -5,7 +5,7 @@ part 'tax_rate_model.freezed.dart';
 part 'tax_rate_model.g.dart';
 
 @freezed
-class TaxRateModel with _$TaxRateModel {
+abstract class TaxRateModel with _$TaxRateModel {
   const factory TaxRateModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

@@ -4,7 +4,7 @@ part 'barcode_model.freezed.dart';
 part 'barcode_model.g.dart';
 
 @freezed
-class BarcodeModel with _$BarcodeModel {
+abstract class BarcodeModel with _$BarcodeModel {
   const factory BarcodeModel({
     required String id,
     @JsonKey(name: 'product_id') required String productId,

@@ -6,8 +6,8 @@ part of 'barcode_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$BarcodeModelImpl _$$BarcodeModelImplFromJson(Map<String, dynamic> json) =>
-    _$BarcodeModelImpl(
+_BarcodeModel _$BarcodeModelFromJson(Map<String, dynamic> json) =>
+    _BarcodeModel(
       id: json['id'] as String,
       productId: json['product_id'] as String,
       variationId: json['variation_id'] as String?,
@@ -16,7 +16,7 @@ _$BarcodeModelImpl _$$BarcodeModelImplFromJson(Map<String, dynamic> json) =>
       isPrimary: json['is_primary'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$BarcodeModelImplToJson(_$BarcodeModelImpl instance) =>
+Map<String, dynamic> _$BarcodeModelToJson(_BarcodeModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'product_id': instance.productId,

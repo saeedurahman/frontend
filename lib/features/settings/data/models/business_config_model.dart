@@ -5,7 +5,7 @@ part 'business_config_model.g.dart';
 
 /// Mirrors backend [BusinessConfigResponse] on GET /business/me → config.
 @freezed
-class BusinessConfigModel with _$BusinessConfigModel {
+abstract class BusinessConfigModel with _$BusinessConfigModel {
   const factory BusinessConfigModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

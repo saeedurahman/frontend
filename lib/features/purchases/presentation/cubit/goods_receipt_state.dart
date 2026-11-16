@@ -4,7 +4,7 @@ import 'package:frantend/features/purchases/data/models/purchase_order_model.dar
 part 'goods_receipt_state.freezed.dart';
 
 @freezed
-class GoodsReceiptLineItem with _$GoodsReceiptLineItem {
+abstract class GoodsReceiptLineItem with _$GoodsReceiptLineItem {
   const GoodsReceiptLineItem._();
 
   const factory GoodsReceiptLineItem({
@@ -19,7 +19,7 @@ class GoodsReceiptLineItem with _$GoodsReceiptLineItem {
 }
 
 @freezed
-class GoodsReceiptState with _$GoodsReceiptState {
+abstract class GoodsReceiptState with _$GoodsReceiptState {
   const factory GoodsReceiptState({
     String? branchId,
     PurchaseOrderModel? order,

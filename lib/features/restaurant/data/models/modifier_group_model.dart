@@ -13,7 +13,7 @@ List<ModifierModel> _modifierListFromJson(Object? json) {
 }
 
 @freezed
-class ModifierModel with _$ModifierModel {
+abstract class ModifierModel with _$ModifierModel {
   const factory ModifierModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -21,7 +21,7 @@ class ModifierModel with _$ModifierModel {
     required String name,
     @JsonKey(name: 'price_delta') @Default('0') String priceDelta,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
-    @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
+    @JsonKey(name: 'sort_order', fromJson: JsonNum.intOr) @Default(0) int sortOrder,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
   }) = _ModifierModel;
@@ -31,16 +31,16 @@ class ModifierModel with _$ModifierModel {
 }
 
 @freezed
-class ModifierGroupModel with _$ModifierGroupModel {
+abstract class ModifierGroupModel with _$ModifierGroupModel {
   const factory ModifierGroupModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
     required String name,
     @JsonKey(name: 'selection_type') required String selectionType,
-    @JsonKey(name: 'min_selections') @Default(0) int minSelections,
-    @JsonKey(name: 'max_selections') int? maxSelections,
+    @JsonKey(name: 'min_selections', fromJson: JsonNum.intOr) @Default(0) int minSelections,
+    @JsonKey(name: 'max_selections', fromJson: JsonNum.intOrNull) int? maxSelections,
     @JsonKey(name: 'is_required') @Default(false) bool isRequired,
-    @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
+    @JsonKey(name: 'sort_order', fromJson: JsonNum.intOr) @Default(0) int sortOrder,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(fromJson: _modifierListFromJson)
     @Default([])

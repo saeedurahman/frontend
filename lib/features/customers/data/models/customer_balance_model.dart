@@ -5,7 +5,7 @@ part 'customer_balance_model.freezed.dart';
 part 'customer_balance_model.g.dart';
 
 @freezed
-class CustomerBalanceModel with _$CustomerBalanceModel {
+abstract class CustomerBalanceModel with _$CustomerBalanceModel {
   const factory CustomerBalanceModel({
     @JsonKey(name: 'customer_id') required String customerId,
     required String balance,

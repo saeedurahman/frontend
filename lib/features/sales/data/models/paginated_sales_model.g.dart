@@ -6,21 +6,22 @@ part of 'paginated_sales_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PaginatedSalesModelImpl _$$PaginatedSalesModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$PaginatedSalesModelImpl(
-  total: JsonNum.intOr(json['total']),
-  skip: JsonNum.intOr(json['skip']),
-  limit: JsonNum.intOr(json['limit']),
-  items:
-      (json['items'] as List<dynamic>?)
-          ?.map((e) => SaleListItemModel.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+_PaginatedSalesModel _$PaginatedSalesModelFromJson(Map<String, dynamic> json) =>
+    _PaginatedSalesModel(
+      total: JsonNum.intOr(json['total']),
+      skip: JsonNum.intOr(json['skip']),
+      limit: JsonNum.intOr(json['limit']),
+      items:
+          (json['items'] as List<dynamic>?)
+              ?.map(
+                (e) => SaleListItemModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+    );
 
-Map<String, dynamic> _$$PaginatedSalesModelImplToJson(
-  _$PaginatedSalesModelImpl instance,
+Map<String, dynamic> _$PaginatedSalesModelToJson(
+  _PaginatedSalesModel instance,
 ) => <String, dynamic>{
   'total': instance.total,
   'skip': instance.skip,

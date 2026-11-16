@@ -4,7 +4,7 @@ part 'kot_order_model.freezed.dart';
 part 'kot_order_model.g.dart';
 
 @freezed
-class KotOrderLineModel with _$KotOrderLineModel {
+abstract class KotOrderLineModel with _$KotOrderLineModel {
   const factory KotOrderLineModel({
     required String id,
     @JsonKey(name: 'kot_order_id') required String kotOrderId,
@@ -23,7 +23,7 @@ class KotOrderLineModel with _$KotOrderLineModel {
 }
 
 @freezed
-class KotOrderModel with _$KotOrderModel {
+abstract class KotOrderModel with _$KotOrderModel {
   const factory KotOrderModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -45,7 +45,7 @@ class KotOrderModel with _$KotOrderModel {
 }
 
 @freezed
-class FireTabResponseModel with _$FireTabResponseModel {
+abstract class FireTabResponseModel with _$FireTabResponseModel {
   const factory FireTabResponseModel({
     required String id,
     @JsonKey(name: 'kot_number') required String kotNumber,

@@ -4,7 +4,7 @@ part 'sale_return_payment_model.freezed.dart';
 part 'sale_return_payment_model.g.dart';
 
 @freezed
-class SaleReturnPaymentModel with _$SaleReturnPaymentModel {
+abstract class SaleReturnPaymentModel with _$SaleReturnPaymentModel {
   const factory SaleReturnPaymentModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

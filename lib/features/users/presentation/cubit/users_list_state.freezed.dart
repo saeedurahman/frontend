@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'users_list_state.dart';
@@ -9,817 +9,425 @@ part of 'users_list_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$UsersListState {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'UsersListState()';
+}
+
+
 }
 
 /// @nodoc
-abstract class $UsersListStateCopyWith<$Res> {
-  factory $UsersListStateCopyWith(
-    UsersListState value,
-    $Res Function(UsersListState) then,
-  ) = _$UsersListStateCopyWithImpl<$Res, UsersListState>;
+class $UsersListStateCopyWith<$Res>  {
+$UsersListStateCopyWith(UsersListState _, $Res Function(UsersListState) __);
+}
+
+
+/// Adds pattern-matching-related methods to [UsersListState].
+extension UsersListStatePatterns on UsersListState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( UsersListInitial value)?  initial,TResult Function( UsersListLoading value)?  loading,TResult Function( UsersListLoaded value)?  loaded,TResult Function( UsersListAccessDenied value)?  accessDenied,TResult Function( UsersListError value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case UsersListInitial() when initial != null:
+return initial(_that);case UsersListLoading() when loading != null:
+return loading(_that);case UsersListLoaded() when loaded != null:
+return loaded(_that);case UsersListAccessDenied() when accessDenied != null:
+return accessDenied(_that);case UsersListError() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( UsersListInitial value)  initial,required TResult Function( UsersListLoading value)  loading,required TResult Function( UsersListLoaded value)  loaded,required TResult Function( UsersListAccessDenied value)  accessDenied,required TResult Function( UsersListError value)  error,}){
+final _that = this;
+switch (_that) {
+case UsersListInitial():
+return initial(_that);case UsersListLoading():
+return loading(_that);case UsersListLoaded():
+return loaded(_that);case UsersListAccessDenied():
+return accessDenied(_that);case UsersListError():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( UsersListInitial value)?  initial,TResult? Function( UsersListLoading value)?  loading,TResult? Function( UsersListLoaded value)?  loaded,TResult? Function( UsersListAccessDenied value)?  accessDenied,TResult? Function( UsersListError value)?  error,}){
+final _that = this;
+switch (_that) {
+case UsersListInitial() when initial != null:
+return initial(_that);case UsersListLoading() when loading != null:
+return loading(_that);case UsersListLoaded() when loaded != null:
+return loaded(_that);case UsersListAccessDenied() when accessDenied != null:
+return accessDenied(_that);case UsersListError() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<StaffUserModel> users,  String? roleFilter)?  loaded,TResult Function()?  accessDenied,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case UsersListInitial() when initial != null:
+return initial();case UsersListLoading() when loading != null:
+return loading();case UsersListLoaded() when loaded != null:
+return loaded(_that.users,_that.roleFilter);case UsersListAccessDenied() when accessDenied != null:
+return accessDenied();case UsersListError() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<StaffUserModel> users,  String? roleFilter)  loaded,required TResult Function()  accessDenied,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case UsersListInitial():
+return initial();case UsersListLoading():
+return loading();case UsersListLoaded():
+return loaded(_that.users,_that.roleFilter);case UsersListAccessDenied():
+return accessDenied();case UsersListError():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<StaffUserModel> users,  String? roleFilter)?  loaded,TResult? Function()?  accessDenied,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case UsersListInitial() when initial != null:
+return initial();case UsersListLoading() when loading != null:
+return loading();case UsersListLoaded() when loaded != null:
+return loaded(_that.users,_that.roleFilter);case UsersListAccessDenied() when accessDenied != null:
+return accessDenied();case UsersListError() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
-class _$UsersListStateCopyWithImpl<$Res, $Val extends UsersListState>
-    implements $UsersListStateCopyWith<$Res> {
-  _$UsersListStateCopyWithImpl(this._value, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
+class UsersListInitial implements UsersListState {
+  const UsersListInitial();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListInitial);
 }
 
-/// @nodoc
-abstract class _$$UsersListInitialImplCopyWith<$Res> {
-  factory _$$UsersListInitialImplCopyWith(
-    _$UsersListInitialImpl value,
-    $Res Function(_$UsersListInitialImpl) then,
-  ) = __$$UsersListInitialImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$UsersListInitialImplCopyWithImpl<$Res>
-    extends _$UsersListStateCopyWithImpl<$Res, _$UsersListInitialImpl>
-    implements _$$UsersListInitialImplCopyWith<$Res> {
-  __$$UsersListInitialImplCopyWithImpl(
-    _$UsersListInitialImpl _value,
-    $Res Function(_$UsersListInitialImpl) _then,
-  ) : super(_value, _then);
+@override
+int get hashCode => runtimeType.hashCode;
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$UsersListInitialImpl implements UsersListInitial {
-  const _$UsersListInitialImpl();
-
-  @override
-  String toString() {
+@override
+String toString() {
     return 'UsersListState.initial()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$UsersListInitialImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return initial();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return initial?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) {
-    return initial(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) {
-    return initial?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (initial != null) {
-      return initial(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class UsersListInitial implements UsersListState {
-  const factory UsersListInitial() = _$UsersListInitialImpl;
+
 }
 
-/// @nodoc
-abstract class _$$UsersListLoadingImplCopyWith<$Res> {
-  factory _$$UsersListLoadingImplCopyWith(
-    _$UsersListLoadingImpl value,
-    $Res Function(_$UsersListLoadingImpl) then,
-  ) = __$$UsersListLoadingImplCopyWithImpl<$Res>;
-}
 
-/// @nodoc
-class __$$UsersListLoadingImplCopyWithImpl<$Res>
-    extends _$UsersListStateCopyWithImpl<$Res, _$UsersListLoadingImpl>
-    implements _$$UsersListLoadingImplCopyWith<$Res> {
-  __$$UsersListLoadingImplCopyWithImpl(
-    _$UsersListLoadingImpl _value,
-    $Res Function(_$UsersListLoadingImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-}
 
 /// @nodoc
 
-class _$UsersListLoadingImpl implements UsersListLoading {
-  const _$UsersListLoadingImpl();
 
-  @override
-  String toString() {
+class UsersListLoading implements UsersListState {
+  const UsersListLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'UsersListState.loading()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$UsersListLoadingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return loading?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) {
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) {
-    return loading?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class UsersListLoading implements UsersListState {
-  const factory UsersListLoading() = _$UsersListLoadingImpl;
+
 }
 
-/// @nodoc
-abstract class _$$UsersListLoadedImplCopyWith<$Res> {
-  factory _$$UsersListLoadedImplCopyWith(
-    _$UsersListLoadedImpl value,
-    $Res Function(_$UsersListLoadedImpl) then,
-  ) = __$$UsersListLoadedImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({List<StaffUserModel> users, String? roleFilter});
-}
 
-/// @nodoc
-class __$$UsersListLoadedImplCopyWithImpl<$Res>
-    extends _$UsersListStateCopyWithImpl<$Res, _$UsersListLoadedImpl>
-    implements _$$UsersListLoadedImplCopyWith<$Res> {
-  __$$UsersListLoadedImplCopyWithImpl(
-    _$UsersListLoadedImpl _value,
-    $Res Function(_$UsersListLoadedImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? users = null, Object? roleFilter = freezed}) {
-    return _then(
-      _$UsersListLoadedImpl(
-        users: null == users
-            ? _value._users
-            : users // ignore: cast_nullable_to_non_nullable
-                  as List<StaffUserModel>,
-        roleFilter: freezed == roleFilter
-            ? _value.roleFilter
-            : roleFilter // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$UsersListLoadedImpl implements UsersListLoaded {
-  const _$UsersListLoadedImpl({
-    required final List<StaffUserModel> users,
-    this.roleFilter,
-  }) : _users = users;
 
-  final List<StaffUserModel> _users;
-  @override
-  List<StaffUserModel> get users {
-    if (_users is EqualUnmodifiableListView) return _users;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_users);
-  }
+class UsersListLoaded implements UsersListState {
+  const UsersListLoaded({required  List<StaffUserModel> users, this.roleFilter}): _users = users;
+  
 
-  @override
-  final String? roleFilter;
+ final  List<StaffUserModel> _users;
+ List<StaffUserModel> get users {
+  if (_users is EqualUnmodifiableListView) return _users;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_users);
+}
 
-  @override
-  String toString() {
+ final  String? roleFilter;
+
+/// Create a copy of UsersListState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UsersListLoadedCopyWith<UsersListLoaded> get copyWith => _$UsersListLoadedCopyWithImpl<UsersListLoaded>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListLoaded&&const DeepCollectionEquality().equals(other.users, _users)&&(identical(other.roleFilter, roleFilter) || other.roleFilter == roleFilter));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_users),roleFilter);
+}
+
+@override
+String toString() {
     return 'UsersListState.loaded(users: $users, roleFilter: $roleFilter)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$UsersListLoadedImpl &&
-            const DeepCollectionEquality().equals(other._users, _users) &&
-            (identical(other.roleFilter, roleFilter) ||
-                other.roleFilter == roleFilter));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_users),
-    roleFilter,
-  );
-
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$UsersListLoadedImplCopyWith<_$UsersListLoadedImpl> get copyWith =>
-      __$$UsersListLoadedImplCopyWithImpl<_$UsersListLoadedImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return loaded(users, roleFilter);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return loaded?.call(users, roleFilter);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(users, roleFilter);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) {
-    return loaded(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) {
-    return loaded?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (loaded != null) {
-      return loaded(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class UsersListLoaded implements UsersListState {
-  const factory UsersListLoaded({
-    required final List<StaffUserModel> users,
-    final String? roleFilter,
-  }) = _$UsersListLoadedImpl;
 
-  List<StaffUserModel> get users;
-  String? get roleFilter;
-
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UsersListLoadedImplCopyWith<_$UsersListLoadedImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$UsersListAccessDeniedImplCopyWith<$Res> {
-  factory _$$UsersListAccessDeniedImplCopyWith(
-    _$UsersListAccessDeniedImpl value,
-    $Res Function(_$UsersListAccessDeniedImpl) then,
-  ) = __$$UsersListAccessDeniedImplCopyWithImpl<$Res>;
+abstract mixin class $UsersListLoadedCopyWith<$Res> implements $UsersListStateCopyWith<$Res> {
+  factory $UsersListLoadedCopyWith(UsersListLoaded value, $Res Function(UsersListLoaded) _then) = _$UsersListLoadedCopyWithImpl;
+@useResult
+$Res call({
+ List<StaffUserModel> users, String? roleFilter
+});
+
+
+
+
+}
+/// @nodoc
+class _$UsersListLoadedCopyWithImpl<$Res>
+    implements $UsersListLoadedCopyWith<$Res> {
+  _$UsersListLoadedCopyWithImpl(this._self, this._then);
+
+  final UsersListLoaded _self;
+  final $Res Function(UsersListLoaded) _then;
+
+/// Create a copy of UsersListState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? users = null,Object? roleFilter = freezed,}) {
+  return _then(UsersListLoaded(
+users: null == users ? _self._users : users // ignore: cast_nullable_to_non_nullable
+as List<StaffUserModel>,roleFilter: freezed == roleFilter ? _self.roleFilter : roleFilter // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-class __$$UsersListAccessDeniedImplCopyWithImpl<$Res>
-    extends _$UsersListStateCopyWithImpl<$Res, _$UsersListAccessDeniedImpl>
-    implements _$$UsersListAccessDeniedImplCopyWith<$Res> {
-  __$$UsersListAccessDeniedImplCopyWithImpl(
-    _$UsersListAccessDeniedImpl _value,
-    $Res Function(_$UsersListAccessDeniedImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UsersListAccessDeniedImpl implements UsersListAccessDenied {
-  const _$UsersListAccessDeniedImpl();
 
-  @override
-  String toString() {
+class UsersListAccessDenied implements UsersListState {
+  const UsersListAccessDenied();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListAccessDenied);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
     return 'UsersListState.accessDenied()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$UsersListAccessDeniedImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return accessDenied();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return accessDenied?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (accessDenied != null) {
-      return accessDenied();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) {
-    return accessDenied(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) {
-    return accessDenied?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (accessDenied != null) {
-      return accessDenied(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class UsersListAccessDenied implements UsersListState {
-  const factory UsersListAccessDenied() = _$UsersListAccessDeniedImpl;
+
 }
 
-/// @nodoc
-abstract class _$$UsersListErrorImplCopyWith<$Res> {
-  factory _$$UsersListErrorImplCopyWith(
-    _$UsersListErrorImpl value,
-    $Res Function(_$UsersListErrorImpl) then,
-  ) = __$$UsersListErrorImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String message});
-}
 
-/// @nodoc
-class __$$UsersListErrorImplCopyWithImpl<$Res>
-    extends _$UsersListStateCopyWithImpl<$Res, _$UsersListErrorImpl>
-    implements _$$UsersListErrorImplCopyWith<$Res> {
-  __$$UsersListErrorImplCopyWithImpl(
-    _$UsersListErrorImpl _value,
-    $Res Function(_$UsersListErrorImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$UsersListErrorImpl(
-        null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$UsersListErrorImpl implements UsersListError {
-  const _$UsersListErrorImpl(this.message);
 
-  @override
-  final String message;
+class UsersListError implements UsersListState {
+  const UsersListError(this.message);
+  
 
-  @override
-  String toString() {
+ final  String message;
+
+/// Create a copy of UsersListState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UsersListErrorCopyWith<UsersListError> get copyWith => _$UsersListErrorCopyWithImpl<UsersListError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is UsersListError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
     return 'UsersListState.error(message: $message)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$UsersListErrorImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$UsersListErrorImplCopyWith<_$UsersListErrorImpl> get copyWith =>
-      __$$UsersListErrorImplCopyWithImpl<_$UsersListErrorImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(List<StaffUserModel> users, String? roleFilter)
-    loaded,
-    required TResult Function() accessDenied,
-    required TResult Function(String message) error,
-  }) {
-    return error(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult? Function()? accessDenied,
-    TResult? Function(String message)? error,
-  }) {
-    return error?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(List<StaffUserModel> users, String? roleFilter)? loaded,
-    TResult Function()? accessDenied,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(UsersListInitial value) initial,
-    required TResult Function(UsersListLoading value) loading,
-    required TResult Function(UsersListLoaded value) loaded,
-    required TResult Function(UsersListAccessDenied value) accessDenied,
-    required TResult Function(UsersListError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(UsersListInitial value)? initial,
-    TResult? Function(UsersListLoading value)? loading,
-    TResult? Function(UsersListLoaded value)? loaded,
-    TResult? Function(UsersListAccessDenied value)? accessDenied,
-    TResult? Function(UsersListError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(UsersListInitial value)? initial,
-    TResult Function(UsersListLoading value)? loading,
-    TResult Function(UsersListLoaded value)? loaded,
-    TResult Function(UsersListAccessDenied value)? accessDenied,
-    TResult Function(UsersListError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class UsersListError implements UsersListState {
-  const factory UsersListError(final String message) = _$UsersListErrorImpl;
 
-  String get message;
-
-  /// Create a copy of UsersListState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UsersListErrorImplCopyWith<_$UsersListErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class $UsersListErrorCopyWith<$Res> implements $UsersListStateCopyWith<$Res> {
+  factory $UsersListErrorCopyWith(UsersListError value, $Res Function(UsersListError) _then) = _$UsersListErrorCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$UsersListErrorCopyWithImpl<$Res>
+    implements $UsersListErrorCopyWith<$Res> {
+  _$UsersListErrorCopyWithImpl(this._self, this._then);
+
+  final UsersListError _self;
+  final $Res Function(UsersListError) _then;
+
+/// Create a copy of UsersListState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(UsersListError(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

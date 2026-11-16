@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'permission_model.dart';
@@ -9,561 +9,835 @@ part of 'permission_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-PermissionModel _$PermissionModelFromJson(Map<String, dynamic> json) {
-  return _PermissionModel.fromJson(json);
-}
 
 /// @nodoc
 mixin _$PermissionModel {
-  @JsonKey(name: 'permission_key')
-  String get permissionKey => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
+
+@JsonKey(name: 'permission_key') String get permissionKey; String get description;
+/// Create a copy of PermissionModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PermissionModelCopyWith<PermissionModel> get copyWith => _$PermissionModelCopyWithImpl<PermissionModel>(this as PermissionModel, _$identity);
 
   /// Serializes this PermissionModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of PermissionModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $PermissionModelCopyWith<PermissionModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as PermissionModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PermissionModel&&(identical(other.permissionKey, _this.permissionKey) || other.permissionKey == _this.permissionKey)&&(identical(other.description, _this.description) || other.description == _this.description));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as PermissionModel;
+  return Object.hash(runtimeType,_this.permissionKey,_this.description);
+}
+
+@override
+String toString() {
+  final _this = this as PermissionModel;
+  return 'PermissionModel(permissionKey: ${_this.permissionKey}, description: ${_this.description})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $PermissionModelCopyWith<$Res> {
-  factory $PermissionModelCopyWith(
-    PermissionModel value,
-    $Res Function(PermissionModel) then,
-  ) = _$PermissionModelCopyWithImpl<$Res, PermissionModel>;
-  @useResult
-  $Res call({
-    @JsonKey(name: 'permission_key') String permissionKey,
-    String description,
-  });
-}
+abstract mixin class $PermissionModelCopyWith<$Res>  {
+  factory $PermissionModelCopyWith(PermissionModel value, $Res Function(PermissionModel) _then) = _$PermissionModelCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'permission_key') String permissionKey, String description
+});
 
+
+
+
+}
 /// @nodoc
-class _$PermissionModelCopyWithImpl<$Res, $Val extends PermissionModel>
+class _$PermissionModelCopyWithImpl<$Res>
     implements $PermissionModelCopyWith<$Res> {
-  _$PermissionModelCopyWithImpl(this._value, this._then);
+  _$PermissionModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final PermissionModel _self;
+  final $Res Function(PermissionModel) _then;
 
-  /// Create a copy of PermissionModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? permissionKey = null, Object? description = null}) {
-    return _then(
-      _value.copyWith(
-            permissionKey: null == permissionKey
-                ? _value.permissionKey
-                : permissionKey // ignore: cast_nullable_to_non_nullable
-                      as String,
-            description: null == description
-                ? _value.description
-                : description // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of PermissionModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? permissionKey = null,Object? description = null,}) {
+  return _then(PermissionModel(
+permissionKey: null == permissionKey ? _self.permissionKey : permissionKey // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$PermissionModelImplCopyWith<$Res>
-    implements $PermissionModelCopyWith<$Res> {
-  factory _$$PermissionModelImplCopyWith(
-    _$PermissionModelImpl value,
-    $Res Function(_$PermissionModelImpl) then,
-  ) = __$$PermissionModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: 'permission_key') String permissionKey,
-    String description,
-  });
 }
 
-/// @nodoc
-class __$$PermissionModelImplCopyWithImpl<$Res>
-    extends _$PermissionModelCopyWithImpl<$Res, _$PermissionModelImpl>
-    implements _$$PermissionModelImplCopyWith<$Res> {
-  __$$PermissionModelImplCopyWithImpl(
-    _$PermissionModelImpl _value,
-    $Res Function(_$PermissionModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of PermissionModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? permissionKey = null, Object? description = null}) {
-    return _then(
-      _$PermissionModelImpl(
-        permissionKey: null == permissionKey
-            ? _value.permissionKey
-            : permissionKey // ignore: cast_nullable_to_non_nullable
-                  as String,
-        description: null == description
-            ? _value.description
-            : description // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [PermissionModel].
+extension PermissionModelPatterns on PermissionModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PermissionModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PermissionModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PermissionModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PermissionModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'permission_key')  String permissionKey,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PermissionModel() when $default != null:
+return $default(_that.permissionKey,_that.description);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'permission_key')  String permissionKey,  String description)  $default,) {final _that = this;
+switch (_that) {
+case _PermissionModel():
+return $default(_that.permissionKey,_that.description);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'permission_key')  String permissionKey,  String description)?  $default,) {final _that = this;
+switch (_that) {
+case _PermissionModel() when $default != null:
+return $default(_that.permissionKey,_that.description);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$PermissionModelImpl implements _PermissionModel {
-  const _$PermissionModelImpl({
-    @JsonKey(name: 'permission_key') required this.permissionKey,
-    required this.description,
-  });
 
-  factory _$PermissionModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PermissionModelImplFromJson(json);
+class _PermissionModel implements PermissionModel {
+  const _PermissionModel({@JsonKey(name: 'permission_key') required this.permissionKey, required this.description});
+  factory _PermissionModel.fromJson(Map<String, dynamic> json) => _$PermissionModelFromJson(json);
 
-  @override
-  @JsonKey(name: 'permission_key')
-  final String permissionKey;
-  @override
-  final String description;
+@override@JsonKey(name: 'permission_key') final  String permissionKey;
+@override final  String description;
 
-  @override
-  String toString() {
+/// Create a copy of PermissionModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PermissionModelCopyWith<_PermissionModel> get copyWith => __$PermissionModelCopyWithImpl<_PermissionModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PermissionModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PermissionModel&&(identical(other.permissionKey, permissionKey) || other.permissionKey == permissionKey)&&(identical(other.description, description) || other.description == description));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,permissionKey,description);
+}
+
+@override
+String toString() {
     return 'PermissionModel(permissionKey: $permissionKey, description: $description)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PermissionModelImpl &&
-            (identical(other.permissionKey, permissionKey) ||
-                other.permissionKey == permissionKey) &&
-            (identical(other.description, description) ||
-                other.description == description));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, permissionKey, description);
-
-  /// Create a copy of PermissionModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PermissionModelImplCopyWith<_$PermissionModelImpl> get copyWith =>
-      __$$PermissionModelImplCopyWithImpl<_$PermissionModelImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PermissionModelImplToJson(this);
-  }
 }
 
-abstract class _PermissionModel implements PermissionModel {
-  const factory _PermissionModel({
-    @JsonKey(name: 'permission_key') required final String permissionKey,
-    required final String description,
-  }) = _$PermissionModelImpl;
 
-  factory _PermissionModel.fromJson(Map<String, dynamic> json) =
-      _$PermissionModelImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'permission_key')
-  String get permissionKey;
-  @override
-  String get description;
-
-  /// Create a copy of PermissionModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PermissionModelImplCopyWith<_$PermissionModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-PermissionModuleModel _$PermissionModuleModelFromJson(
-  Map<String, dynamic> json,
-) {
-  return _PermissionModuleModel.fromJson(json);
+/// @nodoc
+abstract mixin class _$PermissionModelCopyWith<$Res> implements $PermissionModelCopyWith<$Res> {
+  factory _$PermissionModelCopyWith(_PermissionModel value, $Res Function(_PermissionModel) _then) = __$PermissionModelCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'permission_key') String permissionKey, String description
+});
+
+
+
+
 }
+/// @nodoc
+class __$PermissionModelCopyWithImpl<$Res>
+    implements _$PermissionModelCopyWith<$Res> {
+  __$PermissionModelCopyWithImpl(this._self, this._then);
+
+  final _PermissionModel _self;
+  final $Res Function(_PermissionModel) _then;
+
+/// Create a copy of PermissionModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? permissionKey = null,Object? description = null,}) {
+  return _then(_PermissionModel(
+permissionKey: null == permissionKey ? _self.permissionKey : permissionKey // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$PermissionModuleModel {
-  String get module => throw _privateConstructorUsedError;
-  List<PermissionModel> get permissions => throw _privateConstructorUsedError;
+
+ String get module; List<PermissionModel> get permissions;
+/// Create a copy of PermissionModuleModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PermissionModuleModelCopyWith<PermissionModuleModel> get copyWith => _$PermissionModuleModelCopyWithImpl<PermissionModuleModel>(this as PermissionModuleModel, _$identity);
 
   /// Serializes this PermissionModuleModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of PermissionModuleModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $PermissionModuleModelCopyWith<PermissionModuleModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as PermissionModuleModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PermissionModuleModel&&(identical(other.module, _this.module) || other.module == _this.module)&&const DeepCollectionEquality().equals(other.permissions, _this.permissions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as PermissionModuleModel;
+  return Object.hash(runtimeType,_this.module,const DeepCollectionEquality().hash(_this.permissions));
+}
+
+@override
+String toString() {
+  final _this = this as PermissionModuleModel;
+  return 'PermissionModuleModel(module: ${_this.module}, permissions: ${_this.permissions})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $PermissionModuleModelCopyWith<$Res> {
-  factory $PermissionModuleModelCopyWith(
-    PermissionModuleModel value,
-    $Res Function(PermissionModuleModel) then,
-  ) = _$PermissionModuleModelCopyWithImpl<$Res, PermissionModuleModel>;
-  @useResult
-  $Res call({String module, List<PermissionModel> permissions});
-}
+abstract mixin class $PermissionModuleModelCopyWith<$Res>  {
+  factory $PermissionModuleModelCopyWith(PermissionModuleModel value, $Res Function(PermissionModuleModel) _then) = _$PermissionModuleModelCopyWithImpl;
+@useResult
+$Res call({
+ String module, List<PermissionModel> permissions
+});
 
+
+
+
+}
 /// @nodoc
-class _$PermissionModuleModelCopyWithImpl<
-  $Res,
-  $Val extends PermissionModuleModel
->
+class _$PermissionModuleModelCopyWithImpl<$Res>
     implements $PermissionModuleModelCopyWith<$Res> {
-  _$PermissionModuleModelCopyWithImpl(this._value, this._then);
+  _$PermissionModuleModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final PermissionModuleModel _self;
+  final $Res Function(PermissionModuleModel) _then;
 
-  /// Create a copy of PermissionModuleModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? module = null, Object? permissions = null}) {
-    return _then(
-      _value.copyWith(
-            module: null == module
-                ? _value.module
-                : module // ignore: cast_nullable_to_non_nullable
-                      as String,
-            permissions: null == permissions
-                ? _value.permissions
-                : permissions // ignore: cast_nullable_to_non_nullable
-                      as List<PermissionModel>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of PermissionModuleModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? module = null,Object? permissions = null,}) {
+  return _then(PermissionModuleModel(
+module: null == module ? _self.module : module // ignore: cast_nullable_to_non_nullable
+as String,permissions: null == permissions ? _self.permissions : permissions // ignore: cast_nullable_to_non_nullable
+as List<PermissionModel>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$PermissionModuleModelImplCopyWith<$Res>
-    implements $PermissionModuleModelCopyWith<$Res> {
-  factory _$$PermissionModuleModelImplCopyWith(
-    _$PermissionModuleModelImpl value,
-    $Res Function(_$PermissionModuleModelImpl) then,
-  ) = __$$PermissionModuleModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String module, List<PermissionModel> permissions});
 }
 
-/// @nodoc
-class __$$PermissionModuleModelImplCopyWithImpl<$Res>
-    extends
-        _$PermissionModuleModelCopyWithImpl<$Res, _$PermissionModuleModelImpl>
-    implements _$$PermissionModuleModelImplCopyWith<$Res> {
-  __$$PermissionModuleModelImplCopyWithImpl(
-    _$PermissionModuleModelImpl _value,
-    $Res Function(_$PermissionModuleModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of PermissionModuleModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? module = null, Object? permissions = null}) {
-    return _then(
-      _$PermissionModuleModelImpl(
-        module: null == module
-            ? _value.module
-            : module // ignore: cast_nullable_to_non_nullable
-                  as String,
-        permissions: null == permissions
-            ? _value._permissions
-            : permissions // ignore: cast_nullable_to_non_nullable
-                  as List<PermissionModel>,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [PermissionModuleModel].
+extension PermissionModuleModelPatterns on PermissionModuleModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PermissionModuleModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PermissionModuleModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PermissionModuleModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionModuleModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PermissionModuleModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionModuleModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String module,  List<PermissionModel> permissions)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PermissionModuleModel() when $default != null:
+return $default(_that.module,_that.permissions);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String module,  List<PermissionModel> permissions)  $default,) {final _that = this;
+switch (_that) {
+case _PermissionModuleModel():
+return $default(_that.module,_that.permissions);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String module,  List<PermissionModel> permissions)?  $default,) {final _that = this;
+switch (_that) {
+case _PermissionModuleModel() when $default != null:
+return $default(_that.module,_that.permissions);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$PermissionModuleModelImpl implements _PermissionModuleModel {
-  const _$PermissionModuleModelImpl({
-    required this.module,
-    final List<PermissionModel> permissions = const [],
-  }) : _permissions = permissions;
 
-  factory _$PermissionModuleModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PermissionModuleModelImplFromJson(json);
+class _PermissionModuleModel implements PermissionModuleModel {
+  const _PermissionModuleModel({required this.module,  List<PermissionModel> permissions = const []}): _permissions = permissions;
+  factory _PermissionModuleModel.fromJson(Map<String, dynamic> json) => _$PermissionModuleModelFromJson(json);
 
-  @override
-  final String module;
-  final List<PermissionModel> _permissions;
-  @override
-  @JsonKey()
-  List<PermissionModel> get permissions {
-    if (_permissions is EqualUnmodifiableListView) return _permissions;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_permissions);
-  }
+@override final  String module;
+ final  List<PermissionModel> _permissions;
+@override@JsonKey() List<PermissionModel> get permissions {
+  if (_permissions is EqualUnmodifiableListView) return _permissions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_permissions);
+}
 
-  @override
-  String toString() {
+
+/// Create a copy of PermissionModuleModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PermissionModuleModelCopyWith<_PermissionModuleModel> get copyWith => __$PermissionModuleModelCopyWithImpl<_PermissionModuleModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PermissionModuleModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PermissionModuleModel&&(identical(other.module, module) || other.module == module)&&const DeepCollectionEquality().equals(other.permissions, _permissions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,module,const DeepCollectionEquality().hash(_permissions));
+}
+
+@override
+String toString() {
     return 'PermissionModuleModel(module: $module, permissions: $permissions)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PermissionModuleModelImpl &&
-            (identical(other.module, module) || other.module == module) &&
-            const DeepCollectionEquality().equals(
-              other._permissions,
-              _permissions,
-            ));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    module,
-    const DeepCollectionEquality().hash(_permissions),
-  );
-
-  /// Create a copy of PermissionModuleModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PermissionModuleModelImplCopyWith<_$PermissionModuleModelImpl>
-  get copyWith =>
-      __$$PermissionModuleModelImplCopyWithImpl<_$PermissionModuleModelImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PermissionModuleModelImplToJson(this);
-  }
 }
 
-abstract class _PermissionModuleModel implements PermissionModuleModel {
-  const factory _PermissionModuleModel({
-    required final String module,
-    final List<PermissionModel> permissions,
-  }) = _$PermissionModuleModelImpl;
 
-  factory _PermissionModuleModel.fromJson(Map<String, dynamic> json) =
-      _$PermissionModuleModelImpl.fromJson;
-
-  @override
-  String get module;
-  @override
-  List<PermissionModel> get permissions;
-
-  /// Create a copy of PermissionModuleModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PermissionModuleModelImplCopyWith<_$PermissionModuleModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
 
-PermissionsCatalogModel _$PermissionsCatalogModelFromJson(
-  Map<String, dynamic> json,
-) {
-  return _PermissionsCatalogModel.fromJson(json);
+/// @nodoc
+abstract mixin class _$PermissionModuleModelCopyWith<$Res> implements $PermissionModuleModelCopyWith<$Res> {
+  factory _$PermissionModuleModelCopyWith(_PermissionModuleModel value, $Res Function(_PermissionModuleModel) _then) = __$PermissionModuleModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String module, List<PermissionModel> permissions
+});
+
+
+
+
 }
+/// @nodoc
+class __$PermissionModuleModelCopyWithImpl<$Res>
+    implements _$PermissionModuleModelCopyWith<$Res> {
+  __$PermissionModuleModelCopyWithImpl(this._self, this._then);
+
+  final _PermissionModuleModel _self;
+  final $Res Function(_PermissionModuleModel) _then;
+
+/// Create a copy of PermissionModuleModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? module = null,Object? permissions = null,}) {
+  return _then(_PermissionModuleModel(
+module: null == module ? _self.module : module // ignore: cast_nullable_to_non_nullable
+as String,permissions: null == permissions ? _self._permissions : permissions // ignore: cast_nullable_to_non_nullable
+as List<PermissionModel>,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$PermissionsCatalogModel {
-  List<PermissionModuleModel> get modules => throw _privateConstructorUsedError;
+
+ List<PermissionModuleModel> get modules;
+/// Create a copy of PermissionsCatalogModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PermissionsCatalogModelCopyWith<PermissionsCatalogModel> get copyWith => _$PermissionsCatalogModelCopyWithImpl<PermissionsCatalogModel>(this as PermissionsCatalogModel, _$identity);
 
   /// Serializes this PermissionsCatalogModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of PermissionsCatalogModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $PermissionsCatalogModelCopyWith<PermissionsCatalogModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as PermissionsCatalogModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PermissionsCatalogModel&&const DeepCollectionEquality().equals(other.modules, _this.modules));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as PermissionsCatalogModel;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.modules));
+}
+
+@override
+String toString() {
+  final _this = this as PermissionsCatalogModel;
+  return 'PermissionsCatalogModel(modules: ${_this.modules})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $PermissionsCatalogModelCopyWith<$Res> {
-  factory $PermissionsCatalogModelCopyWith(
-    PermissionsCatalogModel value,
-    $Res Function(PermissionsCatalogModel) then,
-  ) = _$PermissionsCatalogModelCopyWithImpl<$Res, PermissionsCatalogModel>;
-  @useResult
-  $Res call({List<PermissionModuleModel> modules});
-}
+abstract mixin class $PermissionsCatalogModelCopyWith<$Res>  {
+  factory $PermissionsCatalogModelCopyWith(PermissionsCatalogModel value, $Res Function(PermissionsCatalogModel) _then) = _$PermissionsCatalogModelCopyWithImpl;
+@useResult
+$Res call({
+ List<PermissionModuleModel> modules
+});
 
+
+
+
+}
 /// @nodoc
-class _$PermissionsCatalogModelCopyWithImpl<
-  $Res,
-  $Val extends PermissionsCatalogModel
->
+class _$PermissionsCatalogModelCopyWithImpl<$Res>
     implements $PermissionsCatalogModelCopyWith<$Res> {
-  _$PermissionsCatalogModelCopyWithImpl(this._value, this._then);
+  _$PermissionsCatalogModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final PermissionsCatalogModel _self;
+  final $Res Function(PermissionsCatalogModel) _then;
 
-  /// Create a copy of PermissionsCatalogModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? modules = null}) {
-    return _then(
-      _value.copyWith(
-            modules: null == modules
-                ? _value.modules
-                : modules // ignore: cast_nullable_to_non_nullable
-                      as List<PermissionModuleModel>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of PermissionsCatalogModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? modules = null,}) {
+  return _then(PermissionsCatalogModel(
+modules: null == modules ? _self.modules : modules // ignore: cast_nullable_to_non_nullable
+as List<PermissionModuleModel>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$PermissionsCatalogModelImplCopyWith<$Res>
-    implements $PermissionsCatalogModelCopyWith<$Res> {
-  factory _$$PermissionsCatalogModelImplCopyWith(
-    _$PermissionsCatalogModelImpl value,
-    $Res Function(_$PermissionsCatalogModelImpl) then,
-  ) = __$$PermissionsCatalogModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({List<PermissionModuleModel> modules});
 }
 
-/// @nodoc
-class __$$PermissionsCatalogModelImplCopyWithImpl<$Res>
-    extends
-        _$PermissionsCatalogModelCopyWithImpl<
-          $Res,
-          _$PermissionsCatalogModelImpl
-        >
-    implements _$$PermissionsCatalogModelImplCopyWith<$Res> {
-  __$$PermissionsCatalogModelImplCopyWithImpl(
-    _$PermissionsCatalogModelImpl _value,
-    $Res Function(_$PermissionsCatalogModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of PermissionsCatalogModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? modules = null}) {
-    return _then(
-      _$PermissionsCatalogModelImpl(
-        modules: null == modules
-            ? _value._modules
-            : modules // ignore: cast_nullable_to_non_nullable
-                  as List<PermissionModuleModel>,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [PermissionsCatalogModel].
+extension PermissionsCatalogModelPatterns on PermissionsCatalogModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PermissionsCatalogModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PermissionsCatalogModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PermissionsCatalogModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<PermissionModuleModel> modules)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel() when $default != null:
+return $default(_that.modules);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<PermissionModuleModel> modules)  $default,) {final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel():
+return $default(_that.modules);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<PermissionModuleModel> modules)?  $default,) {final _that = this;
+switch (_that) {
+case _PermissionsCatalogModel() when $default != null:
+return $default(_that.modules);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$PermissionsCatalogModelImpl implements _PermissionsCatalogModel {
-  const _$PermissionsCatalogModelImpl({
-    final List<PermissionModuleModel> modules = const [],
-  }) : _modules = modules;
 
-  factory _$PermissionsCatalogModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PermissionsCatalogModelImplFromJson(json);
+class _PermissionsCatalogModel implements PermissionsCatalogModel {
+  const _PermissionsCatalogModel({ List<PermissionModuleModel> modules = const []}): _modules = modules;
+  factory _PermissionsCatalogModel.fromJson(Map<String, dynamic> json) => _$PermissionsCatalogModelFromJson(json);
 
-  final List<PermissionModuleModel> _modules;
-  @override
-  @JsonKey()
-  List<PermissionModuleModel> get modules {
-    if (_modules is EqualUnmodifiableListView) return _modules;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_modules);
-  }
+ final  List<PermissionModuleModel> _modules;
+@override@JsonKey() List<PermissionModuleModel> get modules {
+  if (_modules is EqualUnmodifiableListView) return _modules;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_modules);
+}
 
-  @override
-  String toString() {
+
+/// Create a copy of PermissionsCatalogModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PermissionsCatalogModelCopyWith<_PermissionsCatalogModel> get copyWith => __$PermissionsCatalogModelCopyWithImpl<_PermissionsCatalogModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PermissionsCatalogModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PermissionsCatalogModel&&const DeepCollectionEquality().equals(other.modules, _modules));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_modules));
+}
+
+@override
+String toString() {
     return 'PermissionsCatalogModel(modules: $modules)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PermissionsCatalogModelImpl &&
-            const DeepCollectionEquality().equals(other._modules, _modules));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_modules));
-
-  /// Create a copy of PermissionsCatalogModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PermissionsCatalogModelImplCopyWith<_$PermissionsCatalogModelImpl>
-  get copyWith =>
-      __$$PermissionsCatalogModelImplCopyWithImpl<
-        _$PermissionsCatalogModelImpl
-      >(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PermissionsCatalogModelImplToJson(this);
-  }
 }
 
-abstract class _PermissionsCatalogModel implements PermissionsCatalogModel {
-  const factory _PermissionsCatalogModel({
-    final List<PermissionModuleModel> modules,
-  }) = _$PermissionsCatalogModelImpl;
 
-  factory _PermissionsCatalogModel.fromJson(Map<String, dynamic> json) =
-      _$PermissionsCatalogModelImpl.fromJson;
-
-  @override
-  List<PermissionModuleModel> get modules;
-
-  /// Create a copy of PermissionsCatalogModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PermissionsCatalogModelImplCopyWith<_$PermissionsCatalogModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$PermissionsCatalogModelCopyWith<$Res> implements $PermissionsCatalogModelCopyWith<$Res> {
+  factory _$PermissionsCatalogModelCopyWith(_PermissionsCatalogModel value, $Res Function(_PermissionsCatalogModel) _then) = __$PermissionsCatalogModelCopyWithImpl;
+@override @useResult
+$Res call({
+ List<PermissionModuleModel> modules
+});
+
+
+
+
+}
+/// @nodoc
+class __$PermissionsCatalogModelCopyWithImpl<$Res>
+    implements _$PermissionsCatalogModelCopyWith<$Res> {
+  __$PermissionsCatalogModelCopyWithImpl(this._self, this._then);
+
+  final _PermissionsCatalogModel _self;
+  final $Res Function(_PermissionsCatalogModel) _then;
+
+/// Create a copy of PermissionsCatalogModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? modules = null,}) {
+  return _then(_PermissionsCatalogModel(
+modules: null == modules ? _self._modules : modules // ignore: cast_nullable_to_non_nullable
+as List<PermissionModuleModel>,
+  ));
+}
+
+
+}
+
+// dart format on

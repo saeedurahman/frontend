@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'coa_form_state.dart';
@@ -9,492 +9,325 @@ part of 'coa_form_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$CoaFormState {
-  String? get accountId => throw _privateConstructorUsedError;
-  String get accountCode => throw _privateConstructorUsedError;
-  String get accountName => throw _privateConstructorUsedError;
-  String get accountType => throw _privateConstructorUsedError;
-  String? get accountSubtype => throw _privateConstructorUsedError;
-  String? get parentId => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
-  bool get isActive => throw _privateConstructorUsedError;
-  bool get isSystem => throw _privateConstructorUsedError;
-  List<ChartOfAccountModel> get coaTreeRoots =>
-      throw _privateConstructorUsedError;
-  bool get canManage => throw _privateConstructorUsedError;
-  bool get isLoading => throw _privateConstructorUsedError;
-  bool get isSubmitting => throw _privateConstructorUsedError;
-  bool get isDeleting => throw _privateConstructorUsedError;
-  Map<String, String> get errors => throw _privateConstructorUsedError;
 
-  /// Create a copy of CoaFormState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $CoaFormStateCopyWith<CoaFormState> get copyWith =>
-      throw _privateConstructorUsedError;
+ String? get accountId; String get accountCode; String get accountName; String get accountType; String? get accountSubtype; String? get parentId; String get description; bool get isActive; bool get isSystem; List<ChartOfAccountModel> get coaTreeRoots; bool get canManage; bool get isLoading; bool get isSubmitting; bool get isDeleting; Map<String, String> get errors;
+/// Create a copy of CoaFormState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CoaFormStateCopyWith<CoaFormState> get copyWith => _$CoaFormStateCopyWithImpl<CoaFormState>(this as CoaFormState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as CoaFormState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CoaFormState&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.accountCode, _this.accountCode) || other.accountCode == _this.accountCode)&&(identical(other.accountName, _this.accountName) || other.accountName == _this.accountName)&&(identical(other.accountType, _this.accountType) || other.accountType == _this.accountType)&&(identical(other.accountSubtype, _this.accountSubtype) || other.accountSubtype == _this.accountSubtype)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.isSystem, _this.isSystem) || other.isSystem == _this.isSystem)&&const DeepCollectionEquality().equals(other.coaTreeRoots, _this.coaTreeRoots)&&(identical(other.canManage, _this.canManage) || other.canManage == _this.canManage)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isSubmitting, _this.isSubmitting) || other.isSubmitting == _this.isSubmitting)&&(identical(other.isDeleting, _this.isDeleting) || other.isDeleting == _this.isDeleting)&&const DeepCollectionEquality().equals(other.errors, _this.errors));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as CoaFormState;
+  return Object.hash(runtimeType,_this.accountId,_this.accountCode,_this.accountName,_this.accountType,_this.accountSubtype,_this.parentId,_this.description,_this.isActive,_this.isSystem,const DeepCollectionEquality().hash(_this.coaTreeRoots),_this.canManage,_this.isLoading,_this.isSubmitting,_this.isDeleting,const DeepCollectionEquality().hash(_this.errors));
+}
+
+@override
+String toString() {
+  final _this = this as CoaFormState;
+  return 'CoaFormState(accountId: ${_this.accountId}, accountCode: ${_this.accountCode}, accountName: ${_this.accountName}, accountType: ${_this.accountType}, accountSubtype: ${_this.accountSubtype}, parentId: ${_this.parentId}, description: ${_this.description}, isActive: ${_this.isActive}, isSystem: ${_this.isSystem}, coaTreeRoots: ${_this.coaTreeRoots}, canManage: ${_this.canManage}, isLoading: ${_this.isLoading}, isSubmitting: ${_this.isSubmitting}, isDeleting: ${_this.isDeleting}, errors: ${_this.errors})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $CoaFormStateCopyWith<$Res> {
-  factory $CoaFormStateCopyWith(
-    CoaFormState value,
-    $Res Function(CoaFormState) then,
-  ) = _$CoaFormStateCopyWithImpl<$Res, CoaFormState>;
-  @useResult
-  $Res call({
-    String? accountId,
-    String accountCode,
-    String accountName,
-    String accountType,
-    String? accountSubtype,
-    String? parentId,
-    String description,
-    bool isActive,
-    bool isSystem,
-    List<ChartOfAccountModel> coaTreeRoots,
-    bool canManage,
-    bool isLoading,
-    bool isSubmitting,
-    bool isDeleting,
-    Map<String, String> errors,
-  });
-}
+abstract mixin class $CoaFormStateCopyWith<$Res>  {
+  factory $CoaFormStateCopyWith(CoaFormState value, $Res Function(CoaFormState) _then) = _$CoaFormStateCopyWithImpl;
+@useResult
+$Res call({
+ String? accountId, String accountCode, String accountName, String accountType, String? accountSubtype, String? parentId, String description, bool isActive, bool isSystem, List<ChartOfAccountModel> coaTreeRoots, bool canManage, bool isLoading, bool isSubmitting, bool isDeleting, Map<String, String> errors
+});
 
+
+
+
+}
 /// @nodoc
-class _$CoaFormStateCopyWithImpl<$Res, $Val extends CoaFormState>
+class _$CoaFormStateCopyWithImpl<$Res>
     implements $CoaFormStateCopyWith<$Res> {
-  _$CoaFormStateCopyWithImpl(this._value, this._then);
+  _$CoaFormStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final CoaFormState _self;
+  final $Res Function(CoaFormState) _then;
 
-  /// Create a copy of CoaFormState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? accountId = freezed,
-    Object? accountCode = null,
-    Object? accountName = null,
-    Object? accountType = null,
-    Object? accountSubtype = freezed,
-    Object? parentId = freezed,
-    Object? description = null,
-    Object? isActive = null,
-    Object? isSystem = null,
-    Object? coaTreeRoots = null,
-    Object? canManage = null,
-    Object? isLoading = null,
-    Object? isSubmitting = null,
-    Object? isDeleting = null,
-    Object? errors = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            accountId: freezed == accountId
-                ? _value.accountId
-                : accountId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            accountCode: null == accountCode
-                ? _value.accountCode
-                : accountCode // ignore: cast_nullable_to_non_nullable
-                      as String,
-            accountName: null == accountName
-                ? _value.accountName
-                : accountName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            accountType: null == accountType
-                ? _value.accountType
-                : accountType // ignore: cast_nullable_to_non_nullable
-                      as String,
-            accountSubtype: freezed == accountSubtype
-                ? _value.accountSubtype
-                : accountSubtype // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            parentId: freezed == parentId
-                ? _value.parentId
-                : parentId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            description: null == description
-                ? _value.description
-                : description // ignore: cast_nullable_to_non_nullable
-                      as String,
-            isActive: null == isActive
-                ? _value.isActive
-                : isActive // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isSystem: null == isSystem
-                ? _value.isSystem
-                : isSystem // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            coaTreeRoots: null == coaTreeRoots
-                ? _value.coaTreeRoots
-                : coaTreeRoots // ignore: cast_nullable_to_non_nullable
-                      as List<ChartOfAccountModel>,
-            canManage: null == canManage
-                ? _value.canManage
-                : canManage // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isLoading: null == isLoading
-                ? _value.isLoading
-                : isLoading // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isSubmitting: null == isSubmitting
-                ? _value.isSubmitting
-                : isSubmitting // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            isDeleting: null == isDeleting
-                ? _value.isDeleting
-                : isDeleting // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            errors: null == errors
-                ? _value.errors
-                : errors // ignore: cast_nullable_to_non_nullable
-                      as Map<String, String>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of CoaFormState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? accountId = freezed,Object? accountCode = null,Object? accountName = null,Object? accountType = null,Object? accountSubtype = freezed,Object? parentId = freezed,Object? description = null,Object? isActive = null,Object? isSystem = null,Object? coaTreeRoots = null,Object? canManage = null,Object? isLoading = null,Object? isSubmitting = null,Object? isDeleting = null,Object? errors = null,}) {
+  return _then(CoaFormState(
+accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,accountCode: null == accountCode ? _self.accountCode : accountCode // ignore: cast_nullable_to_non_nullable
+as String,accountName: null == accountName ? _self.accountName : accountName // ignore: cast_nullable_to_non_nullable
+as String,accountType: null == accountType ? _self.accountType : accountType // ignore: cast_nullable_to_non_nullable
+as String,accountSubtype: freezed == accountSubtype ? _self.accountSubtype : accountSubtype // ignore: cast_nullable_to_non_nullable
+as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,isSystem: null == isSystem ? _self.isSystem : isSystem // ignore: cast_nullable_to_non_nullable
+as bool,coaTreeRoots: null == coaTreeRoots ? _self.coaTreeRoots : coaTreeRoots // ignore: cast_nullable_to_non_nullable
+as List<ChartOfAccountModel>,canManage: null == canManage ? _self.canManage : canManage // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
+as bool,isDeleting: null == isDeleting ? _self.isDeleting : isDeleting // ignore: cast_nullable_to_non_nullable
+as bool,errors: null == errors ? _self.errors : errors // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$CoaFormStateImplCopyWith<$Res>
-    implements $CoaFormStateCopyWith<$Res> {
-  factory _$$CoaFormStateImplCopyWith(
-    _$CoaFormStateImpl value,
-    $Res Function(_$CoaFormStateImpl) then,
-  ) = __$$CoaFormStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    String? accountId,
-    String accountCode,
-    String accountName,
-    String accountType,
-    String? accountSubtype,
-    String? parentId,
-    String description,
-    bool isActive,
-    bool isSystem,
-    List<ChartOfAccountModel> coaTreeRoots,
-    bool canManage,
-    bool isLoading,
-    bool isSubmitting,
-    bool isDeleting,
-    Map<String, String> errors,
-  });
 }
 
-/// @nodoc
-class __$$CoaFormStateImplCopyWithImpl<$Res>
-    extends _$CoaFormStateCopyWithImpl<$Res, _$CoaFormStateImpl>
-    implements _$$CoaFormStateImplCopyWith<$Res> {
-  __$$CoaFormStateImplCopyWithImpl(
-    _$CoaFormStateImpl _value,
-    $Res Function(_$CoaFormStateImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of CoaFormState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? accountId = freezed,
-    Object? accountCode = null,
-    Object? accountName = null,
-    Object? accountType = null,
-    Object? accountSubtype = freezed,
-    Object? parentId = freezed,
-    Object? description = null,
-    Object? isActive = null,
-    Object? isSystem = null,
-    Object? coaTreeRoots = null,
-    Object? canManage = null,
-    Object? isLoading = null,
-    Object? isSubmitting = null,
-    Object? isDeleting = null,
-    Object? errors = null,
-  }) {
-    return _then(
-      _$CoaFormStateImpl(
-        accountId: freezed == accountId
-            ? _value.accountId
-            : accountId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        accountCode: null == accountCode
-            ? _value.accountCode
-            : accountCode // ignore: cast_nullable_to_non_nullable
-                  as String,
-        accountName: null == accountName
-            ? _value.accountName
-            : accountName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        accountType: null == accountType
-            ? _value.accountType
-            : accountType // ignore: cast_nullable_to_non_nullable
-                  as String,
-        accountSubtype: freezed == accountSubtype
-            ? _value.accountSubtype
-            : accountSubtype // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        parentId: freezed == parentId
-            ? _value.parentId
-            : parentId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        description: null == description
-            ? _value.description
-            : description // ignore: cast_nullable_to_non_nullable
-                  as String,
-        isActive: null == isActive
-            ? _value.isActive
-            : isActive // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isSystem: null == isSystem
-            ? _value.isSystem
-            : isSystem // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        coaTreeRoots: null == coaTreeRoots
-            ? _value._coaTreeRoots
-            : coaTreeRoots // ignore: cast_nullable_to_non_nullable
-                  as List<ChartOfAccountModel>,
-        canManage: null == canManage
-            ? _value.canManage
-            : canManage // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isLoading: null == isLoading
-            ? _value.isLoading
-            : isLoading // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isSubmitting: null == isSubmitting
-            ? _value.isSubmitting
-            : isSubmitting // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        isDeleting: null == isDeleting
-            ? _value.isDeleting
-            : isDeleting // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        errors: null == errors
-            ? _value._errors
-            : errors // ignore: cast_nullable_to_non_nullable
-                  as Map<String, String>,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [CoaFormState].
+extension CoaFormStatePatterns on CoaFormState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CoaFormState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CoaFormState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CoaFormState value)  $default,){
+final _that = this;
+switch (_that) {
+case _CoaFormState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CoaFormState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CoaFormState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? accountId,  String accountCode,  String accountName,  String accountType,  String? accountSubtype,  String? parentId,  String description,  bool isActive,  bool isSystem,  List<ChartOfAccountModel> coaTreeRoots,  bool canManage,  bool isLoading,  bool isSubmitting,  bool isDeleting,  Map<String, String> errors)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CoaFormState() when $default != null:
+return $default(_that.accountId,_that.accountCode,_that.accountName,_that.accountType,_that.accountSubtype,_that.parentId,_that.description,_that.isActive,_that.isSystem,_that.coaTreeRoots,_that.canManage,_that.isLoading,_that.isSubmitting,_that.isDeleting,_that.errors);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? accountId,  String accountCode,  String accountName,  String accountType,  String? accountSubtype,  String? parentId,  String description,  bool isActive,  bool isSystem,  List<ChartOfAccountModel> coaTreeRoots,  bool canManage,  bool isLoading,  bool isSubmitting,  bool isDeleting,  Map<String, String> errors)  $default,) {final _that = this;
+switch (_that) {
+case _CoaFormState():
+return $default(_that.accountId,_that.accountCode,_that.accountName,_that.accountType,_that.accountSubtype,_that.parentId,_that.description,_that.isActive,_that.isSystem,_that.coaTreeRoots,_that.canManage,_that.isLoading,_that.isSubmitting,_that.isDeleting,_that.errors);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? accountId,  String accountCode,  String accountName,  String accountType,  String? accountSubtype,  String? parentId,  String description,  bool isActive,  bool isSystem,  List<ChartOfAccountModel> coaTreeRoots,  bool canManage,  bool isLoading,  bool isSubmitting,  bool isDeleting,  Map<String, String> errors)?  $default,) {final _that = this;
+switch (_that) {
+case _CoaFormState() when $default != null:
+return $default(_that.accountId,_that.accountCode,_that.accountName,_that.accountType,_that.accountSubtype,_that.parentId,_that.description,_that.isActive,_that.isSystem,_that.coaTreeRoots,_that.canManage,_that.isLoading,_that.isSubmitting,_that.isDeleting,_that.errors);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 
-class _$CoaFormStateImpl extends _CoaFormState {
-  const _$CoaFormStateImpl({
-    this.accountId,
-    this.accountCode = '',
-    this.accountName = '',
-    this.accountType = AccountType.asset,
-    this.accountSubtype,
-    this.parentId,
-    this.description = '',
-    this.isActive = true,
-    this.isSystem = false,
-    final List<ChartOfAccountModel> coaTreeRoots = const [],
-    this.canManage = false,
-    this.isLoading = false,
-    this.isSubmitting = false,
-    this.isDeleting = false,
-    final Map<String, String> errors = const {},
-  }) : _coaTreeRoots = coaTreeRoots,
-       _errors = errors,
-       super._();
 
-  @override
-  final String? accountId;
-  @override
-  @JsonKey()
-  final String accountCode;
-  @override
-  @JsonKey()
-  final String accountName;
-  @override
-  @JsonKey()
-  final String accountType;
-  @override
-  final String? accountSubtype;
-  @override
-  final String? parentId;
-  @override
-  @JsonKey()
-  final String description;
-  @override
-  @JsonKey()
-  final bool isActive;
-  @override
-  @JsonKey()
-  final bool isSystem;
-  final List<ChartOfAccountModel> _coaTreeRoots;
-  @override
-  @JsonKey()
-  List<ChartOfAccountModel> get coaTreeRoots {
-    if (_coaTreeRoots is EqualUnmodifiableListView) return _coaTreeRoots;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_coaTreeRoots);
-  }
+class _CoaFormState extends CoaFormState {
+  const _CoaFormState({this.accountId, this.accountCode = '', this.accountName = '', this.accountType = AccountType.asset, this.accountSubtype, this.parentId, this.description = '', this.isActive = true, this.isSystem = false,  List<ChartOfAccountModel> coaTreeRoots = const [], this.canManage = false, this.isLoading = false, this.isSubmitting = false, this.isDeleting = false,  Map<String, String> errors = const {}}): _coaTreeRoots = coaTreeRoots,_errors = errors,super._();
+  
 
-  @override
-  @JsonKey()
-  final bool canManage;
-  @override
-  @JsonKey()
-  final bool isLoading;
-  @override
-  @JsonKey()
-  final bool isSubmitting;
-  @override
-  @JsonKey()
-  final bool isDeleting;
-  final Map<String, String> _errors;
-  @override
-  @JsonKey()
-  Map<String, String> get errors {
-    if (_errors is EqualUnmodifiableMapView) return _errors;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_errors);
-  }
+@override final  String? accountId;
+@override@JsonKey() final  String accountCode;
+@override@JsonKey() final  String accountName;
+@override@JsonKey() final  String accountType;
+@override final  String? accountSubtype;
+@override final  String? parentId;
+@override@JsonKey() final  String description;
+@override@JsonKey() final  bool isActive;
+@override@JsonKey() final  bool isSystem;
+ final  List<ChartOfAccountModel> _coaTreeRoots;
+@override@JsonKey() List<ChartOfAccountModel> get coaTreeRoots {
+  if (_coaTreeRoots is EqualUnmodifiableListView) return _coaTreeRoots;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_coaTreeRoots);
+}
 
-  @override
-  String toString() {
+@override@JsonKey() final  bool canManage;
+@override@JsonKey() final  bool isLoading;
+@override@JsonKey() final  bool isSubmitting;
+@override@JsonKey() final  bool isDeleting;
+ final  Map<String, String> _errors;
+@override@JsonKey() Map<String, String> get errors {
+  if (_errors is EqualUnmodifiableMapView) return _errors;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_errors);
+}
+
+
+/// Create a copy of CoaFormState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CoaFormStateCopyWith<_CoaFormState> get copyWith => __$CoaFormStateCopyWithImpl<_CoaFormState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CoaFormState&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.accountCode, accountCode) || other.accountCode == accountCode)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.accountSubtype, accountSubtype) || other.accountSubtype == accountSubtype)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.description, description) || other.description == description)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isSystem, isSystem) || other.isSystem == isSystem)&&const DeepCollectionEquality().equals(other.coaTreeRoots, _coaTreeRoots)&&(identical(other.canManage, canManage) || other.canManage == canManage)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.isDeleting, isDeleting) || other.isDeleting == isDeleting)&&const DeepCollectionEquality().equals(other.errors, _errors));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,accountId,accountCode,accountName,accountType,accountSubtype,parentId,description,isActive,isSystem,const DeepCollectionEquality().hash(_coaTreeRoots),canManage,isLoading,isSubmitting,isDeleting,const DeepCollectionEquality().hash(_errors));
+}
+
+@override
+String toString() {
     return 'CoaFormState(accountId: $accountId, accountCode: $accountCode, accountName: $accountName, accountType: $accountType, accountSubtype: $accountSubtype, parentId: $parentId, description: $description, isActive: $isActive, isSystem: $isSystem, coaTreeRoots: $coaTreeRoots, canManage: $canManage, isLoading: $isLoading, isSubmitting: $isSubmitting, isDeleting: $isDeleting, errors: $errors)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CoaFormStateImpl &&
-            (identical(other.accountId, accountId) ||
-                other.accountId == accountId) &&
-            (identical(other.accountCode, accountCode) ||
-                other.accountCode == accountCode) &&
-            (identical(other.accountName, accountName) ||
-                other.accountName == accountName) &&
-            (identical(other.accountType, accountType) ||
-                other.accountType == accountType) &&
-            (identical(other.accountSubtype, accountSubtype) ||
-                other.accountSubtype == accountSubtype) &&
-            (identical(other.parentId, parentId) ||
-                other.parentId == parentId) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
-            (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.isSystem, isSystem) ||
-                other.isSystem == isSystem) &&
-            const DeepCollectionEquality().equals(
-              other._coaTreeRoots,
-              _coaTreeRoots,
-            ) &&
-            (identical(other.canManage, canManage) ||
-                other.canManage == canManage) &&
-            (identical(other.isLoading, isLoading) ||
-                other.isLoading == isLoading) &&
-            (identical(other.isSubmitting, isSubmitting) ||
-                other.isSubmitting == isSubmitting) &&
-            (identical(other.isDeleting, isDeleting) ||
-                other.isDeleting == isDeleting) &&
-            const DeepCollectionEquality().equals(other._errors, _errors));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    accountId,
-    accountCode,
-    accountName,
-    accountType,
-    accountSubtype,
-    parentId,
-    description,
-    isActive,
-    isSystem,
-    const DeepCollectionEquality().hash(_coaTreeRoots),
-    canManage,
-    isLoading,
-    isSubmitting,
-    isDeleting,
-    const DeepCollectionEquality().hash(_errors),
-  );
-
-  /// Create a copy of CoaFormState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CoaFormStateImplCopyWith<_$CoaFormStateImpl> get copyWith =>
-      __$$CoaFormStateImplCopyWithImpl<_$CoaFormStateImpl>(this, _$identity);
 }
 
-abstract class _CoaFormState extends CoaFormState {
-  const factory _CoaFormState({
-    final String? accountId,
-    final String accountCode,
-    final String accountName,
-    final String accountType,
-    final String? accountSubtype,
-    final String? parentId,
-    final String description,
-    final bool isActive,
-    final bool isSystem,
-    final List<ChartOfAccountModel> coaTreeRoots,
-    final bool canManage,
-    final bool isLoading,
-    final bool isSubmitting,
-    final bool isDeleting,
-    final Map<String, String> errors,
-  }) = _$CoaFormStateImpl;
-  const _CoaFormState._() : super._();
 
-  @override
-  String? get accountId;
-  @override
-  String get accountCode;
-  @override
-  String get accountName;
-  @override
-  String get accountType;
-  @override
-  String? get accountSubtype;
-  @override
-  String? get parentId;
-  @override
-  String get description;
-  @override
-  bool get isActive;
-  @override
-  bool get isSystem;
-  @override
-  List<ChartOfAccountModel> get coaTreeRoots;
-  @override
-  bool get canManage;
-  @override
-  bool get isLoading;
-  @override
-  bool get isSubmitting;
-  @override
-  bool get isDeleting;
-  @override
-  Map<String, String> get errors;
-
-  /// Create a copy of CoaFormState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CoaFormStateImplCopyWith<_$CoaFormStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$CoaFormStateCopyWith<$Res> implements $CoaFormStateCopyWith<$Res> {
+  factory _$CoaFormStateCopyWith(_CoaFormState value, $Res Function(_CoaFormState) _then) = __$CoaFormStateCopyWithImpl;
+@override @useResult
+$Res call({
+ String? accountId, String accountCode, String accountName, String accountType, String? accountSubtype, String? parentId, String description, bool isActive, bool isSystem, List<ChartOfAccountModel> coaTreeRoots, bool canManage, bool isLoading, bool isSubmitting, bool isDeleting, Map<String, String> errors
+});
+
+
+
+
+}
+/// @nodoc
+class __$CoaFormStateCopyWithImpl<$Res>
+    implements _$CoaFormStateCopyWith<$Res> {
+  __$CoaFormStateCopyWithImpl(this._self, this._then);
+
+  final _CoaFormState _self;
+  final $Res Function(_CoaFormState) _then;
+
+/// Create a copy of CoaFormState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? accountId = freezed,Object? accountCode = null,Object? accountName = null,Object? accountType = null,Object? accountSubtype = freezed,Object? parentId = freezed,Object? description = null,Object? isActive = null,Object? isSystem = null,Object? coaTreeRoots = null,Object? canManage = null,Object? isLoading = null,Object? isSubmitting = null,Object? isDeleting = null,Object? errors = null,}) {
+  return _then(_CoaFormState(
+accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,accountCode: null == accountCode ? _self.accountCode : accountCode // ignore: cast_nullable_to_non_nullable
+as String,accountName: null == accountName ? _self.accountName : accountName // ignore: cast_nullable_to_non_nullable
+as String,accountType: null == accountType ? _self.accountType : accountType // ignore: cast_nullable_to_non_nullable
+as String,accountSubtype: freezed == accountSubtype ? _self.accountSubtype : accountSubtype // ignore: cast_nullable_to_non_nullable
+as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,isSystem: null == isSystem ? _self.isSystem : isSystem // ignore: cast_nullable_to_non_nullable
+as bool,coaTreeRoots: null == coaTreeRoots ? _self._coaTreeRoots : coaTreeRoots // ignore: cast_nullable_to_non_nullable
+as List<ChartOfAccountModel>,canManage: null == canManage ? _self.canManage : canManage // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
+as bool,isDeleting: null == isDeleting ? _self.isDeleting : isDeleting // ignore: cast_nullable_to_non_nullable
+as bool,errors: null == errors ? _self._errors : errors // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,
+  ));
+}
+
+
+}
+
+// dart format on

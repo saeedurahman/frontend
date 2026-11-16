@@ -6,8 +6,8 @@ part of 'variation_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$VariationModelImpl _$$VariationModelImplFromJson(Map<String, dynamic> json) =>
-    _$VariationModelImpl(
+_VariationModel _$VariationModelFromJson(Map<String, dynamic> json) =>
+    _VariationModel(
       id: json['id'] as String,
       businessId: json['business_id'] as String,
       productId: json['product_id'] as String,
@@ -29,20 +29,19 @@ _$VariationModelImpl _$$VariationModelImplFromJson(Map<String, dynamic> json) =>
           : UnitModel.fromJson(json['unit'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$VariationModelImplToJson(
-  _$VariationModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'business_id': instance.businessId,
-  'product_id': instance.productId,
-  'name': instance.name,
-  'sku': instance.sku,
-  'unit_id': instance.unitId,
-  'is_default': instance.isDefault,
-  'is_active': instance.isActive,
-  'weight_grams': instance.weightGrams,
-  'created_at': instance.createdAt,
-  'updated_at': instance.updatedAt,
-  'barcodes': instance.barcodes,
-  'unit': instance.unit,
-};
+Map<String, dynamic> _$VariationModelToJson(_VariationModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'business_id': instance.businessId,
+      'product_id': instance.productId,
+      'name': instance.name,
+      'sku': instance.sku,
+      'unit_id': instance.unitId,
+      'is_default': instance.isDefault,
+      'is_active': instance.isActive,
+      'weight_grams': instance.weightGrams,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+      'barcodes': instance.barcodes,
+      'unit': instance.unit,
+    };

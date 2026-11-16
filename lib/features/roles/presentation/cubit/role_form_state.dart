@@ -4,7 +4,7 @@ import 'package:frantend/features/roles/data/models/permission_model.dart';
 part 'role_form_state.freezed.dart';
 
 @freezed
-class RoleFormState with _$RoleFormState {
+abstract class RoleFormState with _$RoleFormState {
   const factory RoleFormState({
     @Default('create') String mode,
     String? roleId,

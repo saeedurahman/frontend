@@ -5,7 +5,7 @@ part 'journal_line_model.freezed.dart';
 part 'journal_line_model.g.dart';
 
 @freezed
-class JournalLineModel with _$JournalLineModel {
+abstract class JournalLineModel with _$JournalLineModel {
   const factory JournalLineModel({
     required String id,
     @JsonKey(name: 'account_id') required String accountId,
@@ -14,7 +14,7 @@ class JournalLineModel with _$JournalLineModel {
     @JsonKey(name: 'debit_amount') required String debitAmount,
     @JsonKey(name: 'credit_amount') required String creditAmount,
     String? description,
-    @JsonKey(name: 'line_order') @Default(0) int lineOrder,
+    @JsonKey(name: 'line_order', fromJson: JsonNum.intOr) @Default(0) int lineOrder,
   }) = _JournalLineModel;
 
   factory JournalLineModel.fromJson(Map<String, dynamic> json) =>

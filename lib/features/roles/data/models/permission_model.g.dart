@@ -6,23 +6,21 @@ part of 'permission_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PermissionModelImpl _$$PermissionModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$PermissionModelImpl(
-  permissionKey: json['permission_key'] as String,
-  description: json['description'] as String,
-);
+_PermissionModel _$PermissionModelFromJson(Map<String, dynamic> json) =>
+    _PermissionModel(
+      permissionKey: json['permission_key'] as String,
+      description: json['description'] as String,
+    );
 
-Map<String, dynamic> _$$PermissionModelImplToJson(
-  _$PermissionModelImpl instance,
-) => <String, dynamic>{
-  'permission_key': instance.permissionKey,
-  'description': instance.description,
-};
+Map<String, dynamic> _$PermissionModelToJson(_PermissionModel instance) =>
+    <String, dynamic>{
+      'permission_key': instance.permissionKey,
+      'description': instance.description,
+    };
 
-_$PermissionModuleModelImpl _$$PermissionModuleModelImplFromJson(
+_PermissionModuleModel _$PermissionModuleModelFromJson(
   Map<String, dynamic> json,
-) => _$PermissionModuleModelImpl(
+) => _PermissionModuleModel(
   module: json['module'] as String,
   permissions:
       (json['permissions'] as List<dynamic>?)
@@ -31,16 +29,16 @@ _$PermissionModuleModelImpl _$$PermissionModuleModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$PermissionModuleModelImplToJson(
-  _$PermissionModuleModelImpl instance,
+Map<String, dynamic> _$PermissionModuleModelToJson(
+  _PermissionModuleModel instance,
 ) => <String, dynamic>{
   'module': instance.module,
   'permissions': instance.permissions,
 };
 
-_$PermissionsCatalogModelImpl _$$PermissionsCatalogModelImplFromJson(
+_PermissionsCatalogModel _$PermissionsCatalogModelFromJson(
   Map<String, dynamic> json,
-) => _$PermissionsCatalogModelImpl(
+) => _PermissionsCatalogModel(
   modules:
       (json['modules'] as List<dynamic>?)
           ?.map(
@@ -50,6 +48,6 @@ _$PermissionsCatalogModelImpl _$$PermissionsCatalogModelImplFromJson(
       const [],
 );
 
-Map<String, dynamic> _$$PermissionsCatalogModelImplToJson(
-  _$PermissionsCatalogModelImpl instance,
+Map<String, dynamic> _$PermissionsCatalogModelToJson(
+  _PermissionsCatalogModel instance,
 ) => <String, dynamic>{'modules': instance.modules};

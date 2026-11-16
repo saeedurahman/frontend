@@ -4,7 +4,7 @@ import 'package:frantend/features/accounting/data/models/chart_of_account_model.
 part 'coa_form_state.freezed.dart';
 
 @freezed
-class CoaFormState with _$CoaFormState {
+abstract class CoaFormState with _$CoaFormState {
   const CoaFormState._();
 
   const factory CoaFormState({

@@ -16,7 +16,7 @@ enum LedgerEntryType {
 }
 
 @freezed
-class CustomerLedgerEntryModel with _$CustomerLedgerEntryModel {
+abstract class CustomerLedgerEntryModel with _$CustomerLedgerEntryModel {
   const factory CustomerLedgerEntryModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,

@@ -4,7 +4,7 @@ part 'price_list_model.freezed.dart';
 part 'price_list_model.g.dart';
 
 @freezed
-class PriceListModel with _$PriceListModel {
+abstract class PriceListModel with _$PriceListModel {
   const factory PriceListModel({
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
@@ -23,7 +23,7 @@ class PriceListModel with _$PriceListModel {
 }
 
 @freezed
-class PriceListItemModel with _$PriceListItemModel {
+abstract class PriceListItemModel with _$PriceListItemModel {
   const factory PriceListItemModel({
     required String id,
     @JsonKey(name: 'price_list_id') required String priceListId,
@@ -38,7 +38,7 @@ class PriceListItemModel with _$PriceListItemModel {
 }
 
 @freezed
-class ProductPriceModel with _$ProductPriceModel {
+abstract class ProductPriceModel with _$ProductPriceModel {
   const factory ProductPriceModel({
     String? id,
     @JsonKey(name: 'unit_price') String? unitPrice,
