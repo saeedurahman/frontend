@@ -103,6 +103,7 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
         unitPrice: line.unitPrice,
         originalTaxAmount: line.taxAmount ?? '0',
         originalDiscountAmount: line.discountAmount,
+        taxInclusive: sale.taxInclusive,
       );
     }).toList();
   }

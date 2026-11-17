@@ -96,10 +96,10 @@ void main() {
       );
 
       expect(find.text('Rice 5kg (Large)'), findsOneWidget);
-      expect(_text(tester, 'qty-price'), 'Rs. 100');
+      expect(_text(tester, 'qty-price'), 'Rs. 100.00');
       expect(_text(tester, 'qty-stock'), 'In stock: 25 pcs');
       expect(_text(tester, 'qty-display'), '1', reason: 'empty input means 1');
-      expect(_text(tester, 'qty-total'), 'Rs. 100');
+      expect(_text(tester, 'qty-total'), 'Rs. 100.00');
       for (final q in [1, 2, 3, 5, 10]) {
         expect(find.byKey(Key('qty-chip-$q')), findsOneWidget);
       }
@@ -188,7 +188,7 @@ void main() {
 
       expect(_text(tester, 'qty-display'), '3×3');
       expect(_text(tester, 'qty-result'), '= 9');
-      expect(_text(tester, 'qty-total'), 'Rs. 900');
+      expect(_text(tester, 'qty-total'), 'Rs. 900.00');
 
       await tester.tap(find.byKey(const Key('qty-confirm')));
       await tester.pumpAndSettle();
@@ -376,7 +376,7 @@ void main() {
         LogicalKeyboardKey.numpad6,
       ]);
       expect(_text(tester, 'qty-display'), '12+6');
-      expect(_text(tester, 'qty-total'), 'Rs. 1,800');
+      expect(_text(tester, 'qty-total'), 'Rs. 1,800.00');
 
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
@@ -450,7 +450,7 @@ void main() {
         (tester) async {
       await _open(tester, config);
       expect(_text(tester, 'qty-display'), '4');
-      expect(_text(tester, 'qty-total'), 'Rs. 400');
+      expect(_text(tester, 'qty-total'), 'Rs. 400.00');
       expect(find.text('Update'), findsOneWidget);
       expect(find.text('Add'), findsNothing);
       expect(find.byKey(const Key('qty-remove')), findsOneWidget);
@@ -519,9 +519,9 @@ void main() {
         LogicalKeyboardKey.enter, // confirms the price only
       ]);
       expect(find.byType(QuantityCalculatorSheet), findsOneWidget);
-      expect(_text(tester, 'qty-price'), 'Rs. 85');
+      expect(_text(tester, 'qty-price'), 'Rs. 85.00');
       expect(_text(tester, 'qty-display'), '2', reason: 'quantity kept');
-      expect(_text(tester, 'qty-total'), 'Rs. 170');
+      expect(_text(tester, 'qty-total'), 'Rs. 170.00');
 
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
@@ -542,7 +542,7 @@ void main() {
       await tester.pump();
       await _press(tester, [LogicalKeyboardKey.digit9, LogicalKeyboardKey.escape]);
       expect(find.byType(QuantityCalculatorSheet), findsOneWidget);
-      expect(_text(tester, 'qty-price'), 'Rs. 100');
+      expect(_text(tester, 'qty-price'), 'Rs. 100.00');
 
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();

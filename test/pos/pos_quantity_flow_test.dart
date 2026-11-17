@@ -485,7 +485,7 @@ void main() {
 
       expect(popup, findsOneWidget);
       expect(find.text('Rice 5kg'), findsOneWidget);
-      expect(text(tester, 'qty-price'), 'Rs. 100');
+      expect(text(tester, 'qty-price'), 'Rs. 100.00');
       expect(text(tester, 'qty-stock'), 'In stock: 20 pcs');
       expect(rig.cubit.state.cartItems, isEmpty);
     });
@@ -554,7 +554,7 @@ void main() {
         LogicalKeyboardKey.digit4,
       ]);
       expect(text(tester, 'qty-result'), '= 2.5 kg');
-      expect(text(tester, 'qty-total'), 'Rs. 375');
+      expect(text(tester, 'qty-total'), 'Rs. 375.00');
       await press(tester, [LogicalKeyboardKey.enter]);
       expect(rig.cubit.state.cartItems.single.qty, d('2.5'));
 
@@ -698,7 +698,7 @@ void main() {
       expect(text(tester, 'qty-display'), '2');
       expect(find.text('Update'), findsOneWidget);
       // 2 x 150 = 300, minus the line's 10% discount.
-      expect(text(tester, 'qty-total'), 'Rs. 270');
+      expect(text(tester, 'qty-total'), 'Rs. 270.00');
 
       await press(tester, [
         LogicalKeyboardKey.digit0,
@@ -739,7 +739,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(popup, findsOneWidget);
-      expect(text(tester, 'qty-price'), 'Rs. 40');
+      expect(text(tester, 'qty-price'), 'Rs. 40.00');
       await press(tester, [LogicalKeyboardKey.digit3, LogicalKeyboardKey.enter]);
 
       final line = rig.cubit.state.cartItems.single;

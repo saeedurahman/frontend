@@ -140,7 +140,7 @@ class _HeldOrderTile extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${order.itemCount} items — ${formatPKR(order.totalAmount.toDouble())}',
+          '${order.itemCount} items — ${formatPKR(order.totalAmount)}',
           style: const TextStyle(fontSize: 13),
         ),
         const SizedBox(height: 10),

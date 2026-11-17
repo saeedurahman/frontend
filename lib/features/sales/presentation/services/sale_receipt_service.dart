@@ -1,3 +1,4 @@
+import 'package:frantend/features/sales/presentation/utils/receipt_totals.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -384,7 +385,7 @@ abstract final class SaleReceiptService {
       final qtyStr = line.qty;
       final unitPrice = double.tryParse(line.unitPrice) ?? 0.0;
       final unitPriceStr = formatPKR(unitPrice);
-      final totalAmount = SaleCalculations.lineTotal(line).toDouble();
+      final totalAmount = SaleCalculations.lineTotal(line, inclusive: sale.taxInclusive);
       final lineTotalStr = formatPKR(totalAmount);
 
       pw.Widget nameWidget;
@@ -499,6 +500,7 @@ abstract final class SaleReceiptService {
       }
     }
 
+    final totals = ReceiptTotals.fromSale(sale);
     return [
       bizNameWidget,
       if (addressWidget != null) addressWidget,
@@ -529,6 +531,14 @@ abstract final class SaleReceiptService {
       pw.Divider(thickness: 0.5),
       ...lineWidgets,
       pw.Divider(thickness: 0.5),
+      for (final row in totals.lines)
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(row.label, style: const pw.TextStyle(fontSize: 8.5)),
+            pw.Text(row.value, style: const pw.TextStyle(fontSize: 8.5)),
+          ],
+        ),
       pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
@@ -536,12 +546,17 @@ abstract final class SaleReceiptService {
               style: pw.TextStyle(
                   fontSize: 11, fontWeight: pw.FontWeight.bold)),
           pw.Text(
-            formatPKR(double.tryParse(sale.totalAmount) ?? 0),
+            totals.total,
             style: pw.TextStyle(
                 fontSize: 11, fontWeight: pw.FontWeight.bold),
           ),
         ],
       ),
+      if (totals.pricesIncludeTax)
+        pw.Center(
+          child: pw.Text(ReceiptTotals.includesTaxNote,
+              style: const pw.TextStyle(fontSize: 7.5)),
+        ),
       if (sale.payments.isNotEmpty) ...[
         pw.SizedBox(height: 4),
         ...sale.payments.map((p) => pw.Row(

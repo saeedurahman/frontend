@@ -1,3 +1,4 @@
+import 'package:frantend/features/sales/presentation/utils/receipt_totals.dart';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -70,7 +71,7 @@ abstract final class ReceiptShareService {
     for (final line in sale.lines) {
       final name = line.productName ?? 'Item';
       final qty = line.qty;
-      final total = formatPKR(SaleCalculations.lineTotal(line).toDouble());
+      final total = formatPKR(SaleCalculations.lineTotal(line, inclusive: sale.taxInclusive));
       buffer.writeln('$name x $qty: $total');
       for (final label in SaleLineDisplay.modifierLabels(line)) {
         buffer.writeln('   $label');
@@ -78,8 +79,10 @@ abstract final class ReceiptShareService {
     }
 
     buffer.writeln('--------------------------------');
-    final totalAmount = formatPKR(double.tryParse(sale.totalAmount) ?? 0);
-    buffer.writeln('*TOTAL: $totalAmount*');
+    final totals = ReceiptTotals.fromSale(sale);
+    totals.textLines().forEach(buffer.writeln);
+    buffer.writeln('*TOTAL: ${totals.total}*');
+    if (totals.pricesIncludeTax) buffer.writeln(ReceiptTotals.includesTaxNote);
 
     if (sale.payments.isNotEmpty) {
       for (final p in sale.payments) {

@@ -40,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -72,6 +72,11 @@ class AppDatabase extends _$AppDatabase {
         // Phase 4b: offline data layer (hand-written SQL, no codegen). Purely
         // additive: held_orders, users and master_data_cache are untouched.
         await SyncSchema.create(this);
+      }
+      if (from < 8) {
+        // Tax and price settings: every local sale keeps the mode it was made
+        // in. Old rows get safe defaults (exclusive, no rounding).
+        await SyncSchema.addTaxSnapshotColumns(this);
       }
     },
   );

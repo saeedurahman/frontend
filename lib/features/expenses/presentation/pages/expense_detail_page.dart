@@ -181,7 +181,7 @@ class _LoadedView extends StatelessWidget {
                     ExpenseStatusChip(status: status),
                     const Spacer(),
                     Text(
-                      formatPKR(total.toDouble()),
+                      formatPKR(total),
                       style: AppTextStyles.headlineMedium.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -271,8 +271,8 @@ class _LoadedView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Paid: ${formatPKR(paid.toDouble())} / '
-                  '${formatPKR(total.toDouble())}',
+                  'Paid: ${formatPKR(paid)} / '
+                  '${formatPKR(total)}',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),

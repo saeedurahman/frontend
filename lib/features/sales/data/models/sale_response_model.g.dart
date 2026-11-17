@@ -17,6 +17,7 @@ _SaleLineModel _$SaleLineModelFromJson(Map<String, dynamic> json) =>
       discountAmount: json['discount_amount'] as String? ?? '0',
       taxRate: json['tax_rate'] as String? ?? '0',
       taxAmount: json['tax_amount'] as String?,
+      netAmount: json['net_amount'] as String?,
       lineTotal: json['line_total'] as String?,
       notes: json['notes'] as String?,
       lineOrder: JsonNum.intOrNull(json['line_order']),
@@ -36,6 +37,7 @@ Map<String, dynamic> _$SaleLineModelToJson(_SaleLineModel instance) =>
       'discount_amount': instance.discountAmount,
       'tax_rate': instance.taxRate,
       'tax_amount': instance.taxAmount,
+      'net_amount': instance.netAmount,
       'line_total': instance.lineTotal,
       'notes': instance.notes,
       'line_order': instance.lineOrder,
@@ -43,6 +45,24 @@ Map<String, dynamic> _$SaleLineModelToJson(_SaleLineModel instance) =>
       'variation_name': instance.variationName,
       'returned_qty': instance.returnedQty,
     };
+
+_SaleTaxBreakdownModel _$SaleTaxBreakdownModelFromJson(
+  Map<String, dynamic> json,
+) => _SaleTaxBreakdownModel(
+  taxLabel: json['tax_label'] as String?,
+  taxRate: json['tax_rate'] as String? ?? '0',
+  netAmount: json['net_amount'] as String? ?? '0',
+  taxAmount: json['tax_amount'] as String? ?? '0',
+);
+
+Map<String, dynamic> _$SaleTaxBreakdownModelToJson(
+  _SaleTaxBreakdownModel instance,
+) => <String, dynamic>{
+  'tax_label': instance.taxLabel,
+  'tax_rate': instance.taxRate,
+  'net_amount': instance.netAmount,
+  'tax_amount': instance.taxAmount,
+};
 
 _SalePaymentModel _$SalePaymentModelFromJson(Map<String, dynamic> json) =>
     _SalePaymentModel(
@@ -75,6 +95,21 @@ _SaleResponseModel _$SaleResponseModelFromJson(Map<String, dynamic> json) =>
       subtotal: json['subtotal'] as String?,
       totalDiscount: json['total_discount'] as String?,
       totalTax: json['total_tax'] as String?,
+      netAmount: json['net_amount'] as String?,
+      exactTotal: json['exact_total'] as String?,
+      roundingAmount: json['rounding_amount'] as String? ?? '0',
+      taxInclusive: _readBool(json, 'tax_inclusive') as bool? ?? false,
+      taxRoundingMode: json['tax_rounding_mode'] as String? ?? 'none',
+      taxLabel: json['tax_label'] as String?,
+      showTaxBreakdown: json['show_tax_breakdown'] as bool?,
+      taxBreakdown:
+          (json['tax_breakdown'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    SaleTaxBreakdownModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
       totalAmount: json['total_amount'] as String? ?? '0',
       totalPaid: json['total_paid'] as String?,
       notes: json['notes'] as String?,
@@ -109,6 +144,14 @@ Map<String, dynamic> _$SaleResponseModelToJson(_SaleResponseModel instance) =>
       'subtotal': instance.subtotal,
       'total_discount': instance.totalDiscount,
       'total_tax': instance.totalTax,
+      'net_amount': instance.netAmount,
+      'exact_total': instance.exactTotal,
+      'rounding_amount': instance.roundingAmount,
+      'tax_inclusive': instance.taxInclusive,
+      'tax_rounding_mode': instance.taxRoundingMode,
+      'tax_label': instance.taxLabel,
+      'show_tax_breakdown': instance.showTaxBreakdown,
+      'tax_breakdown': instance.taxBreakdown,
       'total_amount': instance.totalAmount,
       'total_paid': instance.totalPaid,
       'notes': instance.notes,

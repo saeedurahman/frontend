@@ -298,6 +298,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
             isSellable: product.isSellable,
             isPurchasable: product.isPurchasable,
             isActive: product.isActive,
+            taxRateId: product.taxRateId,
+            isTaxExempt: product.isTaxExempt,
             shelfLifeDays: product.shelfLifeDays,
             minStockLevel: product.minStockLevel,
             maxStockLevel: product.maxStockLevel,
@@ -395,6 +397,9 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   void updateIsPurchasable(bool value) =>
       emit(state.copyWith(isPurchasable: value));
   void updateIsActive(bool value) => emit(state.copyWith(isActive: value));
+  void updateTaxRateId(String? id) => emit(state.copyWith(taxRateId: id));
+  void updateIsTaxExempt(bool value) =>
+      emit(state.copyWith(isTaxExempt: value));
   void updateShelfLifeDays(int? days) =>
       emit(state.copyWith(shelfLifeDays: days));
   void updateMinStockLevel(String? value) =>
@@ -518,6 +523,9 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         'tracking_type': state.trackingType,
         'is_sellable': state.isSellable,
         'is_purchasable': state.isPurchasable,
+        'is_tax_exempt': state.isTaxExempt,
+        if (state.taxRateId != null && !state.isTaxExempt)
+          'tax_rate_id': state.taxRateId,
         if (state.selectedCategoryId != null)
           'category_id': state.selectedCategoryId,
         if (state.selectedBrandId != null) 'brand_id': state.selectedBrandId,
@@ -583,6 +591,9 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         'is_sellable': state.isSellable,
         'is_purchasable': state.isPurchasable,
         'is_active': state.isActive,
+        'is_tax_exempt': state.isTaxExempt,
+        // null = back to the business default rate
+        'tax_rate_id': state.isTaxExempt ? null : state.taxRateId,
         'category_id': state.selectedCategoryId,
         'brand_id': state.selectedBrandId,
         if (state.sku != null) 'sku': state.sku,

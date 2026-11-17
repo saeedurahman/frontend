@@ -1,3 +1,4 @@
+import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -23,6 +24,8 @@ abstract class ReturnLineFormItem with _$ReturnLineFormItem {
     required String unitPrice,
     @Default('0') String originalTaxAmount,
     @Default('0') String originalDiscountAmount,
+    // The sale's own tax mode (snapshot): prices already include tax.
+    @Default(false) bool taxInclusive,
   }) = _ReturnLineFormItem;
 
   Decimal get originalQtyDecimal => DecimalUtils.parse(originalQty);
@@ -43,24 +46,27 @@ abstract class ReturnLineFormItem with _$ReturnLineFormItem {
   Decimal get maxReturnableQty =>
       originalQtyDecimal - alreadyReturnedQtyDecimal;
 
-  Decimal get lineRefundAmount {
+  /// What this line refunds, un-rounded: the sale's net, tax and discount
+  /// prorated by the returned share of the line (the server's rule). Prices
+  /// that include tax already hold the tax, so it is not added again.
+  Decimal get exactRefund {
     final qty = returnQtyDecimal;
     final origQty = originalQtyDecimal;
     if (qty <= Decimal.zero || origQty <= Decimal.zero) {
       return Decimal.zero;
     }
-    final netBeforeTax =
+    final afterDiscount =
         (origQty * unitPriceDecimal) - originalDiscountAmountDecimal;
-    final proratedNet = DecimalUtils.fromRational(
-      netBeforeTax * qty / origQty,
-      fractionDigits: 2,
+    final lineTotal =
+        taxInclusive ? afterDiscount : afterDiscount + originalTaxAmountDecimal;
+    return DecimalUtils.fromRational(
+      (lineTotal * qty / origQty),
+      fractionDigits: 8,
     );
-    final proratedTax = DecimalUtils.fromRational(
-      originalTaxAmountDecimal * qty / origQty,
-      fractionDigits: 2,
-    );
-    return proratedNet + proratedTax;
   }
+
+  /// Shown per line only; the refund total is rounded once, not per line.
+  Decimal get lineRefundAmount => PricingEngine.round2(exactRefund);
 }
 
 @freezed
@@ -86,10 +92,15 @@ abstract class ProcessReturnState with _$ProcessReturnState {
   bool get hasReturnableLines =>
       returnLines.any((line) => line.returnQtyDecimal > Decimal.zero);
 
-  Decimal get totalReturnAmount => returnLines.fold(
-        Decimal.zero,
-        (sum, line) => sum + line.lineRefundAmount,
-      );
+  /// Refund total: the prorated lines added up exactly, then rounded once with
+  /// the sale's own rounding mode (a full return equals the sale total).
+  Decimal get totalReturnAmount {
+    final exact = returnLines.fold(
+      Decimal.zero,
+      (sum, line) => sum + line.exactRefund,
+    );
+    return PricingEngine.roundTotal(exact, originalSale?.taxRoundingMode).$1;
+  }
 
   Decimal get totalRefundEntered => refundLines.fold(
         Decimal.zero,

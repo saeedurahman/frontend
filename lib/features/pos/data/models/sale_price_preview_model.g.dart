@@ -19,6 +19,7 @@ _SalePricePreviewLineModel _$SalePricePreviewLineModelFromJson(
   discountAmount: json['discount_amount'] as String? ?? '0',
   taxRate: json['tax_rate'] as String? ?? '0',
   taxAmount: json['tax_amount'] as String? ?? '0',
+  netAmount: json['net_amount'] as String?,
   lineTotal: json['line_total'] as String,
 );
 
@@ -35,6 +36,7 @@ Map<String, dynamic> _$SalePricePreviewLineModelToJson(
   'discount_amount': instance.discountAmount,
   'tax_rate': instance.taxRate,
   'tax_amount': instance.taxAmount,
+  'net_amount': instance.netAmount,
   'line_total': instance.lineTotal,
 };
 
@@ -45,6 +47,12 @@ _SalePricePreviewModel _$SalePricePreviewModelFromJson(
   subtotal: json['subtotal'] as String,
   totalDiscount: json['total_discount'] as String? ?? '0',
   totalTax: json['total_tax'] as String? ?? '0',
+  netAmount: json['net_amount'] as String?,
+  exactTotal: json['exact_total'] as String?,
+  roundingAmount: json['rounding_amount'] as String? ?? '0',
+  taxInclusive: json['tax_inclusive'] as bool? ?? false,
+  taxRoundingMode: json['tax_rounding_mode'] as String? ?? 'none',
+  taxLabel: json['tax_label'] as String? ?? 'GST',
   totalAmount: json['total_amount'] as String,
   lines:
       (json['lines'] as List<dynamic>?)
@@ -63,6 +71,12 @@ Map<String, dynamic> _$SalePricePreviewModelToJson(
   'subtotal': instance.subtotal,
   'total_discount': instance.totalDiscount,
   'total_tax': instance.totalTax,
+  'net_amount': instance.netAmount,
+  'exact_total': instance.exactTotal,
+  'rounding_amount': instance.roundingAmount,
+  'tax_inclusive': instance.taxInclusive,
+  'tax_rounding_mode': instance.taxRoundingMode,
+  'tax_label': instance.taxLabel,
   'total_amount': instance.totalAmount,
   'lines': instance.lines,
 };

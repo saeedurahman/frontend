@@ -1,5 +1,7 @@
+import 'package:frantend/features/pos/domain/utils/tax_groups.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_totals.dart';
@@ -42,25 +44,33 @@ abstract final class PosCalculations {
     List<CartItemModel> items, {
     String? cartDiscountType,
     Decimal? cartDiscount,
+    TaxSettings? tax,
   }) =>
       computeAuthoritativeTotals(
         items: items,
         cartDiscountType: cartDiscountType,
         cartDiscountValue: cartDiscount ?? Decimal.zero,
+        tax: tax,
       ).totalAmount;
 
   /// Authoritative no-scheme totals matching backend pricing_engine + buildSaleLines.
+  ///
+  /// [tax] defaults to the settings in force on this device: exclusive or
+  /// inclusive prices, and the rounding of the grand total.
   static PosSaleTotals computeAuthoritativeTotals({
     required List<CartItemModel> items,
     required String? cartDiscountType,
     required Decimal cartDiscountValue,
+    TaxSettings? tax,
   }) {
     if (items.isEmpty) return PosSaleTotals.zero;
+    final settings = tax ?? TaxSettingsHolder.current;
 
     final builtLines = buildSaleLines(
       items: items,
       cartDiscountType: cartDiscountType,
       cartDiscountValue: cartDiscountValue,
+      tax: settings,
     );
 
     final lineAmounts = builtLines.map((line) {
@@ -71,16 +81,58 @@ abstract final class PosCalculations {
         discountAmount:
             Decimal.tryParse('${line['discount_amount']}') ?? Decimal.zero,
         taxRate: Decimal.tryParse('${line['tax_rate']}') ?? Decimal.zero,
+        inclusive: settings.inclusive,
       );
     }).toList();
 
-    final totals = PricingEngine.calculateSaleTotals(lineAmounts);
-    return PosSaleTotals(
-      subtotal: totals['subtotal']!,
-      totalDiscount: totals['total_discount']!,
-      totalTax: totals['total_tax']!,
-      totalAmount: totals['total_amount']!,
+    final totals = PricingEngine.totalsOf(
+      lineAmounts,
+      roundingMode: settings.roundingMode,
     );
+    return PosSaleTotals(
+      subtotal: totals.subtotal,
+      totalDiscount: totals.totalDiscount,
+      totalTax: totals.totalTax,
+      totalAmount: totals.totalAmount,
+      netAmount: totals.netAmount,
+      exactTotal: totals.exactTotal,
+      roundingAmount: totals.roundingAmount,
+    );
+  }
+
+  /// Tax of the cart by rate ("GST 17%: 2.04"), priced like the totals.
+  static List<TaxGroup> computeTaxGroups({
+    required List<CartItemModel> items,
+    required String? cartDiscountType,
+    required Decimal cartDiscountValue,
+    TaxSettings? tax,
+  }) {
+    if (items.isEmpty) return const [];
+    final settings = tax ?? TaxSettingsHolder.current;
+    final lines = buildSaleLines(
+      items: items,
+      cartDiscountType: cartDiscountType,
+      cartDiscountValue: cartDiscountValue,
+      tax: settings,
+    );
+    return TaxGroup.group([
+      for (final line in lines)
+        () {
+          final rate = Decimal.tryParse('${line['tax_rate']}') ?? Decimal.zero;
+          final a = PricingEngine.calculateLineTotal(
+            qty: Decimal.tryParse('${line['qty']}') ?? Decimal.zero,
+            unitPrice:
+                Decimal.tryParse('${line['unit_price']}') ?? Decimal.zero,
+            discountPct:
+                Decimal.tryParse('${line['discount_pct']}') ?? Decimal.zero,
+            discountAmount:
+                Decimal.tryParse('${line['discount_amount']}') ?? Decimal.zero,
+            taxRate: rate,
+            inclusive: settings.inclusive,
+          );
+          return (rate: rate, net: a.netAmount, tax: a.taxAmount);
+        }(),
+    ], label: settings.label);
   }
 
   /// Distributes cart discount into line payloads for API request.
@@ -88,15 +140,15 @@ abstract final class PosCalculations {
     required List<CartItemModel> items,
     required String? cartDiscountType,
     required Decimal cartDiscountValue,
+    TaxSettings? tax,
   }) {
     if (items.isEmpty) return [];
+    final settings = tax ?? TaxSettingsHolder.current;
 
-    final subtotal = sumSubtotal(items);
     final distributedAmounts = _distributeFixedCartDiscount(
       items: items,
       cartDiscountType: cartDiscountType,
       cartDiscountValue: cartDiscountValue,
-      subtotal: subtotal,
     );
 
     return List.generate(items.length, (index) {
@@ -108,8 +160,11 @@ abstract final class PosCalculations {
         discountPct = discountPct + cartDiscountValue;
         final hundred = Decimal.fromInt(100);
         if (discountPct > hundred) discountPct = hundred;
-      } else if (cartDiscountType == 'fixed' && cartDiscountValue > Decimal.zero) {
-        discountAmount = discountAmount + distributedAmounts[index];
+      } else if (distributedAmounts[index] > Decimal.zero) {
+        // Same as the server's price_cart: the line's own discount and its
+        // share of the cart discount become one amount discount.
+        discountAmount = item.lineDiscount + distributedAmounts[index];
+        discountPct = Decimal.zero;
       }
 
       return {
@@ -122,7 +177,7 @@ abstract final class PosCalculations {
         'unit_price': DecimalUtils.format(item.unitPrice),
         'discount_pct': DecimalUtils.format(discountPct),
         'discount_amount': DecimalUtils.format(discountAmount),
-        'tax_rate': DecimalUtils.format(item.effectiveTaxRate),
+        'tax_rate': DecimalUtils.format(item.taxRateUnder(settings)),
         if (item.lineNote != null && item.lineNote!.isNotEmpty)
           'notes': item.lineNote,
         if (item.modifiers.isNotEmpty)
@@ -143,12 +198,10 @@ abstract final class PosCalculations {
     });
   }
 
-  /// Splits a fixed cart discount across lines, pro-rata by line subtotal.
-  ///
-  /// Decimal-only (no `double`). Each line's total discount (its own fixed
-  /// discount plus its share) never exceeds its subtotal, shares are never
-  /// negative, and the shares add up to the requested discount (capped by the
-  /// room the lines have): rounding leftovers are handed to lines with room.
+  /// Splits a fixed cart discount across lines (backend
+  /// `distribute_cart_discount`): pro rata to what each line is worth after
+  /// its own discount, each share rounded to the cent, the last line takes
+  /// the remainder, never negative and never above its line.
   @visibleForTesting
   static List<Decimal> distributeFixedCartDiscount({
     required List<CartItemModel> items,
@@ -159,71 +212,22 @@ abstract final class PosCalculations {
         items: items,
         cartDiscountType: cartDiscountType,
         cartDiscountValue: cartDiscountValue,
-        subtotal: sumSubtotal(items),
       );
 
   static List<Decimal> _distributeFixedCartDiscount({
     required List<CartItemModel> items,
     required String? cartDiscountType,
     required Decimal cartDiscountValue,
-    required Decimal subtotal,
   }) {
-    final shares = List<Decimal>.filled(items.length, Decimal.zero);
-    if (cartDiscountType != 'fixed' ||
-        cartDiscountValue <= Decimal.zero ||
-        subtotal <= Decimal.zero) {
-      return shares;
+    if (cartDiscountType != 'fixed' || cartDiscountValue <= Decimal.zero) {
+      return List<Decimal>.filled(items.length, Decimal.zero);
     }
-
-    // Room left on each line once its own fixed discount is accounted for.
-    final room = <Decimal>[
-      for (final item in items)
-        _nonNegative(
-          PricingEngine.round2(item.lineSubtotal) -
-              PricingEngine.round2(item.effectiveDiscountAmount),
-        ),
-    ];
-    final totalRoom = room.fold(Decimal.zero, (a, b) => a + b);
-    final target = PricingEngine.round2(
-      cartDiscountValue < totalRoom ? cartDiscountValue : totalRoom,
+    return PricingEngine.distributeCartDiscount(
+      [
+        for (final item in items)
+          PricingEngine.round2(item.lineSubtotal) - item.lineDiscount,
+      ],
+      cartDiscountValue,
     );
-    if (target <= Decimal.zero) return shares;
-
-    var allocated = Decimal.zero;
-    for (var i = 0; i < items.length; i++) {
-      if (items[i].lineSubtotal <= Decimal.zero) continue;
-      final raw = DecimalUtils.fromRational(
-        target * items[i].lineSubtotal / subtotal,
-      );
-      final share = raw < room[i] ? raw : room[i];
-      shares[i] = share;
-      allocated += share;
-    }
-
-    var leftover = target - allocated;
-    if (leftover > Decimal.zero) {
-      for (var i = 0; i < items.length && leftover > Decimal.zero; i++) {
-        final free = room[i] - shares[i];
-        if (free <= Decimal.zero) continue;
-        final add = free < leftover ? free : leftover;
-        shares[i] += add;
-        leftover -= add;
-      }
-    } else if (leftover < Decimal.zero) {
-      // Rounding overshoot: take it back from the largest shares first.
-      var excess = -leftover;
-      final order = List<int>.generate(items.length, (i) => i)
-        ..sort((a, b) => shares[b].compareTo(shares[a]));
-      for (final i in order) {
-        if (excess <= Decimal.zero) break;
-        if (shares[i] <= Decimal.zero) continue;
-        final take = shares[i] < excess ? shares[i] : excess;
-        shares[i] -= take;
-        excess -= take;
-      }
-    }
-    return shares;
   }
-
-  static Decimal _nonNegative(Decimal v) => v < Decimal.zero ? Decimal.zero : v;
 }

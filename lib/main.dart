@@ -1,3 +1,4 @@
+import 'package:frantend/core/tax/tax_settings_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/app.dart';
@@ -122,6 +123,10 @@ Future<void> _startup() async {
       () => sl<BranchSelectorCubit>().startSession(),
     );
   }
+  await step('Loading tax settings', () async {
+    // Offline safe: reads the pulled settings from this device.
+    await sl<TaxSettingsStore>().start();
+  });
   await step('Starting reachability probe', () async {
     sl<ConnectivityProbe>().start();
     await sl<AppWindowService>().setTitle();

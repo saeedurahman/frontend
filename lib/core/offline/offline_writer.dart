@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/core/offline/sale_line_modifiers.dart';
 import 'package:frantend/core/sync/outbox_op.dart';
@@ -100,6 +101,9 @@ class OfflineWriter {
       }
     }
 
+    // The mode this sale is made in is frozen on the sale (the server treats
+    // it as a snapshot and flags differences instead of re-pricing).
+    final tax = TaxSettingsHolder.current;
     final lines = <Map<String, dynamic>>[];
     final localLines = <Map<String, dynamic>>[];
     final amounts = <LineAmounts>[];
@@ -118,6 +122,7 @@ class OfflineWriter {
         discountPct: pct,
         discountAmount: amt,
         taxRate: rate,
+        inclusive: tax.inclusive,
       );
       amounts.add(calc);
       // `unit_price` already includes the modifiers (the contract the server
@@ -133,6 +138,7 @@ class OfflineWriter {
         'discount_amount': DecimalUtils.format(amt),
         'tax_rate': DecimalUtils.format(rate),
         'tax_amount': DecimalUtils.format(calc.taxAmount),
+        'net_amount': DecimalUtils.format(calc.netAmount),
         'notes': l['notes'],
         'line_order': l['line_order'] ?? order,
         if (modifiers.isNotEmpty)
@@ -149,7 +155,7 @@ class OfflineWriter {
             l['variation_id'] == null ? null : names['$pid:${l['variation_id']}'],
       });
     }
-    final totals = PricingEngine.calculateSaleTotals(amounts);
+    final totals = PricingEngine.totalsOf(amounts, roundingMode: tax.roundingMode);
 
     final payments = <Map<String, dynamic>>[];
     var credit = Decimal.zero;
@@ -187,6 +193,11 @@ class OfflineWriter {
       'price_list_id': body['price_list_id'],
       'discount_scheme_id': body['discount_scheme_id'],
       'notes': body['notes'],
+      'tax_inclusive': tax.inclusive,
+      'tax_rounding_mode': tax.roundingMode,
+      'tax_label': tax.label,
+      'rounding_amount': DecimalUtils.format(totals.roundingAmount),
+      'total_amount': DecimalUtils.format(totals.totalAmount),
       'lines': lines,
       'payments': payments,
     };
@@ -210,10 +221,16 @@ class OfflineWriter {
         'customer_id': customerId,
         'customer_name': customer?['name'],
         'user_id': user.id,
-        'subtotal': DecimalUtils.format(totals['subtotal']!),
-        'total_discount': DecimalUtils.format(totals['total_discount']!),
-        'total_tax': DecimalUtils.format(totals['total_tax']!),
-        'total_amount': DecimalUtils.format(totals['total_amount']!),
+        'subtotal': DecimalUtils.format(totals.subtotal),
+        'total_discount': DecimalUtils.format(totals.totalDiscount),
+        'total_tax': DecimalUtils.format(totals.totalTax),
+        'net_amount': DecimalUtils.format(totals.netAmount),
+        'exact_total': DecimalUtils.format(totals.exactTotal),
+        'rounding_amount': DecimalUtils.format(totals.roundingAmount),
+        'tax_inclusive': tax.inclusive ? 1 : 0,
+        'tax_rounding_mode': tax.roundingMode,
+        'tax_label': tax.label,
+        'total_amount': DecimalUtils.format(totals.totalAmount),
         'total_paid': DecimalUtils.format(paid + credit),
         'credit_amount': DecimalUtils.format(credit),
         'flags': '[]',

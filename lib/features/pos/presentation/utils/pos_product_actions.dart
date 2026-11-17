@@ -1,3 +1,6 @@
+import 'package:frantend/core/tax/tax_settings.dart';
+import 'package:frantend/features/pos/domain/utils/line_price_breakdown.dart';
+import 'package:frantend/features/pos/domain/utils/tax_rate_resolver.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
@@ -242,6 +245,13 @@ QuantityCalculatorConfig _quantityConfig(
     // The cart's own maths (PricingEngine): discount and tax of the line.
     lineTotal: (qty, price) =>
         pricedLine.copyWith(qty: qty, unitPrice: price).lineTotal,
+    // Same engine and settings as the cart: price, tax and total of the line.
+    breakdown: (qty, price) => LinePriceBreakdown.lines(
+      qty: qty,
+      unitPrice: price,
+      taxRate: pricedLine.effectiveTaxRate,
+      tax: TaxSettingsHolder.current,
+    ),
   );
 }
 
@@ -322,7 +332,13 @@ Future<bool> openProductFromGrid(
       price = typedPrice;
     }
 
-    final defaultRate = cubit.state.defaultTaxRate;
+    final lineRate = TaxRateResolver.forProduct(
+      tax: TaxSettingsHolder.current,
+      taxExempt: product.isTaxExempt,
+      ownRateId: product.taxRateId,
+      rates: cubit.state.taxRates,
+      defaultRate: cubit.state.defaultTaxRate,
+    );
     final unitPrice = price;
     final config = _quantityConfig(
       cubit,
@@ -340,9 +356,10 @@ Future<bool> openProductFromGrid(
         productName: product.name,
         unitPrice: unitPrice,
         qty: Decimal.one,
-        taxRate: defaultRate == null
+        taxRate: lineRate == null
             ? null
-            : (Decimal.tryParse(defaultRate.rate) ?? Decimal.zero),
+            : (Decimal.tryParse(lineRate.rate) ?? Decimal.zero),
+        taxExempt: product.isTaxExempt,
       ),
     );
     final result = await _modal(

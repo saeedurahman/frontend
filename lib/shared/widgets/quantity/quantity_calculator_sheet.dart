@@ -26,6 +26,7 @@ class QuantityCalculatorConfig {
     this.canEditPrice = false,
     this.lineTotal,
     this.formatMoney,
+    this.breakdown,
     this.quickQuantities = const [1, 2, 3, 5, 10],
   });
 
@@ -65,6 +66,9 @@ class QuantityCalculatorConfig {
   /// caller). Defaults to quantity x price.
   final Decimal Function(Decimal quantity, Decimal unitPrice)? lineTotal;
   final String Function(Decimal amount)? formatMoney;
+
+  /// Worked example shown under the total (tax lines); empty = none.
+  final List<String> Function(Decimal quantity, Decimal unitPrice)? breakdown;
   final List<int> quickQuantities;
 
   bool get isEdit => initialQuantity != null;
@@ -202,7 +206,7 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
   }
 
   String _money(Decimal value) =>
-      _config.formatMoney?.call(value) ?? formatPKR(value.toDouble());
+      _config.formatMoney?.call(value) ?? formatPKR(value);
 
   String _qtyText(Decimal value) {
     final unit = _config.unitLabel;
@@ -490,6 +494,7 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
               result: _resultLine(check),
               total: _totalText(check),
             ),
+            _breakdownView(check),
             SizedBox(
               height: 26,
               child: Align(
@@ -569,6 +574,38 @@ class _QuantityCalculatorSheetState extends State<QuantityCalculatorSheet> {
     final unit = _config.unitLabel;
     if (!hasOperator) return unit == null || unit.isEmpty ? null : unit;
     return '= ${_qtyText(qty)}';
+  }
+
+  /// Price / tax / total lines under the live total (only when tax applies).
+  Widget _breakdownView(QuantityCheck check) {
+    final price = _price;
+    final qty = check.quantity;
+    final build = _config.breakdown;
+    if (_priceMode || build == null || price == null || qty == null) {
+      return const SizedBox.shrink();
+    }
+    final lines = build(qty, price);
+    if (lines.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        key: const Key('qty-breakdown'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < lines.length; i++)
+            Text(
+              lines[i],
+              key: Key('qty-breakdown-$i'),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: AppColors.textSecondary,
+                fontWeight:
+                    i == lines.length - 1 ? FontWeight.w700 : FontWeight.w400,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   String? _totalText(QuantityCheck check) {
@@ -672,13 +709,19 @@ class _Header extends StatelessWidget {
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                money(price!),
-                key: const Key('qty-price'),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: priceEdited ? AppColors.warning : AppColors.primary,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    money(price!),
+                    key: const Key('qty-price'),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: priceEdited ? AppColors.warning : AppColors.primary,
+                    ),
+                  ),
                 ),
               ),
               if (config.canEditPrice) ...[

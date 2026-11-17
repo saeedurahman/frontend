@@ -1,3 +1,4 @@
+import 'package:frantend/features/settings/presentation/pages/tax_prices_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,7 +47,7 @@ class _SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<_SettingsView>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  int _tabCount = 3;
+  int _tabCount = 4;
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _SettingsViewState extends State<_SettingsView>
   }
 
   int _tabCountFor(SettingsState state) {
-    return _showBranchTabFor(state) ? 4 : 3;
+    return _showBranchTabFor(state) ? 5 : 4;
   }
 
   bool _showBranchTabFor(SettingsState state) {
@@ -116,6 +117,7 @@ class _SettingsViewState extends State<_SettingsView>
                 const Tab(text: 'Business Profile'),
                 const Tab(text: 'Receipt & Printing'),
                 const Tab(text: 'Tax Rates'),
+                const Tab(text: 'Tax & Prices'),
                 if (showBranchTab) const Tab(text: 'Branch Overrides'),
               ],
             ),
@@ -133,6 +135,7 @@ class _SettingsViewState extends State<_SettingsView>
                       _BusinessProfileTab(state: loaded),
                       _ReceiptSettingsTab(state: loaded),
                       _TaxRatesTab(state: loaded),
+                      const TaxPricesPage(),
                       if (showBranchTab) _BranchOverridesTab(state: loaded),
                     ],
                   ),
@@ -770,6 +773,13 @@ class _TaxRatesTab extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        const Text(
+          'The starred rate is used for every item that has no tax rate of its own. '
+          'You can pick a different rate, or mark an item tax-free, on the item itself.',
+          key: Key('tax-rates-help'),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+        ),
         const SizedBox(height: 12),
         Expanded(
           child: activeRates.isEmpty
@@ -1067,13 +1077,20 @@ class _DefaultTaxBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.accent),
       ),
-      child: const Text(
-        'Default',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: AppColors.accentDark,
-        ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star_rounded, size: 12, color: AppColors.accentDark),
+          SizedBox(width: 2),
+          Text(
+            'Default',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.accentDark,
+            ),
+          ),
+        ],
       ),
     );
   }

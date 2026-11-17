@@ -13,6 +13,15 @@ import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/utils/app_alerts.dart';
 
+/// tax_rate_name: leave blank to use the business default rate (a name that
+/// does not exist is a row error). tax_exempt: true = tax-free item.
+const String kProductImportTemplateCsv =
+      'name,sku,barcode,category,unit,cost,price,opening_stock,tax_rate_name,tax_exempt\n'
+      'Basmati Rice 5kg,RICE-5KG,89640001,Groceries,kg,800.00,1050.00,50,,\n'
+      'Cooking Oil 1L,OIL-1L,89640002,Groceries,ltr,450.00,520.00,100,,\n'
+      'Tapal Tea 400g,TEA-400G,89640003,Beverages,pkt,400.00,480.00,25,,\n'
+      'Daily Newspaper,NEWS-1,89640004,Stationery,pcs,25.00,30.00,40,,true\n';
+
 class ProductImportDialog extends StatefulWidget {
   const ProductImportDialog({super.key, this.branchId, this.onSuccess});
 
@@ -48,14 +57,8 @@ class _ProductImportDialogState extends State<ProductImportDialog> {
   Map<String, dynamic>? _importReport;
   String? _errorMessage;
 
-  static const String _templateCsv =
-      'name,sku,barcode,category,unit,cost,price,opening_stock\n'
-      'Basmati Rice 5kg,RICE-5KG,89640001,Groceries,kg,800.00,1050.00,50\n'
-      'Cooking Oil 1L,OIL-1L,89640002,Groceries,ltr,450.00,520.00,100\n'
-      'Tapal Tea 400g,TEA-400G,89640003,Beverages,pkt,400.00,480.00,25\n';
-
   Future<void> _downloadTemplate() async {
-    final bytes = Uint8List.fromList(utf8.encode(_templateCsv));
+    final bytes = Uint8List.fromList(utf8.encode(kProductImportTemplateCsv));
     final savedPath = await sl<FileSaverService>().saveFileWithDialog(
       'products_template.csv',
       bytes,

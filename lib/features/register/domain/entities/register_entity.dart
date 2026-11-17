@@ -17,6 +17,7 @@ class RegisterEntity extends Equatable {
     this.password = '',
     this.confirmPassword = '',
     this.plan = RegisterPlan.growth,
+    this.taxChoice,
   });
 
   final String businessName;
@@ -32,6 +33,13 @@ class RegisterEntity extends Equatable {
   final String password;
   final String confirmPassword;
   final RegisterPlan plan;
+
+  /// "Does the price on your items already include tax?" Null until the
+  /// owner answers; then the default for the business type applies.
+  final TaxPricingChoice? taxChoice;
+
+  TaxPricingChoice get effectiveTaxChoice =>
+      taxChoice ?? TaxPricingChoice.defaultFor(businessType);
 
   static const initial = RegisterEntity();
 
@@ -49,6 +57,7 @@ class RegisterEntity extends Equatable {
     String? password,
     String? confirmPassword,
     RegisterPlan? plan,
+    TaxPricingChoice? taxChoice,
   }) {
     return RegisterEntity(
       businessName: businessName ?? this.businessName,
@@ -64,6 +73,7 @@ class RegisterEntity extends Equatable {
       password: password ?? this.password,
       confirmPassword: confirmPassword ?? this.confirmPassword,
       plan: plan ?? this.plan,
+      taxChoice: taxChoice ?? this.taxChoice,
     );
   }
 
@@ -79,6 +89,9 @@ class RegisterEntity extends Equatable {
         'owner_phone': ownerPhone,
         'owner_password': password,
         'plan': plan.name,
+        // "I don't charge tax" is sent as false and then switched off in
+        // settings right after registration.
+        'prices_include_tax': effectiveTaxChoice == TaxPricingChoice.includesTax,
       };
 
   @override
@@ -96,7 +109,28 @@ class RegisterEntity extends Equatable {
         password,
         confirmPassword,
         plan,
+        taxChoice,
       ];
+}
+
+/// The tax question asked after the business type.
+enum TaxPricingChoice {
+  includesTax,
+  addedOnTop,
+  noTax;
+
+  /// Pharmacies and marts print the price tax-inclusive (same as the server).
+  static TaxPricingChoice defaultFor(String? businessType) =>
+      switch (businessType) {
+        'pharmacy' || 'mart' => TaxPricingChoice.includesTax,
+        _ => TaxPricingChoice.addedOnTop,
+      };
+
+  String get label => switch (this) {
+        TaxPricingChoice.includesTax => 'Yes, the price includes tax',
+        TaxPricingChoice.addedOnTop => 'No, tax is added on top',
+        TaxPricingChoice.noTax => "I don't charge tax",
+      };
 }
 
 enum RegisterPlan { basic, growth, pro }

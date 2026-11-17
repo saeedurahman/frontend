@@ -3,14 +3,10 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/features/reports/data/models/analytics_report_models.dart';
 import 'package:frantend/features/reports/presentation/widgets/report_widgets.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_data_tables.dart';
-import 'package:intl/intl.dart';
+import 'package:frantend/core/utils/currency_formatter.dart';
 
-final _reportMoneyFormatter = NumberFormat('#,##0.00', 'en_US');
-
-String reportDisplayMoney(String? raw) {
-  final value = double.tryParse(raw ?? '') ?? 0;
-  return 'Rs. ${_reportMoneyFormatter.format(value)}';
-}
+/// Server numbers shown through the one shared money formatter.
+String reportDisplayMoney(String? raw) => formatPKR(raw);
 
 class SalesSummarySection extends StatelessWidget {
   const SalesSummarySection({

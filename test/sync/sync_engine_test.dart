@@ -332,7 +332,7 @@ void main() {
       final line = (p['lines'] as List).single as Map;
       expect(line.keys.toSet(), {
         'id', 'product_id', 'variation_id', 'qty', 'unit_price', 'discount_pct',
-        'discount_amount', 'tax_rate', 'tax_amount', 'notes', 'line_order',
+        'discount_amount', 'tax_rate', 'tax_amount', 'net_amount', 'notes', 'line_order',
       });
       expect(line['tax_amount'], '10.00');
       final pay = (p['payments'] as List).single as Map;

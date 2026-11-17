@@ -24,10 +24,12 @@ import 'package:frantend/features/cash_register/domain/usecases/cash_register_us
 import 'package:frantend/core/offline/local_catalog.dart' show EffectivePriceList;
 import 'package:frantend/core/offline/offline_policy.dart';
 import 'package:frantend/core/sync/sync_store.dart' show PriceChange;
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_usecases.dart';
 import 'package:frantend/features/pos/domain/utils/dine_in_cart_mapper.dart';
 import 'package:frantend/features/pos/domain/utils/pos_perf.dart';
+import 'package:frantend/features/pos/domain/utils/tax_rate_resolver.dart';
 import 'package:frantend/features/pos/domain/utils/pos_sale_request_builder.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/models/add_to_cart_outcome.dart';
@@ -94,9 +96,11 @@ class PosCubitBase extends Cubit<PosState> {
     Stream<PriceChange>? priceChanges,
     PosPriceListResolver? resolvePriceList,
     Stream<void>? stockChanges,
+    Stream<TaxSettings>? taxSettingsChanges,
     @ignoreParam void Function(Iterable<String> productIds)? warmModifiers,
     @ignoreParam bool Function()? askQuantityOnTap,
   })  : _offlinePolicy = offlinePolicy,
+        _taxSettingsChanges = taxSettingsChanges,
         _priceChanges = priceChanges,
         _resolvePriceList = resolvePriceList,
         _stockChanges = stockChanges,
@@ -183,6 +187,11 @@ class PosCubitBase extends Cubit<PosState> {
   /// without leaving the screen.
   final Stream<void>? _stockChanges;
   StreamSubscription<void>? _stockChangesSub;
+
+  /// Fires when the business's tax / price settings changed (saved here, or
+  /// pulled): the open cart is re-priced and every grid redraws at once.
+  final Stream<TaxSettings>? _taxSettingsChanges;
+  StreamSubscription<TaxSettings>? _taxSettingsSub;
   int _stockRequestId = 0;
 
   /// Background warm-up of the modifier groups of the products on screen
@@ -263,6 +272,7 @@ class PosCubitBase extends Cubit<PosState> {
     _previewDebounce?.cancel();
     unawaited(_priceChangesSub?.cancel());
     unawaited(_stockChangesSub?.cancel());
+    unawaited(_taxSettingsSub?.cancel());
     return super.close();
   }
 }
@@ -309,6 +319,7 @@ class PosCubit extends PosCubitBase
     super.priceChanges,
     super.resolvePriceList,
     super.stockChanges,
+    super.taxSettingsChanges,
     @ignoreParam super.warmModifiers,
     @ignoreParam super.askQuantityOnTap,
   });

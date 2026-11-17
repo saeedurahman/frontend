@@ -91,6 +91,7 @@ abstract final class RouteNames {
   static const String settingsReceipt = '/settings/receipt';
   static const String settingsPrinter = '/settings/printer';
   static const String settingsTax = '/settings/tax';
+  static const String settingsTaxPrices = '/settings/tax-prices';
   static const String settingsSubscription = '/settings/subscription';
   static const String settingsRoles = '/settings/roles';
   static const String settingsRoleNew = '/settings/roles/new';

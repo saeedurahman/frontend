@@ -1,3 +1,4 @@
+import 'package:frantend/features/register/presentation/widgets/tax_pricing_question.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/brand/app_brand.dart';
@@ -45,7 +46,9 @@ class Step2BusinessTypePage extends StatelessWidget {
               context.go(RouteNames.registerStep3);
             },
           ),
-          child: GridView.builder(
+          child: Column(
+            children: [
+              GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -63,6 +66,15 @@ class Step2BusinessTypePage extends StatelessWidget {
                 onTap: () => cubit.setBusinessType(option.id),
               );
             },
+          ),
+              if (selected != null) ...[
+                const SizedBox(height: 24),
+                TaxPricingQuestion(
+                  value: cubit.data.effectiveTaxChoice,
+                  onChanged: cubit.setTaxChoice,
+                ),
+              ],
+            ],
           ),
         );
       },

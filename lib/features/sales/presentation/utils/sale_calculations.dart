@@ -3,7 +3,8 @@ import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 
 abstract final class SaleCalculations {
-  static Decimal lineTotal(SaleLineModel line) {
+  /// [inclusive]: the sale's prices already contain the tax (snapshot flag).
+  static Decimal lineTotal(SaleLineModel line, {bool inclusive = false}) {
     if (line.lineTotal != null && line.lineTotal!.isNotEmpty) {
       return DecimalUtils.parse(line.lineTotal!);
     }
@@ -11,7 +12,8 @@ abstract final class SaleCalculations {
     final price = DecimalUtils.parse(line.unitPrice);
     final discount = DecimalUtils.parse(line.discountAmount);
     final tax = DecimalUtils.parse(line.taxAmount ?? '0');
-    return (qty * price) - discount + tax;
+    final gross = (qty * price) - discount;
+    return inclusive ? gross : gross + tax;
   }
 
   static Decimal sumLines(List<SaleLineModel> lines) =>

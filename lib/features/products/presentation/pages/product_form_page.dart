@@ -1,3 +1,6 @@
+import 'package:frantend/features/products/presentation/widgets/product_tax_card.dart';
+import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
+import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'dart:io';
 
@@ -29,9 +32,12 @@ import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
 class ProductFormPage extends StatelessWidget {
-  const ProductFormPage({super.key, this.productId});
+  const ProductFormPage({super.key, this.productId, this.taxRatesLoader});
 
   final String? productId;
+
+  /// Active tax rates for the Tax section (tests pass their own).
+  final Future<List<TaxRateModel>> Function()? taxRatesLoader;
 
   bool get isEdit => productId != null;
 
@@ -54,15 +60,16 @@ class ProductFormPage extends StatelessWidget {
         BlocProvider(create: (_) => sl<BrandsCubit>()..load()),
         BlocProvider(create: (_) => sl<UnitsCubit>()..load()),
       ],
-      child: _ProductFormView(isEdit: isEdit),
+      child: _ProductFormView(isEdit: isEdit, taxRatesLoader: taxRatesLoader),
     );
   }
 }
 
 class _ProductFormView extends StatefulWidget {
-  const _ProductFormView({required this.isEdit});
+  const _ProductFormView({required this.isEdit, this.taxRatesLoader});
 
   final bool isEdit;
+  final Future<List<TaxRateModel>> Function()? taxRatesLoader;
 
   @override
   State<_ProductFormView> createState() => _ProductFormViewState();
@@ -72,6 +79,29 @@ class _ProductFormViewState extends State<_ProductFormView>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   int _tabCount = 3;
+  List<TaxRateModel> _taxRates = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTaxRates();
+  }
+
+  Future<void> _loadTaxRates() async {
+    try {
+      final loader = widget.taxRatesLoader ??
+          (sl.isRegistered<GetTaxRatesUseCase>()
+              ? () async => (await sl<GetTaxRatesUseCase>()()).fold((_) => <TaxRateModel>[], (r) => r)
+              : null);
+      if (loader == null) return;
+      final rates = await loader();
+      if (mounted) {
+        setState(() => _taxRates = rates.where((r) => r.isActive).toList());
+      }
+    } catch (_) {
+      // Offline: the dropdown keeps "Use business default".
+    }
+  }
 
   @override
   void dispose() {
@@ -159,6 +189,12 @@ class _ProductFormViewState extends State<_ProductFormView>
                             _StockCard(
                               state: state,
                               isEdit: widget.isEdit,
+                            ),
+                            const SizedBox(height: AppDimensions.spacingMd),
+                            ProductTaxCard(
+                              state: state,
+                              cubit: context.read<ProductFormCubit>(),
+                              rates: _taxRates,
                             ),
                           ],
                         ),

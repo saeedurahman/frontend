@@ -178,7 +178,7 @@ class _FilterBar extends StatelessWidget {
           children: [
             SizedBox(
               width: 220,
-              child: DropdownButtonFormField<String?>(
+              child: DropdownButtonFormField<String?>(isExpanded: true, 
                 initialValue: state.categoryIdFilter,
                 decoration: const InputDecoration(
                   labelText: 'Category',
@@ -197,7 +197,7 @@ class _FilterBar extends StatelessWidget {
             const SizedBox(width: 12),
             SizedBox(
               width: 220,
-              child: DropdownButtonFormField<String?>(
+              child: DropdownButtonFormField<String?>(isExpanded: true, 
                 initialValue: state.supplierIdFilter,
                 decoration: const InputDecoration(
                   labelText: 'Supplier',

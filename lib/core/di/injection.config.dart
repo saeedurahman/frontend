@@ -354,6 +354,7 @@ import '../session/business_session_cubit.dart' as _i166;
 import '../storage/preferences_storage.dart' as _i574;
 import '../storage/secure_storage.dart' as _i619;
 import '../sync/sync_store.dart' as _i2;
+import '../tax/tax_settings.dart' as _i333;
 import 'database_module.dart' as _i384;
 import 'dio_module.dart' as _i1047;
 
@@ -1436,23 +1437,6 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
-    gh.factory<_i993.CustomerPickerCubit>(
-      () => _i993.CustomerPickerCubit(
-        getCustomersUseCase: gh<_i450.GetCustomersUseCase>(),
-        createCustomerUseCase: gh<_i450.CreateCustomerUseCase>(),
-      ),
-    );
-    gh.factory<_i685.RoleFormCubit>(
-      () => _i685.RoleFormCubit(
-        getPermissionsCatalogUseCase: gh<_i473.GetPermissionsCatalogUseCase>(),
-        getRoleUseCase: gh<_i473.GetRoleUseCase>(),
-        createRoleUseCase: gh<_i473.CreateRoleUseCase>(),
-        updateRoleUseCase: gh<_i473.UpdateRoleUseCase>(),
-        assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
-        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
     gh.factory<_i312.PosCubit>(
       () => _i312.PosCubit(
         getProductsUseCase: gh<_i16.GetProductsUseCase>(),
@@ -1488,6 +1472,24 @@ extension GetItInjectableX on _i174.GetIt {
         priceChanges: gh<_i688.Stream<_i2.PriceChange>>(),
         resolvePriceList: gh<_i312.PosPriceListResolver>(),
         stockChanges: gh<_i688.Stream<void>>(),
+        taxSettingsChanges: gh<_i688.Stream<_i333.TaxSettings>>(),
+      ),
+    );
+    gh.factory<_i993.CustomerPickerCubit>(
+      () => _i993.CustomerPickerCubit(
+        getCustomersUseCase: gh<_i450.GetCustomersUseCase>(),
+        createCustomerUseCase: gh<_i450.CreateCustomerUseCase>(),
+      ),
+    );
+    gh.factory<_i685.RoleFormCubit>(
+      () => _i685.RoleFormCubit(
+        getPermissionsCatalogUseCase: gh<_i473.GetPermissionsCatalogUseCase>(),
+        getRoleUseCase: gh<_i473.GetRoleUseCase>(),
+        createRoleUseCase: gh<_i473.CreateRoleUseCase>(),
+        updateRoleUseCase: gh<_i473.UpdateRoleUseCase>(),
+        assignRolePermissionsUseCase: gh<_i473.AssignRolePermissionsUseCase>(),
+        deleteRoleUseCase: gh<_i473.DeleteRoleUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
     gh.factory<_i575.CoaListCubit>(
@@ -1564,19 +1566,10 @@ extension GetItInjectableX on _i174.GetIt {
         localDataLifecycle: gh<_i506.LocalDataLifecycle>(),
       ),
     );
-    gh.lazySingleton<_i995.RegisterRepository>(
-      () => _i68.RegisterRepositoryImpl(gh<_i787.AuthRepository>()),
-    );
     gh.factory<_i483.PurchaseOrdersListCubit>(
       () => _i483.PurchaseOrdersListCubit(
         getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
         getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-      ),
-    );
-    gh.factory<_i266.RegisterCubit>(
-      () => _i266.RegisterCubit(
-        gh<_i995.RegisterRepository>(),
-        gh<_i525.AuthGuard>(),
       ),
     );
     gh.factory<_i188.LoginUseCase>(
@@ -1605,6 +1598,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i506.PendingWorkGuard>(),
       ),
     );
+    gh.lazySingleton<_i995.RegisterRepository>(
+      () => _i68.RegisterRepositoryImpl(
+        gh<_i787.AuthRepository>(),
+        gh<_i674.SettingsRepository>(),
+      ),
+    );
     gh.factory<_i699.GoodsReceiptCubit>(
       () => _i699.GoodsReceiptCubit(
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
@@ -1620,6 +1619,12 @@ extension GetItInjectableX on _i174.GetIt {
         logoutUseCase: gh<_i48.LogoutUseCase>(),
         authRepository: gh<_i787.AuthRepository>(),
         authGuard: gh<_i525.AuthGuard>(),
+      ),
+    );
+    gh.factory<_i266.RegisterCubit>(
+      () => _i266.RegisterCubit(
+        gh<_i995.RegisterRepository>(),
+        gh<_i525.AuthGuard>(),
       ),
     );
     return this;

@@ -1,3 +1,5 @@
+import 'package:frantend/core/tax/tax_settings.dart';
+import 'package:frantend/features/pos/domain/utils/tax_groups.dart';
 import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
@@ -98,6 +100,8 @@ abstract class PosState with _$PosState {
   bool get isLoadingPricePreview => cart.isLoadingPricePreview;
   String? get pricePreviewError => cart.pricePreviewError;
 
+  int get taxRevision => cart.taxRevision;
+
   Decimal get cartDiscountDecimal => cart.cartDiscountDecimal;
 
   /// Search and category filtering are done by the server (see the catalog
@@ -108,12 +112,15 @@ abstract class PosState with _$PosState {
   Decimal get totalDiscount => cart.totalDiscount;
   Decimal get totalTax => cart.totalTax;
   Decimal get grandTotal => cart.grandTotal;
+  PosSaleTotals get totals => cart.authoritativeTotals;
   bool get hasActiveScheme => cart.hasActiveScheme;
   bool get canProceedToPayment => cart.canProceedToPayment;
   Decimal get displaySubtotal => cart.displaySubtotal;
   Decimal get displayTotalDiscount => cart.displayTotalDiscount;
   Decimal get displayTotalTax => cart.displayTotalTax;
   Decimal get displayGrandTotal => cart.displayGrandTotal;
+  Decimal get displayRounding => cart.displayRounding;
+  List<TaxGroup> get displayTaxGroups => cart.displayTaxGroups;
   DiscountSchemeModel? get selectedDiscountScheme =>
       cart.selectedDiscountScheme;
 

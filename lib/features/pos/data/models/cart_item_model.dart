@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 
@@ -17,6 +18,8 @@ class CartItemModel {
     this.taxRateId,
     this.taxRateName,
     this.taxRate,
+    this.taxExempt = false,
+    this.ownTaxRateId,
     this.lineNote,
     this.maxAvailableStock,
     this.priceManual = false,
@@ -37,6 +40,12 @@ class CartItemModel {
   final String? taxRateId;
   final String? taxRateName;
   final Decimal? taxRate;
+
+  /// The product is tax-free (`is_tax_exempt`): zero tax whatever the rate.
+  final bool taxExempt;
+
+  /// The product's own tax rate id; null means the business default applies.
+  final String? ownTaxRateId;
   final String? lineNote;
   final Decimal? maxAvailableStock;
   final bool priceManual;
@@ -50,42 +59,35 @@ class CartItemModel {
 
   Decimal get effectiveDiscountPct => itemDiscountPct ?? Decimal.zero;
   Decimal get effectiveDiscountAmount => itemDiscountAmount ?? Decimal.zero;
-  Decimal get effectiveTaxRate => taxRate ?? Decimal.zero;
+  /// Tax rate that applies: zero while the business does not charge tax or
+  /// for a tax-free item.
+  Decimal get effectiveTaxRate => taxRateUnder(TaxSettingsHolder.current);
+
+  Decimal taxRateUnder(TaxSettings tax) =>
+      !tax.enabled || taxExempt ? Decimal.zero : (taxRate ?? Decimal.zero);
+
+  /// Amounts of this line alone (no cart-level discount), priced like the
+  /// server does for the business's current tax mode.
+  LineAmounts get amounts => PricingEngine.calculateLineTotal(
+        qty: qty,
+        unitPrice: unitPrice,
+        discountPct: effectiveDiscountPct,
+        discountAmount: effectiveDiscountAmount,
+        taxRate: effectiveTaxRate,
+        inclusive: TaxSettingsHolder.current.inclusive,
+      );
 
   Decimal get lineSubtotal => unitPrice * qty;
 
-  Decimal get lineDiscount {
-    final amounts = PricingEngine.calculateLineTotal(
-      qty: qty,
-      unitPrice: unitPrice,
-      discountPct: effectiveDiscountPct,
-      discountAmount: effectiveDiscountAmount,
-      taxRate: Decimal.zero,
-    );
-    return amounts.effectiveDiscount;
-  }
+  Decimal get lineDiscount => amounts.effectiveDiscount;
 
-  Decimal get lineTax {
-    final amounts = PricingEngine.calculateLineTotal(
-      qty: qty,
-      unitPrice: unitPrice,
-      discountPct: effectiveDiscountPct,
-      discountAmount: effectiveDiscountAmount,
-      taxRate: effectiveTaxRate,
-    );
-    return amounts.taxAmount;
-  }
+  Decimal get lineTax => amounts.taxAmount;
 
-  Decimal get lineTotal {
-    final amounts = PricingEngine.calculateLineTotal(
-      qty: qty,
-      unitPrice: unitPrice,
-      discountPct: effectiveDiscountPct,
-      discountAmount: effectiveDiscountAmount,
-      taxRate: effectiveTaxRate,
-    );
-    return amounts.lineTotal;
-  }
+  /// Line gross (net + tax); in inclusive mode this equals the shelf amount.
+  Decimal get lineTotal => amounts.lineTotal;
+
+  /// Line amount before tax.
+  Decimal get lineNet => amounts.netAmount;
 
   CartItemModel copyWith({
     String? productId,
@@ -100,6 +102,9 @@ class CartItemModel {
     String? taxRateId,
     String? taxRateName,
     Decimal? taxRate,
+    bool? taxExempt,
+    String? ownTaxRateId,
+    bool clearOwnTaxRateId = false,
     String? lineNote,
     Decimal? maxAvailableStock,
     bool? priceManual,
@@ -122,6 +127,9 @@ class CartItemModel {
       taxRateId: clearTax ? null : (taxRateId ?? this.taxRateId),
       taxRateName: clearTax ? null : (taxRateName ?? this.taxRateName),
       taxRate: clearTax ? null : (taxRate ?? this.taxRate),
+      taxExempt: taxExempt ?? this.taxExempt,
+      ownTaxRateId:
+          clearOwnTaxRateId ? null : (ownTaxRateId ?? this.ownTaxRateId),
       lineNote: clearLineNote ? null : (lineNote ?? this.lineNote),
       maxAvailableStock: maxAvailableStock ?? this.maxAvailableStock,
       priceManual: priceManual ?? this.priceManual,
@@ -152,6 +160,8 @@ class CartItemModel {
         if (taxRateId != null) 'tax_rate_id': taxRateId,
         if (taxRateName != null) 'tax_rate_name': taxRateName,
         if (taxRate != null) 'tax_rate': taxRate!.toString(),
+        if (taxExempt) 'tax_exempt': true,
+        if (ownTaxRateId != null) 'own_tax_rate_id': ownTaxRateId,
         if (lineNote != null) 'line_note': lineNote,
         if (maxAvailableStock != null)
           'max_available_stock': maxAvailableStock!.toString(),
@@ -183,6 +193,8 @@ class CartItemModel {
       taxRate: json['tax_rate'] != null
           ? Decimal.tryParse(json['tax_rate'].toString())
           : null,
+      taxExempt: json['tax_exempt'] as bool? ?? false,
+      ownTaxRateId: json['own_tax_rate_id'] as String?,
       lineNote: json['line_note'] as String?,
       maxAvailableStock: json['max_available_stock'] != null
           ? Decimal.tryParse(json['max_available_stock'].toString())

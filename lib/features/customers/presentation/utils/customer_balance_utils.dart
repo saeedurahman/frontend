@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
@@ -31,23 +32,23 @@ abstract final class CustomerBalanceUtils {
     final parsed = parseBalance(balance);
     if (parsed < Decimal.zero) {
       return (
-        text: 'Rs. ${DecimalUtils.format(parsed.abs())}',
+        text: formatPKR(parsed.abs()),
         isOwed: true,
       );
     }
     if (parsed > Decimal.zero) {
       return (
-        text: 'Rs. ${DecimalUtils.format(parsed)}',
+        text: formatPKR(parsed),
         isOwed: false,
       );
     }
-    return (text: 'Rs. 0', isOwed: false);
+    return (text: formatPKR(Decimal.zero), isOwed: false);
   }
 
   static String formatCreditLimit(String? creditLimit) {
     final parsed = parseBalance(creditLimit);
     if (parsed <= Decimal.zero) return 'No limit';
-    return 'Rs. ${DecimalUtils.format(parsed)}';
+    return formatPKR(parsed);
   }
 
   static String ledgerEntryTypeLabel(LedgerEntryType type) => switch (type) {

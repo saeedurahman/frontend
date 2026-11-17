@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/error/user_error_message.dart';
@@ -216,7 +217,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                 const SizedBox(height: 8),
                 Text(
                   'This is more than the outstanding balance — '
-                  'Rs. ${DecimalUtils.format(excess)} will be recorded as customer credit',
+                  '${formatPKR(excess)} will be recorded as customer credit',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,

@@ -1,3 +1,5 @@
+import 'package:frantend/core/tax/tax_settings.dart';
+import 'package:frantend/features/pos/domain/utils/tax_rate_resolver.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -285,6 +287,16 @@ class _ProductCardState extends State<_ProductCard> {
     final listName = context.select<PosCubit, String?>(
       (c) => c.specialPriceListName,
     );
+    // Rebuilds when tax settings or rates change (taxRevision bumps).
+    final taxTag = context.select<PosCubit, String?>(
+      (c) => TaxRateResolver.cardTag(
+        tax: TaxSettingsHolder.current,
+        taxExempt: widget.product.isTaxExempt,
+        ownRateId: widget.product.taxRateId,
+        rates: c.state.taxRates,
+        defaultRate: c.state.defaultTaxRate,
+      ),
+    );
     final hasPrice = price != null && price > Decimal.zero;
     final inStock = _isInStock(stock);
     final imageUrl = widget.product.imageUrl?.trim();
@@ -320,7 +332,7 @@ class _ProductCardState extends State<_ProductCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -346,6 +358,30 @@ class _ProductCardState extends State<_ProductCard> {
                     right: 8,
                     child: _StockBadge(inStock: inStock),
                   ),
+                  if (taxTag != null)
+                    Positioned(
+                      bottom: 6,
+                      left: 8,
+                      child: Container(
+                        key: const Key('product-tax-tag'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          taxTag,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -379,7 +415,7 @@ class _ProductCardState extends State<_ProductCard> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
                     _InfoRow(
                       icon: Icons.inventory_2_outlined,
                       label: 'Stock',
@@ -392,7 +428,7 @@ class _ProductCardState extends State<_ProductCard> {
                       icon: Icons.sell_outlined,
                       label: listName ?? 'Price',
                       value: hasPrice
-                          ? formatPKR(price.toDouble())
+                          ? formatPKR(price)
                           : 'Tap to set',
                       valueColor:
                           hasPrice ? AppColors.textPrimary : AppColors.warning,
@@ -418,7 +454,7 @@ class _ProductCardState extends State<_ProductCard> {
                                     Expanded(
                                       child: Text(
                                         hasPrice
-                                            ? formatPKR(price.toDouble())
+                                            ? formatPKR(price)
                                             : 'Tap to set price',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,

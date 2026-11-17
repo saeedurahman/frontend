@@ -99,6 +99,7 @@ void main() {
       final postButton = find.widgetWithText(FilledButton, 'Post entry');
       expect(tester.widget<FilledButton>(postButton).onPressed, isNull);
 
+      await tester.ensureVisible(find.byType(CheckboxListTile));
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pumpAndSettle();
 

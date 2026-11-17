@@ -59,6 +59,7 @@ extension PosStateFlatCopy on PosState {
     Object? pricePreview = _unset,
     Object? isLoadingPricePreview = _unset,
     Object? pricePreviewError = _unset,
+    Object? taxRevision = _unset,
   }) {
     final newSession = session.copyWith(
       accessDenied: accessDenied == _unset
@@ -220,6 +221,8 @@ extension PosStateFlatCopy on PosState {
       pricePreviewError: pricePreviewError == _unset
           ? cart.pricePreviewError
           : pricePreviewError as String?,
+      taxRevision:
+          taxRevision == _unset ? cart.taxRevision : taxRevision as int,
     );
 
     return PosState(

@@ -35,7 +35,7 @@ const _salesTableColumns = [
   AppDataTableColumn(label: 'Products', flex: 3, sortable: true),
   AppDataTableColumn(label: 'Payment', flex: 2, sortable: false),
   AppDataTableColumn(label: 'Total', flex: 2, sortable: true),
-  AppDataTableColumn(label: 'Status', flex: 1, sortable: true),
+  AppDataTableColumn(label: 'Status', flex: 2, sortable: true),
 ];
 
 class SalesListPage extends StatelessWidget {

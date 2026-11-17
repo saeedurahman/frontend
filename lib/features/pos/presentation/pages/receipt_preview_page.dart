@@ -1,3 +1,4 @@
+import 'package:frantend/features/sales/presentation/utils/receipt_totals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frantend/core/brand/app_brand.dart';
@@ -272,7 +273,7 @@ class _ReceiptCardState extends State<_ReceiptCard> {
                     ),
                   ),
                   Text(
-                    formatPKR(SaleCalculations.lineTotal(line).toDouble()),
+                    formatPKR(SaleCalculations.lineTotal(line, inclusive: sale.taxInclusive)),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -283,9 +284,9 @@ class _ReceiptCardState extends State<_ReceiptCard> {
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(),
           ),
-          _Row('Subtotal', sale.subtotal),
-          _Row('Discount', sale.totalDiscount),
-          _Row('Tax', sale.totalTax),
+          // Built from the sale's own snapshot (see ReceiptTotals).
+          for (final row in ReceiptTotals.fromSale(sale).lines)
+            _TextRow(row.label, row.value),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -296,7 +297,7 @@ class _ReceiptCardState extends State<_ReceiptCard> {
                 ),
               ),
               Text(
-                formatPKR(double.tryParse(sale.totalAmount) ?? 0),
+                ReceiptTotals.fromSale(sale).total,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -305,6 +306,15 @@ class _ReceiptCardState extends State<_ReceiptCard> {
               ),
             ],
           ),
+          if (ReceiptTotals.fromSale(sale).pricesIncludeTax)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Text(
+                ReceiptTotals.includesTaxNote,
+                key: Key('receipt-includes-tax'),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(),
@@ -328,6 +338,26 @@ class _ReceiptCardState extends State<_ReceiptCard> {
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TextRow extends StatelessWidget {
+  const _TextRow(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 13))),
+          Text(value, style: const TextStyle(fontSize: 13)),
         ],
       ),
     );

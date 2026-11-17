@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReturnLineFormItem {
 
- String get originalSaleLineId; String get productId; String? get variationId; String get productName; String? get variationName; String get originalQty; String get alreadyReturnedQty; String get returnQty; String get unitPrice; String get originalTaxAmount; String get originalDiscountAmount;
+ String get originalSaleLineId; String get productId; String? get variationId; String get productName; String? get variationName; String get originalQty; String get alreadyReturnedQty; String get returnQty; String get unitPrice; String get originalTaxAmount; String get originalDiscountAmount; bool get taxInclusive;
 /// Create a copy of ReturnLineFormItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $ReturnLineFormItemCopyWith<ReturnLineFormItem> get copyWith => _$ReturnLineForm
 @override
 bool operator ==(Object other) {
   final _this = this as ReturnLineFormItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnLineFormItem&&(identical(other.originalSaleLineId, _this.originalSaleLineId) || other.originalSaleLineId == _this.originalSaleLineId)&&(identical(other.productId, _this.productId) || other.productId == _this.productId)&&(identical(other.variationId, _this.variationId) || other.variationId == _this.variationId)&&(identical(other.productName, _this.productName) || other.productName == _this.productName)&&(identical(other.variationName, _this.variationName) || other.variationName == _this.variationName)&&(identical(other.originalQty, _this.originalQty) || other.originalQty == _this.originalQty)&&(identical(other.alreadyReturnedQty, _this.alreadyReturnedQty) || other.alreadyReturnedQty == _this.alreadyReturnedQty)&&(identical(other.returnQty, _this.returnQty) || other.returnQty == _this.returnQty)&&(identical(other.unitPrice, _this.unitPrice) || other.unitPrice == _this.unitPrice)&&(identical(other.originalTaxAmount, _this.originalTaxAmount) || other.originalTaxAmount == _this.originalTaxAmount)&&(identical(other.originalDiscountAmount, _this.originalDiscountAmount) || other.originalDiscountAmount == _this.originalDiscountAmount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReturnLineFormItem&&(identical(other.originalSaleLineId, _this.originalSaleLineId) || other.originalSaleLineId == _this.originalSaleLineId)&&(identical(other.productId, _this.productId) || other.productId == _this.productId)&&(identical(other.variationId, _this.variationId) || other.variationId == _this.variationId)&&(identical(other.productName, _this.productName) || other.productName == _this.productName)&&(identical(other.variationName, _this.variationName) || other.variationName == _this.variationName)&&(identical(other.originalQty, _this.originalQty) || other.originalQty == _this.originalQty)&&(identical(other.alreadyReturnedQty, _this.alreadyReturnedQty) || other.alreadyReturnedQty == _this.alreadyReturnedQty)&&(identical(other.returnQty, _this.returnQty) || other.returnQty == _this.returnQty)&&(identical(other.unitPrice, _this.unitPrice) || other.unitPrice == _this.unitPrice)&&(identical(other.originalTaxAmount, _this.originalTaxAmount) || other.originalTaxAmount == _this.originalTaxAmount)&&(identical(other.originalDiscountAmount, _this.originalDiscountAmount) || other.originalDiscountAmount == _this.originalDiscountAmount)&&(identical(other.taxInclusive, _this.taxInclusive) || other.taxInclusive == _this.taxInclusive));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReturnLineFormItem;
-  return Object.hash(runtimeType,_this.originalSaleLineId,_this.productId,_this.variationId,_this.productName,_this.variationName,_this.originalQty,_this.alreadyReturnedQty,_this.returnQty,_this.unitPrice,_this.originalTaxAmount,_this.originalDiscountAmount);
+  return Object.hash(runtimeType,_this.originalSaleLineId,_this.productId,_this.variationId,_this.productName,_this.variationName,_this.originalQty,_this.alreadyReturnedQty,_this.returnQty,_this.unitPrice,_this.originalTaxAmount,_this.originalDiscountAmount,_this.taxInclusive);
 }
 
 @override
 String toString() {
   final _this = this as ReturnLineFormItem;
-  return 'ReturnLineFormItem(originalSaleLineId: ${_this.originalSaleLineId}, productId: ${_this.productId}, variationId: ${_this.variationId}, productName: ${_this.productName}, variationName: ${_this.variationName}, originalQty: ${_this.originalQty}, alreadyReturnedQty: ${_this.alreadyReturnedQty}, returnQty: ${_this.returnQty}, unitPrice: ${_this.unitPrice}, originalTaxAmount: ${_this.originalTaxAmount}, originalDiscountAmount: ${_this.originalDiscountAmount})';
+  return 'ReturnLineFormItem(originalSaleLineId: ${_this.originalSaleLineId}, productId: ${_this.productId}, variationId: ${_this.variationId}, productName: ${_this.productName}, variationName: ${_this.variationName}, originalQty: ${_this.originalQty}, alreadyReturnedQty: ${_this.alreadyReturnedQty}, returnQty: ${_this.returnQty}, unitPrice: ${_this.unitPrice}, originalTaxAmount: ${_this.originalTaxAmount}, originalDiscountAmount: ${_this.originalDiscountAmount}, taxInclusive: ${_this.taxInclusive})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $ReturnLineFormItemCopyWith<$Res>  {
   factory $ReturnLineFormItemCopyWith(ReturnLineFormItem value, $Res Function(ReturnLineFormItem) _then) = _$ReturnLineFormItemCopyWithImpl;
 @useResult
 $Res call({
- String originalSaleLineId, String productId, String? variationId, String productName, String? variationName, String originalQty, String alreadyReturnedQty, String returnQty, String unitPrice, String originalTaxAmount, String originalDiscountAmount
+ String originalSaleLineId, String productId, String? variationId, String productName, String? variationName, String originalQty, String alreadyReturnedQty, String returnQty, String unitPrice, String originalTaxAmount, String originalDiscountAmount, bool taxInclusive
 });
 
 
@@ -68,7 +68,7 @@ class _$ReturnLineFormItemCopyWithImpl<$Res>
 
 /// Create a copy of ReturnLineFormItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? originalSaleLineId = null,Object? productId = null,Object? variationId = freezed,Object? productName = null,Object? variationName = freezed,Object? originalQty = null,Object? alreadyReturnedQty = null,Object? returnQty = null,Object? unitPrice = null,Object? originalTaxAmount = null,Object? originalDiscountAmount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? originalSaleLineId = null,Object? productId = null,Object? variationId = freezed,Object? productName = null,Object? variationName = freezed,Object? originalQty = null,Object? alreadyReturnedQty = null,Object? returnQty = null,Object? unitPrice = null,Object? originalTaxAmount = null,Object? originalDiscountAmount = null,Object? taxInclusive = null,}) {
   return _then(ReturnLineFormItem(
 originalSaleLineId: null == originalSaleLineId ? _self.originalSaleLineId : originalSaleLineId // ignore: cast_nullable_to_non_nullable
 as String,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as String,returnQty: null == returnQty ? _self.returnQty : returnQty // ignore: 
 as String,unitPrice: null == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
 as String,originalTaxAmount: null == originalTaxAmount ? _self.originalTaxAmount : originalTaxAmount // ignore: cast_nullable_to_non_nullable
 as String,originalDiscountAmount: null == originalDiscountAmount ? _self.originalDiscountAmount : originalDiscountAmount // ignore: cast_nullable_to_non_nullable
-as String,
+as String,taxInclusive: null == taxInclusive ? _self.taxInclusive : taxInclusive // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount,  bool taxInclusive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReturnLineFormItem() when $default != null:
-return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount);case _:
+return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount,_that.taxInclusive);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount,  bool taxInclusive)  $default,) {final _that = this;
 switch (_that) {
 case _ReturnLineFormItem():
-return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount);case _:
+return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount,_that.taxInclusive);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String originalSaleLineId,  String productId,  String? variationId,  String productName,  String? variationName,  String originalQty,  String alreadyReturnedQty,  String returnQty,  String unitPrice,  String originalTaxAmount,  String originalDiscountAmount,  bool taxInclusive)?  $default,) {final _that = this;
 switch (_that) {
 case _ReturnLineFormItem() when $default != null:
-return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount);case _:
+return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that.productName,_that.variationName,_that.originalQty,_that.alreadyReturnedQty,_that.returnQty,_that.unitPrice,_that.originalTaxAmount,_that.originalDiscountAmount,_that.taxInclusive);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.originalSaleLineId,_that.productId,_that.variationId,_that
 
 
 class _ReturnLineFormItem extends ReturnLineFormItem {
-  const _ReturnLineFormItem({required this.originalSaleLineId, required this.productId, this.variationId, required this.productName, this.variationName, required this.originalQty, this.alreadyReturnedQty = '0', this.returnQty = '0', required this.unitPrice, this.originalTaxAmount = '0', this.originalDiscountAmount = '0'}): super._();
+  const _ReturnLineFormItem({required this.originalSaleLineId, required this.productId, this.variationId, required this.productName, this.variationName, required this.originalQty, this.alreadyReturnedQty = '0', this.returnQty = '0', required this.unitPrice, this.originalTaxAmount = '0', this.originalDiscountAmount = '0', this.taxInclusive = false}): super._();
   
 
 @override final  String originalSaleLineId;
@@ -236,6 +237,7 @@ class _ReturnLineFormItem extends ReturnLineFormItem {
 @override final  String unitPrice;
 @override@JsonKey() final  String originalTaxAmount;
 @override@JsonKey() final  String originalDiscountAmount;
+@override@JsonKey() final  bool taxInclusive;
 
 /// Create a copy of ReturnLineFormItem
 /// with the given fields replaced by the non-null parameter values.
@@ -247,18 +249,18 @@ _$ReturnLineFormItemCopyWith<_ReturnLineFormItem> get copyWith => __$ReturnLineF
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReturnLineFormItem&&(identical(other.originalSaleLineId, originalSaleLineId) || other.originalSaleLineId == originalSaleLineId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.variationId, variationId) || other.variationId == variationId)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.variationName, variationName) || other.variationName == variationName)&&(identical(other.originalQty, originalQty) || other.originalQty == originalQty)&&(identical(other.alreadyReturnedQty, alreadyReturnedQty) || other.alreadyReturnedQty == alreadyReturnedQty)&&(identical(other.returnQty, returnQty) || other.returnQty == returnQty)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.originalTaxAmount, originalTaxAmount) || other.originalTaxAmount == originalTaxAmount)&&(identical(other.originalDiscountAmount, originalDiscountAmount) || other.originalDiscountAmount == originalDiscountAmount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReturnLineFormItem&&(identical(other.originalSaleLineId, originalSaleLineId) || other.originalSaleLineId == originalSaleLineId)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.variationId, variationId) || other.variationId == variationId)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.variationName, variationName) || other.variationName == variationName)&&(identical(other.originalQty, originalQty) || other.originalQty == originalQty)&&(identical(other.alreadyReturnedQty, alreadyReturnedQty) || other.alreadyReturnedQty == alreadyReturnedQty)&&(identical(other.returnQty, returnQty) || other.returnQty == returnQty)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.originalTaxAmount, originalTaxAmount) || other.originalTaxAmount == originalTaxAmount)&&(identical(other.originalDiscountAmount, originalDiscountAmount) || other.originalDiscountAmount == originalDiscountAmount)&&(identical(other.taxInclusive, taxInclusive) || other.taxInclusive == taxInclusive));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,originalSaleLineId,productId,variationId,productName,variationName,originalQty,alreadyReturnedQty,returnQty,unitPrice,originalTaxAmount,originalDiscountAmount);
+    return Object.hash(runtimeType,originalSaleLineId,productId,variationId,productName,variationName,originalQty,alreadyReturnedQty,returnQty,unitPrice,originalTaxAmount,originalDiscountAmount,taxInclusive);
 }
 
 @override
 String toString() {
-    return 'ReturnLineFormItem(originalSaleLineId: $originalSaleLineId, productId: $productId, variationId: $variationId, productName: $productName, variationName: $variationName, originalQty: $originalQty, alreadyReturnedQty: $alreadyReturnedQty, returnQty: $returnQty, unitPrice: $unitPrice, originalTaxAmount: $originalTaxAmount, originalDiscountAmount: $originalDiscountAmount)';
+    return 'ReturnLineFormItem(originalSaleLineId: $originalSaleLineId, productId: $productId, variationId: $variationId, productName: $productName, variationName: $variationName, originalQty: $originalQty, alreadyReturnedQty: $alreadyReturnedQty, returnQty: $returnQty, unitPrice: $unitPrice, originalTaxAmount: $originalTaxAmount, originalDiscountAmount: $originalDiscountAmount, taxInclusive: $taxInclusive)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$ReturnLineFormItemCopyWith<$Res> implements $ReturnLineFo
   factory _$ReturnLineFormItemCopyWith(_ReturnLineFormItem value, $Res Function(_ReturnLineFormItem) _then) = __$ReturnLineFormItemCopyWithImpl;
 @override @useResult
 $Res call({
- String originalSaleLineId, String productId, String? variationId, String productName, String? variationName, String originalQty, String alreadyReturnedQty, String returnQty, String unitPrice, String originalTaxAmount, String originalDiscountAmount
+ String originalSaleLineId, String productId, String? variationId, String productName, String? variationName, String originalQty, String alreadyReturnedQty, String returnQty, String unitPrice, String originalTaxAmount, String originalDiscountAmount, bool taxInclusive
 });
 
 
@@ -286,7 +288,7 @@ class __$ReturnLineFormItemCopyWithImpl<$Res>
 
 /// Create a copy of ReturnLineFormItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? originalSaleLineId = null,Object? productId = null,Object? variationId = freezed,Object? productName = null,Object? variationName = freezed,Object? originalQty = null,Object? alreadyReturnedQty = null,Object? returnQty = null,Object? unitPrice = null,Object? originalTaxAmount = null,Object? originalDiscountAmount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? originalSaleLineId = null,Object? productId = null,Object? variationId = freezed,Object? productName = null,Object? variationName = freezed,Object? originalQty = null,Object? alreadyReturnedQty = null,Object? returnQty = null,Object? unitPrice = null,Object? originalTaxAmount = null,Object? originalDiscountAmount = null,Object? taxInclusive = null,}) {
   return _then(_ReturnLineFormItem(
 originalSaleLineId: null == originalSaleLineId ? _self.originalSaleLineId : originalSaleLineId // ignore: cast_nullable_to_non_nullable
 as String,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
@@ -299,7 +301,8 @@ as String,returnQty: null == returnQty ? _self.returnQty : returnQty // ignore: 
 as String,unitPrice: null == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
 as String,originalTaxAmount: null == originalTaxAmount ? _self.originalTaxAmount : originalTaxAmount // ignore: cast_nullable_to_non_nullable
 as String,originalDiscountAmount: null == originalDiscountAmount ? _self.originalDiscountAmount : originalDiscountAmount // ignore: cast_nullable_to_non_nullable
-as String,
+as String,taxInclusive: null == taxInclusive ? _self.taxInclusive : taxInclusive // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

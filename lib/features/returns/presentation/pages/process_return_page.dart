@@ -340,7 +340,7 @@ class _ReturnLineRow extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    'Unit Price: ${formatPKR(line.unitPriceDecimal.toDouble())}',
+                    'Unit Price: ${formatPKR(line.unitPriceDecimal)}',
                     style: AppTextStyles.bodySmall,
                   ),
                 ],
@@ -349,7 +349,7 @@ class _ReturnLineRow extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  'Est. refund: ${formatPKR(line.lineRefundAmount.toDouble())}',
+                  'Est. refund: ${formatPKR(line.lineRefundAmount)}',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isActive
@@ -446,7 +446,7 @@ class _RefundSummaryCard extends StatelessWidget {
               style: AppTextStyles.titleMedium),
           const Spacer(),
           Text(
-            formatPKR(state.totalReturnAmount.toDouble()),
+            formatPKR(state.totalReturnAmount),
             style: AppTextStyles.headlineMedium.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.bold,
@@ -525,15 +525,15 @@ class _RefundMethodCard extends StatelessWidget {
           const Divider(),
           _SummaryRow(
             'Total Return',
-            formatPKR(state.totalReturnAmount.toDouble()),
+            formatPKR(state.totalReturnAmount),
           ),
           _SummaryRow(
             'Refund Allocated',
-            formatPKR(state.totalRefundEntered.toDouble()),
+            formatPKR(state.totalRefundEntered),
           ),
           _SummaryRow(
             state.remainingToRefund <= Decimal.zero ? 'Fully Allocated' : 'Remaining',
-            formatPKR(state.remainingToRefund.abs().toDouble()),
+            formatPKR(state.remainingToRefund.abs()),
             valueColor: state.remainingToRefund <= Decimal.zero
                 ? AppColors.success
                 : AppColors.error,
@@ -623,7 +623,7 @@ class _BottomBar extends StatelessWidget {
       AppAlerts.showSuccessMessage(
         context,
         'Return ${response.returnNumber} processed. Refunded '
-        '${formatPKR(refunded.toDouble())}',
+        '${formatPKR(refunded)}',
       );
       context.go('/sales/$saleId');
     }

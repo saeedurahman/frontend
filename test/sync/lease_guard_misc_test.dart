@@ -489,7 +489,7 @@ void main() {
       ]));
       final held = await db.customSelect('SELECT id FROM held_orders_table').get();
       expect(held.single.read<String>('id'), 'h1');
-      expect(db.schemaVersion, 7);
+      expect(db.schemaVersion, 8);
     });
 
     test('a fresh install gets everything too', () async {

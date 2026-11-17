@@ -177,7 +177,7 @@ class _BranchFilterBarState extends State<_BranchFilterBar> {
 
     return SizedBox(
       width: 280,
-      child: DropdownButtonFormField<String?>(
+      child: DropdownButtonFormField<String?>(isExpanded: true, 
         value: widget.state.branchIdFilter,
         decoration: const InputDecoration(
           labelText: 'Branch',

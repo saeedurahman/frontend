@@ -1,3 +1,4 @@
+import 'package:frantend/core/tax/tax_settings_store.dart';
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -160,6 +161,7 @@ void registerFoundationServices(GetIt sl) {
   once<SyncConfig>(() => const SyncConfig());
   once<SyncStore>(() => SyncStore(sl<AppDatabase>()));
   once<LocalCatalog>(() => LocalCatalog(sl<SyncStore>(), businessId: businessId));
+  once<TaxSettingsStore>(() => TaxSettingsStore(sl<LocalCatalog>()));
   once<OfflinePolicy>(
     () => OfflinePolicy(sl<PreferencesStorage>(), sl<LocalCatalog>()),
   );
@@ -480,6 +482,7 @@ void registerFoundationServices(GetIt sl) {
       resolvePriceList: (id) =>
           sl<LocalCatalog>().effectivePriceList(customerId: id),
       stockChanges: sl<LocalCatalog>().stockChanges,
+      taxSettingsChanges: sl<TaxSettingsStore>().changes,
       warmModifiers: (ids) => unawaited(sl<ProductModifierCache>().warm(ids)),
       askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,
     ),

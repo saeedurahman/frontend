@@ -33,11 +33,11 @@ abstract final class ShiftFormatUtils {
 
   static String formatMoney(String? value) {
     final parsed = Decimal.tryParse(value ?? '') ?? Decimal.zero;
-    return formatPKR(parsed.toDouble());
+    return formatPKR(parsed);
   }
 
   static String formatMoneyDecimal(Decimal value) =>
-      formatPKR(value.toDouble());
+      formatPKR(value);
 
   static Color varianceColor(Decimal variance) {
     if (variance == Decimal.zero) return AppColors.success;

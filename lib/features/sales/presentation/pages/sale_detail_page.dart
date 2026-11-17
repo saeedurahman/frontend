@@ -672,7 +672,7 @@ class _SaleLineRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              formatPKR(total.toDouble()),
+              formatPKR(total),
               textAlign: TextAlign.right,
               style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
@@ -1024,14 +1024,14 @@ class _SaleInvoiceSummaryCard extends StatelessWidget {
             ),
             child: _SummaryLine(
               label: 'Paid',
-              value: formatPKR(paid.toDouble()),
+              value: formatPKR(paid),
               valueColor: AppColors.brandingPanel,
             ),
           ),
           const SizedBox(height: 8),
           _SummaryLine(
             label: 'Due',
-            value: formatPKR(balanceDue.toDouble()),
+            value: formatPKR(balanceDue),
             valueColor:
                 balanceDue > Decimal.zero ? AppColors.warning : AppColors.textPrimary,
           ),

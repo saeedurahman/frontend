@@ -29,6 +29,12 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
             }
           },
         );
+        // The pulled settings (offline safe) name the default rate too.
+        defaultRate = TaxRateResolver.defaultRateOf(
+              TaxSettingsHolder.current,
+              taxRates,
+            ) ??
+            defaultRate;
         _safeEmit(state.patch(
           taxRates: taxRates.where((t) => t.isActive).toList(),
           defaultTaxRate: defaultRate,
@@ -39,6 +45,41 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
   }
 
   Future<void> retryTaxData() => _loadTaxData();
+
+  /// The business changed its tax or price settings (or a pull delivered new
+  /// ones): re-resolve every line's tax rate, re-price the open cart and make
+  /// every price on screen redraw at once.
+  void _onTaxSettingsChanged(TaxSettings next) {
+    if (isClosed) return;
+    final rates = state.taxRates;
+    final defaultRate = TaxRateResolver.defaultRateOf(next, rates);
+    final items = [
+      for (final item in state.cartItems)
+        // A rate the cashier set by hand on the line is left alone.
+        item.taxRateId != null &&
+                item.taxRateId != item.ownTaxRateId &&
+                item.taxRateId != state.defaultTaxRate?.id
+            ? item
+            : TaxRateResolver.apply(
+                item,
+                TaxRateResolver.forProduct(
+                  tax: next,
+                  taxExempt: item.taxExempt,
+                  ownRateId: item.ownTaxRateId,
+                  rates: rates,
+                  defaultRate: defaultRate,
+                ),
+                taxExempt: item.taxExempt,
+                ownRateId: item.ownTaxRateId,
+              ),
+    ];
+    _safeEmit(state.patch(
+      cartItems: items,
+      defaultTaxRate: defaultRate,
+      taxRevision: state.taxRevision + 1,
+    ));
+    if (state.hasActiveScheme) _schedulePricePreview();
+  }
 
   static String taxDisplayLabel(TaxRateModel rate) =>
       '${rate.name} ${rate.rate}%';
@@ -247,7 +288,13 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         '[POS:Cubit] addToCart → QTY INCREASED cartSize=${items.length}',
       );
     } else {
-      final defaultRate = state.defaultTaxRate;
+      final rate = TaxRateResolver.forProduct(
+        tax: TaxSettingsHolder.current,
+        taxExempt: product.isTaxExempt,
+        ownRateId: product.taxRateId,
+        rates: state.taxRates,
+        defaultRate: state.defaultTaxRate,
+      );
       final newItem = CartItemModel(
         productId: product.id,
         variationId: variationId,
@@ -259,12 +306,13 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         priceManual: isManualPrice,
         maxAvailableStock: availableStock,
         modifiers: modifiers,
-        taxRateId: defaultRate?.id,
-        taxRateName:
-            defaultRate != null ? taxDisplayLabel(defaultRate) : null,
-        taxRate: defaultRate != null
-            ? (Decimal.tryParse(defaultRate.rate) ?? Decimal.zero)
+        taxRateId: rate?.id,
+        taxRateName: rate != null ? taxDisplayLabel(rate) : null,
+        taxRate: rate != null
+            ? (Decimal.tryParse(rate.rate) ?? Decimal.zero)
             : null,
+        taxExempt: product.isTaxExempt,
+        ownTaxRateId: product.taxRateId,
       );
       final items = [...state.cartItems, newItem];
       _safeEmit(state.patch(cartItems: items));

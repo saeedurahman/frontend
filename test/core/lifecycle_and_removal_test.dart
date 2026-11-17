@@ -214,7 +214,7 @@ void main() {
         'held_orders_table',
         'users_table',
       });
-      expect(db.schemaVersion, 7);
+      expect(db.schemaVersion, 8);
     });
 
     test('upgrading from v5 drops the legacy fake-offline tables', () async {

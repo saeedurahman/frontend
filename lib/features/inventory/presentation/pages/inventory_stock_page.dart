@@ -216,7 +216,7 @@ class _FilterBar extends StatelessWidget {
             };
             return SizedBox(
               width: 180,
-              child: DropdownButtonFormField<String?>(
+              child: DropdownButtonFormField<String?>(isExpanded: true, 
                 initialValue: categoryFilter,
                 decoration: const InputDecoration(
                   labelText: 'Category',

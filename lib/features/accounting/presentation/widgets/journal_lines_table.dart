@@ -42,14 +42,14 @@ class JournalLinesTable extends StatelessWidget {
         ),
         if (totalDebit != null && totalCredit != null) ...[
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 16,
             children: [
               Text(
                 'Total debits: ${formatPKR(double.tryParse(totalDebit!) ?? 0)}',
                 style: AppTextStyles.bodySmall,
               ),
-              const SizedBox(width: 16),
               Text(
                 'Total credits: ${formatPKR(double.tryParse(totalCredit!) ?? 0)}',
                 style: AppTextStyles.bodySmall,
@@ -126,14 +126,14 @@ class JournalLinesTableFromDrafts extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 16,
           children: [
             Text(
               'Total debits: ${formatPKR(double.tryParse(DecimalUtils.format(summary.totalDebit)) ?? 0)}',
               style: AppTextStyles.bodySmall,
             ),
-            const SizedBox(width: 16),
             Text(
               'Total credits: ${formatPKR(double.tryParse(DecimalUtils.format(summary.totalCredit)) ?? 0)}',
               style: AppTextStyles.bodySmall,

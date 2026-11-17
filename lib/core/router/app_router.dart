@@ -1,3 +1,4 @@
+import 'package:frantend/features/settings/presentation/pages/tax_prices_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
@@ -526,6 +527,15 @@ class AppRouter {
                 GoRoute(
                   path: 'tax',
                 redirect: (_, __) => RouteNames.settings,
+              ),
+              GoRoute(
+                path: 'tax-prices',
+                builder: (_, __) => const Scaffold(
+                  body: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: TaxPricesPage(),
+                  ),
+                ),
               ),
               GoRoute(
                 path: 'subscription',

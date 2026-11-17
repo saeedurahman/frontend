@@ -97,6 +97,12 @@ CREATE TABLE IF NOT EXISTS local_sales (
   subtotal TEXT NOT NULL,
   total_discount TEXT NOT NULL,
   total_tax TEXT NOT NULL,
+  net_amount TEXT,
+  exact_total TEXT,
+  rounding_amount TEXT NOT NULL DEFAULT '0',
+  tax_inclusive INTEGER NOT NULL DEFAULT 0,
+  tax_rounding_mode TEXT NOT NULL DEFAULT 'none',
+  tax_label TEXT,
   total_amount TEXT NOT NULL,
   total_paid TEXT NOT NULL,
   credit_amount TEXT NOT NULL DEFAULT '0',
@@ -136,6 +142,30 @@ CREATE TABLE IF NOT EXISTS sync_meta (
   value TEXT
 )''',
   ];
+
+  /// Columns added to `local_sales` in schema v8 (tax snapshot of the sale).
+  /// Old rows keep the safe defaults (exclusive, no rounding, no label) and so
+  /// display exactly as before.
+  static const localSaleTaxColumns = <String, String>{
+    'net_amount': 'TEXT',
+    'exact_total': 'TEXT',
+    'rounding_amount': "TEXT NOT NULL DEFAULT '0'",
+    'tax_inclusive': 'INTEGER NOT NULL DEFAULT 0',
+    'tax_rounding_mode': "TEXT NOT NULL DEFAULT 'none'",
+    'tax_label': 'TEXT',
+  };
+
+  /// Idempotent: adds only the columns that are missing.
+  static Future<void> addTaxSnapshotColumns(GeneratedDatabase db) async {
+    final rows = await db.customSelect('PRAGMA table_info(local_sales)').get();
+    final have = {for (final r in rows) r.read<String>('name')};
+    for (final entry in localSaleTaxColumns.entries) {
+      if (have.contains(entry.key)) continue;
+      await db.customStatement(
+        'ALTER TABLE local_sales ADD COLUMN ${entry.key} ${entry.value}',
+      );
+    }
+  }
 
   static Future<void> create(GeneratedDatabase db) async {
     for (final statement in ddl) {

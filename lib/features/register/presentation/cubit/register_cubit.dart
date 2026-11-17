@@ -54,6 +54,10 @@ class RegisterCubit extends Cubit<RegisterState> {
     _emitData(data.copyWith(businessType: type));
   }
 
+  void setTaxChoice(TaxPricingChoice choice) {
+    _emitData(data.copyWith(taxChoice: choice));
+  }
+
   void setPlan(RegisterPlan plan) {
     _emitData(data.copyWith(plan: plan));
   }

@@ -18,6 +18,7 @@ abstract class SalePricePreviewLineModel with _$SalePricePreviewLineModel {
     @JsonKey(name: 'discount_amount') @Default('0') String discountAmount,
     @JsonKey(name: 'tax_rate') @Default('0') String taxRate,
     @JsonKey(name: 'tax_amount') @Default('0') String taxAmount,
+    @JsonKey(name: 'net_amount') String? netAmount,
     @JsonKey(name: 'line_total') required String lineTotal,
   }) = _SalePricePreviewLineModel;
 
@@ -34,6 +35,12 @@ abstract class SalePricePreviewModel with _$SalePricePreviewModel {
     required String subtotal,
     @JsonKey(name: 'total_discount') @Default('0') String totalDiscount,
     @JsonKey(name: 'total_tax') @Default('0') String totalTax,
+    @JsonKey(name: 'net_amount') String? netAmount,
+    @JsonKey(name: 'exact_total') String? exactTotal,
+    @JsonKey(name: 'rounding_amount') @Default('0') String roundingAmount,
+    @JsonKey(name: 'tax_inclusive') @Default(false) bool taxInclusive,
+    @JsonKey(name: 'tax_rounding_mode') @Default('none') String taxRoundingMode,
+    @JsonKey(name: 'tax_label') @Default('GST') String taxLabel,
     @JsonKey(name: 'total_amount') required String totalAmount,
     @Default([]) List<SalePricePreviewLineModel> lines,
   }) = _SalePricePreviewModel;
@@ -48,6 +55,9 @@ abstract class SalePricePreviewModel with _$SalePricePreviewModel {
       Decimal.tryParse(totalDiscount) ?? Decimal.zero;
 
   Decimal get totalTaxDecimal => Decimal.tryParse(totalTax) ?? Decimal.zero;
+
+  Decimal get roundingAmountDecimal =>
+      Decimal.tryParse(roundingAmount) ?? Decimal.zero;
 
   Decimal get totalAmountDecimal =>
       Decimal.tryParse(totalAmount) ?? Decimal.zero;

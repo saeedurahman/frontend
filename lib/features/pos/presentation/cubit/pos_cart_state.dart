@@ -22,6 +22,10 @@ abstract class PosCartState with _$PosCartState {
     SalePricePreviewModel? pricePreview,
     @Default(false) bool isLoadingPricePreview,
     String? pricePreviewError,
+
+    /// Bumped when the business's tax or price settings change, so every
+    /// widget showing prices rebuilds at once.
+    @Default(0) int taxRevision,
   }) = _PosCartState;
 
   Decimal get cartDiscountDecimal =>
@@ -73,4 +77,30 @@ abstract class PosCartState with _$PosCartState {
   Decimal get displayGrandTotal => hasActiveScheme && pricePreview != null
       ? pricePreview!.totalAmountDecimal
       : grandTotal;
+
+  /// Signed rounding of the grand total ("Rounding -0.04"); zero when off.
+  Decimal get displayRounding => hasActiveScheme && pricePreview != null
+      ? pricePreview!.roundingAmountDecimal
+      : authoritativeTotals.roundingAmount;
+
+  /// Tax of the cart by rate for the summary lines.
+  List<TaxGroup> get displayTaxGroups {
+    final tax = TaxSettingsHolder.current;
+    final preview = pricePreview;
+    if (hasActiveScheme && preview != null) {
+      return TaxGroup.group([
+        for (final l in preview.lines)
+          (
+            rate: Decimal.tryParse(l.taxRate) ?? Decimal.zero,
+            net: Decimal.tryParse(l.netAmount ?? '') ?? Decimal.zero,
+            tax: Decimal.tryParse(l.taxAmount) ?? Decimal.zero,
+          ),
+      ], label: tax.label);
+    }
+    return PosCalculations.computeTaxGroups(
+      items: cartItems,
+      cartDiscountType: cartDiscountType,
+      cartDiscountValue: cartDiscountDecimal,
+    );
+  }
 }

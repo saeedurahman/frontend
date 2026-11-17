@@ -1645,7 +1645,9 @@ as Map<String, ProductModel>,
 /// @nodoc
 mixin _$PosCartState {
 
- List<CartItemModel> get cartItems; List<TaxRateModel> get taxRates; TaxRateModel? get defaultTaxRate; CustomerModel? get selectedCustomer; String? get cartDiscountType; String? get cartDiscountValue; String? get cartNote; List<HeldOrderModel> get heldOrders; bool get isHoldingSale; bool get isSubmittingSale; bool get isFiringTab; bool get isRequestingBill; String? get selectedDiscountSchemeId; List<DiscountSchemeModel> get discountSchemes; SalePricePreviewModel? get pricePreview; bool get isLoadingPricePreview; String? get pricePreviewError;
+ List<CartItemModel> get cartItems; List<TaxRateModel> get taxRates; TaxRateModel? get defaultTaxRate; CustomerModel? get selectedCustomer; String? get cartDiscountType; String? get cartDiscountValue; String? get cartNote; List<HeldOrderModel> get heldOrders; bool get isHoldingSale; bool get isSubmittingSale; bool get isFiringTab; bool get isRequestingBill; String? get selectedDiscountSchemeId; List<DiscountSchemeModel> get discountSchemes; SalePricePreviewModel? get pricePreview; bool get isLoadingPricePreview; String? get pricePreviewError;/// Bumped when the business's tax or price settings change, so every
+/// widget showing prices rebuilds at once.
+ int get taxRevision;
 /// Create a copy of PosCartState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1657,20 +1659,20 @@ $PosCartStateCopyWith<PosCartState> get copyWith => _$PosCartStateCopyWithImpl<P
 @override
 bool operator ==(Object other) {
   final _this = this as PosCartState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PosCartState&&const DeepCollectionEquality().equals(other.cartItems, _this.cartItems)&&const DeepCollectionEquality().equals(other.taxRates, _this.taxRates)&&(identical(other.defaultTaxRate, _this.defaultTaxRate) || other.defaultTaxRate == _this.defaultTaxRate)&&(identical(other.selectedCustomer, _this.selectedCustomer) || other.selectedCustomer == _this.selectedCustomer)&&(identical(other.cartDiscountType, _this.cartDiscountType) || other.cartDiscountType == _this.cartDiscountType)&&(identical(other.cartDiscountValue, _this.cartDiscountValue) || other.cartDiscountValue == _this.cartDiscountValue)&&(identical(other.cartNote, _this.cartNote) || other.cartNote == _this.cartNote)&&const DeepCollectionEquality().equals(other.heldOrders, _this.heldOrders)&&(identical(other.isHoldingSale, _this.isHoldingSale) || other.isHoldingSale == _this.isHoldingSale)&&(identical(other.isSubmittingSale, _this.isSubmittingSale) || other.isSubmittingSale == _this.isSubmittingSale)&&(identical(other.isFiringTab, _this.isFiringTab) || other.isFiringTab == _this.isFiringTab)&&(identical(other.isRequestingBill, _this.isRequestingBill) || other.isRequestingBill == _this.isRequestingBill)&&(identical(other.selectedDiscountSchemeId, _this.selectedDiscountSchemeId) || other.selectedDiscountSchemeId == _this.selectedDiscountSchemeId)&&const DeepCollectionEquality().equals(other.discountSchemes, _this.discountSchemes)&&(identical(other.pricePreview, _this.pricePreview) || other.pricePreview == _this.pricePreview)&&(identical(other.isLoadingPricePreview, _this.isLoadingPricePreview) || other.isLoadingPricePreview == _this.isLoadingPricePreview)&&(identical(other.pricePreviewError, _this.pricePreviewError) || other.pricePreviewError == _this.pricePreviewError));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PosCartState&&const DeepCollectionEquality().equals(other.cartItems, _this.cartItems)&&const DeepCollectionEquality().equals(other.taxRates, _this.taxRates)&&(identical(other.defaultTaxRate, _this.defaultTaxRate) || other.defaultTaxRate == _this.defaultTaxRate)&&(identical(other.selectedCustomer, _this.selectedCustomer) || other.selectedCustomer == _this.selectedCustomer)&&(identical(other.cartDiscountType, _this.cartDiscountType) || other.cartDiscountType == _this.cartDiscountType)&&(identical(other.cartDiscountValue, _this.cartDiscountValue) || other.cartDiscountValue == _this.cartDiscountValue)&&(identical(other.cartNote, _this.cartNote) || other.cartNote == _this.cartNote)&&const DeepCollectionEquality().equals(other.heldOrders, _this.heldOrders)&&(identical(other.isHoldingSale, _this.isHoldingSale) || other.isHoldingSale == _this.isHoldingSale)&&(identical(other.isSubmittingSale, _this.isSubmittingSale) || other.isSubmittingSale == _this.isSubmittingSale)&&(identical(other.isFiringTab, _this.isFiringTab) || other.isFiringTab == _this.isFiringTab)&&(identical(other.isRequestingBill, _this.isRequestingBill) || other.isRequestingBill == _this.isRequestingBill)&&(identical(other.selectedDiscountSchemeId, _this.selectedDiscountSchemeId) || other.selectedDiscountSchemeId == _this.selectedDiscountSchemeId)&&const DeepCollectionEquality().equals(other.discountSchemes, _this.discountSchemes)&&(identical(other.pricePreview, _this.pricePreview) || other.pricePreview == _this.pricePreview)&&(identical(other.isLoadingPricePreview, _this.isLoadingPricePreview) || other.isLoadingPricePreview == _this.isLoadingPricePreview)&&(identical(other.pricePreviewError, _this.pricePreviewError) || other.pricePreviewError == _this.pricePreviewError)&&(identical(other.taxRevision, _this.taxRevision) || other.taxRevision == _this.taxRevision));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PosCartState;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.cartItems),const DeepCollectionEquality().hash(_this.taxRates),_this.defaultTaxRate,_this.selectedCustomer,_this.cartDiscountType,_this.cartDiscountValue,_this.cartNote,const DeepCollectionEquality().hash(_this.heldOrders),_this.isHoldingSale,_this.isSubmittingSale,_this.isFiringTab,_this.isRequestingBill,_this.selectedDiscountSchemeId,const DeepCollectionEquality().hash(_this.discountSchemes),_this.pricePreview,_this.isLoadingPricePreview,_this.pricePreviewError);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.cartItems),const DeepCollectionEquality().hash(_this.taxRates),_this.defaultTaxRate,_this.selectedCustomer,_this.cartDiscountType,_this.cartDiscountValue,_this.cartNote,const DeepCollectionEquality().hash(_this.heldOrders),_this.isHoldingSale,_this.isSubmittingSale,_this.isFiringTab,_this.isRequestingBill,_this.selectedDiscountSchemeId,const DeepCollectionEquality().hash(_this.discountSchemes),_this.pricePreview,_this.isLoadingPricePreview,_this.pricePreviewError,_this.taxRevision);
 }
 
 @override
 String toString() {
   final _this = this as PosCartState;
-  return 'PosCartState(cartItems: ${_this.cartItems}, taxRates: ${_this.taxRates}, defaultTaxRate: ${_this.defaultTaxRate}, selectedCustomer: ${_this.selectedCustomer}, cartDiscountType: ${_this.cartDiscountType}, cartDiscountValue: ${_this.cartDiscountValue}, cartNote: ${_this.cartNote}, heldOrders: ${_this.heldOrders}, isHoldingSale: ${_this.isHoldingSale}, isSubmittingSale: ${_this.isSubmittingSale}, isFiringTab: ${_this.isFiringTab}, isRequestingBill: ${_this.isRequestingBill}, selectedDiscountSchemeId: ${_this.selectedDiscountSchemeId}, discountSchemes: ${_this.discountSchemes}, pricePreview: ${_this.pricePreview}, isLoadingPricePreview: ${_this.isLoadingPricePreview}, pricePreviewError: ${_this.pricePreviewError})';
+  return 'PosCartState(cartItems: ${_this.cartItems}, taxRates: ${_this.taxRates}, defaultTaxRate: ${_this.defaultTaxRate}, selectedCustomer: ${_this.selectedCustomer}, cartDiscountType: ${_this.cartDiscountType}, cartDiscountValue: ${_this.cartDiscountValue}, cartNote: ${_this.cartNote}, heldOrders: ${_this.heldOrders}, isHoldingSale: ${_this.isHoldingSale}, isSubmittingSale: ${_this.isSubmittingSale}, isFiringTab: ${_this.isFiringTab}, isRequestingBill: ${_this.isRequestingBill}, selectedDiscountSchemeId: ${_this.selectedDiscountSchemeId}, discountSchemes: ${_this.discountSchemes}, pricePreview: ${_this.pricePreview}, isLoadingPricePreview: ${_this.isLoadingPricePreview}, pricePreviewError: ${_this.pricePreviewError}, taxRevision: ${_this.taxRevision})';
 }
 
 
@@ -1681,7 +1683,7 @@ abstract mixin class $PosCartStateCopyWith<$Res>  {
   factory $PosCartStateCopyWith(PosCartState value, $Res Function(PosCartState) _then) = _$PosCartStateCopyWithImpl;
 @useResult
 $Res call({
- List<CartItemModel> cartItems, List<TaxRateModel> taxRates, TaxRateModel? defaultTaxRate, CustomerModel? selectedCustomer, String? cartDiscountType, String? cartDiscountValue, String? cartNote, List<HeldOrderModel> heldOrders, bool isHoldingSale, bool isSubmittingSale, bool isFiringTab, bool isRequestingBill, String? selectedDiscountSchemeId, List<DiscountSchemeModel> discountSchemes, SalePricePreviewModel? pricePreview, bool isLoadingPricePreview, String? pricePreviewError
+ List<CartItemModel> cartItems, List<TaxRateModel> taxRates, TaxRateModel? defaultTaxRate, CustomerModel? selectedCustomer, String? cartDiscountType, String? cartDiscountValue, String? cartNote, List<HeldOrderModel> heldOrders, bool isHoldingSale, bool isSubmittingSale, bool isFiringTab, bool isRequestingBill, String? selectedDiscountSchemeId, List<DiscountSchemeModel> discountSchemes, SalePricePreviewModel? pricePreview, bool isLoadingPricePreview, String? pricePreviewError, int taxRevision
 });
 
 
@@ -1698,7 +1700,7 @@ class _$PosCartStateCopyWithImpl<$Res>
 
 /// Create a copy of PosCartState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? cartItems = null,Object? taxRates = null,Object? defaultTaxRate = freezed,Object? selectedCustomer = freezed,Object? cartDiscountType = freezed,Object? cartDiscountValue = freezed,Object? cartNote = freezed,Object? heldOrders = null,Object? isHoldingSale = null,Object? isSubmittingSale = null,Object? isFiringTab = null,Object? isRequestingBill = null,Object? selectedDiscountSchemeId = freezed,Object? discountSchemes = null,Object? pricePreview = freezed,Object? isLoadingPricePreview = null,Object? pricePreviewError = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cartItems = null,Object? taxRates = null,Object? defaultTaxRate = freezed,Object? selectedCustomer = freezed,Object? cartDiscountType = freezed,Object? cartDiscountValue = freezed,Object? cartNote = freezed,Object? heldOrders = null,Object? isHoldingSale = null,Object? isSubmittingSale = null,Object? isFiringTab = null,Object? isRequestingBill = null,Object? selectedDiscountSchemeId = freezed,Object? discountSchemes = null,Object? pricePreview = freezed,Object? isLoadingPricePreview = null,Object? pricePreviewError = freezed,Object? taxRevision = null,}) {
   return _then(PosCartState(
 cartItems: null == cartItems ? _self.cartItems : cartItems // ignore: cast_nullable_to_non_nullable
 as List<CartItemModel>,taxRates: null == taxRates ? _self.taxRates : taxRates // ignore: cast_nullable_to_non_nullable
@@ -1717,7 +1719,8 @@ as String?,discountSchemes: null == discountSchemes ? _self.discountSchemes : di
 as List<DiscountSchemeModel>,pricePreview: freezed == pricePreview ? _self.pricePreview : pricePreview // ignore: cast_nullable_to_non_nullable
 as SalePricePreviewModel?,isLoadingPricePreview: null == isLoadingPricePreview ? _self.isLoadingPricePreview : isLoadingPricePreview // ignore: cast_nullable_to_non_nullable
 as bool,pricePreviewError: freezed == pricePreviewError ? _self.pricePreviewError : pricePreviewError // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,taxRevision: null == taxRevision ? _self.taxRevision : taxRevision // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of PosCartState
@@ -1838,10 +1841,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError,  int taxRevision)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PosCartState() when $default != null:
-return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError);case _:
+return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError,_that.taxRevision);case _:
   return orElse();
 
 }
@@ -1859,10 +1862,10 @@ return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.select
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError,  int taxRevision)  $default,) {final _that = this;
 switch (_that) {
 case _PosCartState():
-return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError);case _:
+return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError,_that.taxRevision);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1879,10 +1882,10 @@ return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.select
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CartItemModel> cartItems,  List<TaxRateModel> taxRates,  TaxRateModel? defaultTaxRate,  CustomerModel? selectedCustomer,  String? cartDiscountType,  String? cartDiscountValue,  String? cartNote,  List<HeldOrderModel> heldOrders,  bool isHoldingSale,  bool isSubmittingSale,  bool isFiringTab,  bool isRequestingBill,  String? selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes,  SalePricePreviewModel? pricePreview,  bool isLoadingPricePreview,  String? pricePreviewError,  int taxRevision)?  $default,) {final _that = this;
 switch (_that) {
 case _PosCartState() when $default != null:
-return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError);case _:
+return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.selectedCustomer,_that.cartDiscountType,_that.cartDiscountValue,_that.cartNote,_that.heldOrders,_that.isHoldingSale,_that.isSubmittingSale,_that.isFiringTab,_that.isRequestingBill,_that.selectedDiscountSchemeId,_that.discountSchemes,_that.pricePreview,_that.isLoadingPricePreview,_that.pricePreviewError,_that.taxRevision);case _:
   return null;
 
 }
@@ -1894,7 +1897,7 @@ return $default(_that.cartItems,_that.taxRates,_that.defaultTaxRate,_that.select
 
 
 class _PosCartState extends PosCartState {
-  const _PosCartState({ List<CartItemModel> cartItems = const [],  List<TaxRateModel> taxRates = const [], this.defaultTaxRate, this.selectedCustomer, this.cartDiscountType, this.cartDiscountValue, this.cartNote,  List<HeldOrderModel> heldOrders = const [], this.isHoldingSale = false, this.isSubmittingSale = false, this.isFiringTab = false, this.isRequestingBill = false, this.selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes = const [], this.pricePreview, this.isLoadingPricePreview = false, this.pricePreviewError}): _cartItems = cartItems,_taxRates = taxRates,_heldOrders = heldOrders,_discountSchemes = discountSchemes,super._();
+  const _PosCartState({ List<CartItemModel> cartItems = const [],  List<TaxRateModel> taxRates = const [], this.defaultTaxRate, this.selectedCustomer, this.cartDiscountType, this.cartDiscountValue, this.cartNote,  List<HeldOrderModel> heldOrders = const [], this.isHoldingSale = false, this.isSubmittingSale = false, this.isFiringTab = false, this.isRequestingBill = false, this.selectedDiscountSchemeId,  List<DiscountSchemeModel> discountSchemes = const [], this.pricePreview, this.isLoadingPricePreview = false, this.pricePreviewError, this.taxRevision = 0}): _cartItems = cartItems,_taxRates = taxRates,_heldOrders = heldOrders,_discountSchemes = discountSchemes,super._();
   
 
  final  List<CartItemModel> _cartItems;
@@ -1938,6 +1941,9 @@ class _PosCartState extends PosCartState {
 @override final  SalePricePreviewModel? pricePreview;
 @override@JsonKey() final  bool isLoadingPricePreview;
 @override final  String? pricePreviewError;
+/// Bumped when the business's tax or price settings change, so every
+/// widget showing prices rebuilds at once.
+@override@JsonKey() final  int taxRevision;
 
 /// Create a copy of PosCartState
 /// with the given fields replaced by the non-null parameter values.
@@ -1949,18 +1955,18 @@ _$PosCartStateCopyWith<_PosCartState> get copyWith => __$PosCartStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PosCartState&&const DeepCollectionEquality().equals(other.cartItems, _cartItems)&&const DeepCollectionEquality().equals(other.taxRates, _taxRates)&&(identical(other.defaultTaxRate, defaultTaxRate) || other.defaultTaxRate == defaultTaxRate)&&(identical(other.selectedCustomer, selectedCustomer) || other.selectedCustomer == selectedCustomer)&&(identical(other.cartDiscountType, cartDiscountType) || other.cartDiscountType == cartDiscountType)&&(identical(other.cartDiscountValue, cartDiscountValue) || other.cartDiscountValue == cartDiscountValue)&&(identical(other.cartNote, cartNote) || other.cartNote == cartNote)&&const DeepCollectionEquality().equals(other.heldOrders, _heldOrders)&&(identical(other.isHoldingSale, isHoldingSale) || other.isHoldingSale == isHoldingSale)&&(identical(other.isSubmittingSale, isSubmittingSale) || other.isSubmittingSale == isSubmittingSale)&&(identical(other.isFiringTab, isFiringTab) || other.isFiringTab == isFiringTab)&&(identical(other.isRequestingBill, isRequestingBill) || other.isRequestingBill == isRequestingBill)&&(identical(other.selectedDiscountSchemeId, selectedDiscountSchemeId) || other.selectedDiscountSchemeId == selectedDiscountSchemeId)&&const DeepCollectionEquality().equals(other.discountSchemes, _discountSchemes)&&(identical(other.pricePreview, pricePreview) || other.pricePreview == pricePreview)&&(identical(other.isLoadingPricePreview, isLoadingPricePreview) || other.isLoadingPricePreview == isLoadingPricePreview)&&(identical(other.pricePreviewError, pricePreviewError) || other.pricePreviewError == pricePreviewError));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PosCartState&&const DeepCollectionEquality().equals(other.cartItems, _cartItems)&&const DeepCollectionEquality().equals(other.taxRates, _taxRates)&&(identical(other.defaultTaxRate, defaultTaxRate) || other.defaultTaxRate == defaultTaxRate)&&(identical(other.selectedCustomer, selectedCustomer) || other.selectedCustomer == selectedCustomer)&&(identical(other.cartDiscountType, cartDiscountType) || other.cartDiscountType == cartDiscountType)&&(identical(other.cartDiscountValue, cartDiscountValue) || other.cartDiscountValue == cartDiscountValue)&&(identical(other.cartNote, cartNote) || other.cartNote == cartNote)&&const DeepCollectionEquality().equals(other.heldOrders, _heldOrders)&&(identical(other.isHoldingSale, isHoldingSale) || other.isHoldingSale == isHoldingSale)&&(identical(other.isSubmittingSale, isSubmittingSale) || other.isSubmittingSale == isSubmittingSale)&&(identical(other.isFiringTab, isFiringTab) || other.isFiringTab == isFiringTab)&&(identical(other.isRequestingBill, isRequestingBill) || other.isRequestingBill == isRequestingBill)&&(identical(other.selectedDiscountSchemeId, selectedDiscountSchemeId) || other.selectedDiscountSchemeId == selectedDiscountSchemeId)&&const DeepCollectionEquality().equals(other.discountSchemes, _discountSchemes)&&(identical(other.pricePreview, pricePreview) || other.pricePreview == pricePreview)&&(identical(other.isLoadingPricePreview, isLoadingPricePreview) || other.isLoadingPricePreview == isLoadingPricePreview)&&(identical(other.pricePreviewError, pricePreviewError) || other.pricePreviewError == pricePreviewError)&&(identical(other.taxRevision, taxRevision) || other.taxRevision == taxRevision));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_cartItems),const DeepCollectionEquality().hash(_taxRates),defaultTaxRate,selectedCustomer,cartDiscountType,cartDiscountValue,cartNote,const DeepCollectionEquality().hash(_heldOrders),isHoldingSale,isSubmittingSale,isFiringTab,isRequestingBill,selectedDiscountSchemeId,const DeepCollectionEquality().hash(_discountSchemes),pricePreview,isLoadingPricePreview,pricePreviewError);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_cartItems),const DeepCollectionEquality().hash(_taxRates),defaultTaxRate,selectedCustomer,cartDiscountType,cartDiscountValue,cartNote,const DeepCollectionEquality().hash(_heldOrders),isHoldingSale,isSubmittingSale,isFiringTab,isRequestingBill,selectedDiscountSchemeId,const DeepCollectionEquality().hash(_discountSchemes),pricePreview,isLoadingPricePreview,pricePreviewError,taxRevision);
 }
 
 @override
 String toString() {
-    return 'PosCartState(cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, heldOrders: $heldOrders, isHoldingSale: $isHoldingSale, isSubmittingSale: $isSubmittingSale, isFiringTab: $isFiringTab, isRequestingBill: $isRequestingBill, selectedDiscountSchemeId: $selectedDiscountSchemeId, discountSchemes: $discountSchemes, pricePreview: $pricePreview, isLoadingPricePreview: $isLoadingPricePreview, pricePreviewError: $pricePreviewError)';
+    return 'PosCartState(cartItems: $cartItems, taxRates: $taxRates, defaultTaxRate: $defaultTaxRate, selectedCustomer: $selectedCustomer, cartDiscountType: $cartDiscountType, cartDiscountValue: $cartDiscountValue, cartNote: $cartNote, heldOrders: $heldOrders, isHoldingSale: $isHoldingSale, isSubmittingSale: $isSubmittingSale, isFiringTab: $isFiringTab, isRequestingBill: $isRequestingBill, selectedDiscountSchemeId: $selectedDiscountSchemeId, discountSchemes: $discountSchemes, pricePreview: $pricePreview, isLoadingPricePreview: $isLoadingPricePreview, pricePreviewError: $pricePreviewError, taxRevision: $taxRevision)';
 }
 
 
@@ -1971,7 +1977,7 @@ abstract mixin class _$PosCartStateCopyWith<$Res> implements $PosCartStateCopyWi
   factory _$PosCartStateCopyWith(_PosCartState value, $Res Function(_PosCartState) _then) = __$PosCartStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<CartItemModel> cartItems, List<TaxRateModel> taxRates, TaxRateModel? defaultTaxRate, CustomerModel? selectedCustomer, String? cartDiscountType, String? cartDiscountValue, String? cartNote, List<HeldOrderModel> heldOrders, bool isHoldingSale, bool isSubmittingSale, bool isFiringTab, bool isRequestingBill, String? selectedDiscountSchemeId, List<DiscountSchemeModel> discountSchemes, SalePricePreviewModel? pricePreview, bool isLoadingPricePreview, String? pricePreviewError
+ List<CartItemModel> cartItems, List<TaxRateModel> taxRates, TaxRateModel? defaultTaxRate, CustomerModel? selectedCustomer, String? cartDiscountType, String? cartDiscountValue, String? cartNote, List<HeldOrderModel> heldOrders, bool isHoldingSale, bool isSubmittingSale, bool isFiringTab, bool isRequestingBill, String? selectedDiscountSchemeId, List<DiscountSchemeModel> discountSchemes, SalePricePreviewModel? pricePreview, bool isLoadingPricePreview, String? pricePreviewError, int taxRevision
 });
 
 
@@ -1988,7 +1994,7 @@ class __$PosCartStateCopyWithImpl<$Res>
 
 /// Create a copy of PosCartState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? cartItems = null,Object? taxRates = null,Object? defaultTaxRate = freezed,Object? selectedCustomer = freezed,Object? cartDiscountType = freezed,Object? cartDiscountValue = freezed,Object? cartNote = freezed,Object? heldOrders = null,Object? isHoldingSale = null,Object? isSubmittingSale = null,Object? isFiringTab = null,Object? isRequestingBill = null,Object? selectedDiscountSchemeId = freezed,Object? discountSchemes = null,Object? pricePreview = freezed,Object? isLoadingPricePreview = null,Object? pricePreviewError = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cartItems = null,Object? taxRates = null,Object? defaultTaxRate = freezed,Object? selectedCustomer = freezed,Object? cartDiscountType = freezed,Object? cartDiscountValue = freezed,Object? cartNote = freezed,Object? heldOrders = null,Object? isHoldingSale = null,Object? isSubmittingSale = null,Object? isFiringTab = null,Object? isRequestingBill = null,Object? selectedDiscountSchemeId = freezed,Object? discountSchemes = null,Object? pricePreview = freezed,Object? isLoadingPricePreview = null,Object? pricePreviewError = freezed,Object? taxRevision = null,}) {
   return _then(_PosCartState(
 cartItems: null == cartItems ? _self._cartItems : cartItems // ignore: cast_nullable_to_non_nullable
 as List<CartItemModel>,taxRates: null == taxRates ? _self._taxRates : taxRates // ignore: cast_nullable_to_non_nullable
@@ -2007,7 +2013,8 @@ as String?,discountSchemes: null == discountSchemes ? _self._discountSchemes : d
 as List<DiscountSchemeModel>,pricePreview: freezed == pricePreview ? _self.pricePreview : pricePreview // ignore: cast_nullable_to_non_nullable
 as SalePricePreviewModel?,isLoadingPricePreview: null == isLoadingPricePreview ? _self.isLoadingPricePreview : isLoadingPricePreview // ignore: cast_nullable_to_non_nullable
 as bool,pricePreviewError: freezed == pricePreviewError ? _self.pricePreviewError : pricePreviewError // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,taxRevision: null == taxRevision ? _self.taxRevision : taxRevision // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

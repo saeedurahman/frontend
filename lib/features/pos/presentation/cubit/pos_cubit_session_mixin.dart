@@ -61,6 +61,7 @@ mixin PosCubitSessionMixin
     _priceChangesSub ??= _priceChanges?.listen(_onPriceChange);
     _stockChangesSub ??=
         _stockChanges?.listen((_) => unawaited(refreshStock()));
+    _taxSettingsSub ??= _taxSettingsChanges?.listen(_onTaxSettingsChanged);
     await _refreshPriceContext();
     if (isClosed) return;
     await Future.wait([

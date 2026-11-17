@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/core/error/failures.dart';
@@ -260,9 +262,11 @@ class _Rig {
       saleAttempts: SaleAttemptTracker(UuidIdGenerator()),
       getCustomerUseCase: _GetCustomer(),
       getCustomerBalanceUseCase: _GetBalance(),
+      taxSettingsChanges: taxChanges.stream,
     );
   }
 
+  final taxChanges = StreamController<TaxSettings>.broadcast();
   final price = _Price();
   final createSale = _CreateSale();
   final myShift = _MyShift();
@@ -289,8 +293,22 @@ PaymentLineModel _cash(String v) => PaymentLineModel(
 void main() {
   late _Rig rig;
 
+  test('tax settings change bumps taxRevision and re-prices lines', () async {
+    rig.myShift.shift = _shift;
+    await rig.cubit.init();
+    rig.cubit.addItemsForTest([_item()]);
+    final before = rig.cubit.state.taxRevision;
+    rig.taxChanges.add(const TaxSettings(includeTax: true));
+    await Future<void>.delayed(Duration.zero);
+    expect(rig.cubit.state.taxRevision, greaterThan(before));
+  });
+
+
   setUp(() => rig = _Rig());
-  tearDown(() => rig.cubit.close());
+  tearDown(() async {
+    await rig.cubit.close();
+    await rig.taxChanges.close();
+  });
 
   Future<void> start({bool withShift = true}) async {
     rig.myShift.shift = withShift ? _shift : null;

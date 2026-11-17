@@ -108,7 +108,7 @@ class _CartDiscountDialogState extends State<CartDiscountDialog> {
             ),
             const SizedBox(height: 12),
             Text(
-              'This will reduce total by ${formatPKR(_previewReduction.toDouble())}',
+              'This will reduce total by ${formatPKR(_previewReduction)}',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
           ],

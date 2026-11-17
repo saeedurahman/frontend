@@ -165,6 +165,7 @@ class _AuditFilterBarState extends State<AuditFilterBar> {
             SizedBox(
               width: 160,
               child: DropdownButtonFormField<String?>(
+                isExpanded: true,
                 value: widget.filters.action,
                 decoration: const InputDecoration(
                   labelText: 'Action',
@@ -175,7 +176,7 @@ class _AuditFilterBarState extends State<AuditFilterBar> {
                     .map(
                       (e) => DropdownMenuItem(
                         value: e.key,
-                        child: Text(e.value),
+                        child: Text(e.value, overflow: TextOverflow.ellipsis),
                       ),
                     )
                     .toList(),

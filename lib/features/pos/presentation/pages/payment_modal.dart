@@ -1,3 +1,4 @@
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/error/user_error_message.dart';
@@ -139,7 +140,7 @@ class _PaymentModalState extends State<PaymentModal> {
       builder: (ctx) => AlertDialog(
         title: const Text('Give change'),
         content: Text(
-          formatPKR(change.toDouble()),
+          formatPKR(change),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 40,
@@ -184,13 +185,35 @@ class _PaymentModalState extends State<PaymentModal> {
               ),
               const SizedBox(height: 8),
               Text(
-                formatPKR(state.displayGrandTotal.toDouble()),
+                formatPKR(state.displayGrandTotal),
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
               ),
+              // How the total was reached: tax by rate and rounding.
+              for (final g in state.displayTaxGroups)
+                Text(
+                  '${TaxSettingsHolder.current.inclusive ? 'Includes ' : ''}'
+                  '${g.title(TaxSettingsHolder.current.label)}: ${formatPKR(g.tax)}',
+                  key: const Key('pay-tax-line'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              if (state.displayRounding != Decimal.zero)
+                Text(
+                  'Rounding ${formatSignedMoney(state.displayRounding)}',
+                  key: const Key('pay-rounding-line'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               if (!hasShift) ...[
                 const SizedBox(height: 12),
                 _ShiftRequiredBanner(
@@ -250,22 +273,22 @@ class _PaymentModalState extends State<PaymentModal> {
               }),
               _SummaryRow(
                 'Total Due',
-                formatPKR(state.displayGrandTotal.toDouble()),
+                formatPKR(state.displayGrandTotal),
               ),
               _SummaryRow(
                 'Paid',
-                formatPKR(allocation.applied.toDouble()),
+                formatPKR(allocation.applied),
               ),
               if (allocation.remaining > Decimal.zero)
                 _SummaryRow(
                   'Remaining',
-                  formatPKR(allocation.remaining.toDouble()),
+                  formatPKR(allocation.remaining),
                   valueColor: AppColors.warning,
                 ),
               if (allocation.creditAmount > Decimal.zero)
                 _SummaryRow(
                   'On customer account',
-                  formatPKR(allocation.creditAmount.toDouble()),
+                  formatPKR(allocation.creditAmount),
                 ),
               if (allocation.hasChange) ...[
                 const SizedBox(height: 8),
@@ -397,7 +420,7 @@ class _ChangeBanner extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            formatPKR(change.toDouble()),
+            formatPKR(change),
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -522,7 +545,7 @@ class _PaymentLineEditor extends StatelessWidget {
             if (isCredit)
               Text(
                 'Remainder goes on the customer\'s account: '
-                '${formatPKR(creditAmount.toDouble())}',
+                '${formatPKR(creditAmount)}',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               )
             else

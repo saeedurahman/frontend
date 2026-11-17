@@ -1,3 +1,4 @@
+import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
@@ -223,10 +224,7 @@ AppDataTableRowLayout reportTableRow({
 
 double reportMoneySortKey(String? raw) => double.tryParse(raw ?? '') ?? 0;
 
-String money(String? raw) {
-  final v = double.tryParse(raw ?? '') ?? 0;
-  return 'Rs. ${v.toStringAsFixed(2)}';
-}
+String money(String? raw) => formatPKR(raw);
 
 String pct(String? raw) {
   final v = double.tryParse(raw ?? '') ?? 0;

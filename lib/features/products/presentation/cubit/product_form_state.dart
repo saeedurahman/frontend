@@ -44,6 +44,9 @@ abstract class ProductFormState with _$ProductFormState {
     @Default(true) bool isSellable,
     @Default(true) bool isPurchasable,
     @Default(true) bool isActive,
+    // Tax: null rate = "Use business default"; exempt = tax-free item.
+    String? taxRateId,
+    @Default(false) bool isTaxExempt,
     int? shelfLifeDays,
     String? minStockLevel,
     String? maxStockLevel,

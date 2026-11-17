@@ -1,4 +1,5 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:frantend/core/tax/tax_settings.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -210,8 +211,8 @@ class CartPanel extends StatelessWidget {
                       ),
                       child: Text(
                         isDineIn
-                            ? 'PAY TABLE — ${formatPKR(state.displayGrandTotal.toDouble())}'
-                            : 'PAY NOW — ${formatPKR(state.displayGrandTotal.toDouble())}',
+                            ? 'PAY TABLE — ${formatPKR(state.displayGrandTotal)}'
+                            : 'PAY NOW — ${formatPKR(state.displayGrandTotal)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -387,7 +388,7 @@ class _CartItemCard extends StatelessWidget {
                                   }
                                 },
                                 child: Text(
-                                  'Discount: ${formatPKR(item.lineDiscount.toDouble())}',
+                                  'Discount: ${formatPKR(item.lineDiscount)}',
                                   style: const TextStyle(
                                     color: AppColors.warning,
                                     fontSize: 11,
@@ -437,7 +438,7 @@ class _CartItemCard extends StatelessWidget {
                               children: [
                                 if (hasDiscount)
                                   Text(
-                                    formatPKR(item.lineSubtotal.toDouble()),
+                                    formatPKR(item.lineSubtotal),
                                     style: const TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: AppColors.textSecondary,
@@ -445,7 +446,7 @@ class _CartItemCard extends StatelessWidget {
                                     ),
                                   ),
                                 Text(
-                                  formatPKR(item.lineTotal.toDouble()),
+                                  formatPKR(item.lineTotal),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -748,11 +749,11 @@ class _CartSummary extends StatelessWidget {
                 ),
               ),
             ),
-          _SummaryRow('Subtotal', formatPKR(state.displaySubtotal.toDouble())),
+          _SummaryRow('Subtotal', formatPKR(state.displaySubtotal)),
           Row(
             children: [
               const Expanded(child: Text('Discount')),
-              Text(formatPKR(state.displayTotalDiscount.toDouble())),
+              Text(formatPKR(state.displayTotalDiscount)),
               PermissionGate(
                 permission: Perm.salesApplyDiscount,
                 mutating: true,
@@ -783,7 +784,7 @@ class _CartSummary extends StatelessWidget {
                   child: Text(
                     state.cartDiscountType == 'percentage'
                         ? '${state.cartDiscountDecimal}% off applied'
-                        : '${formatPKR(state.cartDiscountDecimal.toDouble())} off applied',
+                        : '${formatPKR(state.cartDiscountDecimal)} off applied',
                     style: const TextStyle(fontSize: 11, color: AppColors.warning),
                   ),
                 ),
@@ -794,7 +795,17 @@ class _CartSummary extends StatelessWidget {
                 ),
               ],
             ),
-          _SummaryRow('Tax', formatPKR(state.displayTotalTax.toDouble())),
+          // One line per tax rate ("GST 17%"); prices that already include tax
+          // say "Includes". Nothing for tax-free carts or when tax is off.
+          for (final g in state.displayTaxGroups)
+            _SummaryRow(
+              TaxSettingsHolder.current.inclusive
+                  ? 'Includes ${g.title(TaxSettingsHolder.current.label)}'
+                  : g.title(TaxSettingsHolder.current.label),
+              formatPKR(g.tax),
+            ),
+          if (state.displayRounding != Decimal.zero)
+            _SummaryRow('Rounding', formatSignedMoney(state.displayRounding)),
           const Divider(),
           Row(
             children: [
@@ -805,7 +816,7 @@ class _CartSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                formatPKR(state.displayGrandTotal.toDouble()),
+                formatPKR(state.displayGrandTotal),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 22,

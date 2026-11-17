@@ -17,6 +17,7 @@ abstract class SaleLineModel with _$SaleLineModel {
     @JsonKey(name: 'discount_amount') @Default('0') String discountAmount,
     @JsonKey(name: 'tax_rate') @Default('0') String taxRate,
     @JsonKey(name: 'tax_amount') String? taxAmount,
+    @JsonKey(name: 'net_amount') String? netAmount,
     @JsonKey(name: 'line_total') String? lineTotal,
     String? notes,
     @JsonKey(name: 'line_order', fromJson: JsonNum.intOrNull) int? lineOrder,
@@ -27,6 +28,21 @@ abstract class SaleLineModel with _$SaleLineModel {
 
   factory SaleLineModel.fromJson(Map<String, dynamic> json) =>
       _$SaleLineModelFromJson(json);
+}
+
+/// One row of the receipt's tax breakdown: a tax rate with the net amount it
+/// applied to and the tax charged.
+@freezed
+abstract class SaleTaxBreakdownModel with _$SaleTaxBreakdownModel {
+  const factory SaleTaxBreakdownModel({
+    @JsonKey(name: 'tax_label') String? taxLabel,
+    @JsonKey(name: 'tax_rate') @Default('0') String taxRate,
+    @JsonKey(name: 'net_amount') @Default('0') String netAmount,
+    @JsonKey(name: 'tax_amount') @Default('0') String taxAmount,
+  }) = _SaleTaxBreakdownModel;
+
+  factory SaleTaxBreakdownModel.fromJson(Map<String, dynamic> json) =>
+      _$SaleTaxBreakdownModelFromJson(json);
 }
 
 @freezed
@@ -58,6 +74,16 @@ abstract class SaleResponseModel with _$SaleResponseModel {
     @JsonKey(name: 'subtotal') String? subtotal,
     @JsonKey(name: 'total_discount') String? totalDiscount,
     @JsonKey(name: 'total_tax') String? totalTax,
+    @JsonKey(name: 'net_amount') String? netAmount,
+    @JsonKey(name: 'exact_total') String? exactTotal,
+    // Snapshot of the tax mode the sale was made in (never the current
+    // settings), so an old sale reprints identically.
+    @JsonKey(name: 'rounding_amount') @Default('0') String roundingAmount,
+    @JsonKey(name: 'tax_inclusive', readValue: _readBool) @Default(false) bool taxInclusive,
+    @JsonKey(name: 'tax_rounding_mode') @Default('none') String taxRoundingMode,
+    @JsonKey(name: 'tax_label') String? taxLabel,
+    @JsonKey(name: 'show_tax_breakdown') bool? showTaxBreakdown,
+    @JsonKey(name: 'tax_breakdown') @Default([]) List<SaleTaxBreakdownModel> taxBreakdown,
     @JsonKey(name: 'total_amount') @Default('0') String totalAmount,
     @JsonKey(name: 'total_paid') String? totalPaid,
     String? notes,
@@ -71,6 +97,12 @@ abstract class SaleResponseModel with _$SaleResponseModel {
 
   factory SaleResponseModel.fromJson(Map<String, dynamic> json) =>
       _$SaleResponseModelFromJson(json);
+}
+
+Object? _readBool(Map<dynamic, dynamic> json, String key) {
+  final v = json[key];
+  if (v is num) return v != 0; // local rows store 0 / 1
+  return v;
 }
 
 Object? _readSaleStatus(Map<dynamic, dynamic> json, String key) {

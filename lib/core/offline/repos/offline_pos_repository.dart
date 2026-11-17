@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/error/user_error_message.dart';
@@ -206,6 +207,7 @@ abstract final class LocalPricePreview {
     final min = Decimal.tryParse(scheme?.minPurchaseAmount ?? '') ?? Decimal.zero;
     final applies = scheme != null && value > Decimal.zero && cartSubtotal >= min;
 
+    final tax = TaxSettingsHolder.current;
     final lines = <SalePricePreviewLineModel>[];
     final amounts = <LineAmounts>[];
     for (var i = 0; i < raw.length; i++) {
@@ -228,6 +230,7 @@ abstract final class LocalPricePreview {
         discountPct: pct,
         discountAmount: amt,
         taxRate: rate,
+        inclusive: tax.inclusive,
       );
       amounts.add(calc);
       lines.add(SalePricePreviewLineModel(
@@ -241,16 +244,23 @@ abstract final class LocalPricePreview {
         discountAmount: DecimalUtils.format(calc.effectiveDiscount),
         taxRate: DecimalUtils.format(rate),
         taxAmount: DecimalUtils.format(calc.taxAmount),
+        netAmount: DecimalUtils.format(calc.netAmount),
         lineTotal: DecimalUtils.format(calc.lineTotal),
       ));
     }
-    final totals = PricingEngine.calculateSaleTotals(amounts);
+    final totals = PricingEngine.totalsOf(amounts, roundingMode: tax.roundingMode);
     return SalePricePreviewModel(
       discountSchemeId: applies ? scheme.id : null,
-      subtotal: DecimalUtils.format(totals['subtotal']!),
-      totalDiscount: DecimalUtils.format(totals['total_discount']!),
-      totalTax: DecimalUtils.format(totals['total_tax']!),
-      totalAmount: DecimalUtils.format(totals['total_amount']!),
+      subtotal: DecimalUtils.format(totals.subtotal),
+      totalDiscount: DecimalUtils.format(totals.totalDiscount),
+      totalTax: DecimalUtils.format(totals.totalTax),
+      netAmount: DecimalUtils.format(totals.netAmount),
+      exactTotal: DecimalUtils.format(totals.exactTotal),
+      roundingAmount: DecimalUtils.format(totals.roundingAmount),
+      taxInclusive: tax.inclusive,
+      taxRoundingMode: tax.roundingMode,
+      taxLabel: tax.label,
+      totalAmount: DecimalUtils.format(totals.totalAmount),
       lines: lines,
     );
   }
