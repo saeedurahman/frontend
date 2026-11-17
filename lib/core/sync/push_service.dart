@@ -105,6 +105,7 @@ class PushService {
           await _apply(op, result, outcome);
         }
         if (unanswered.isNotEmpty) await _store.releaseUnsent(unanswered);
+        await _store.rememberNumbering(shortCode: response.deviceShortCode);
         await _store.setMeta(SyncStore.lastPushAtKey, _store.now().toUtc().toIso8601String());
       });
       _batchMax = _config.maxOps;

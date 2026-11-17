@@ -1,7 +1,4 @@
-import 'package:frantend/features/sales/presentation/utils/receipt_totals.dart';
-import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frantend/core/constants/api_constants.dart';
@@ -10,13 +7,11 @@ import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/platform/url_launcher_service.dart';
 import 'package:frantend/core/sync/sync_store.dart';
-import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/receipts/domain/receipt_layout.dart';
+import 'package:frantend/features/receipts/domain/receipt_plain_text.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
-import 'package:frantend/features/sales/presentation/utils/sale_calculations.dart';
-import 'package:frantend/features/sales/presentation/utils/sale_line_display.dart';
 import 'package:frantend/utils/app_alerts.dart';
-import 'package:intl/intl.dart';
 
 abstract final class ReceiptShareService {
   /// Converts a phone string to digits-only E.164 format (e.g. 03001234567 -> 923001234567).
@@ -33,70 +28,14 @@ abstract final class ReceiptShareService {
     return digits;
   }
 
-  /// Builds a plain-text receipt for offline WhatsApp sharing or clipboard copy.
-  static Future<String> buildPlainTextReceipt(SaleResponseModel sale) async {
-    final business = await SaleReceiptService.resolveBusinessProfile();
-    final numbers = await SaleReceiptService.numbersLine(sale.id);
-    final display = await SaleReceiptService.resolveDisplaySettings(branchId: sale.branchId);
-
-    final buffer = StringBuffer();
-    final businessName = business?.name ?? 'Receipt';
-    buffer.writeln('*$businessName*');
-    if (business?.phone != null && business!.phone!.isNotEmpty) {
-      buffer.writeln('Tel: ${business.phone}');
-    }
-    if (business?.taxId != null && business!.taxId!.isNotEmpty) {
-      buffer.writeln('NTN: ${business.taxId}');
-    }
-    if (business?.addressLine1 != null && business!.addressLine1!.isNotEmpty) {
-      buffer.writeln('${business.addressLine1}');
-    }
-
-    buffer.writeln('--------------------------------');
-    final dateStr = sale.soldAt ?? sale.createdAt ?? DateTime.now().toIso8601String();
-    try {
-      final dt = DateTime.parse(dateStr);
-      buffer.writeln('Date: ${DateFormat.yMMMd().add_jm().format(dt)}');
-    } catch (_) {
-      buffer.writeln('Date: $dateStr');
-    }
-
-    if (numbers != null && numbers.isNotEmpty) {
-      buffer.writeln(numbers);
-    } else {
-      buffer.writeln('Receipt: ${sale.saleNumber ?? sale.id}');
-    }
-    buffer.writeln('--------------------------------');
-
-    for (final line in sale.lines) {
-      final name = line.productName ?? 'Item';
-      final qty = line.qty;
-      final total = formatPKR(SaleCalculations.lineTotal(line, inclusive: sale.taxInclusive));
-      buffer.writeln('$name x $qty: $total');
-      for (final label in SaleLineDisplay.modifierLabels(line)) {
-        buffer.writeln('   $label');
-      }
-    }
-
-    buffer.writeln('--------------------------------');
-    final totals = ReceiptTotals.fromSale(sale);
-    totals.textLines().forEach(buffer.writeln);
-    buffer.writeln('*TOTAL: ${totals.total}*');
-    if (totals.pricesIncludeTax) buffer.writeln(ReceiptTotals.includesTaxNote);
-
-    if (sale.payments.isNotEmpty) {
-      for (final p in sale.payments) {
-        final amount = formatPKR(double.tryParse(p.amount) ?? 0);
-        buffer.writeln('${p.paymentMethod}: $amount');
-      }
-    }
-
-    if (display.footerText.isNotEmpty) {
-      buffer.writeln('--------------------------------');
-      buffer.writeln(display.footerText);
-    }
-
-    return buffer.toString().trim();
+  /// Plain-text receipt (WhatsApp message / clipboard) drawn from the
+  /// WhatsApp channel's layout by the same pipeline as the printed receipt.
+  static Future<String> buildPlainTextReceipt(
+    SaleResponseModel sale, {
+    bool allowNetwork = true,
+  }) async {
+    final prepared = await SaleReceiptService.prepare(sale, channel: ReceiptChannel.whatsapp);
+    return ReceiptPlainText.render(prepared.model);
   }
 
   /// Attempts to obtain an online receipt link from POST /sales/{id}/receipt-link
@@ -163,13 +102,9 @@ abstract final class ReceiptShareService {
     }
 
     final onlineLink = await getOnlineReceiptLink(sale);
-    final String messageText;
-    if (onlineLink != null) {
-      final business = await SaleReceiptService.resolveBusinessProfile();
-      final bizName = business?.name ?? 'Receipt';
-      messageText = 'Thank you for shopping at $bizName! View your receipt here: $onlineLink';
-    } else {
-      messageText = await buildPlainTextReceipt(sale);
+    var messageText = await buildPlainTextReceipt(sale);
+    if (onlineLink != null && !messageText.contains(onlineLink)) {
+      messageText = '$messageText\n$onlineLink';
     }
 
     final uri = Uri.parse('https://wa.me/$e164?text=${Uri.encodeComponent(messageText)}');
@@ -205,28 +140,13 @@ abstract final class ReceiptShareService {
     BuildContext context,
     SaleResponseModel sale,
   ) async {
-    Uint8List? pdfBytes;
+    // Always drawn here by the receipt pipeline: the same layout, the same
+    // numbers, online or offline (never a different server-side copy).
+    final Uint8List pdfBytes =
+        await (await SaleReceiptService.buildPdf(sale, thermal: true)).save();
 
-    final onlineLink = await getOnlineReceiptLink(sale);
-    if (onlineLink != null) {
-      try {
-        final dio = sl<DioClient>().dio;
-        final res = await dio.get<List<int>>(
-          '$onlineLink?format=pdf',
-          options: Options(responseType: ResponseType.bytes),
-        );
-        if (res.data != null) {
-          pdfBytes = Uint8List.fromList(res.data!);
-        }
-      } catch (_) {}
-    }
-
-    if (pdfBytes == null) {
-      final doc = await SaleReceiptService.buildPdf(sale, thermal: true);
-      pdfBytes = await doc.save();
-    }
-
-    final fileName = 'receipt_${sale.saleNumber ?? sale.id.substring(0, 8)}.pdf';
+    final fileName =
+        'receipt_${sale.clientReceiptNo ?? sale.saleNumber ?? sale.id.substring(0, 8)}.pdf';
     final savedPath = await sl<FileSaverService>().saveFileWithDialog(
       fileName,
       pdfBytes,

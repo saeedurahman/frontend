@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/inventory/presentation/widgets/batch_chip.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
@@ -323,6 +324,12 @@ class _CartItemCard extends StatelessWidget {
                                 _VariantBadge(label: item.variationName!),
                               for (final modifier in item.modifiers)
                                 _VariantBadge(label: modifier.modifierName),
+                              for (final batch in item.batches)
+                                BatchChip(
+                                  slice: batch,
+                                  nearDays: cubit.nearExpiryDays,
+                                  showQty: item.batches.length > 1,
+                                ),
                               if (item.sku != null) ...[
                                 Text(
                                   '•',

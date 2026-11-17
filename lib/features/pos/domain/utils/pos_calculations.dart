@@ -193,6 +193,10 @@ abstract final class PosCalculations {
                 'qty': '1',
               },
           ],
+        // The batches this line takes stock from (FIFO/FEFO), so the server
+        // records the same ones the receipt shows.
+        if (item.batches.isNotEmpty)
+          'batches': [for (final b in item.batches) b.toPayload()],
         'line_order': index + 1,
       };
     });

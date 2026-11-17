@@ -13,6 +13,9 @@ abstract class GoodsReceiptLineItem with _$GoodsReceiptLineItem {
     @Default('') String costPerUnit,
     @Default('') String batchNumber,
     DateTime? expiryDate,
+
+    /// The product tracks expiry: batch number and expiry date are required.
+    @Default(false) bool trackExpiry,
   }) = _GoodsReceiptLineItem;
 
   double get maxQty => double.tryParse(line.qtyToReceive) ?? 0;

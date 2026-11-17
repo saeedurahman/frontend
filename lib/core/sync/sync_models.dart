@@ -55,6 +55,8 @@ class PullPage {
     this.restricted = false,
     this.entities = const [],
     this.serverTime,
+    this.deviceShortCode,
+    this.numberPrefix,
   });
 
   factory PullPage.fromJson(Map<String, dynamic> json) => PullPage(
@@ -67,8 +69,15 @@ class PullPage {
         restricted: json['restricted'] == true,
         entities: [for (final e in (json['entities'] as List? ?? const [])) '$e'],
         serverTime: DateTime.tryParse('${json['server_time']}'),
+        deviceShortCode: json['device_short_code'] as String?,
+        numberPrefix: json['number_prefix'] as String?,
       );
 
+  /// This device's register code (`C1`), the start of its receipt numbers.
+  final String? deviceShortCode;
+
+  /// Optional business-wide prefix (`receipt.number_prefix` setting).
+  final String? numberPrefix;
   final List<SyncChange> changes;
   final String? nextCursor;
   final bool hasMore;
@@ -89,6 +98,8 @@ class SnapshotPage {
     required this.permissionsVersion,
     this.restricted = false,
     this.entities = const [],
+    this.deviceShortCode,
+    this.numberPrefix,
   });
 
   factory SnapshotPage.fromJson(Map<String, dynamic> json) => SnapshotPage(
@@ -99,8 +110,12 @@ class SnapshotPage {
         permissionsVersion: json['permissions_version']?.toString() ?? '',
         restricted: json['restricted'] == true,
         entities: [for (final e in (json['entities'] as List? ?? const [])) '$e'],
+        deviceShortCode: json['device_short_code'] as String?,
+        numberPrefix: json['number_prefix'] as String?,
       );
 
+  final String? deviceShortCode;
+  final String? numberPrefix;
   final List<SyncChange> changes;
   final String? nextPageToken;
   final bool hasMore;
@@ -164,10 +179,15 @@ class OpResult {
 }
 
 class PushResponse {
-  const PushResponse({required this.batchId, required this.results});
+  const PushResponse({
+    required this.batchId,
+    required this.results,
+    this.deviceShortCode,
+  });
 
   factory PushResponse.fromJson(Map<String, dynamic> json) => PushResponse(
         batchId: '${json['batch_id']}',
+        deviceShortCode: json['device_short_code'] as String?,
         results: [
           for (final r in (json['results'] as List? ?? const []))
             OpResult.fromJson(Map<String, dynamic>.from(r as Map)),
@@ -176,6 +196,7 @@ class PushResponse {
 
   final String batchId;
   final List<OpResult> results;
+  final String? deviceShortCode;
 }
 
 class FlaggedSale extends Equatable {

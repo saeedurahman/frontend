@@ -7,6 +7,12 @@ enum AddToCartResult {
   needsPrice,
   insufficientStock,
   syncFailed,
+
+  /// Only expired stock is left and the business blocks selling it.
+  expiredBlocked,
+
+  /// The batches picked include expired stock; the cashier must confirm.
+  needsExpiryConfirm,
 }
 
 /// Context for showing the manual price dialog after [AddToCartResult.needsPrice].

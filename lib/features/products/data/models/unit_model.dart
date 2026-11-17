@@ -12,6 +12,7 @@ abstract class UnitModel with _$UnitModel {
     required String symbol,
     @JsonKey(name: 'is_base_unit') @Default(false) bool isBaseUnit,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
+    @JsonKey(name: 'allows_decimal') @Default(false) bool allowsDecimal,
   }) = _UnitModel;
 
   factory UnitModel.fromJson(Map<String, dynamic> json) =>

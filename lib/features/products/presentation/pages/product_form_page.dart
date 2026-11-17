@@ -578,6 +578,19 @@ class _BasicInfoCard extends StatelessWidget {
                   cubit.updateShelfLifeDays(int.tryParse(v)),
             ),
           ],
+          const SizedBox(height: 4),
+          SwitchListTile(
+            key: const Key('product-track-expiry'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Track expiry'),
+            subtitle: const Text(
+              'For medicines and food. When you receive stock you must enter the '
+              'batch number and expiry date, and the till sells the oldest or '
+              'soonest-expiring batch first.',
+            ),
+            value: state.trackExpiry,
+            onChanged: cubit.updateTrackExpiry,
+          ),
           const SizedBox(height: 12),
           TextField(
             decoration: const InputDecoration(labelText: 'Description'),

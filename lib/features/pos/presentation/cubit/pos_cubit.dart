@@ -9,6 +9,8 @@ import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart'
     as customers_uc;
+import 'package:frantend/features/inventory/data/batch_stock_source.dart';
+import 'package:frantend/features/inventory/domain/batch_picker.dart';
 import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/presentation/models/held_resume_result.dart';
@@ -99,6 +101,7 @@ class PosCubitBase extends Cubit<PosState> {
     Stream<TaxSettings>? taxSettingsChanges,
     @ignoreParam void Function(Iterable<String> productIds)? warmModifiers,
     @ignoreParam bool Function()? askQuantityOnTap,
+    @ignoreParam BatchStockSource? batchStock,
   })  : _offlinePolicy = offlinePolicy,
         _taxSettingsChanges = taxSettingsChanges,
         _priceChanges = priceChanges,
@@ -106,6 +109,7 @@ class PosCubitBase extends Cubit<PosState> {
         _stockChanges = stockChanges,
         _warmModifiers = warmModifiers,
         _askQuantityOnTap = askQuantityOnTap,
+        _batchStock = batchStock,
         _getProducts = getProductsUseCase,
         _getCategories = getCategoriesUseCase,
         _getProductById = getProductByIdUseCase,
@@ -211,6 +215,17 @@ class PosCubitBase extends Cubit<PosState> {
   /// Device preference "Ask quantity on product tap"; read on every tap so a
   /// change in Settings applies at once. On when not wired.
   final bool Function()? _askQuantityOnTap;
+
+  /// Batch stock for pharmacy / expiry tracking (null: no batch picking).
+  final BatchStockSource? _batchStock;
+
+  /// The batches picked for each cart line (by cart key) and the rules used;
+  /// refreshed whenever the cart or the batch stock changes.
+  final Map<String, BatchPlan> _batchPlans = {};
+  InventoryPolicy _batchPolicy = const InventoryPolicy();
+
+  /// Days before expiry from which the cart shows a "near expiry" chip.
+  int get nearExpiryDays => _batchPolicy.nearExpiryDays;
   bool get askQuantityOnTap => _askQuantityOnTap?.call() ?? true;
 
   final ResolvePosSessionUseCase _resolvePosSession;
@@ -322,5 +337,6 @@ class PosCubit extends PosCubitBase
     super.taxSettingsChanges,
     @ignoreParam super.warmModifiers,
     @ignoreParam super.askQuantityOnTap,
+    @ignoreParam super.batchStock,
   });
 }

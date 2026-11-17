@@ -64,6 +64,16 @@ abstract final class ApiConstants {
   static String publicReceiptPdf(String token) => '/r/$token?format=pdf';
   static String publicReceiptHtml(String token) => '/r/$token';
 
+  // Receipt layouts & devices
+  static const String receiptLayouts = '/receipt-layouts';
+  static const String receiptLayoutDesigns = '/receipt-layouts/designs';
+  static const String receiptLayoutAssignments = '/receipt-layouts/assignments';
+  static String receiptLayoutById(String id) => '/receipt-layouts/$id';
+  static String receiptLayoutDuplicate(String id) => '/receipt-layouts/$id/duplicate';
+  static const String devices = '/devices';
+  static String deviceById(String id) => '/devices/$id';
+  static String deviceRevoke(String id) => '/devices/$id/revoke';
+
   // Returns
   static const String returns = '/returns';
   static const String discounts = '/discounts';
@@ -115,6 +125,7 @@ abstract final class ApiConstants {
   static const String stockBalances = '/stock/balances';
   static const String stockBalance = '/stock/balance';
   static const String stockMovements = '/stock/movements';
+  static const String stockExpiryReport = '/stock/expiry-report';
   static const String adjustments = '/adjustments';
 
   // Legacy placeholder (unused)

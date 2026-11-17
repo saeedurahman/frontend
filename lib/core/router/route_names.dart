@@ -43,6 +43,7 @@ abstract final class RouteNames {
   static const String purchaseOrderDetail = '/purchases/:id';
   static const String purchaseOrderReceive = '/purchases/:id/receive';
   static const String stockMovements = '/inventory/movements/:productId';
+  static const String expiryReport = '/inventory/expiry';
   static const String sales = '/sales';
   static String saleDetailPath(String id) => '/sales/$id';
   static const String saleDetail = '/sales/:id';
@@ -90,6 +91,10 @@ abstract final class RouteNames {
   static const String changePassword = '/settings/change-password';
   static const String settingsReceipt = '/settings/receipt';
   static const String settingsPrinter = '/settings/printer';
+  static const String settingsReceiptLayouts = '/settings/receipt-layouts';
+  static const String settingsReceiptAssignments = '/settings/receipt-layouts/assignments';
+  static String settingsReceiptLayoutPath(String id) => '/settings/receipt-layouts/$id';
+  static const String settingsDevices = '/settings/devices';
   static const String settingsTax = '/settings/tax';
   static const String settingsTaxPrices = '/settings/tax-prices';
   static const String settingsSubscription = '/settings/subscription';

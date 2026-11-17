@@ -6,9 +6,13 @@ import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 
 /// One row of the receipt's totals block.
 class ReceiptTotalLine {
-  const ReceiptTotalLine(this.label, this.value);
+  const ReceiptTotalLine(this.label, this.value, {this.key = ''});
   final String label;
   final String value;
+
+  /// `subtotal`, `discount`, `tax`, `rounding` (lets a receipt layout swap in
+  /// its own caption and hide single rows).
+  final String key;
 }
 
 /// What a receipt (print, preview, reprint, WhatsApp/text) shows under the
@@ -35,7 +39,9 @@ class ReceiptTotals {
 
   static Decimal _d(String? v) => Decimal.tryParse(v ?? '') ?? Decimal.zero;
 
-  static ReceiptTotals fromSale(SaleResponseModel sale) {
+  /// [breakdown] false hides the per-rate tax rows (a layout switch); the sale's
+  /// own `show_tax_breakdown` flag can only hide them too, never force them on.
+  static ReceiptTotals fromSale(SaleResponseModel sale, {bool breakdown = true}) {
     final label = (sale.taxLabel == null || sale.taxLabel!.trim().isEmpty)
         ? 'Tax'
         : sale.taxLabel!;
@@ -46,12 +52,12 @@ class ReceiptTotals {
     final hasTax = tax > Decimal.zero;
     // The server tells us whether to show the breakdown; old sales that do not
     // carry the flag keep showing their tax.
-    final showBreakdown = sale.showTaxBreakdown ?? true;
+    final showBreakdown = breakdown && (sale.showTaxBreakdown ?? true);
 
     final rows = <ReceiptTotalLine>[
-      ReceiptTotalLine('Subtotal', formatPKR(_subtotal(sale))),
+      ReceiptTotalLine('Subtotal', formatPKR(_subtotal(sale)), key: 'subtotal'),
       if (discount > Decimal.zero)
-        ReceiptTotalLine('Discount', '-${formatPKR(discount)}'),
+        ReceiptTotalLine('Discount', '-${formatPKR(discount)}', key: 'discount'),
     ];
 
     if (hasTax && showBreakdown) {
@@ -60,23 +66,25 @@ class ReceiptTotals {
         rows.add(ReceiptTotalLine(
           inclusive ? 'Includes $label' : label,
           formatPKR(tax),
+          key: 'tax',
         ));
       } else {
         for (final g in groups) {
           rows.add(ReceiptTotalLine(
             '${inclusive ? 'Includes ' : ''}${g.title(label)}',
             formatPKR(g.tax),
+            key: 'tax',
           ));
         }
       }
     } else if (hasTax && !inclusive) {
       // Tax is hidden by the owner but it is in the total: one plain row so
       // the numbers still add up.
-      rows.add(ReceiptTotalLine(label, formatPKR(tax)));
+      rows.add(ReceiptTotalLine(label, formatPKR(tax), key: 'tax'));
     }
 
     if (rounding != Decimal.zero) {
-      rows.add(ReceiptTotalLine('Rounding', formatSignedMoney(rounding)));
+      rows.add(ReceiptTotalLine('Rounding', formatSignedMoney(rounding), key: 'rounding'));
     }
     return ReceiptTotals(
       lines: rows,
@@ -92,6 +100,14 @@ class ReceiptTotals {
       Decimal.zero,
       (s, l) => s + (DecimalUtils.parse(l.qty) * DecimalUtils.parse(l.unitPrice)),
     );
+  }
+
+  /// Tax by rate for the A4 tax summary (empty when the sale has no tax).
+  static List<TaxGroup> taxGroups(SaleResponseModel sale) {
+    final label = (sale.taxLabel == null || sale.taxLabel!.trim().isEmpty)
+        ? 'Tax'
+        : sale.taxLabel!;
+    return _groups(sale, label);
   }
 
   static List<TaxGroup> _groups(SaleResponseModel sale, String label) {

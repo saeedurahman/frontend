@@ -23,6 +23,8 @@ _ProductListItemModel _$ProductListItemModelFromJson(
   imageUrl: json['image_url'] as String?,
   taxRateId: json['tax_rate_id'] as String?,
   isTaxExempt: json['is_tax_exempt'] as bool? ?? false,
+  trackExpiry: json['track_expiry'] as bool? ?? false,
+  nameSecondary: json['name_secondary'] as String?,
   categoryName: json['categoryName'] as String?,
   brandName: json['brandName'] as String?,
 );
@@ -44,6 +46,8 @@ Map<String, dynamic> _$ProductListItemModelToJson(
   'image_url': instance.imageUrl,
   'tax_rate_id': instance.taxRateId,
   'is_tax_exempt': instance.isTaxExempt,
+  'track_expiry': instance.trackExpiry,
+  'name_secondary': instance.nameSecondary,
   'categoryName': instance.categoryName,
   'brandName': instance.brandName,
 };

@@ -17,6 +17,7 @@ import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dar
 import 'package:frantend/features/settings/presentation/widgets/offline_settings_section.dart';
 import 'package:frantend/features/settings/presentation/widgets/pos_settings_section.dart';
 import 'package:frantend/features/settings/presentation/widgets/security_settings_section.dart';
+import 'package:frantend/features/receipts/domain/receipt_model_builder.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
@@ -293,12 +294,19 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
+                    key: const Key('business-ntn-field'),
                     controller: _taxIdController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (v) => ReceiptRules.looksLikeTaxText(v ?? '')
+                        ? "That looks like a tax rate, not an NTN. Type your NTN "
+                            "number only (for example 1234567-8). Tax rates are set "
+                            "in the 'Tax & Prices' tab."
+                        : null,
                     decoration: const InputDecoration(
                       labelText: 'NTN / Tax ID',
                       helperText:
-                          'National Tax Number — shown on invoices for tax compliance',
+                          'Your NTN number only, e.g. 1234567-8. Not a tax rate like "GST 17%".',
                     ),
                     onChanged: (v) => cubit.patchBusiness(
                           (b) => b.copyWith(
@@ -674,6 +682,66 @@ class _ReceiptSettingsTabState extends State<_ReceiptSettingsTab> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              _SettingsCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Receipt Layouts', style: AppTextStyles.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Choose how your receipts look: classic, compact or A4 invoice. Pick what to show, edit the words in English and Urdu, and set which layout is used for printing and WhatsApp.',
+                            style: AppTextStyles.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      key: const Key('open-receipt-layouts'),
+                      onPressed: () => context.go(RouteNames.settingsReceiptLayouts),
+                      icon: const Icon(Icons.palette_outlined),
+                      label: const Text('Receipt layouts'),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasPermission(context, Perm.settingsManage)) ...[
+              const SizedBox(height: 16),
+              _SettingsCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.point_of_sale, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Devices', style: AppTextStyles.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(
+                            'See each counter and change the short code that starts its receipt numbers (like C1-0042).',
+                            style: AppTextStyles.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      key: const Key('open-devices'),
+                      onPressed: () => context.go(RouteNames.settingsDevices),
+                      icon: const Icon(Icons.devices),
+                      label: const Text('Devices'),
+                    ),
+                  ],
+                ),
+              ),
+              ],
               const SizedBox(height: 16),
               _ReceiptPreviewCard(
                 footerText: widget.state.footerText,

@@ -24,6 +24,13 @@ _SaleLineModel _$SaleLineModelFromJson(Map<String, dynamic> json) =>
       productName: json['product_name'] as String?,
       variationName: json['variation_name'] as String?,
       returnedQty: json['returned_qty'] as String? ?? '0',
+      batches:
+          (json['batches'] as List<dynamic>?)
+              ?.map(
+                (e) => SaleLineBatchModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SaleLineModelToJson(_SaleLineModel instance) =>
@@ -44,6 +51,21 @@ Map<String, dynamic> _$SaleLineModelToJson(_SaleLineModel instance) =>
       'product_name': instance.productName,
       'variation_name': instance.variationName,
       'returned_qty': instance.returnedQty,
+      'batches': instance.batches,
+    };
+
+_SaleLineBatchModel _$SaleLineBatchModelFromJson(Map<String, dynamic> json) =>
+    _SaleLineBatchModel(
+      batchNo: json['batch_no'] as String?,
+      expiryDate: json['expiry_date'] as String?,
+      qty: json['qty'] as String? ?? '0',
+    );
+
+Map<String, dynamic> _$SaleLineBatchModelToJson(_SaleLineBatchModel instance) =>
+    <String, dynamic>{
+      'batch_no': instance.batchNo,
+      'expiry_date': instance.expiryDate,
+      'qty': instance.qty,
     };
 
 _SaleTaxBreakdownModel _$SaleTaxBreakdownModelFromJson(
@@ -71,6 +93,8 @@ _SalePaymentModel _$SalePaymentModelFromJson(Map<String, dynamic> json) =>
       amount: json['amount'] as String,
       referenceNo: json['reference_no'] as String?,
       paidAt: json['paid_at'] as String?,
+      tenderedAmount: json['tendered_amount'] as String?,
+      changeGiven: json['change_given'] as String?,
     );
 
 Map<String, dynamic> _$SalePaymentModelToJson(_SalePaymentModel instance) =>
@@ -80,12 +104,15 @@ Map<String, dynamic> _$SalePaymentModelToJson(_SalePaymentModel instance) =>
       'amount': instance.amount,
       'reference_no': instance.referenceNo,
       'paid_at': instance.paidAt,
+      'tendered_amount': instance.tenderedAmount,
+      'change_given': instance.changeGiven,
     };
 
 _SaleResponseModel _$SaleResponseModelFromJson(Map<String, dynamic> json) =>
     _SaleResponseModel(
       id: json['id'] as String,
       saleNumber: json['sale_number'] as String?,
+      clientReceiptNo: json['client_receipt_no'] as String?,
       branchId: json['branch_id'] as String,
       customerId: json['customer_id'] as String?,
       tableId: json['table_id'] as String?,
@@ -135,6 +162,7 @@ Map<String, dynamic> _$SaleResponseModelToJson(_SaleResponseModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'sale_number': instance.saleNumber,
+      'client_receipt_no': instance.clientReceiptNo,
       'branch_id': instance.branchId,
       'customer_id': instance.customerId,
       'table_id': instance.tableId,

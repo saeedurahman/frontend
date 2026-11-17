@@ -8,6 +8,8 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
+import 'package:frantend/features/pos/data/models/sale_response_model.dart';
+import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/domain/utils/payment_allocator.dart';
 import 'package:frantend/features/pos/domain/utils/payment_planner.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
@@ -115,7 +117,34 @@ class _PaymentModalState extends State<PaymentModal> {
     if (!allocation.canComplete) return;
 
     try {
-      final sale = await context.read<PosCubit>().submitSale(allocation.lines);
+      final cubit = context.read<PosCubit>();
+      SaleResponseModel sale;
+      try {
+        sale = await cubit.submitSale(allocation.lines);
+      } on ExpiredStockWarningException catch (warning) {
+        if (!mounted) return;
+        final sell = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            key: const Key('expired-sale-confirm'),
+            title: const Text('Expired stock in this sale'),
+            content: Text(warning.message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Go back'),
+              ),
+              FilledButton(
+                key: const Key('expired-sale-confirm-sell'),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Sell anyway'),
+              ),
+            ],
+          ),
+        );
+        if (sell != true) return;
+        sale = await cubit.submitSale(allocation.lines, confirmExpired: true);
+      }
       if (!mounted) return;
       Navigator.pop(context);
       if (allocation.hasChange) {

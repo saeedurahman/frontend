@@ -57,6 +57,12 @@ import 'package:frantend/features/expenses/data/datasources/expenses_remote_data
 import 'package:frantend/features/expenses/domain/repositories/expenses_repository.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
 import 'package:frantend/features/pos/data/datasources/pos_remote_datasource.dart';
+import 'package:frantend/features/receipts/data/receipt_context_loader.dart';
+import 'package:frantend/features/receipts/data/receipt_layout_api.dart';
+import 'package:frantend/features/inventory/data/batch_stock_source.dart';
+import 'package:frantend/features/inventory/data/expiry_report.dart';
+import 'package:frantend/features/receipts/data/receipt_layout_store.dart';
+import 'package:frantend/features/receipts/presentation/services/receipt_service.dart';
 import 'package:frantend/features/pos/data/repositories/barcode_cache_repository_impl.dart';
 import 'package:frantend/features/pos/data/repositories/held_orders_repository_impl.dart';
 import 'package:frantend/features/pos/domain/repositories/barcode_cache_repository.dart';
@@ -300,6 +306,29 @@ void registerFoundationServices(GetIt sl) {
     ),
   );
 
+  // ── Receipts: layouts, context, one pipeline ─────────────────────────
+  once<BatchStockSource>(() => BatchStockSource(sl<SyncStore>()));
+  once<ExpiryReportApi>(() => ExpiryReportApi(sl<Dio>()));
+  once<ReceiptLayoutStore>(() => ReceiptLayoutStore(sl<SyncStore>()));
+  once<ReceiptLayoutApi>(() => ReceiptLayoutApi(sl<Dio>()));
+  once<DevicesApi>(() => DevicesApi(sl<Dio>()));
+  once<ReceiptContextLoader>(
+    () => ReceiptContextLoader(
+      store: sl<SyncStore>(),
+      branding: sl<ReceiptBrandingSource>(),
+      catalog: sl<LocalCatalog>(),
+      links: ReceiptLinkSource(store: sl<SyncStore>(), dio: sl<Dio>()),
+      logos: ReceiptLogoSource(dio: sl<Dio>()),
+    ),
+  );
+  once<ReceiptService>(
+    () => ReceiptService(
+      layouts: sl<ReceiptLayoutStore>(),
+      contexts: sl<ReceiptContextLoader>(),
+      printer: sl<PrinterService>(),
+    ),
+  );
+
   // ── Repositories that now write through the outbox ───────────────────
   replace<PosRepository>(
     () => OfflinePosRepository(
@@ -485,6 +514,7 @@ void registerFoundationServices(GetIt sl) {
       taxSettingsChanges: sl<TaxSettingsStore>().changes,
       warmModifiers: (ids) => unawaited(sl<ProductModifierCache>().warm(ids)),
       askQuantityOnTap: sl<PreferencesStorage>().getAskQuantityOnTap,
+      batchStock: sl<BatchStockSource>(),
     ),
   );
 

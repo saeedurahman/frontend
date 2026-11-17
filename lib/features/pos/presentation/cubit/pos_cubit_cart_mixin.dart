@@ -93,6 +93,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     List<CartLineModifierModel> modifiers = const [],
     Decimal? qty,
     bool rememberManualPrice = true,
+    bool confirmExpired = false,
   }) =>
       PosPerf.measure(
         PosPerf.addToCart,
@@ -104,6 +105,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
           modifiers: modifiers,
           qty: qty,
           rememberManualPrice: rememberManualPrice,
+          confirmExpired: confirmExpired,
         ),
       );
 
@@ -114,6 +116,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     List<CartLineModifierModel> modifiers = const [],
     Decimal? qty,
     bool rememberManualPrice = true,
+    bool confirmExpired = false,
   }) async {
     // How many units this call adds (the quantity calculator passes more
     // than one); a repeated add of the same line still merges into it.
@@ -270,6 +273,36 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       unawaited(_fetchStock(product.id, variationId));
     }
 
+    // Pharmacy batches: pick them (FIFO / FEFO) for the whole line quantity,
+    // honouring the business's rule for expired stock.
+    List<BatchSlice>? pickedBatches;
+    final batchPlan =
+        await _planBatches(product.id, variationId, requestedQty, availableStock);
+    if (isClosed) return AddToCartOutcome.added;
+    if (batchPlan != null) {
+      final label = variation?.name != null
+          ? '${product.name} (${variation!.name})'
+          : product.name;
+      if (batchPlan.allocation.blocked) {
+        return AddToCartOutcome(
+          result: AddToCartResult.expiredBlocked,
+          message: _expiredBlockedMessage(label),
+        );
+      }
+      if (batchPlan.policy.warnsExpired &&
+          batchPlan.allocation.usesExpired &&
+          !confirmExpired) {
+        return AddToCartOutcome(
+          result: AddToCartResult.needsExpiryConfirm,
+          message: _expiredWarnMessage(label, batchPlan.allocation),
+        );
+      }
+      pickedBatches = batchPlan.slices;
+      _batchPlans[cartKey] = batchPlan;
+    } else {
+      _batchPlans.remove(cartKey);
+    }
+
     if (existingIndex >= 0) {
       final item = state.cartItems[existingIndex];
       // A typed price applies to the whole merged line.
@@ -278,8 +311,12 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
               qty: item.qty + addQty,
               unitPrice: unitPrice,
               priceManual: true,
+              batches: pickedBatches ?? const [],
             )
-          : item.copyWith(qty: item.qty + addQty);
+          : item.copyWith(
+              qty: item.qty + addQty,
+              batches: pickedBatches ?? const [],
+            );
       final items = [...state.cartItems];
       items[existingIndex] = updated;
       _safeEmit(state.patch(cartItems: items));
@@ -313,6 +350,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
             : null,
         taxExempt: product.isTaxExempt,
         ownTaxRateId: product.taxRateId,
+        batches: pickedBatches ?? const [],
       );
       final items = [...state.cartItems, newItem];
       _safeEmit(state.patch(cartItems: items));
@@ -326,6 +364,105 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
             result: AddToCartResult.added,
             message: lowStockWarning,
           );
+  }
+
+  // ── batches (pharmacy / expiry) ──────────────────────────────────────
+
+  Future<BatchPlan?> _planBatches(
+    String productId,
+    String? variationId,
+    Decimal qty,
+    Decimal? totalStock,
+  ) async {
+    final source = _batchStock;
+    final branchId = state.branchId;
+    if (source == null || branchId == null) return null;
+    try {
+      final plan = await source.plan(
+        branchId,
+        productId,
+        variationId: variationId,
+        qty: qty,
+        totalStock: totalStock,
+      );
+      if (plan != null) _batchPolicy = plan.policy;
+      return plan;
+    } catch (e) {
+      debugPrint('[POS:Batches] could not pick batches: $e');
+      return null;
+    }
+  }
+
+  /// Re-picks the batches of every line for its current quantity (after a
+  /// quantity change, a stock pull, or just before the sale is saved).
+  Future<void> _reallocateBatches() async {
+    if (_batchStock == null || state.cartItems.isEmpty) return;
+    final computed = <String, ({Decimal qty, List<BatchSlice> slices})>{};
+    for (final item in [...state.cartItems]) {
+      final total = Decimal.tryParse(state.stockCache[item.productId] ?? '') ??
+          item.maxAvailableStock;
+      final plan =
+          await _planBatches(item.productId, item.variationId, item.qty, total);
+      if (isClosed) return;
+      if (plan == null) {
+        _batchPlans.remove(item.cartKey);
+        computed[item.cartKey] = (qty: item.qty, slices: const <BatchSlice>[]);
+      } else {
+        _batchPlans[item.cartKey] = plan;
+        computed[item.cartKey] = (qty: item.qty, slices: plan.slices);
+      }
+    }
+    var changed = false;
+    final next = <CartItemModel>[];
+    for (final item in state.cartItems) {
+      final c = computed[item.cartKey];
+      if (c == null || c.qty != item.qty || _sameBatches(c.slices, item.batches)) {
+        next.add(item);
+        continue;
+      }
+      changed = true;
+      next.add(item.copyWith(batches: c.slices));
+    }
+    if (changed) _safeEmit(state.patch(cartItems: next));
+  }
+
+  static bool _sameBatches(List<BatchSlice> a, List<BatchSlice> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i] || a[i].expired != b[i].expired) return false;
+    }
+    return true;
+  }
+
+  String _expiredBlockedMessage(String label) =>
+      'Only expired stock of $label is left, and expired stock cannot be sold.';
+
+  String _expiredWarnMessage(String label, BatchAllocation a) {
+    final names = [
+      for (final s in a.slices)
+        if (s.expired)
+          '${s.batchNo ?? 'no batch no.'}${s.expiry != null ? ' (expired ${s.expiry})' : ''}',
+    ].join(', ');
+    return '$label includes expired stock: $names. Sell it anyway?';
+  }
+
+  /// Stops a sale that takes expired stock the business does not allow, or
+  /// that the cashier has not confirmed.
+  void _assertExpiryAllowed(bool confirmed) {
+    for (final item in state.cartItems) {
+      final plan = _batchPlans[item.cartKey];
+      if (plan == null) continue;
+      final label = item.variationName != null && item.variationName!.isNotEmpty
+          ? '${item.productName} (${item.variationName})'
+          : item.productName;
+      if (plan.allocation.blocked) {
+        throw ExpiredStockBlockedException(_expiredBlockedMessage(label));
+      }
+      if (plan.policy.warnsExpired && plan.allocation.usesExpired && !confirmed) {
+        throw ExpiredStockWarningException(
+            _expiredWarnMessage(label, plan.allocation));
+      }
+    }
   }
 
   /// List price of one unit: the price cache, else the local price list
@@ -455,6 +592,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     items[cartIndex] = item.copyWith(qty: newQty);
     emit(state.patch(cartItems: items));
     _schedulePricePreview();
+    if (item.batches.isNotEmpty) unawaited(_reallocateBatches());
 
     // Check quantity tier price for new quantity
     if (!item.priceManual) {
@@ -649,6 +787,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
   void clearCart() {
     final hadCustomer = state.selectedCustomer != null;
+    _batchPlans.clear();
     _safeEmit(state.patch(
       cartItems: <CartItemModel>[],
       selectedCustomer: null,
@@ -779,7 +918,10 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     await loadHeldOrders();
   }
 
-  Future<SaleResponseModel> submitSale(List<PaymentLineModel> payments) async {
+  Future<SaleResponseModel> submitSale(
+    List<PaymentLineModel> payments, {
+    bool confirmExpired = false,
+  }) async {
     // Hard gate for every path (plain, dine-in, resumed order): no open shift,
     // no sale. The UI also blocks this, but the cubit is the authority.
     if (state.activeShift == null) {
@@ -807,6 +949,9 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     _safeEmit(state.patch(isSubmittingSale: true));
 
     try {
+      // Fresh batches for the final quantities, and the expired-stock rule.
+      await _reallocateBatches();
+      _assertExpiryAllowed(confirmExpired);
       final body = PosSaleRequestBuilder.buildBody(
         branchId: branchId,
         items: state.cartItems,

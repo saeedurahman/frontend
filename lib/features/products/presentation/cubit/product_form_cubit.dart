@@ -300,6 +300,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
             isActive: product.isActive,
             taxRateId: product.taxRateId,
             isTaxExempt: product.isTaxExempt,
+            trackExpiry: product.trackExpiry,
             shelfLifeDays: product.shelfLifeDays,
             minStockLevel: product.minStockLevel,
             maxStockLevel: product.maxStockLevel,
@@ -400,6 +401,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   void updateTaxRateId(String? id) => emit(state.copyWith(taxRateId: id));
   void updateIsTaxExempt(bool value) =>
       emit(state.copyWith(isTaxExempt: value));
+  void updateTrackExpiry(bool value) => emit(state.copyWith(trackExpiry: value));
   void updateShelfLifeDays(int? days) =>
       emit(state.copyWith(shelfLifeDays: days));
   void updateMinStockLevel(String? value) =>
@@ -524,6 +526,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         'is_sellable': state.isSellable,
         'is_purchasable': state.isPurchasable,
         'is_tax_exempt': state.isTaxExempt,
+        'track_expiry': state.trackExpiry,
         if (state.taxRateId != null && !state.isTaxExempt)
           'tax_rate_id': state.taxRateId,
         if (state.selectedCategoryId != null)
@@ -592,6 +595,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         'is_purchasable': state.isPurchasable,
         'is_active': state.isActive,
         'is_tax_exempt': state.isTaxExempt,
+        'track_expiry': state.trackExpiry,
         // null = back to the business default rate
         'tax_rate_id': state.isTaxExempt ? null : state.taxRateId,
         'category_id': state.selectedCategoryId,

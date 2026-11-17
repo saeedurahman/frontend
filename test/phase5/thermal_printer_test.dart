@@ -143,7 +143,7 @@ void main() {
         final heightMm80 =
             doc80.document.pdfPageList.pages.first.pageFormat.height /
             PdfPageFormat.mm;
-        expect(heightMm80, lessThan(120.0)); // Far shorter than 297 mm
+        expect(heightMm80, lessThan(200.0)); // Far shorter than 297 mm (the sample receipt has tax, batch and Urdu lines)
         expect(heightMm80, greaterThan(50.0));
 
         final doc58 = await SaleReceiptService.buildTestPdf(paperSize: '58mm');
@@ -153,7 +153,7 @@ void main() {
         final heightMm58 =
             doc58.document.pdfPageList.pages.first.pageFormat.height /
             PdfPageFormat.mm;
-        expect(heightMm58, lessThan(150.0)); // Far shorter than 297 mm
+        expect(heightMm58, lessThan(280.0)); // Far shorter than A4 (the 58 mm roll wraps more)
         expect(heightMm58, greaterThan(50.0));
       },
     );

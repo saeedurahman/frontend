@@ -47,6 +47,8 @@ abstract class ProductFormState with _$ProductFormState {
     // Tax: null rate = "Use business default"; exempt = tax-free item.
     String? taxRateId,
     @Default(false) bool isTaxExempt,
+    // Pharmacy / expiry: receipts must name a batch and an expiry date.
+    @Default(false) bool trackExpiry,
     int? shelfLifeDays,
     String? minStockLevel,
     String? maxStockLevel,

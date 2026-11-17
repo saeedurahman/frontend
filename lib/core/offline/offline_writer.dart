@@ -42,10 +42,55 @@ class OfflineWriter {
 
   String _occurredAt() => _store.now().toUtc().toIso8601String();
 
-  /// `D3F9-0001` style: 4 hex chars of the device id + a per-device counter.
-  static String receiptNumber(String deviceId, int n) {
+  /// `C1-0042`: the register code the server gave this device + a per-device
+  /// counter (optionally behind the business `receipt.number_prefix`).
+  ///
+  /// Until the device has been told its code (a new install that has never
+  /// reached the server) it falls back to the old hash-like prefix
+  /// (`D3F9-0001`). The two forms can never collide: the code never starts
+  /// with `D` + four hex characters.
+  static String receiptNumber(
+    String deviceId,
+    int n, {
+    String? shortCode,
+    String prefix = '',
+  }) {
+    final counter = n.toString().padLeft(4, '0');
+    final code = shortCode?.trim();
+    if (code != null && code.isNotEmpty) {
+      return '${prefix.trim()}${code.toUpperCase()}-$counter';
+    }
     final short = deviceId.replaceAll('-', '').padRight(4, '0').substring(0, 4);
-    return 'D${short.toUpperCase()}-${n.toString().padLeft(4, '0')}';
+    return 'D${short.toUpperCase()}-$counter';
+  }
+
+  /// Next number nobody has used yet. The counter never goes back (it
+  /// survives a data wipe); the loop only skips numbers that already exist on
+  /// this device, e.g. after the owner renamed the register code to one this
+  /// device used before.
+  Future<String> _nextReceiptNumber(String deviceId) async {
+    final code = await _store.meta(SyncStore.deviceShortCodeKey);
+    final prefix = await _store.meta(SyncStore.numberPrefixKey) ?? '';
+    for (var i = 0; i < 10000; i++) {
+      final n = await _store.nextReceiptNumber();
+      final number = receiptNumber(deviceId, n, shortCode: code, prefix: prefix);
+      if (!await _store.receiptNoTaken(number)) return number;
+    }
+    throw StateError('Could not find a free receipt number');
+  }
+
+  /// The device's own allocation, as the server expects it on a sale line.
+  static List<Map<String, dynamic>> _batchesOf(Object? raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final b in raw)
+        if (b is Map && b['qty'] != null)
+          {
+            'batch_no': b['batch_no'],
+            'expiry_date': b['expiry_date'],
+            'qty': '${b['qty']}',
+          },
+    ];
   }
 
   Future<ActingUser> _user() async {
@@ -128,6 +173,7 @@ class OfflineWriter {
       // `unit_price` already includes the modifiers (the contract the server
       // checks); the modifiers are recorded next to it, never added again.
       final modifiers = SaleLineModifier.listFrom(l['modifiers']);
+      final batches = _batchesOf(l['batches']);
       final line = <String, dynamic>{
         'id': _ids.newId(),
         'product_id': l['product_id'],
@@ -143,6 +189,7 @@ class OfflineWriter {
         'line_order': l['line_order'] ?? order,
         if (modifiers.isNotEmpty)
           'modifiers': [for (final m in modifiers) m.toPayload()],
+        if (batches.isNotEmpty) 'batches': batches,
       };
       lines.add(line);
       final pid = '${l['product_id']}';
@@ -203,7 +250,7 @@ class OfflineWriter {
     };
 
     return _store.transaction(() async {
-      final receipt = receiptNumber(deviceId, await _store.nextReceiptNumber());
+      final receipt = await _nextReceiptNumber(deviceId);
       payload['client_receipt_no'] = receipt;
       final deps = <String>[
         ?await _pendingShiftOpen(body['register_shift_id'] as String?),

@@ -69,7 +69,7 @@ void main() {
       final text = await ReceiptShareService.buildPlainTextReceipt(sale);
       expect(text, contains('Basmati Rice 5kg'));
       expect(text, contains('Mineral Water 1.5L'));
-      expect(text, contains('TOTAL:'));
+      expect(text, contains('Total: Rs. 1,250.00'));
       expect(text, contains('POS-001'));
     });
 

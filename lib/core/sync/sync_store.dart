@@ -127,6 +127,16 @@ class IndexedEntity {
           branchId: s('branch_id'),
           parentId: s('cash_register_id'),
         );
+      case 'stock_batch':
+        return IndexedEntity(
+          branchId: s('branch_id'),
+          parentId: s('product_id'),
+          searchText: search([s('batch_no')]),
+        );
+      case 'receipt_layout':
+        return IndexedEntity(searchText: search([s('name')]), active: isActive);
+      case 'receipt_layout_assignment':
+        return IndexedEntity(branchId: s('branch_id'), parentId: s('layout_id'));
       default:
         return IndexedEntity(
           branchId: s('branch_id'),
@@ -291,6 +301,8 @@ class SyncStore {
   static const leaseKey = 'lease';
   static const monotonicKey = 'monotonic_last_seen';
   static const receiptCounterKey = 'receipt_counter';
+  static const deviceShortCodeKey = 'device_short_code';
+  static const numberPrefixKey = 'receipt_number_prefix';
   static const discardLogKey = 'discard_log';
   static const stockUnconfirmedKey = 'stock_unconfirmed_sales';
 
@@ -302,6 +314,18 @@ class SyncStore {
     final next = current + 1;
     await setMeta(receiptCounterKey, '$next');
     return next;
+  }
+
+  /// Keeps the register code / number prefix the server last told us about.
+  /// Only non-empty codes replace the stored one (a missing field never wipes it).
+  Future<void> rememberNumbering({String? shortCode, String? prefix}) async {
+    final code = shortCode?.trim();
+    if (code != null && code.isNotEmpty && code != await meta(deviceShortCodeKey)) {
+      await setMeta(deviceShortCodeKey, code);
+    }
+    if (prefix != null && prefix != (await meta(numberPrefixKey) ?? '')) {
+      await setMeta(numberPrefixKey, prefix);
+    }
   }
 
   // ── entities ─────────────────────────────────────────────────────────
@@ -681,17 +705,8 @@ class SyncStore {
   /// in between would show the old, higher stock for a moment. Once that pull
   /// is in, the sale is in the pulled balance and is never subtracted again.
   Future<Map<String, Decimal>> pendingSaleQuantities(String branchId) async {
-    final unconfirmed = await stockUnconfirmedSales();
-    final rows = [
-      for (final r in await _rows(
-        "SELECT id, sync_state, lines FROM local_sales WHERE status = 'completed' "
-        "AND branch_id = ? AND sync_state IN ('pending','synced')",
-        [branchId],
-      ))
-        if (r['sync_state'] == 'pending' || unconfirmed.contains(r['id'])) r,
-    ];
     final out = <String, Decimal>{};
-    for (final r in rows) {
+    for (final r in await _pendingSaleRows(branchId)) {
       for (final line in jsonDecode(r['lines']! as String) as List) {
         final l = line as Map;
         final qty = Decimal.tryParse('${l['qty']}') ?? Decimal.zero;
@@ -700,6 +715,54 @@ class SyncStore {
         if (l['variation_id'] != null) {
           final vk = '$product:${l['variation_id']}';
           out[vk] = (out[vk] ?? Decimal.zero) + qty;
+        }
+      }
+    }
+    return out;
+  }
+
+  /// Local sales whose effect is not in the pulled balances yet.
+  Future<List<Map<String, Object?>>> _pendingSaleRows(String branchId) async {
+    final unconfirmed = await stockUnconfirmedSales();
+    return [
+      for (final r in await _rows(
+        "SELECT id, sync_state, lines FROM local_sales WHERE status = 'completed' "
+        "AND branch_id = ? AND sync_state IN ('pending','synced')",
+        [branchId],
+      ))
+        if (r['sync_state'] == 'pending' || unconfirmed.contains(r['id'])) r,
+    ];
+  }
+
+  /// Key of one batch of one product, as used by [pendingBatchQuantities].
+  static String batchKey(
+    String productId,
+    String? variationId,
+    String? batchNo,
+    String? expiry,
+  ) =>
+      '$productId|${variationId ?? ''}|${batchNo ?? ''}|${expiry ?? ''}';
+
+  /// Quantity per batch (see [batchKey]) taken by sales that are not in the
+  /// pulled `stock_batch` quantities yet; the POS subtracts it so a second
+  /// sale never picks stock the first one already took.
+  Future<Map<String, Decimal>> pendingBatchQuantities(String branchId) async {
+    final out = <String, Decimal>{};
+    for (final r in await _pendingSaleRows(branchId)) {
+      for (final line in jsonDecode(r['lines']! as String) as List) {
+        final l = line as Map;
+        final batches = l['batches'];
+        if (batches is! List) continue;
+        for (final b in batches) {
+          if (b is! Map) continue;
+          final key = batchKey(
+            '${l['product_id']}',
+            l['variation_id'] == null ? null : '${l['variation_id']}',
+            b['batch_no'] == null ? null : '${b['batch_no']}',
+            b['expiry_date'] == null ? null : '${b['expiry_date']}',
+          );
+          out[key] = (out[key] ?? Decimal.zero) +
+              (Decimal.tryParse('${b['qty']}') ?? Decimal.zero);
         }
       }
     }
@@ -1033,6 +1096,15 @@ class SyncStore {
       [for (final c in cols) row[c]],
     );
     _stockInTx = true;
+  }
+
+  /// A sale on this device already uses [receiptNo].
+  Future<bool> receiptNoTaken(String receiptNo) async {
+    final rows = await _rows(
+      'SELECT 1 AS x FROM local_sales WHERE receipt_no = ? LIMIT 1',
+      [receiptNo],
+    );
+    return rows.isNotEmpty;
   }
 
   Future<Map<String, Object?>?> sale(String id) async {

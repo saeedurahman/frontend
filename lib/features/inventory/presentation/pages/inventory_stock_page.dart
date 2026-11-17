@@ -153,6 +153,13 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        OutlinedButton.icon(
+          key: const Key('open-expiry-report'),
+          onPressed: () => context.push(RouteNames.expiryReport),
+          icon: const Icon(Icons.event_busy_outlined, size: 18),
+          label: const Text('Expiry report'),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.reportsExport,
           child: OutlinedButton.icon(

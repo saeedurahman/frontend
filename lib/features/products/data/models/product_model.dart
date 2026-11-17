@@ -26,6 +26,8 @@ abstract class ProductModel with _$ProductModel {
     @JsonKey(name: 'tax_rate_id') String? taxRateId,
     @JsonKey(name: 'tax_rate', fromJson: JsonNum.stringOrNull) String? taxRate,
     @JsonKey(name: 'is_tax_exempt') @Default(false) bool isTaxExempt,
+    @JsonKey(name: 'track_expiry') @Default(false) bool trackExpiry,
+    @JsonKey(name: 'name_secondary') String? nameSecondary,
     @JsonKey(name: 'shelf_life_days', fromJson: JsonNum.intOrNull) int? shelfLifeDays,
     @JsonKey(name: 'min_stock_level') String? minStockLevel,
     @JsonKey(name: 'max_stock_level') String? maxStockLevel,

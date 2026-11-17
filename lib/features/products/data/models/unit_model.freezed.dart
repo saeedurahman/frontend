@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UnitModel {
 
- String get id;@JsonKey(name: 'business_id') String get businessId; String get name; String get symbol;@JsonKey(name: 'is_base_unit') bool get isBaseUnit;@JsonKey(name: 'is_active') bool get isActive;
+ String get id;@JsonKey(name: 'business_id') String get businessId; String get name; String get symbol;@JsonKey(name: 'is_base_unit') bool get isBaseUnit;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'allows_decimal') bool get allowsDecimal;
 /// Create a copy of UnitModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $UnitModelCopyWith<UnitModel> get copyWith => _$UnitModelCopyWithImpl<UnitModel>
 @override
 bool operator ==(Object other) {
   final _this = this as UnitModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnitModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.businessId, _this.businessId) || other.businessId == _this.businessId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.symbol, _this.symbol) || other.symbol == _this.symbol)&&(identical(other.isBaseUnit, _this.isBaseUnit) || other.isBaseUnit == _this.isBaseUnit)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnitModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.businessId, _this.businessId) || other.businessId == _this.businessId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.symbol, _this.symbol) || other.symbol == _this.symbol)&&(identical(other.isBaseUnit, _this.isBaseUnit) || other.isBaseUnit == _this.isBaseUnit)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.allowsDecimal, _this.allowsDecimal) || other.allowsDecimal == _this.allowsDecimal));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as UnitModel;
-  return Object.hash(runtimeType,_this.id,_this.businessId,_this.name,_this.symbol,_this.isBaseUnit,_this.isActive);
+  return Object.hash(runtimeType,_this.id,_this.businessId,_this.name,_this.symbol,_this.isBaseUnit,_this.isActive,_this.allowsDecimal);
 }
 
 @override
 String toString() {
   final _this = this as UnitModel;
-  return 'UnitModel(id: ${_this.id}, businessId: ${_this.businessId}, name: ${_this.name}, symbol: ${_this.symbol}, isBaseUnit: ${_this.isBaseUnit}, isActive: ${_this.isActive})';
+  return 'UnitModel(id: ${_this.id}, businessId: ${_this.businessId}, name: ${_this.name}, symbol: ${_this.symbol}, isBaseUnit: ${_this.isBaseUnit}, isActive: ${_this.isActive}, allowsDecimal: ${_this.allowsDecimal})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $UnitModelCopyWith<$Res>  {
   factory $UnitModelCopyWith(UnitModel value, $Res Function(UnitModel) _then) = _$UnitModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId, String name, String symbol,@JsonKey(name: 'is_base_unit') bool isBaseUnit,@JsonKey(name: 'is_active') bool isActive
+ String id,@JsonKey(name: 'business_id') String businessId, String name, String symbol,@JsonKey(name: 'is_base_unit') bool isBaseUnit,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'allows_decimal') bool allowsDecimal
 });
 
 
@@ -71,7 +71,7 @@ class _$UnitModelCopyWithImpl<$Res>
 
 /// Create a copy of UnitModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? symbol = null,Object? isBaseUnit = null,Object? isActive = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? symbol = null,Object? isBaseUnit = null,Object? isActive = null,Object? allowsDecimal = null,}) {
   return _then(UnitModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
@@ -79,6 +79,7 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
 as String,isBaseUnit: null == isBaseUnit ? _self.isBaseUnit : isBaseUnit // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,allowsDecimal: null == allowsDecimal ? _self.allowsDecimal : allowsDecimal // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'allows_decimal')  bool allowsDecimal)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UnitModel() when $default != null:
-return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive,_that.allowsDecimal);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUn
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'allows_decimal')  bool allowsDecimal)  $default,) {final _that = this;
 switch (_that) {
 case _UnitModel():
-return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive,_that.allowsDecimal);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUn
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String symbol, @JsonKey(name: 'is_base_unit')  bool isBaseUnit, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'allows_decimal')  bool allowsDecimal)?  $default,) {final _that = this;
 switch (_that) {
 case _UnitModel() when $default != null:
-return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUnit,_that.isActive,_that.allowsDecimal);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUn
 @JsonSerializable()
 
 class _UnitModel implements UnitModel {
-  const _UnitModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, required this.name, required this.symbol, @JsonKey(name: 'is_base_unit') this.isBaseUnit = false, @JsonKey(name: 'is_active') this.isActive = true});
+  const _UnitModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, required this.name, required this.symbol, @JsonKey(name: 'is_base_unit') this.isBaseUnit = false, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'allows_decimal') this.allowsDecimal = false});
   factory _UnitModel.fromJson(Map<String, dynamic> json) => _$UnitModelFromJson(json);
 
 @override final  String id;
@@ -229,6 +230,7 @@ class _UnitModel implements UnitModel {
 @override final  String symbol;
 @override@JsonKey(name: 'is_base_unit') final  bool isBaseUnit;
 @override@JsonKey(name: 'is_active') final  bool isActive;
+@override@JsonKey(name: 'allows_decimal') final  bool allowsDecimal;
 
 /// Create a copy of UnitModel
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnitModel&&(identical(other.id, id) || other.id == id)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.isBaseUnit, isBaseUnit) || other.isBaseUnit == isBaseUnit)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnitModel&&(identical(other.id, id) || other.id == id)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.isBaseUnit, isBaseUnit) || other.isBaseUnit == isBaseUnit)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.allowsDecimal, allowsDecimal) || other.allowsDecimal == allowsDecimal));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,businessId,name,symbol,isBaseUnit,isActive);
+    return Object.hash(runtimeType,id,businessId,name,symbol,isBaseUnit,isActive,allowsDecimal);
 }
 
 @override
 String toString() {
-    return 'UnitModel(id: $id, businessId: $businessId, name: $name, symbol: $symbol, isBaseUnit: $isBaseUnit, isActive: $isActive)';
+    return 'UnitModel(id: $id, businessId: $businessId, name: $name, symbol: $symbol, isBaseUnit: $isBaseUnit, isActive: $isActive, allowsDecimal: $allowsDecimal)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$UnitModelCopyWith<$Res> implements $UnitModelCopyWith<$Re
   factory _$UnitModelCopyWith(_UnitModel value, $Res Function(_UnitModel) _then) = __$UnitModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId, String name, String symbol,@JsonKey(name: 'is_base_unit') bool isBaseUnit,@JsonKey(name: 'is_active') bool isActive
+ String id,@JsonKey(name: 'business_id') String businessId, String name, String symbol,@JsonKey(name: 'is_base_unit') bool isBaseUnit,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'allows_decimal') bool allowsDecimal
 });
 
 
@@ -282,7 +284,7 @@ class __$UnitModelCopyWithImpl<$Res>
 
 /// Create a copy of UnitModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? symbol = null,Object? isBaseUnit = null,Object? isActive = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? symbol = null,Object? isBaseUnit = null,Object? isActive = null,Object? allowsDecimal = null,}) {
   return _then(_UnitModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
@@ -290,6 +292,7 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
 as String,isBaseUnit: null == isBaseUnit ? _self.isBaseUnit : isBaseUnit // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,allowsDecimal: null == allowsDecimal ? _self.allowsDecimal : allowsDecimal // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

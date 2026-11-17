@@ -233,7 +233,7 @@ void main() {
           await ReceiptShareService.buildPlainTextReceipt(exclusiveSale());
       expect(text, contains('Subtotal: Rs. 12.00'));
       expect(text, contains('GST 17%: Rs. 2.04'));
-      expect(text, contains('*TOTAL: Rs. 14.04*'));
+      expect(text, contains('*Total: Rs. 14.04*'));
       expect(text, isNot(contains(ReceiptTotals.includesTaxNote)));
     });
 
@@ -241,7 +241,7 @@ void main() {
       final text =
           await ReceiptShareService.buildPlainTextReceipt(inclusiveSale);
       expect(text, contains('Includes GST 17%: Rs. 1.74'));
-      expect(text, contains('*TOTAL: Rs. 12.00*'));
+      expect(text, contains('*Total: Rs. 12.00*'));
       expect(
         ReceiptTotals.includesTaxNote.allMatches(text).length,
         1,
@@ -253,7 +253,7 @@ void main() {
         exclusiveSale(rounding: '-4.04', total: '10.00'),
       );
       expect(text, contains('Rounding: -4.04'));
-      expect(text, contains('*TOTAL: Rs. 10.00*'));
+      expect(text, contains('*Total: Rs. 10.00*'));
     });
   });
 

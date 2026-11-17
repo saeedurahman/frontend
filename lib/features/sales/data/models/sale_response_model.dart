@@ -24,10 +24,25 @@ abstract class SaleLineModel with _$SaleLineModel {
     @JsonKey(name: 'product_name') String? productName,
     @JsonKey(name: 'variation_name') String? variationName,
     @JsonKey(name: 'returned_qty') @Default('0') String returnedQty,
+    // Batches this line was taken from (pharmacy); empty for other stock.
+    @Default([]) List<SaleLineBatchModel> batches,
   }) = _SaleLineModel;
 
   factory SaleLineModel.fromJson(Map<String, dynamic> json) =>
       _$SaleLineModelFromJson(json);
+}
+
+/// One batch a sale line was served from.
+@freezed
+abstract class SaleLineBatchModel with _$SaleLineBatchModel {
+  const factory SaleLineBatchModel({
+    @JsonKey(name: 'batch_no') String? batchNo,
+    @JsonKey(name: 'expiry_date') String? expiryDate,
+    @Default('0') String qty,
+  }) = _SaleLineBatchModel;
+
+  factory SaleLineBatchModel.fromJson(Map<String, dynamic> json) =>
+      _$SaleLineBatchModelFromJson(json);
 }
 
 /// One row of the receipt's tax breakdown: a tax rate with the net amount it
@@ -53,6 +68,8 @@ abstract class SalePaymentModel with _$SalePaymentModel {
     required String amount,
     @JsonKey(name: 'reference_no') String? referenceNo,
     @JsonKey(name: 'paid_at') String? paidAt,
+    @JsonKey(name: 'tendered_amount') String? tenderedAmount,
+    @JsonKey(name: 'change_given') String? changeGiven,
   }) = _SalePaymentModel;
 
   factory SalePaymentModel.fromJson(Map<String, dynamic> json) =>
@@ -64,6 +81,8 @@ abstract class SaleResponseModel with _$SaleResponseModel {
   const factory SaleResponseModel({
     required String id,
     @JsonKey(name: 'sale_number') String? saleNumber,
+    // The device (register) receipt number, e.g. C1-0042.
+    @JsonKey(name: 'client_receipt_no') String? clientReceiptNo,
     @JsonKey(name: 'branch_id') required String branchId,
     @JsonKey(name: 'customer_id') String? customerId,
     @JsonKey(name: 'table_id') String? tableId,

@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GoodsReceiptLineItem {
 
- PurchaseLineModel get line; String get qtyReceived; String get costPerUnit; String get batchNumber; DateTime? get expiryDate;
+ PurchaseLineModel get line; String get qtyReceived; String get costPerUnit; String get batchNumber; DateTime? get expiryDate;/// The product tracks expiry: batch number and expiry date are required.
+ bool get trackExpiry;
 /// Create a copy of GoodsReceiptLineItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $GoodsReceiptLineItemCopyWith<GoodsReceiptLineItem> get copyWith => _$GoodsRecei
 @override
 bool operator ==(Object other) {
   final _this = this as GoodsReceiptLineItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GoodsReceiptLineItem&&(identical(other.line, _this.line) || other.line == _this.line)&&(identical(other.qtyReceived, _this.qtyReceived) || other.qtyReceived == _this.qtyReceived)&&(identical(other.costPerUnit, _this.costPerUnit) || other.costPerUnit == _this.costPerUnit)&&(identical(other.batchNumber, _this.batchNumber) || other.batchNumber == _this.batchNumber)&&(identical(other.expiryDate, _this.expiryDate) || other.expiryDate == _this.expiryDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GoodsReceiptLineItem&&(identical(other.line, _this.line) || other.line == _this.line)&&(identical(other.qtyReceived, _this.qtyReceived) || other.qtyReceived == _this.qtyReceived)&&(identical(other.costPerUnit, _this.costPerUnit) || other.costPerUnit == _this.costPerUnit)&&(identical(other.batchNumber, _this.batchNumber) || other.batchNumber == _this.batchNumber)&&(identical(other.expiryDate, _this.expiryDate) || other.expiryDate == _this.expiryDate)&&(identical(other.trackExpiry, _this.trackExpiry) || other.trackExpiry == _this.trackExpiry));
 }
 
 
 @override
 int get hashCode {
   final _this = this as GoodsReceiptLineItem;
-  return Object.hash(runtimeType,_this.line,_this.qtyReceived,_this.costPerUnit,_this.batchNumber,_this.expiryDate);
+  return Object.hash(runtimeType,_this.line,_this.qtyReceived,_this.costPerUnit,_this.batchNumber,_this.expiryDate,_this.trackExpiry);
 }
 
 @override
 String toString() {
   final _this = this as GoodsReceiptLineItem;
-  return 'GoodsReceiptLineItem(line: ${_this.line}, qtyReceived: ${_this.qtyReceived}, costPerUnit: ${_this.costPerUnit}, batchNumber: ${_this.batchNumber}, expiryDate: ${_this.expiryDate})';
+  return 'GoodsReceiptLineItem(line: ${_this.line}, qtyReceived: ${_this.qtyReceived}, costPerUnit: ${_this.costPerUnit}, batchNumber: ${_this.batchNumber}, expiryDate: ${_this.expiryDate}, trackExpiry: ${_this.trackExpiry})';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $GoodsReceiptLineItemCopyWith<$Res>  {
   factory $GoodsReceiptLineItemCopyWith(GoodsReceiptLineItem value, $Res Function(GoodsReceiptLineItem) _then) = _$GoodsReceiptLineItemCopyWithImpl;
 @useResult
 $Res call({
- PurchaseLineModel line, String qtyReceived, String costPerUnit, String batchNumber, DateTime? expiryDate
+ PurchaseLineModel line, String qtyReceived, String costPerUnit, String batchNumber, DateTime? expiryDate, bool trackExpiry
 });
 
 
@@ -68,14 +69,15 @@ class _$GoodsReceiptLineItemCopyWithImpl<$Res>
 
 /// Create a copy of GoodsReceiptLineItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? line = null,Object? qtyReceived = null,Object? costPerUnit = null,Object? batchNumber = null,Object? expiryDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? line = null,Object? qtyReceived = null,Object? costPerUnit = null,Object? batchNumber = null,Object? expiryDate = freezed,Object? trackExpiry = null,}) {
   return _then(GoodsReceiptLineItem(
 line: null == line ? _self.line : line // ignore: cast_nullable_to_non_nullable
 as PurchaseLineModel,qtyReceived: null == qtyReceived ? _self.qtyReceived : qtyReceived // ignore: cast_nullable_to_non_nullable
 as String,costPerUnit: null == costPerUnit ? _self.costPerUnit : costPerUnit // ignore: cast_nullable_to_non_nullable
 as String,batchNumber: null == batchNumber ? _self.batchNumber : batchNumber // ignore: cast_nullable_to_non_nullable
 as String,expiryDate: freezed == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,trackExpiry: null == trackExpiry ? _self.trackExpiry : trackExpiry // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of GoodsReceiptLineItem
@@ -169,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate,  bool trackExpiry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GoodsReceiptLineItem() when $default != null:
-return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate);case _:
+return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate,_that.trackExpiry);case _:
   return orElse();
 
 }
@@ -190,10 +192,10 @@ return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate,  bool trackExpiry)  $default,) {final _that = this;
 switch (_that) {
 case _GoodsReceiptLineItem():
-return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate);case _:
+return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate,_that.trackExpiry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +212,10 @@ return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PurchaseLineModel line,  String qtyReceived,  String costPerUnit,  String batchNumber,  DateTime? expiryDate,  bool trackExpiry)?  $default,) {final _that = this;
 switch (_that) {
 case _GoodsReceiptLineItem() when $default != null:
-return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate);case _:
+return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber,_that.expiryDate,_that.trackExpiry);case _:
   return null;
 
 }
@@ -225,7 +227,7 @@ return $default(_that.line,_that.qtyReceived,_that.costPerUnit,_that.batchNumber
 
 
 class _GoodsReceiptLineItem extends GoodsReceiptLineItem {
-  const _GoodsReceiptLineItem({required this.line, this.qtyReceived = '', this.costPerUnit = '', this.batchNumber = '', this.expiryDate}): super._();
+  const _GoodsReceiptLineItem({required this.line, this.qtyReceived = '', this.costPerUnit = '', this.batchNumber = '', this.expiryDate, this.trackExpiry = false}): super._();
   
 
 @override final  PurchaseLineModel line;
@@ -233,6 +235,8 @@ class _GoodsReceiptLineItem extends GoodsReceiptLineItem {
 @override@JsonKey() final  String costPerUnit;
 @override@JsonKey() final  String batchNumber;
 @override final  DateTime? expiryDate;
+/// The product tracks expiry: batch number and expiry date are required.
+@override@JsonKey() final  bool trackExpiry;
 
 /// Create a copy of GoodsReceiptLineItem
 /// with the given fields replaced by the non-null parameter values.
@@ -244,18 +248,18 @@ _$GoodsReceiptLineItemCopyWith<_GoodsReceiptLineItem> get copyWith => __$GoodsRe
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GoodsReceiptLineItem&&(identical(other.line, line) || other.line == line)&&(identical(other.qtyReceived, qtyReceived) || other.qtyReceived == qtyReceived)&&(identical(other.costPerUnit, costPerUnit) || other.costPerUnit == costPerUnit)&&(identical(other.batchNumber, batchNumber) || other.batchNumber == batchNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GoodsReceiptLineItem&&(identical(other.line, line) || other.line == line)&&(identical(other.qtyReceived, qtyReceived) || other.qtyReceived == qtyReceived)&&(identical(other.costPerUnit, costPerUnit) || other.costPerUnit == costPerUnit)&&(identical(other.batchNumber, batchNumber) || other.batchNumber == batchNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate)&&(identical(other.trackExpiry, trackExpiry) || other.trackExpiry == trackExpiry));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,line,qtyReceived,costPerUnit,batchNumber,expiryDate);
+    return Object.hash(runtimeType,line,qtyReceived,costPerUnit,batchNumber,expiryDate,trackExpiry);
 }
 
 @override
 String toString() {
-    return 'GoodsReceiptLineItem(line: $line, qtyReceived: $qtyReceived, costPerUnit: $costPerUnit, batchNumber: $batchNumber, expiryDate: $expiryDate)';
+    return 'GoodsReceiptLineItem(line: $line, qtyReceived: $qtyReceived, costPerUnit: $costPerUnit, batchNumber: $batchNumber, expiryDate: $expiryDate, trackExpiry: $trackExpiry)';
 }
 
 
@@ -266,7 +270,7 @@ abstract mixin class _$GoodsReceiptLineItemCopyWith<$Res> implements $GoodsRecei
   factory _$GoodsReceiptLineItemCopyWith(_GoodsReceiptLineItem value, $Res Function(_GoodsReceiptLineItem) _then) = __$GoodsReceiptLineItemCopyWithImpl;
 @override @useResult
 $Res call({
- PurchaseLineModel line, String qtyReceived, String costPerUnit, String batchNumber, DateTime? expiryDate
+ PurchaseLineModel line, String qtyReceived, String costPerUnit, String batchNumber, DateTime? expiryDate, bool trackExpiry
 });
 
 
@@ -283,14 +287,15 @@ class __$GoodsReceiptLineItemCopyWithImpl<$Res>
 
 /// Create a copy of GoodsReceiptLineItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? line = null,Object? qtyReceived = null,Object? costPerUnit = null,Object? batchNumber = null,Object? expiryDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? line = null,Object? qtyReceived = null,Object? costPerUnit = null,Object? batchNumber = null,Object? expiryDate = freezed,Object? trackExpiry = null,}) {
   return _then(_GoodsReceiptLineItem(
 line: null == line ? _self.line : line // ignore: cast_nullable_to_non_nullable
 as PurchaseLineModel,qtyReceived: null == qtyReceived ? _self.qtyReceived : qtyReceived // ignore: cast_nullable_to_non_nullable
 as String,costPerUnit: null == costPerUnit ? _self.costPerUnit : costPerUnit // ignore: cast_nullable_to_non_nullable
 as String,batchNumber: null == batchNumber ? _self.batchNumber : batchNumber // ignore: cast_nullable_to_non_nullable
 as String,expiryDate: freezed == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,trackExpiry: null == trackExpiry ? _self.trackExpiry : trackExpiry // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

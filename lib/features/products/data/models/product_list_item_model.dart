@@ -20,6 +20,8 @@ abstract class ProductListItemModel with _$ProductListItemModel {
     @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'tax_rate_id') String? taxRateId,
     @JsonKey(name: 'is_tax_exempt') @Default(false) bool isTaxExempt,
+    @JsonKey(name: 'track_expiry') @Default(false) bool trackExpiry,
+    @JsonKey(name: 'name_secondary') String? nameSecondary,
     String? categoryName,
     String? brandName,
   }) = _ProductListItemModel;

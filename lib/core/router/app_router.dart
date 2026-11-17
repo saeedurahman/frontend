@@ -27,6 +27,7 @@ import 'package:frantend/features/restaurant/presentation/pages/kitchen_display_
 import 'package:frantend/features/restaurant/presentation/pages/tables_floor_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sale_detail_page.dart';
 import 'package:frantend/features/sales/presentation/pages/sales_list_page.dart';
+import 'package:frantend/features/inventory/presentation/pages/expiry_report_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/inventory_stock_page.dart';
 import 'package:frantend/features/inventory/presentation/pages/stock_movements_page.dart';
 import 'package:frantend/features/products/presentation/pages/price_lists_page.dart';
@@ -60,6 +61,10 @@ import 'package:frantend/features/expenses/presentation/pages/expense_detail_pag
 import 'package:frantend/features/expenses/presentation/pages/expense_form_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expenses_list_page.dart';
 import 'package:frantend/features/auth/presentation/pages/change_password_page.dart';
+import 'package:frantend/features/receipts/presentation/pages/receipt_assignments_page.dart';
+import 'package:frantend/features/receipts/presentation/pages/receipt_layout_editor_page.dart';
+import 'package:frantend/features/receipts/presentation/pages/receipt_layouts_page.dart';
+import 'package:frantend/features/settings/presentation/pages/devices_page.dart';
 import 'package:frantend/features/settings/presentation/pages/printer_settings_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
 import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
@@ -241,6 +246,10 @@ class AppRouter {
             path: RouteNames.inventory,
             builder: (_, __) => const InventoryStockPage(),
             routes: [
+              GoRoute(
+                path: 'expiry',
+                builder: (_, __) => const ExpiryReportPage(),
+              ),
               GoRoute(
                 path: 'movements/:productId',
                 builder: (_, state) => StockMovementsPage(
@@ -538,6 +547,26 @@ class AppRouter {
                 ),
               ),
               GoRoute(
+                path: 'receipt-layouts',
+                builder: (_, __) => const ReceiptLayoutsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'assignments',
+                    builder: (_, __) => const ReceiptAssignmentsPage(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => ReceiptLayoutEditorPage(
+                      layoutId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'devices',
+                builder: (_, __) => const DevicesPage(),
+              ),
+              GoRoute(
                 path: 'subscription',
                 builder: (_, __) => const SubscriptionSettingsPage(),
               ),
@@ -659,6 +688,12 @@ class AppRouter {
   if (path.startsWith(RouteNames.settings)) {
     if (path.startsWith(RouteNames.settingsPrinter)) {
       return ('Printer Settings', 'Home / System / Settings / Printer');
+    }
+    if (path.startsWith(RouteNames.settingsReceiptLayouts)) {
+      return ('Receipt Layouts', 'Home / System / Settings / Receipt Layouts');
+    }
+    if (path.startsWith(RouteNames.settingsDevices)) {
+      return ('Devices', 'Home / System / Settings / Devices');
     }
     if (path.startsWith(RouteNames.settingsSubscription)) {
       return ('Subscription', 'Home / System / Settings / Subscription');

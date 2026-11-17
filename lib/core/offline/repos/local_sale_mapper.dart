@@ -13,6 +13,7 @@ abstract final class LocalSaleMapper {
     return SaleResponseModel.fromJson({
       'id': id,
       'sale_number': (row['official_number'] as String?) ?? row['receipt_no'],
+      'client_receipt_no': row['receipt_no'],
       'branch_id': row['branch_id'],
       'customer_id': row['customer_id'],
       'sale_type': 'pos',

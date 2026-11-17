@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/tax/tax_settings.dart';
+import 'package:frantend/features/inventory/domain/batch_picker.dart';
 import 'package:frantend/features/pos/data/models/cart_line_modifier_model.dart';
 import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
 
@@ -25,6 +26,7 @@ class CartItemModel {
     this.priceManual = false,
     this.serverLineId,
     this.modifiers = const [],
+    this.batches = const [],
   });
 
   final String productId;
@@ -52,6 +54,10 @@ class CartItemModel {
   /// Set after dine-in line sync (Phase 4).
   final String? serverLineId;
   final List<CartLineModifierModel> modifiers;
+
+  /// Batches this line takes stock from (pharmacy / expiry tracking), picked
+  /// by the business's FIFO / FEFO rule. Empty = no batch tracking.
+  final List<BatchSlice> batches;
 
   Decimal get modifierTotalPerUnit => cartModifierTotalPerUnit(modifiers);
 
@@ -110,6 +116,7 @@ class CartItemModel {
     bool? priceManual,
     String? serverLineId,
     List<CartLineModifierModel>? modifiers,
+    List<BatchSlice>? batches,
     bool clearLineNote = false,
     bool clearTax = false,
     bool clearServerLineId = false,
@@ -136,6 +143,7 @@ class CartItemModel {
       serverLineId:
           clearServerLineId ? null : (serverLineId ?? this.serverLineId),
       modifiers: modifiers ?? this.modifiers,
+      batches: batches ?? this.batches,
     );
   }
 
@@ -169,6 +177,7 @@ class CartItemModel {
         if (serverLineId != null) 'server_line_id': serverLineId,
         if (modifiers.isNotEmpty)
           'modifiers': modifiers.map((m) => m.toJson()).toList(),
+        if (batches.isNotEmpty) 'batches': batches.map((b) => b.toJson()).toList(),
       };
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
@@ -209,6 +218,10 @@ class CartItemModel {
             ),
           )
           .toList(),
+      batches: [
+        for (final b in json['batches'] as List<dynamic>? ?? const [])
+          if (b is Map) BatchSlice.fromJson(Map<String, dynamic>.from(b)),
+      ],
     );
   }
 }

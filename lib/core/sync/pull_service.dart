@@ -101,6 +101,10 @@ class PullService {
 
         await _store.transaction(() async {
           await _store.applyChanges(page.changes);
+          await _store.rememberNumbering(
+            shortCode: page.deviceShortCode,
+            prefix: page.numberPrefix,
+          );
           if (page.nextCursor != null) {
             await _store.setMeta(SyncStore.cursorKey, page.nextCursor);
           }
@@ -157,6 +161,10 @@ class PullService {
       final page = await _api.snapshot(pageToken: token, limit: _config.pageLimit);
       await _store.transaction(() async {
         await _store.applyChanges(page.changes);
+        await _store.rememberNumbering(
+          shortCode: page.deviceShortCode,
+          prefix: page.numberPrefix,
+        );
         await _store.setMeta(SyncStore.snapshotTokenKey, page.nextPageToken);
         await _store.setMeta(SyncStore.snapshotCursorKey, page.cursor);
         if (!page.hasMore) {

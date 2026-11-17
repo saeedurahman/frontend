@@ -13,6 +13,7 @@ _UnitModel _$UnitModelFromJson(Map<String, dynamic> json) => _UnitModel(
   symbol: json['symbol'] as String,
   isBaseUnit: json['is_base_unit'] as bool? ?? false,
   isActive: json['is_active'] as bool? ?? true,
+  allowsDecimal: json['allows_decimal'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$UnitModelToJson(_UnitModel instance) =>
@@ -23,6 +24,7 @@ Map<String, dynamic> _$UnitModelToJson(_UnitModel instance) =>
       'symbol': instance.symbol,
       'is_base_unit': instance.isBaseUnit,
       'is_active': instance.isActive,
+      'allows_decimal': instance.allowsDecimal,
     };
 
 _UnitConversionModel _$UnitConversionModelFromJson(Map<String, dynamic> json) =>

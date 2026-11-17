@@ -18,3 +18,24 @@ class PaymentMismatchException implements Exception {
   @override
   String toString() => message;
 }
+
+/// Expired stock cannot be sold (the business blocks it).
+class ExpiredStockBlockedException implements Exception {
+  const ExpiredStockBlockedException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// The cart takes expired stock and the business wants the cashier to
+/// confirm first. Retry the sale with `confirmExpired: true` once they agree.
+class ExpiredStockWarningException implements Exception {
+  const ExpiredStockWarningException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}

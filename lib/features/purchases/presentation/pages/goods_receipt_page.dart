@@ -242,7 +242,10 @@ class _ReceiptLineRow extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
-                  decoration: const InputDecoration(labelText: 'Batch No'),
+                  key: Key('grn-batch-$index'),
+                  decoration: InputDecoration(
+                    labelText: item.trackExpiry ? 'Batch No *' : 'Batch No',
+                  ),
                   controller: TextEditingController(text: item.batchNumber)
                     ..selection =
                         TextSelection.collapsed(offset: item.batchNumber.length),
@@ -254,7 +257,7 @@ class _ReceiptLineRow extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Expiry'),
+                  title: Text(item.trackExpiry ? 'Expiry *' : 'Expiry'),
                   subtitle: Text(
                     item.expiryDate?.toString().split(' ').first ?? 'Not set',
                   ),
@@ -265,7 +268,10 @@ class _ReceiptLineRow extends StatelessWidget {
                         context: context,
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 3650)),
-                        initialDate: item.expiryDate ?? DateTime.now(),
+                        initialDate: item.expiryDate != null &&
+                                item.expiryDate!.isAfter(DateTime.now())
+                            ? item.expiryDate!
+                            : DateTime.now(),
                       );
                       if (picked != null) {
                         cubit.updateLine(index, item.copyWith(expiryDate: picked));

@@ -9,6 +9,8 @@ import 'package:frantend/features/returns/data/models/sale_return_response_model
 import 'package:frantend/features/returns/presentation/cubit/return_detail_cubit.dart';
 import 'package:frantend/features/returns/presentation/cubit/return_detail_state.dart';
 import 'package:frantend/features/returns/presentation/utils/return_display_utils.dart';
+import 'package:frantend/features/returns/presentation/utils/return_receipt_mapper.dart';
+import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/shared/widgets/feedback/empty_state.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
@@ -85,6 +87,32 @@ class _LoadedContent extends StatelessWidget {
                       style: AppTextStyles.headlineMedium,
                     ),
                   ),
+                  OutlinedButton.icon(
+                    key: const Key('print-return-receipt'),
+                    onPressed: () async {
+                      final sale = await ReturnReceiptMapper.toSale(item);
+                      if (!context.mounted) return;
+                      await SaleReceiptService.printReceipt(
+                        sale,
+                        context: context,
+                        isReturn: true,
+                      );
+                    },
+                    icon: const Icon(Icons.print, size: 18),
+                    label: const Text('Print return receipt'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    key: const Key('save-return-pdf'),
+                    onPressed: () async {
+                      final sale = await ReturnReceiptMapper.toSale(item);
+                      if (!context.mounted) return;
+                      await SaleReceiptService.downloadPdf(context, sale, isReturn: true);
+                    },
+                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                    label: const Text('Save PDF'),
+                  ),
+                  const SizedBox(width: 8),
                   if (item.saleId != null)
                     OutlinedButton.icon(
                       onPressed: () =>

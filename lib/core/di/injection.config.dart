@@ -1581,6 +1581,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i643.RegisterBusinessUseCase>(
       () => _i643.RegisterBusinessUseCase(gh<_i787.AuthRepository>()),
     );
+    gh.factory<_i699.GoodsReceiptCubit>(
+      () => _i699.GoodsReceiptCubit(
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
+        createPurchaseReceiptUseCase: gh<_i838.CreatePurchaseReceiptUseCase>(),
+        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
+      ),
+    );
     gh.factory<_i242.PurchaseOrderFormCubit>(
       () => _i242.PurchaseOrderFormCubit(
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
@@ -1602,13 +1610,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i68.RegisterRepositoryImpl(
         gh<_i787.AuthRepository>(),
         gh<_i674.SettingsRepository>(),
-      ),
-    );
-    gh.factory<_i699.GoodsReceiptCubit>(
-      () => _i699.GoodsReceiptCubit(
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-        getPurchaseOrderUseCase: gh<_i838.GetPurchaseOrderUseCase>(),
-        createPurchaseReceiptUseCase: gh<_i838.CreatePurchaseReceiptUseCase>(),
       ),
     );
     gh.factory<_i117.AuthCubit>(

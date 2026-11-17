@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
+import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/domain/usecases/purchase_usecases.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_state.dart';
 import 'package:injectable/injectable.dart';
@@ -11,7 +13,9 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
     required AuthLocalDataSource authLocalDataSource,
     required GetPurchaseOrderUseCase getPurchaseOrderUseCase,
     required CreatePurchaseReceiptUseCase createPurchaseReceiptUseCase,
+    required GetProductByIdUseCase getProductByIdUseCase,
   })  : _authLocal = authLocalDataSource,
+        _getProduct = getProductByIdUseCase,
         _getOrder = getPurchaseOrderUseCase,
         _createReceipt = createPurchaseReceiptUseCase,
         super(const GoodsReceiptState());
@@ -19,6 +23,17 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
   final AuthLocalDataSource _authLocal;
   final GetPurchaseOrderUseCase _getOrder;
   final CreatePurchaseReceiptUseCase _createReceipt;
+  final GetProductByIdUseCase _getProduct;
+
+  /// Whether a product tracks expiry (read from the device's products).
+  Future<bool> _tracksExpiry(String productId) async {
+    try {
+      final result = await _getProduct(productId);
+      return result.fold<bool>((_) => false, (p) => p.trackExpiry);
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<void> load(String purchaseOrderId) async {
     emit(state.copyWith(isLoading: true));
@@ -27,35 +42,43 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
     final branchId = user?.branchId;
 
     final result = await _getOrder(purchaseOrderId);
-    result.fold(
-      (failure) => emit(
+    final order = result.fold<PurchaseOrderModel?>((failure) {
+      emit(
         state.copyWith(
           isLoading: false,
           errors: {'_general': failure.message},
         ),
-      ),
-      (order) {
-        final receivableLines = order.lines
-            .where((l) => (double.tryParse(l.qtyToReceive) ?? 0) > 0)
-            .map(
-              (line) => GoodsReceiptLineItem(
-                line: line,
-                qtyReceived: line.qtyToReceive,
-                costPerUnit: line.costPerUnit,
-                batchNumber: line.batchNumber ?? '',
-              ),
-            )
-            .toList();
+      );
+      return null;
+    }, (o) => o);
+    if (order == null) return;
 
-        emit(
-          GoodsReceiptState(
-            branchId: branchId,
-            order: order,
-            lines: receivableLines,
-            receivedAt: DateTime.now(),
-          ),
-        );
-      },
+    final receivable = order.lines
+        .where((l) => (double.tryParse(l.qtyToReceive) ?? 0) > 0)
+        .toList();
+    final tracked = await Future.wait([
+      for (final l in receivable) _tracksExpiry(l.productId),
+    ]);
+    if (isClosed) return;
+    final receivableLines = [
+      for (var i = 0; i < receivable.length; i++)
+        GoodsReceiptLineItem(
+          line: receivable[i],
+          qtyReceived: receivable[i].qtyToReceive,
+          costPerUnit: receivable[i].costPerUnit,
+          batchNumber: receivable[i].batchNumber ?? '',
+          expiryDate: DateTime.tryParse(receivable[i].expiryDate ?? ''),
+          trackExpiry: tracked[i],
+        ),
+    ];
+
+    emit(
+      GoodsReceiptState(
+        branchId: branchId,
+        order: order,
+        lines: receivableLines,
+        receivedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -73,6 +96,19 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
       lines[index] = item;
       emit(state.copyWith(lines: lines));
     }
+  }
+
+  /// Items that track expiry must say which batch and when it expires.
+  static String? batchProblem(GoodsReceiptLineItem item) {
+    if (!item.trackExpiry) return null;
+    final noBatch = item.batchNumber.trim().isEmpty;
+    final noExpiry = item.expiryDate == null;
+    if (noBatch && noExpiry) {
+      return 'Batch number and expiry date are required for this item';
+    }
+    if (noBatch) return 'Batch number is required for this item';
+    if (noExpiry) return 'Expiry date is required for this item';
+    return null;
   }
 
   bool validate() {
@@ -95,6 +131,12 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
         }
         if (item.costPerUnit.trim().isEmpty) {
           errors['line_$i'] = 'Cost is required';
+        }
+        final missing = batchProblem(item);
+        if (missing != null) {
+          errors['line_$i'] = errors.containsKey('line_$i')
+              ? '${errors['line_$i']}; $missing'
+              : missing;
         }
       }
     }

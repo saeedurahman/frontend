@@ -29,6 +29,7 @@ Future<bool> addProductWithPricePrompt(
   bool promptForPrice = true,
   Decimal? qty,
   bool rememberManualPrice = true,
+  bool confirmExpired = false,
 }) async {
   debugPrint(
     '[POS:AddToCart] product="${product.name}" id=${product.id} '
@@ -42,6 +43,7 @@ Future<bool> addProductWithPricePrompt(
     modifiers: modifiers,
     qty: qty,
     rememberManualPrice: rememberManualPrice,
+    confirmExpired: confirmExpired,
   );
   debugPrint(
     '[POS:AddToCart] outcome=${outcome.result} message=${outcome.message}',
@@ -85,10 +87,48 @@ Future<bool> addProductWithPricePrompt(
       }
       return false;
     case AddToCartResult.syncFailed:
+    case AddToCartResult.expiredBlocked:
       if (context.mounted && outcome.message != null) {
         AppAlerts.showErrorMessage(context, outcome.message!);
       }
       return false;
+    case AddToCartResult.needsExpiryConfirm:
+      if (!context.mounted) return false;
+      final sell = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('expired-confirm-dialog'),
+          title: const Text('Expired stock'),
+          content: Text(
+            outcome.message ?? 'This item has expired stock. Sell it anyway?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Do not sell'),
+            ),
+            FilledButton(
+              key: const Key('expired-confirm-sell'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Sell anyway'),
+            ),
+          ],
+        ),
+      );
+      if (sell != true || !context.mounted) return false;
+      return addProductWithPricePrompt(
+        context,
+        cubit,
+        product: product,
+        variationId: variationId,
+        variationName: variationName,
+        manualUnitPrice: manualUnitPrice,
+        modifiers: modifiers,
+        promptForPrice: promptForPrice,
+        qty: qty,
+        rememberManualPrice: rememberManualPrice,
+        confirmExpired: true,
+      );
   }
 }
 
