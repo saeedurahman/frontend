@@ -100,7 +100,7 @@ abstract final class ReceiptSamples {
 
   static ReceiptContext context({bool synced = true}) => ReceiptContext(
         business: const ReceiptBusiness(
-          name: 'Al-Shifa Pharmacy / الشفا فارمیسی',
+          name: 'Al-Shifa Pharmacy',
           address: 'Shop 4, Main Boulevard, Lahore',
           phone: '0423-1234567',
           taxId: '1234567-8',
@@ -116,7 +116,7 @@ abstract final class ReceiptSamples {
         previousBalance: 'Rs. 500.00',
         balanceAfter: 'Rs. 500.00',
         products: const {
-          'p1': ReceiptProductInfo(sku: 'PAN-01', unitSymbol: 'pc', nameSecondary: 'پینا ڈول ایکسٹرا'),
+          'p1': ReceiptProductInfo(sku: 'PAN-01', unitSymbol: 'pc'),
           'p2': ReceiptProductInfo(sku: 'RICE-5', unitSymbol: 'kg', allowsDecimal: true),
           'p3': ReceiptProductInfo(sku: 'VIT-C', unitSymbol: 'pc'),
         },

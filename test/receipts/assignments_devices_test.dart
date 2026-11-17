@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/features/receipts/data/receipt_layout_api.dart';
 import 'package:frantend/features/receipts/data/receipt_layout_store.dart';
+import 'package:frantend/features/receipts/presentation/cubit/receipt_layouts_cubit.dart';
 import 'package:frantend/features/receipts/domain/receipt_layout.dart';
 import 'package:frantend/features/receipts/presentation/pages/receipt_assignments_page.dart';
 import 'package:frantend/features/settings/presentation/pages/devices_page.dart';
@@ -78,6 +79,10 @@ void main() {
       await open(t);
       for (final c in ReceiptChannel.values) {
         expect(find.byKey(Key('assign-${c.code}')), findsOneWidget, reason: c.code);
+        // The per-branch list is collapsed until opened.
+        expect(find.byKey(Key('assign-${c.code}-branch-1')), findsNothing, reason: c.code);
+        await t.tap(find.byKey(Key('override-toggle-${c.code}')));
+        await t.pumpAndSettle();
         expect(find.byKey(Key('assign-${c.code}-branch-1')), findsOneWidget, reason: c.code);
       }
     });
@@ -96,6 +101,8 @@ void main() {
     testWidgets('a branch can use its own layout, and go back to the business one', (t) async {
       api.assign(ReceiptChannel.print, '${classic['id']}');
       await open(t);
+      await t.tap(find.byKey(const Key('override-toggle-print')));
+      await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('assign-print-branch-1')));
       await t.pumpAndSettle();
       await t.tap(find.text('Tax invoice').last);
@@ -112,6 +119,10 @@ void main() {
     });
 
     testWidgets('offline: notice shown and the pickers are disabled', (t) async {
+      // Layouts already on the device (pulled while online) stay usable.
+      final seeded = ReceiptLayoutsCubit(store: store, api: api, isOnline: () => true);
+      await seeded.load();
+      await seeded.close();
       online = false;
       await open(t);
       expect(find.byKey(const Key('assignments-offline-notice')), findsOneWidget);

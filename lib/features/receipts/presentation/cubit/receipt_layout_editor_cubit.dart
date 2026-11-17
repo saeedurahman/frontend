@@ -102,6 +102,37 @@ class ReceiptLayoutEditorCubit extends Cubit<ReceiptLayoutEditorState> {
         ),
       );
 
+  /// The one language the whole receipt prints in (or both, two lines each).
+  void setLanguage(ReceiptLanguage language) =>
+      _edit((d) => d.copyWith(config: d.config.withLanguage(language)));
+
+  /// A layout's design is fixed on the server, so choosing another design
+  /// makes a NEW layout from the current settings (unsaved edits included)
+  /// and returns it. The original layout is left as it is.
+  Future<ReceiptLayout?> startFromDesign(ReceiptDesign design) async {
+    if (state.saving) return null;
+    if (!_isOnline()) {
+      emit(state.copyWith(error: ReceiptLayoutsCubit.offlineMessage));
+      return null;
+    }
+    emit(state.copyWith(saving: true, clearError: true));
+    try {
+      final base = state.draft.name.trim().isEmpty ? 'Receipt' : state.draft.name.trim();
+      final json = await _api.create(
+        name: '$base (${design.title})',
+        design: design.code,
+        paper: design.defaultPaper.code,
+        config: state.draft.config.toJson(),
+      );
+      await _store.putLayout(json);
+      emit(state.copyWith(saving: false));
+      return ReceiptLayout.fromJson(json);
+    } on ReceiptApiException catch (e) {
+      emit(state.copyWith(saving: false, error: e.message));
+      return null;
+    }
+  }
+
   void setLabel(String key, {String? en, String? ur}) =>
       _edit((d) => d.copyWith(config: d.config.withLabel(key, en: en, ur: ur)));
 

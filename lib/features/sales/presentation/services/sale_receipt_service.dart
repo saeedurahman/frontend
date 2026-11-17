@@ -179,7 +179,7 @@ abstract final class SaleReceiptService {
 
   /// A sample receipt (Urdu names, tax, batch) for the printer settings page.
   static Future<pw.Document> buildTestPdf({
-    required String paperSize,
+    String? paperSize,
     pw.ThemeData? customTheme,
     String? urduStyle,
   }) async {
@@ -198,14 +198,13 @@ abstract final class SaleReceiptService {
       cashierName: base.cashierName,
       products: base.products,
     );
+    // The default print layout decides paper, language and wording; a paper
+    // size is only used for the built-in fallback.
     var layout = ReceiptLayout.builtIn(
       paper: paperSize == '58mm' ? ReceiptPaper.roll58 : ReceiptPaper.roll80,
     );
     if (sl.isRegistered<ReceiptService>()) {
-      final chosen = await sl<ReceiptService>().layouts.resolve(ReceiptChannel.print);
-      layout = chosen.design.isThermal
-          ? chosen.copyWith(paper: paperSize == '58mm' ? ReceiptPaper.roll58 : ReceiptPaper.roll80)
-          : layout;
+      layout = await sl<ReceiptService>().layouts.resolve(ReceiptChannel.print);
     }
     final model = ReceiptModelBuilder.build(
       ReceiptSamples.sale(synced: false),

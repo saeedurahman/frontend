@@ -56,7 +56,7 @@ abstract final class LayoutActions {
       } else {
         AppAlerts.showErrorMessage(
           context,
-          'Could not print. Please check the printer in Settings > Receipt & Printing.',
+          'Could not print. Please check the printer in Settings > Receipt Printer.',
         );
       }
     } catch (_) {

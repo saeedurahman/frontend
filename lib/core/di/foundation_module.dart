@@ -326,6 +326,10 @@ void registerFoundationServices(GetIt sl) {
       layouts: sl<ReceiptLayoutStore>(),
       contexts: sl<ReceiptContextLoader>(),
       printer: sl<PrinterService>(),
+      legacyFooter: (branchId) async {
+        final d = await sl<ReceiptBrandingSource>().displaySettings(branchId: branchId);
+        return d.footerText == ReceiptBrandingSource.defaults.footerText ? null : d.footerText;
+      },
     ),
   );
 

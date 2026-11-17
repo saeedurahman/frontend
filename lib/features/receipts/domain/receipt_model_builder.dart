@@ -32,22 +32,20 @@ abstract final class ReceiptModelBuilder {
     final c = layout.config;
     final design = layout.design;
     final isLink = channel == ReceiptChannel.link;
-    String label(String key) => c.label(key).text;
+    final lang = _Words(c);
+    String label(String key) => lang.label(key);
 
-    final title = context.isReturn
-        ? const ReceiptLabel('Return', 'واپسی').text
+    final titleKey = context.isReturn
+        ? 'return'
         : switch (design) {
-            ReceiptDesign.a4TaxInvoice => label('tax_invoice'),
-            ReceiptDesign.a4Elegant => label('invoice'),
-            _ => label('receipt'),
+            ReceiptDesign.a4TaxInvoice => 'tax_invoice',
+            ReceiptDesign.a4Elegant => 'invoice',
+            _ => 'receipt',
           };
 
-    final totals = _totals(sale, layout, context, isLink, label);
+    final totals = _totals(sale, layout, context, isLink, lang);
     final footer = c.footer;
-    final footerLines = <String>[
-      if (footer.textEn.trim().isNotEmpty) footer.textEn.trim(),
-      if (footer.textUr.trim().isNotEmpty) footer.textUr.trim(),
-    ];
+    final footerLines = footer.linesFor(lang.language);
 
     final qr = _qrContent(layout, channel, context);
     final inclusiveNote = totals.pricesIncludeTax && c.totals.showIncludesTaxNote;
@@ -61,24 +59,29 @@ abstract final class ReceiptModelBuilder {
       fontScale: c.style.fontScale,
       showDividers: c.style.showDividers,
       compactItems: c.style.compactItems || design == ReceiptDesign.thermalCompact,
-      title: title,
+      language: lang.language,
+      words: lang.words,
+      title: label(titleKey),
+      titleAlt: lang.alt(titleKey),
       isVoid: sale.saleStatus == 'voided',
       voidLabel: label('void'),
-      header: _header(sale, layout, context),
-      meta: _meta(sale, layout, context, isLink, label, now),
-      columns: _columns(layout, label),
+      voidAlt: lang.alt('void'),
+      header: _header(sale, layout, context, lang),
+      meta: _meta(sale, layout, context, isLink, lang, now),
+      columns: _columns(layout, lang),
       items: [for (final line in sale.lines) _item(line, sale, layout, context)],
       totals: totals.rows,
-      taxSummary: _taxSummary(sale, layout),
-      payments: _payments(sale, layout, label),
+      taxSummary: _taxSummary(sale, layout, lang),
+      payments: _payments(sale, layout, lang),
       taxNote: inclusiveNote ? label('includes_tax') : null,
+      taxNoteAlt: inclusiveNote ? lang.alt('includes_tax') : null,
       footerLines: footerLines,
       poweredBy: footer.showPoweredBy ? AppBrand.current.receiptPoweredBy : null,
       qrContent: qr,
       notes: null,
       accentColor: context.accentColor ?? 0xFF0F6B36,
-      signatureLabel:
-          design == ReceiptDesign.a4TaxInvoice ? 'Authorised signature' : null,
+      signatureLabel: design == ReceiptDesign.a4TaxInvoice ? label('signature') : null,
+      signatureAlt: design == ReceiptDesign.a4TaxInvoice ? lang.alt('signature') : null,
     );
   }
 
@@ -88,6 +91,7 @@ abstract final class ReceiptModelBuilder {
     SaleResponseModel sale,
     ReceiptLayout layout,
     ReceiptContext ctx,
+    _Words lang,
   ) {
     final h = layout.config.header;
     final b = ctx.business;
@@ -103,7 +107,11 @@ abstract final class ReceiptModelBuilder {
       logoBytes: h.showLogo ? b.logoBytes : null,
       businessName: h.showBusinessName ? (clean(b.name) ?? AppBrand.current.appName) : null,
       address: h.showAddress ? clean(b.address) : null,
-      phone: phone == null ? null : 'Tel: $phone',
+      // A left-to-right mark keeps "0423-1234567" in one piece after an Urdu
+      // caption (otherwise the bidi rules flip its two halves).
+      phone: phone == null
+          ? null
+          : '${lang.label('customer_phone')}: ${layout.config.language.isRtl ? '‎' : ''}$phone',
       ntnLabel: ntn == null ? null : (clean(h.ntnLabel) ?? 'NTN'),
       ntnValue: ntn,
       extraLines: [
@@ -120,10 +128,12 @@ abstract final class ReceiptModelBuilder {
     ReceiptLayout layout,
     ReceiptContext ctx,
     bool isLink,
-    String Function(String) label,
+    _Words lang,
     DateTime? now,
   ) {
     final m = layout.config.meta;
+    ReceiptMetaRow row(String key, String value) =>
+        ReceiptMetaRow(key, lang.label(key), value, labelAlt: lang.alt(key));
     final rows = <ReceiptMetaRow>[];
     if (m.showNumber) {
       final number = ReceiptRules.pickNumber(
@@ -132,7 +142,7 @@ abstract final class ReceiptModelBuilder {
         official: ctx.officialNumber,
         fallback: sale.saleNumber ?? (sale.id.length > 8 ? sale.id.substring(0, 8) : sale.id),
       );
-      rows.add(ReceiptMetaRow('number', label('number'), number));
+      rows.add(row('number', number));
     }
     if (m.showDatetime) {
       final raw = sale.soldAt ?? sale.createdAt;
@@ -140,28 +150,28 @@ abstract final class ReceiptModelBuilder {
       final value = parsed != null
           ? DateFormat.yMMMd().add_jm().format(parsed.toLocal())
           : DateFormat.yMMMd().add_jm().format(now ?? DateTime.now());
-      rows.add(ReceiptMetaRow('date', label('date'), value));
+      rows.add(row('date', value));
     }
     // The public link never shows people or balances.
     if (!isLink && m.showCashier && _has(ctx.cashierName)) {
-      rows.add(ReceiptMetaRow('cashier', label('cashier'), ctx.cashierName!.trim()));
+      rows.add(row('cashier', ctx.cashierName!.trim()));
     }
     if (m.showBranch && _has(ctx.branchName)) {
-      rows.add(ReceiptMetaRow('branch', label('branch'), ctx.branchName!.trim()));
+      rows.add(row('branch', ctx.branchName!.trim()));
     }
     if (m.showRegister && _has(ctx.registerName)) {
-      rows.add(ReceiptMetaRow('register', label('register'), ctx.registerName!.trim()));
+      rows.add(row('register', ctx.registerName!.trim()));
     }
     if (!isLink && m.showCustomer) {
       final name = sale.customer?.name.trim() ?? '';
       if (name.isNotEmpty) {
-        rows.add(ReceiptMetaRow('customer', label('customer'), name));
+        rows.add(row('customer', name));
       } else if (m.walkinLabel.trim().isNotEmpty) {
-        rows.add(ReceiptMetaRow('customer', label('customer'), m.walkinLabel.trim()));
+        rows.add(row('customer', lang.walkin(m.walkinLabel)));
       }
       final phone = ctx.customerPhone ?? sale.customer?.phone;
       if (m.showCustomerPhone && _has(phone) && name.isNotEmpty) {
-        rows.add(ReceiptMetaRow('customer_phone', label('customer_phone'), phone!.trim()));
+        rows.add(row('customer_phone', phone!.trim()));
       }
     }
     return rows;
@@ -171,13 +181,15 @@ abstract final class ReceiptModelBuilder {
 
   // ── items ─────────────────────────────────────────────────────────────
 
-  static List<ReceiptColumn> _columns(ReceiptLayout layout, String Function(String) label) {
+  static List<ReceiptColumn> _columns(ReceiptLayout layout, _Words lang) {
     final i = layout.config.items;
+    ReceiptColumn col(String key, int flex, {bool right = false}) =>
+        ReceiptColumn(key, lang.label(key), flex: flex, right: right, labelAlt: lang.alt(key));
     return [
-      if (i.showName) ReceiptColumn('item', label('item'), flex: 5),
-      if (i.showQty) ReceiptColumn('qty', label('qty'), flex: 1, right: true),
-      if (i.showUnitPrice) ReceiptColumn('price', label('price'), flex: 2, right: true),
-      if (i.showLineTotal) ReceiptColumn('amount', label('amount'), flex: 2, right: true),
+      if (i.showName) col('item', 5),
+      if (i.showQty) col('qty', 1, right: true),
+      if (i.showUnitPrice) col('price', 2, right: true),
+      if (i.showLineTotal) col('amount', 2, right: true),
     ];
   }
 
@@ -189,22 +201,12 @@ abstract final class ReceiptModelBuilder {
   ) {
     final i = layout.config.items;
     final info = ctx.products[line.productId];
-    final primary = ReceiptRules.itemName(
+    // Product names print exactly as they were entered.
+    final name = ReceiptRules.itemName(
       line.productName,
       showVariation: i.showVariation,
       variationName: line.variationName,
     );
-    final secondary = info?.nameSecondary?.trim();
-    var name = primary;
-    String? nameSecondary;
-    switch (i.nameLanguage) {
-      case 'secondary':
-        if (secondary != null && secondary.isNotEmpty) name = secondary;
-      case 'both':
-        if (secondary != null && secondary.isNotEmpty && secondary != primary) {
-          nameSecondary = secondary;
-        }
-    }
 
     final discount = DecimalUtils.parse(line.discountAmount);
     final qty = ReceiptRules.formatQty(line.qty, allowsDecimal: info?.allowsDecimal ?? false);
@@ -221,7 +223,6 @@ abstract final class ReceiptModelBuilder {
 
     return ReceiptItem(
       name: i.showName ? name : '',
-      nameSecondary: i.showName ? nameSecondary : null,
       sku: i.showSku && _has(info?.sku) ? info!.sku!.trim() : null,
       barcode: i.showBarcode && _has(info?.barcode) ? info!.barcode!.trim() : null,
       unit: i.showUnit && _has(info?.unitSymbol) ? info!.unitSymbol!.trim() : null,
@@ -248,37 +249,40 @@ abstract final class ReceiptModelBuilder {
     ReceiptLayout layout,
     ReceiptContext ctx,
     bool isLink,
-    String Function(String) label,
+    _Words lang,
   ) {
     final t = layout.config.totals;
     final totals = ReceiptTotals.fromSale(sale, breakdown: t.showTaxBreakdown);
     final rows = <ReceiptTotalRow>[];
+    ReceiptTotalRow row(String key, String value, {bool strong = false}) =>
+        ReceiptTotalRow(key, lang.label(key), value, strong: strong, labelAlt: lang.alt(key));
     for (final line in totals.lines) {
       switch (line.key) {
         case 'subtotal':
-          if (t.showSubtotal) rows.add(ReceiptTotalRow('subtotal', label('subtotal'), line.value));
+          if (t.showSubtotal) rows.add(row('subtotal', line.value));
         case 'discount':
-          if (t.showDiscount) rows.add(ReceiptTotalRow('discount', label('discount'), line.value));
+          if (t.showDiscount) rows.add(row('discount', line.value));
         case 'rounding':
-          if (t.showRounding) rows.add(ReceiptTotalRow('rounding', label('rounding'), line.value));
+          if (t.showRounding) rows.add(row('rounding', line.value));
         default:
-          // Tax rows keep the sale's own wording ("GST 17%").
-          rows.add(ReceiptTotalRow(line.key.isEmpty ? 'tax' : line.key, line.label, line.value));
+          // Tax rows keep the sale's own wording ("GST 17%"); only the plain
+          // words around it follow the receipt language.
+          rows.add(ReceiptTotalRow('tax', lang.taxLine(line.label), line.value));
       }
     }
-    rows.add(ReceiptTotalRow('total', label('total'), totals.total, strong: true));
+    rows.add(row('total', totals.total, strong: true));
     if (!isLink) {
       if (t.showPreviousBalance && _has(ctx.previousBalance)) {
-        rows.add(ReceiptTotalRow('previous_balance', label('previous_balance'), ctx.previousBalance!));
+        rows.add(row('previous_balance', ctx.previousBalance!));
       }
       if (t.showBalanceAfter && _has(ctx.balanceAfter)) {
-        rows.add(ReceiptTotalRow('balance_after', label('balance_after'), ctx.balanceAfter!));
+        rows.add(row('balance_after', ctx.balanceAfter!));
       }
     }
     return (rows: rows, pricesIncludeTax: totals.pricesIncludeTax);
   }
 
-  static List<ReceiptTaxRow> _taxSummary(SaleResponseModel sale, ReceiptLayout layout) {
+  static List<ReceiptTaxRow> _taxSummary(SaleResponseModel sale, ReceiptLayout layout, _Words lang) {
     if (layout.design != ReceiptDesign.a4TaxInvoice ||
         !layout.config.totals.showTaxBreakdown) {
       return const [];
@@ -287,7 +291,7 @@ abstract final class ReceiptModelBuilder {
       return const [];
     }
     final label = (sale.taxLabel == null || sale.taxLabel!.trim().isEmpty)
-        ? 'Tax'
+        ? lang.label('tax')
         : sale.taxLabel!.trim();
     return [
       for (final g in ReceiptTotals.taxGroups(sale))
@@ -305,7 +309,7 @@ abstract final class ReceiptModelBuilder {
   static List<ReceiptTotalRow> _payments(
     SaleResponseModel sale,
     ReceiptLayout layout,
-    String Function(String) label,
+    _Words lang,
   ) {
     final t = layout.config.totals;
     if (!t.showPayments) return const [];
@@ -316,21 +320,25 @@ abstract final class ReceiptModelBuilder {
       final amount = Decimal.tryParse(p.amount) ?? Decimal.zero;
       rows.add(ReceiptTotalRow(
         'payment',
-        ReceiptRules.paymentLabel(p.paymentMethod, label),
+        ReceiptRules.paymentLabel(p.paymentMethod, lang.label),
         formatPKR(amount),
+        labelAlt: lang.paymentAlt(p.paymentMethod),
       ));
       if (p.paymentMethod != 'credit') paid += amount;
       change += Decimal.tryParse(p.changeGiven ?? '') ?? Decimal.zero;
     }
     final due = SaleCalculations.balanceDue(sale);
     if (layout.design.isA4 && rows.isNotEmpty) {
-      rows.add(ReceiptTotalRow('paid', label('paid'), formatPKR(paid), strong: true));
+      rows.add(ReceiptTotalRow('paid', lang.label('paid'), formatPKR(paid),
+          strong: true, labelAlt: lang.alt('paid')));
     }
     if (due > Decimal.zero && sale.payments.every((p) => p.paymentMethod != 'credit')) {
-      rows.add(ReceiptTotalRow('balance_due', label('balance_due'), formatPKR(due)));
+      rows.add(ReceiptTotalRow('balance_due', lang.label('balance_due'), formatPKR(due),
+          labelAlt: lang.alt('balance_due')));
     }
     if (t.showChange && change > Decimal.zero) {
-      rows.add(ReceiptTotalRow('change', label('change'), formatPKR(change)));
+      rows.add(ReceiptTotalRow('change', lang.label('change'), formatPKR(change),
+          labelAlt: lang.alt('change')));
     }
     return rows;
   }
@@ -352,6 +360,71 @@ abstract final class ReceiptModelBuilder {
     if (link == null || link.isEmpty) return null;
     return link;
   }
+}
+
+/// Every caption of one receipt, resolved to the layout's language. For `en`
+/// and `ur` there is exactly one text per caption; only `both` has a second
+/// (Urdu) line, returned by [alt].
+class _Words {
+  _Words(this.config) : language = config.language;
+
+  final ReceiptLayoutConfig config;
+  final ReceiptLanguage language;
+
+  /// Small captions the renderers print themselves. Not layout labels, so they
+  /// are fixed here (en + ur) and follow the receipt language too.
+  static const extra = <String, ReceiptLabel>{
+    'return': ReceiptLabel('Return', 'واپسی'),
+    'signature': ReceiptLabel('Authorised signature', 'دستخط'),
+    'walkin': ReceiptLabel('Walk-in', 'عام گاہک'),
+    'tax_summary': ReceiptLabel('Tax summary', 'ٹیکس کا خلاصہ'),
+    'rate': ReceiptLabel('Rate', 'شرح'),
+    'taxable': ReceiptLabel('Taxable', 'قابل ٹیکس'),
+    'includes': ReceiptLabel('Includes', 'شامل'),
+  };
+
+  ReceiptLabel _pair(String key) => extra[key] ?? config.label(key);
+
+  String label(String key) => _pair(key).primary(language);
+
+  String? alt(String key) => _pair(key).secondary(language);
+
+  String? paymentAlt(String method) {
+    const known = {
+      'cash', 'card', 'upi', 'bank_transfer', 'wallet', 'credit', 'cheque', 'other',
+    };
+    final key = method.trim().toLowerCase();
+    return known.contains(key) ? alt(key) : null;
+  }
+
+  /// The owner's own walk-in wording wins; the built-in "Walk-in" follows the
+  /// receipt language.
+  String walkin(String configured) {
+    final t = configured.trim();
+    if (t.isEmpty || t == extra['walkin']!.en) return label('walkin');
+    return t;
+  }
+
+  /// "Includes GST 17%" / plain "Tax" use words of the receipt language; the
+  /// sale's own tax name stays as the business wrote it.
+  String taxLine(String saleLabel) {
+    var text = saleLabel;
+    if (text == 'Tax') return label('tax');
+    if (text.startsWith('Includes ')) {
+      var rest = text.substring('Includes '.length);
+      if (rest == 'Tax') rest = label('tax');
+      return '${label('includes')} $rest';
+    }
+    return text;
+  }
+
+  /// What the renderers need for batch / expiry / SKU / discount and the tax
+  /// summary headings, in the receipt language (the English text for `both`).
+  Map<String, String> get words => {
+        for (final k in const ['batch', 'expiry', 'sku', 'discount', 'tax'])
+          k: label(k),
+        for (final k in const ['tax_summary', 'rate', 'taxable']) k: label(k),
+      };
 }
 
 /// Small pure rules, kept apart so each is testable on its own.

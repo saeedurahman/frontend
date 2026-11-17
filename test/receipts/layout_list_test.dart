@@ -5,6 +5,7 @@ import 'package:frantend/features/receipts/data/receipt_layout_store.dart';
 import 'package:frantend/features/receipts/domain/receipt_layout.dart';
 import 'package:frantend/features/receipts/presentation/cubit/receipt_layouts_cubit.dart';
 import 'package:frantend/features/receipts/presentation/pages/receipt_layouts_page.dart';
+import 'package:frantend/features/receipts/presentation/widgets/layout_preview.dart';
 
 import '../sync/sync_rig.dart';
 import 'fake_layout_api.dart';
@@ -226,6 +227,62 @@ void main() {
       expect(find.byKey(Key('used-by-${a['id']}-print')), findsOneWidget);
     });
 
+    testWidgets('each card has a thumbnail, paper + language badges and default chips', (t) async {
+      final a = api.seed('Counter receipt', ReceiptDesign.thermalClassic);
+      final b = api.seed('Urdu invoice', ReceiptDesign.a4TaxInvoice);
+      api.layouts['${b['id']}'] = {
+        ...api.layouts['${b['id']}']!,
+        'config': ReceiptLayoutConfig.defaultsFor(ReceiptDesign.a4TaxInvoice)
+            .withLanguage(ReceiptLanguage.ur)
+            .toJson(),
+      };
+      api.assign(ReceiptChannel.print, '${a['id']}');
+      api.assign(ReceiptChannel.whatsapp, '${a['id']}');
+      await _pump(rig, store, api, () => online, tester: t);
+
+      expect(find.byKey(Key('layout-thumb-${a['id']}')), findsOneWidget);
+      expect(find.byType(LayoutThumbnail), findsNWidgets(2));
+      expect(find.byKey(Key('paper-badge-${a['id']}')), findsOneWidget);
+      expect(find.descendant(of: find.byKey(Key('paper-badge-${a['id']}')), matching: find.text('80 mm roll')),
+          findsOneWidget);
+      expect(find.descendant(of: find.byKey(Key('paper-badge-${b['id']}')), matching: find.text('A4 page')),
+          findsOneWidget);
+      expect(find.descendant(of: find.byKey(Key('language-badge-${a['id']}')), matching: find.text('English')),
+          findsOneWidget);
+      expect(find.descendant(of: find.byKey(Key('language-badge-${b['id']}')), matching: find.text('اردو')),
+          findsOneWidget);
+      expect(find.text('Default for print'), findsOneWidget);
+      expect(find.text('Default for WhatsApp'), findsOneWidget);
+      expect(find.byKey(Key('used-by-${a['id']}-print')), findsOneWidget);
+      expect(find.byKey(Key('used-by-${a['id']}-whatsapp')), findsOneWidget);
+      expect(find.byKey(Key('used-by-${a['id']}-link')), findsNothing);
+      // The other layout is not a default anywhere.
+      expect(find.text('Not a default anywhere.'), findsOneWidget);
+      expect(find.byKey(Key('layout-menu-${a['id']}')), findsOneWidget);
+      expect(find.byKey(const Key('new-layout')), findsOneWidget);
+    });
+
+    testWidgets('cards form a grid: 3 across on a wide window, 1 on a narrow one', (t) async {
+      final ids = [for (final n in ['A', 'B', 'C']) '${api.seed(n, ReceiptDesign.thermalClassic)['id']}'];
+      await _pump(rig, store, api, () => online, tester: t);
+      final ys = [for (final i in ids) t.getTopLeft(find.byKey(Key('layout-$i'))).dy];
+      expect(ys.toSet(), hasLength(1), reason: 'same row');
+
+      await _pump(rig, store, api, () => online, tester: t, width: 500);
+      expect(t.takeException(), isNull);
+      final ys2 = [for (final i in ids) t.getTopLeft(find.byKey(Key('layout-$i'))).dy];
+      expect(ys2.toSet(), hasLength(3), reason: 'one per row');
+    });
+
+    testWidgets('a loading skeleton shows before the layouts arrive', (t) async {
+      api.seed('One', ReceiptDesign.thermalClassic);
+      await _pump(rig, store, api, () => online, tester: t, settle: false);
+      expect(find.byKey(const Key('layouts-skeleton')), findsOneWidget);
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('layouts-skeleton')), findsNothing);
+      expect(find.text('One'), findsOneWidget);
+    });
+
     testWidgets('offline shows the notice and keeps the list', (t) async {
       api.seed('Counter receipt', ReceiptDesign.thermalClassic);
       final seeded = cubit();
@@ -313,9 +370,11 @@ Future<void> _pump(
   FakeLayoutApi api,
   bool Function() isOnline, {
   required WidgetTester tester,
+  double width = 1400,
+  bool settle = true,
 }) async {
   Future<void> body(WidgetTester t) async {
-    t.view.physicalSize = const Size(1400, 1000);
+    t.view.physicalSize = Size(width, 1000);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     final router = GoRouter(
@@ -336,7 +395,7 @@ Future<void> _pump(
       ],
     );
     await t.pumpWidget(MaterialApp.router(routerConfig: router));
-    await t.pumpAndSettle();
+    if (settle) await t.pumpAndSettle();
   }
 
   await body(tester);

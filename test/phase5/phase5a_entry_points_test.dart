@@ -176,7 +176,7 @@ void main() {
     _swap<PrinterService>(_Printer());
     await tester.pumpWidget(const MaterialApp(home: PrinterSettingsPage()));
     await tester.pumpAndSettle();
-    expect(find.text('Printer & Hardware Settings'), findsOneWidget);
+    expect(find.text('Receipt Printer'), findsOneWidget);
     expect(find.text('Save Settings'), findsOneWidget);
     await tester.tap(find.text('Save Settings'));
     await tester.pumpAndSettle();

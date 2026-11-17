@@ -78,18 +78,45 @@ enum ReceiptChannel {
       );
 }
 
-/// One printed caption in both languages. A caption prints bilingual
-/// ("Total / کل") when both are filled in.
+/// The ONE language a receipt is written in (`style.language`). `both` prints
+/// every caption on two lines: English, then Urdu under it.
+enum ReceiptLanguage {
+  en('en', 'English'),
+  ur('ur', 'اردو'),
+  both('both', 'Both');
+
+  const ReceiptLanguage(this.code, this.title);
+  final String code;
+  final String title;
+
+  bool get isRtl => this == ur;
+  bool get isBoth => this == both;
+
+  static ReceiptLanguage fromCode(String? code) => values.firstWhere(
+        (l) => l.code == code,
+        orElse: () => en,
+      );
+}
+
+/// One printed caption in both languages.
 class ReceiptLabel {
   const ReceiptLabel(this.en, this.ur);
   final String en;
   final String ur;
 
-  String get text {
-    final e = en.trim();
+  /// The caption in exactly [language]. For `both` this is the English text;
+  /// the Urdu one is [secondary].
+  String primary(ReceiptLanguage language) {
+    final text = language == ReceiptLanguage.ur ? ur : en;
+    final fallback = language == ReceiptLanguage.ur ? en : ur;
+    return text.trim().isNotEmpty ? text.trim() : fallback.trim();
+  }
+
+  /// The second line of a `both` caption; null for one-language receipts.
+  String? secondary(ReceiptLanguage language) {
+    if (language != ReceiptLanguage.both) return null;
     final u = ur.trim();
-    if (e.isNotEmpty && u.isNotEmpty) return '$e / $u';
-    return e.isNotEmpty ? e : u;
+    return u.isEmpty || u == en.trim() ? null : u;
   }
 
   Map<String, String> toJson() => {'en': en, 'ur': ur};
@@ -228,7 +255,6 @@ class ReceiptLayoutConfig {
       'show_line_total': true,
       'show_batch': false,
       'show_expiry': false,
-      'name_language': 'primary',
     },
     'totals': {
       'show_subtotal': true,
@@ -248,6 +274,7 @@ class ReceiptLayoutConfig {
       'show_qr': true,
     },
     'style': {
+      'language': 'en',
       'font_scale': 1.0,
       'show_dividers': true,
       'compact_items': false,
@@ -330,7 +357,36 @@ class ReceiptLayoutConfig {
         ur.isNotEmpty ? ur : entry.value.ur,
       );
     }
+    final styleGiven = src['style'];
+    final hasLanguage = styleGiven is Map &&
+        ReceiptLanguage.values.any((l) => l.code == styleGiven['language']);
+    if (!hasLanguage) {
+      sections['style']!['language'] = _legacyLanguage(src, labels).code;
+    }
     return ReceiptLayoutConfig._(sections, labels);
+  }
+
+  /// Layouts saved before `style.language` existed printed English and Urdu
+  /// on every caption. They become `both` only when the owner had written
+  /// Urdu text of their own (an edited caption or an Urdu footer); otherwise
+  /// they were just showing the built-in Urdu and become `en`.
+  static ReceiptLanguage _legacyLanguage(
+    Map<String, dynamic> src,
+    Map<String, ReceiptLabel> labels,
+  ) {
+    final given = src['labels'];
+    if (given is Map) {
+      for (final entry in ReceiptLabelDefaults.all.entries) {
+        final g = given[entry.key];
+        final ur = g is Map ? '${g['ur'] ?? ''}'.trim() : '';
+        if (ur.isNotEmpty && ur != entry.value.ur) return ReceiptLanguage.both;
+      }
+    }
+    final footer = src['footer'];
+    if (footer is Map && '${footer['text_ur'] ?? ''}'.trim().isNotEmpty) {
+      return ReceiptLanguage.both;
+    }
+    return ReceiptLanguage.en;
   }
 
   ReceiptHeaderConfig get header => ReceiptHeaderConfig._(_sections['header']!);
@@ -345,6 +401,11 @@ class ReceiptLayoutConfig {
       _labels[key] ?? ReceiptLabelDefaults.all[key] ?? ReceiptLabel(key, '');
 
   Map<String, ReceiptLabel> get labels => Map.unmodifiable(_labels);
+
+  ReceiptLanguage get language => style.language;
+
+  ReceiptLayoutConfig withLanguage(ReceiptLanguage language) =>
+      withValue('style', 'language', language.code);
 
   /// A copy with one value changed. [section] is `header`, `meta`, `items`,
   /// `totals`, `footer` or `style`.
@@ -428,7 +489,6 @@ class ReceiptItemsConfig extends _Section {
   bool get showLineTotal => _b('show_line_total');
   bool get showBatch => _b('show_batch');
   bool get showExpiry => _b('show_expiry');
-  String get nameLanguage => _s('name_language');
 }
 
 class ReceiptTotalsConfig extends _Section {
@@ -450,10 +510,25 @@ class ReceiptFooterConfig extends _Section {
   String get textUr => _s('text_ur');
   bool get showPoweredBy => _b('show_powered_by');
   bool get showQr => _b('show_qr');
+
+  /// The thank-you lines for [language]: one line for `en`/`ur`, English then
+  /// Urdu for `both`. A language without its own text prints nothing (the
+  /// other language's text is never borrowed).
+  List<String> linesFor(ReceiptLanguage language) {
+    final en = textEn.trim();
+    final ur = textUr.trim();
+    return switch (language) {
+      ReceiptLanguage.en => [if (en.isNotEmpty) en],
+      ReceiptLanguage.ur => [if (ur.isNotEmpty) ur],
+      ReceiptLanguage.both => [if (en.isNotEmpty) en, if (ur.isNotEmpty) ur],
+    };
+  }
 }
 
 class ReceiptStyleConfig extends _Section {
   const ReceiptStyleConfig._(super.m);
+  ReceiptLanguage get language => ReceiptLanguage.fromCode(_s('language'));
+
   double get fontScale {
     final v = _m['font_scale'];
     final d = v is num ? v.toDouble() : 1.0;
@@ -538,14 +613,12 @@ class ReceiptLayout {
     String footerText = 'Thank you for shopping with us!',
     ReceiptPaper paper = ReceiptPaper.roll80,
   }) {
-    var config = ReceiptLayoutConfig.defaultsFor(ReceiptDesign.thermalClassic)
+    final config = ReceiptLayoutConfig.defaultsFor(ReceiptDesign.thermalClassic)
         .withValue('meta', 'show_cashier', false)
         .withValue('footer', 'text_en', footerText)
         .withValue('footer', 'show_powered_by', true)
-        .withValue('footer', 'show_qr', false);
-    for (final key in ReceiptLabelDefaults.all.keys) {
-      config = config.withLabel(key, ur: '');
-    }
+        .withValue('footer', 'show_qr', false)
+        .withLanguage(ReceiptLanguage.en);
     return ReceiptLayout(
       id: builtInId,
       name: 'Classic receipt',

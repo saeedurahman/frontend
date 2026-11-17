@@ -15,21 +15,26 @@ import 'package:frantend/features/receipts/presentation/render/receipt_pdf_rende
 import 'package:frantend/features/receipts/presentation/widgets/receipt_view.dart';
 
 class _Sample {
-  const _Sample(this.design, this.paper, this.width);
+  const _Sample(this.design, this.paper, this.width, [this.language = ReceiptLanguage.en]);
   final ReceiptDesign design;
   final ReceiptPaper paper;
   final double width; // logical pixels for the picture
+  final ReceiptLanguage language;
 
-  String get name => 'receipt_${design.code}_${paper.code}';
+  String get name => 'receipt_${design.code}_${paper.code}_${language.code}';
 }
 
-const _samples = [
-  _Sample(ReceiptDesign.thermalClassic, ReceiptPaper.roll80, 302),
-  _Sample(ReceiptDesign.thermalClassic, ReceiptPaper.roll58, 215),
-  _Sample(ReceiptDesign.thermalCompact, ReceiptPaper.roll80, 302),
-  _Sample(ReceiptDesign.thermalCompact, ReceiptPaper.roll58, 215),
-  _Sample(ReceiptDesign.a4TaxInvoice, ReceiptPaper.a4, 794),
-  _Sample(ReceiptDesign.a4Elegant, ReceiptPaper.a4, 794),
+/// Every design in English, plus the Urdu (right-to-left) and bilingual
+/// versions of the 80 mm roll and both A4 designs.
+final _samples = [
+  for (final lang in ReceiptLanguage.values) ...[
+    _Sample(ReceiptDesign.thermalClassic, ReceiptPaper.roll80, 302, lang),
+    _Sample(ReceiptDesign.a4TaxInvoice, ReceiptPaper.a4, 794, lang),
+    _Sample(ReceiptDesign.a4Elegant, ReceiptPaper.a4, 794, lang),
+  ],
+  const _Sample(ReceiptDesign.thermalClassic, ReceiptPaper.roll58, 215),
+  const _Sample(ReceiptDesign.thermalCompact, ReceiptPaper.roll80, 302),
+  const _Sample(ReceiptDesign.thermalCompact, ReceiptPaper.roll58, 215),
 ];
 
 void main() {
@@ -56,7 +61,10 @@ void main() {
       name: s.design.title,
       design: s.design,
       paper: s.paper,
-      config: ReceiptLayoutConfig.defaultsFor(s.design, pharmacy: true),
+      config: ReceiptLayoutConfig.defaultsFor(s.design, pharmacy: true)
+          .withValue('footer', 'text_en', 'Thank you for shopping with us.')
+          .withValue('footer', 'text_ur', 'ہماری دکان پر آنے کا شکریہ')
+          .withLanguage(s.language),
     );
     final model = ReceiptModelBuilder.build(
       ReceiptSamples.sale(),

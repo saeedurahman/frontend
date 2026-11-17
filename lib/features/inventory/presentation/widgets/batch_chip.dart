@@ -57,9 +57,15 @@ class BatchChip extends StatelessWidget {
             Icon(Icons.warning_amber_rounded, size: 13, color: colors.fg),
             const SizedBox(width: 4),
           ],
-          Text(
-            [parts.join(' · '), if (tag != null) tag].join(' · '),
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.fg),
+          // Flexible: a long batch number wraps instead of overflowing the
+          // narrow cart column.
+          Flexible(
+            child: Text(
+              [parts.join(' · '), if (tag != null) tag].join(' · '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.fg),
+            ),
           ),
         ],
       ),

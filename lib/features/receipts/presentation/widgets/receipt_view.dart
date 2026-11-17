@@ -42,7 +42,11 @@ class ReceiptView extends StatelessWidget {
           fontFamily: 'NotoSans',
           fontFamilyFallback: ['NotoNaskhArabic', 'NotoNastaliqUrdu'],
         ),
-        child: model.design.isA4 ? _A4Body(model) : _ThermalBody(model),
+        // Urdu receipts read right-to-left: rows, columns and headers mirror.
+        child: Directionality(
+          textDirection: model.rtl ? TextDirection.rtl : TextDirection.ltr,
+          child: model.design.isA4 ? _A4Body(model) : _ThermalBody(model),
+        ),
       ),
     );
     final limit = maxWidth;
@@ -131,9 +135,37 @@ TextStyle _t(ReceiptModel m, double size, {bool bold = false, Color? color}) => 
       height: 1.25,
     );
 
+/// The Urdu caption under an English one (both-language receipts only).
+class _Alt extends StatelessWidget {
+  const _Alt(this.text, this.m, {this.size = 10, this.bold = false, this.color, this.center = false});
+  final String? text;
+  final ReceiptModel m;
+  final double size;
+  final bool bold;
+  final Color? color;
+  final bool center;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = text;
+    if (t == null || t.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      width: double.infinity,
+      child: Text(
+        t,
+        textDirection: TextDirection.rtl,
+        textAlign: center ? TextAlign.center : TextAlign.right,
+        style: _t(m, size * 0.92, bold: bold, color: color),
+      ),
+    );
+  }
+}
+
 class _Row extends StatelessWidget {
-  const _Row(this.label, this.value, this.m, {this.size = 12, this.bold = false, this.color});
+  const _Row(this.label, this.value, this.m,
+      {this.labelAlt, this.size = 12, this.bold = false, this.color});
   final String label;
+  final String? labelAlt;
   final String value;
   final ReceiptModel m;
   final double size;
@@ -145,22 +177,30 @@ class _Row extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 1),
         // A long value (a date, a customer name) may wrap on a narrow roll
         // instead of pushing past the edge of the paper.
-        child: LayoutBuilder(
-          builder: (context, c) => Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Text(label, style: _t(m, size, bold: bold, color: color))),
-              const SizedBox(width: 6),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: c.maxWidth * 0.62),
-                child: Text(
-                  value,
-                  textAlign: TextAlign.right,
-                  style: _t(m, size, bold: bold, color: color),
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LayoutBuilder(
+              builder: (context, c) => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: Text(label, style: _t(m, size, bold: bold, color: color))),
+                  const SizedBox(width: 6),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: c.maxWidth * 0.62),
+                    // The value sits at the far end: right for English, left
+                    // for a right-to-left receipt.
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.end,
+                      style: _t(m, size, bold: bold, color: color),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            _Alt(labelAlt, m, size: size, bold: bold, color: color),
+          ],
         ),
       );
 }
@@ -187,7 +227,10 @@ class _ThermalBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (m.isVoid) _center(m.voidLabel, 18, bold: true),
+        if (m.isVoid) ...[
+          _center(m.voidLabel, 18, bold: true),
+          if (m.voidAlt != null) _Alt(m.voidAlt, m, size: 18, bold: true, center: true),
+        ],
         if (logo != null) Center(child: logo),
         if (h.businessName != null) _center(h.businessName!, 16, bold: true),
         for (final l in [
@@ -199,20 +242,22 @@ class _ThermalBody extends StatelessWidget {
           _center(l, 10),
         if (m.meta.isNotEmpty) ...[
           _divider,
-          for (final r in m.meta) _Row(r.label, r.value, m, size: 10),
+          for (final r in m.meta) _Row(r.label, r.value, m, labelAlt: r.labelAlt, size: 10),
         ],
         _divider,
         for (final item in m.items) _Item(item, m),
         _divider,
         for (final t in m.totals)
-          _Row(t.label, t.value, m, size: t.strong ? 14 : 11, bold: t.strong),
+          _Row(t.label, t.value, m,
+              labelAlt: t.labelAlt, size: t.strong ? 14 : 11, bold: t.strong),
         if (m.taxNote != null) ...[
           const SizedBox(height: 2),
           _center(m.taxNote!, 9),
+          if (m.taxNoteAlt != null) _Alt(m.taxNoteAlt, m, size: 9, center: true),
         ],
         if (m.payments.isNotEmpty) ...[
           const SizedBox(height: 5),
-          for (final p in m.payments) _Row(p.label, p.value, m, size: 10),
+          for (final p in m.payments) _Row(p.label, p.value, m, labelAlt: p.labelAlt, size: 10),
         ],
         if (m.footerLines.isNotEmpty) ...[
           _divider,
@@ -255,15 +300,9 @@ class _Item extends StatelessWidget {
 
     final names = <Widget>[
       if (item.name.isNotEmpty) Text(item.name, style: _t(m, 12, bold: true)),
-      if (item.nameSecondary != null)
-        SizedBox(
-          width: double.infinity,
-          child: Text(item.nameSecondary!,
-              textAlign: TextAlign.right, style: _t(m, 11.5)),
-        ),
     ];
     Widget small(String text) => Padding(
-          padding: const EdgeInsets.only(left: 8, top: 1),
+          padding: const EdgeInsetsDirectional.only(start: 8, top: 1),
           child: Text(text, style: _t(m, 9.5)),
         );
     return Padding(
@@ -286,8 +325,8 @@ class _Item extends StatelessWidget {
           for (final b in item.batches)
             if (b.batchNo != null || b.expiry != null)
               small([
-                if (b.batchNo != null) 'Batch ${b.batchNo}',
-                if (b.expiry != null) 'Exp ${b.expiry}',
+                if (b.batchNo != null) '${m.word('batch')} ${b.batchNo}',
+                if (b.expiry != null) '${m.word('expiry')} ${b.expiry}',
               ].join('  ')),
           if (item.sku != null || item.barcode != null)
             small([if (item.sku != null) item.sku!, if (item.barcode != null) item.barcode!].join('  ')),
@@ -349,16 +388,25 @@ class _A4Body extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(m.title, style: _t(m, 22, bold: true, color: elegant ? accent : null)),
+          if (m.titleAlt != null)
+            Text(m.titleAlt!,
+                textDirection: TextDirection.rtl,
+                style: _t(m, 18, bold: true, color: elegant ? accent : null)),
           if (m.isVoid) Text(m.voidLabel, style: _t(m, 15, bold: true)),
+          if (m.voidAlt != null)
+            Text(m.voidAlt!, textDirection: TextDirection.rtl, style: _t(m, 13, bold: true)),
         ],
       );
 
   Widget _header() => Container(
         padding: elegant
-            ? const EdgeInsets.fromLTRB(14, 12, 12, 12)
+            ? const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12)
             : const EdgeInsets.only(bottom: 8),
         decoration: elegant
-            ? BoxDecoration(color: tint, border: Border(left: BorderSide(color: accent, width: 6)))
+            ? BoxDecoration(
+                color: tint,
+                border: BorderDirectional(start: BorderSide(color: accent, width: 6)),
+              )
             : const BoxDecoration(border: Border(bottom: BorderSide(width: 1.2))),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +422,7 @@ class _A4Body extends StatelessWidget {
     final right = <Widget>[];
     for (var i = 0; i < m.meta.length; i++) {
       final r = m.meta[i];
-      (i.isEven ? left : right).add(_Row(r.label, r.value, m, size: 10));
+      (i.isEven ? left : right).add(_Row(r.label, r.value, m, labelAlt: r.labelAlt, size: 10));
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,14 +442,22 @@ class _A4Body extends StatelessWidget {
     for (final c in m.columns) {
       head.add(cell(
         c,
-        Text(c.label,
-            textAlign: c.right ? TextAlign.right : TextAlign.left,
-            style: _t(m, 10, bold: true)),
+        Column(
+          crossAxisAlignment: c.right ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(c.label,
+                textAlign: c.right ? TextAlign.end : TextAlign.start,
+                style: _t(m, 10, bold: true)),
+            if (c.labelAlt != null)
+              Text(c.labelAlt!,
+                  textDirection: TextDirection.rtl, style: _t(m, 9, bold: true)),
+          ],
+        ),
       ));
       if (c.key == 'price' && _hasDiscount) {
         head.add(Expanded(
           flex: 2,
-          child: Text('Discount', textAlign: TextAlign.right, style: _t(m, 10, bold: true)),
+          child: Text(m.word('discount'), textAlign: TextAlign.end, style: _t(m, 10, bold: true)),
         ));
       }
     }
@@ -421,7 +477,7 @@ class _A4Body extends StatelessWidget {
           cells.add(Expanded(
             flex: 2,
             child: Text(item.discount ?? '',
-                textAlign: TextAlign.right, style: _t(m, 10)),
+                textAlign: TextAlign.end, style: _t(m, 10)),
           ));
         }
       }
@@ -446,12 +502,12 @@ class _A4Body extends StatelessWidget {
     switch (c.key) {
       case 'item':
         final sub = <String>[
-          if (item.sku != null) 'SKU ${item.sku}',
+          if (item.sku != null) '${m.word('sku')} ${item.sku}',
           if (item.barcode != null) item.barcode!,
           for (final b in item.batches)
             [
-              if (b.batchNo != null) 'Batch ${b.batchNo}',
-              if (b.expiry != null) 'Exp ${b.expiry}',
+              if (b.batchNo != null) '${m.word('batch')} ${b.batchNo}',
+              if (b.expiry != null) '${m.word('expiry')} ${b.expiry}',
             ].join('  '),
           ...item.extraLines,
         ].where((s) => s.isNotEmpty);
@@ -459,18 +515,17 @@ class _A4Body extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (item.name.isNotEmpty) Text(item.name, style: _t(m, 10.5, bold: true)),
-            if (item.nameSecondary != null) Text(item.nameSecondary!, style: _t(m, 10)),
             for (final s in sub) Text(s, style: _t(m, 8.5)),
           ],
         );
       case 'qty':
         return Text('${item.qty ?? ''}${item.unit != null ? ' ${item.unit}' : ''}',
-            textAlign: TextAlign.right, style: _t(m, 10.5));
+            textAlign: TextAlign.end, style: _t(m, 10.5));
       case 'price':
-        return Text(item.unitPrice ?? '', textAlign: TextAlign.right, style: _t(m, 10.5));
+        return Text(item.unitPrice ?? '', textAlign: TextAlign.end, style: _t(m, 10.5));
       default:
         return Text(item.lineTotal ?? '',
-            textAlign: TextAlign.right, style: _t(m, 10.5, bold: true));
+            textAlign: TextAlign.end, style: _t(m, 10.5, bold: true));
     }
   }
 
@@ -479,8 +534,8 @@ class _A4Body extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           child: Row(children: [
             Expanded(child: Text(a, style: _t(m, 9.5, bold: bold))),
-            Expanded(child: Text(b, textAlign: TextAlign.right, style: _t(m, 9.5, bold: bold))),
-            Expanded(child: Text(c, textAlign: TextAlign.right, style: _t(m, 9.5, bold: bold))),
+            Expanded(child: Text(b, textAlign: TextAlign.end, style: _t(m, 9.5, bold: bold))),
+            Expanded(child: Text(c, textAlign: TextAlign.end, style: _t(m, 9.5, bold: bold))),
           ]),
         );
     return Row(
@@ -493,9 +548,11 @@ class _A4Body extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Tax summary', style: _t(m, 10.5, bold: true)),
+                    Text(m.word('tax_summary'), style: _t(m, 10.5, bold: true)),
                     const SizedBox(height: 3),
-                    Container(color: Colors.grey.shade300, child: tax('Rate', 'Taxable', 'Tax', bold: true)),
+                    Container(
+                        color: Colors.grey.shade300,
+                        child: tax(m.word('rate'), m.word('taxable'), m.word('tax'), bold: true)),
                     for (final r in m.taxSummary) tax('${r.label} ${r.rate}', r.net, r.tax),
                   ],
                 ),
@@ -513,10 +570,12 @@ class _A4Body extends StatelessWidget {
               children: [
                 for (final t in m.totals)
                   _Row(t.label, t.value, m,
+                      labelAlt: t.labelAlt,
                       size: t.strong ? 13 : 10.5,
                       bold: t.strong,
                       color: t.strong && elegant ? accent : null),
-                for (final p in m.payments) _Row(p.label, p.value, m, size: 10, bold: p.strong),
+                for (final p in m.payments)
+                  _Row(p.label, p.value, m, labelAlt: p.labelAlt, size: 10, bold: p.strong),
               ],
             ),
           ),
@@ -539,7 +598,8 @@ class _A4Body extends StatelessWidget {
         _summary(),
         if (m.taxNote != null) ...[
           const SizedBox(height: 6),
-          Text(m.taxNote!, textAlign: TextAlign.right, style: _t(m, 9.5)),
+          Text(m.taxNote!, textAlign: TextAlign.end, style: _t(m, 9.5)),
+          if (m.taxNoteAlt != null) _Alt(m.taxNoteAlt, m, size: 9.5),
         ],
         if (m.footerLines.isNotEmpty) ...[
           const SizedBox(height: 14),
@@ -565,6 +625,9 @@ class _A4Body extends StatelessWidget {
                   Container(width: 150, height: 0.8, color: Colors.black),
                   const SizedBox(height: 3),
                   Text(m.signatureLabel!, style: _t(m, 9.5)),
+                  if (m.signatureAlt != null)
+                    Text(m.signatureAlt!,
+                        textDirection: TextDirection.rtl, style: _t(m, 9)),
                 ],
               )
             else

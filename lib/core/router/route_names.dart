@@ -96,6 +96,10 @@ abstract final class RouteNames {
   static String settingsReceiptLayoutPath(String id) => '/settings/receipt-layouts/$id';
   static const String settingsDevices = '/settings/devices';
   static const String settingsTax = '/settings/tax';
+  static const String settingsSecurity = '/settings/security';
+  static const String settingsPos = '/settings/pos';
+  static const String settingsOffline = '/settings/offline';
+  static const String settingsBranchOverrides = '/settings/branch-overrides';
   static const String settingsTaxPrices = '/settings/tax-prices';
   static const String settingsSubscription = '/settings/subscription';
   static const String settingsRoles = '/settings/roles';

@@ -23,6 +23,8 @@ class ReceiptModel {
     required this.taxSummary,
     required this.payments,
     required this.footerLines,
+    this.language = ReceiptLanguage.en,
+    this.words = const {},
     this.isVoid = false,
     this.voidLabel = '',
     this.poweredBy,
@@ -31,6 +33,10 @@ class ReceiptModel {
     this.notes,
     this.accentColor = 0xFF0F6B36,
     this.signatureLabel,
+    this.titleAlt,
+    this.voidAlt,
+    this.taxNoteAlt,
+    this.signatureAlt,
   });
 
   final ReceiptChannel channel;
@@ -42,8 +48,20 @@ class ReceiptModel {
   final bool showDividers;
   final bool compactItems;
 
+  /// The one language every caption is written in. `both` adds a second
+  /// (Urdu) line under each caption: see the `*Alt` fields and `labelAlt`.
+  final ReceiptLanguage language;
+
+  /// Small captions the renderers print themselves (batch, expiry, SKU,
+  /// discount, tax summary headings...), already in [language].
+  final Map<String, String> words;
+
   /// "Receipt", "Tax Invoice" ...
   final String title;
+  final String? titleAlt;
+  final String? voidAlt;
+  final String? taxNoteAlt;
+  final String? signatureAlt;
   final bool isVoid;
   final String voidLabel;
   final ReceiptHeader header;
@@ -75,24 +93,36 @@ class ReceiptModel {
 
   bool get isThermal => design.isThermal;
 
+  /// Urdu-only receipts are laid out right-to-left (labels and values
+  /// mirrored); English and both-language receipts stay left-to-right.
+  bool get rtl => language.isRtl;
+
+  bool get isBoth => language.isBoth;
+
+  String word(String key) => words[key] ?? key;
+
   /// Every visible text in reading order (used by tests and plain text).
   Iterable<String> get allTexts sync* {
     yield title;
+    if (titleAlt != null) yield titleAlt!;
     yield* header.lines;
     for (final m in meta) {
       yield '${m.label}: ${m.value}';
+      if (m.labelAlt != null) yield m.labelAlt!;
     }
     for (final i in items) {
       yield i.name;
-      if (i.nameSecondary != null) yield i.nameSecondary!;
     }
     for (final t in totals) {
       yield '${t.label}: ${t.value}';
+      if (t.labelAlt != null) yield t.labelAlt!;
     }
     for (final p in payments) {
       yield '${p.label}: ${p.value}';
+      if (p.labelAlt != null) yield p.labelAlt!;
     }
     if (taxNote != null) yield taxNote!;
+    if (taxNoteAlt != null) yield taxNoteAlt!;
     yield* footerLines;
     if (poweredBy != null) yield poweredBy!;
   }
@@ -133,16 +163,20 @@ class ReceiptHeader {
 }
 
 class ReceiptMetaRow {
-  const ReceiptMetaRow(this.key, this.label, this.value);
+  const ReceiptMetaRow(this.key, this.label, this.value, {this.labelAlt});
   final String key;
   final String label;
   final String value;
+
+  /// Urdu caption under [label] (`both` receipts only).
+  final String? labelAlt;
 }
 
 class ReceiptColumn {
-  const ReceiptColumn(this.key, this.label, {this.flex = 1, this.right = false});
+  const ReceiptColumn(this.key, this.label, {this.flex = 1, this.right = false, this.labelAlt});
   final String key;
   final String label;
+  final String? labelAlt;
   final int flex;
   final bool right;
 }
@@ -159,7 +193,6 @@ class ReceiptBatchLine {
 class ReceiptItem {
   const ReceiptItem({
     required this.name,
-    this.nameSecondary,
     this.sku,
     this.barcode,
     this.unit,
@@ -172,7 +205,6 @@ class ReceiptItem {
   });
 
   final String name;
-  final String? nameSecondary;
   final String? sku;
   final String? barcode;
   final String? unit;
@@ -189,9 +221,10 @@ class ReceiptItem {
 }
 
 class ReceiptTotalRow {
-  const ReceiptTotalRow(this.key, this.label, this.value, {this.strong = false});
+  const ReceiptTotalRow(this.key, this.label, this.value, {this.strong = false, this.labelAlt});
   final String key;
   final String label;
+  final String? labelAlt;
   final String value;
   final bool strong;
 }

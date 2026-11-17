@@ -50,6 +50,7 @@ Main pharmacy owner ke taur par software ko is tarah chalata hoon:
 - [x] Receipt aur sale record verify karna
 - [x] Cash reconcile karke shift close karna
 - [x] Closed shift report verify karna
+- [ ] Mazeed pharmacy demo products banana
 - [ ] Receipt, returns aur reports verify karna
 
 ## Step 1: Business Register
@@ -253,6 +254,68 @@ Sale record verify ho gaya. Ab shift summary reconcile karke demo shift close ka
 
 **Wajah:** Shift report ek jagah par cashier/register, sales, cash movement aur reconciliation ka final record dikhati hai.
 
+## Step 14: Mazeed Pharmacy Products — Abhi Ka Qadam
+
+Pehla product pehle hi bana hai. Ab neeche diye gaye **12 additional demo products** ko aik aik karke `Products` → `Add Product` se banao. Har product save karne ke baad list par wapas aa kar agla add karo. Agar table mein di hui category aapke business mein nahi milti to uski jagah maujooda `Medicines` category select karo; duplicate category na banao.
+
+### Har product par common fields
+
+- `Product Type *`: `Standard`
+- `Tracking Type *`: `Expiry`
+- `Track expiry`: ON
+- `Shelf Life (days)`: table mein diya hua number (sirf software alert/test value)
+- `Brand`: `Optional` — `None` select karo, jab tak demo brand list mein koi brand maujood na ho.
+- `Description`: `Synthetic pharmacy demo item for product, purchase, expiry and POS testing only.`
+- `Product image`: `Optional`
+- `Is Sellable`: ON
+- `Is Purchasable`: ON
+- `Min Stock Level`: `10` (selected base unit mein)
+- `Max Stock Level`: `100` (selected base unit mein)
+- `Tax rate`: `Use business default`
+- `This item is tax-free`: OFF
+
+### Har product ki unique details
+
+| # | Product Name | SKU | Category | Base Unit | Shelf Life (days) | Variation Name | Variation SKU | Barcode |
+|---|---|---|---|---|---:|---|---|---|
+| 2 | Demo Ibuprofen 200 mg Tablet | PH-DEMO-002 | OTC Medicines | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-002 | TEST-PH-002 |
+| 3 | Demo Cetirizine 10 mg Tablet | PH-DEMO-003 | OTC Medicines | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-003 | TEST-PH-003 |
+| 4 | Demo ORS Powder Sachet | PH-DEMO-004 | OTC Medicines | Piece (`pc`) | 730 | 1 Sachet | V-PH-DEMO-004 | TEST-PH-004 |
+| 5 | Demo Amoxicillin 500 mg Capsule | PH-DEMO-005 | Prescription (Rx) | Capsule (`cap`) | 730 | 1 Capsule | V-PH-DEMO-005 | TEST-PH-005 |
+| 6 | Demo Omeprazole 20 mg Capsule | PH-DEMO-006 | Prescription (Rx) | Capsule (`cap`) | 730 | 1 Capsule | V-PH-DEMO-006 | TEST-PH-006 |
+| 7 | Demo Metformin 500 mg Tablet | PH-DEMO-007 | Prescription (Rx) | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-007 | TEST-PH-007 |
+| 8 | Demo Amlodipine 5 mg Tablet | PH-DEMO-008 | Prescription (Rx) | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-008 | TEST-PH-008 |
+| 9 | Demo Vitamin C 500 mg Tablet | PH-DEMO-009 | Vitamins & Supplements | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-009 | TEST-PH-009 |
+| 10 | Demo Multivitamin Syrup 120 ml | PH-DEMO-010 | Vitamins & Supplements | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-010 | TEST-PH-010 |
+| 11 | Demo Cough Syrup 100 ml | PH-DEMO-011 | OTC Medicines | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-011 | TEST-PH-011 |
+| 12 | Demo Antiseptic Cream 20 g | PH-DEMO-012 | Medical Supplies & Devices | Tube (`tube`) | 730 | 1 Tube | V-PH-DEMO-012 | TEST-PH-012 |
+| 13 | Demo Hand Sanitizer 100 ml | PH-DEMO-013 | Personal Care | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-013 | TEST-PH-013 |
+
+### Variations aur barcode fields bhi fill karo
+
+Har product ke `Variations` tab mein aik row add karo:
+
+- `Name`: table ka `Variation Name`
+- `SKU`: table ka `Variation SKU`
+- `Unit`: us product ke base unit ka symbol
+- `Weight (g)`: `Optional`
+- `Default`: checked
+
+`Barcodes` tab mein aik row add karo:
+
+- `Barcode`: table ka `Barcode`
+- `Type`: `Custom`
+- `Variation`: us product ki variation select karo
+- `Primary`: checked
+
+`TEST-PH-...` values jaan-boojh kar fake custom codes hain; inhein real product packaging, scanner-based retail ya kisi asli medicine ke barcode ke taur par use na karo.
+
+### Save aur agla kaam
+
+`Save Product` dabao. Product list mein naye product ka naam/SKU nazar aaye to agla item banao. Is step mein stock adjustment ya nayi purchase order mat banao. Agle qadam mein in products ko supplier ke PO mein add karke demo receiving, batch/expiry, stock aur pricing ko bulk mein test karenge.
+
+**Demo data ehtiyat:** Yeh product names, SKUs, barcodes aur `730` din ki shelf life synthetic test data hai—asal manufacturer, product registration, storage condition, expiry ya clinical recommendation nahi. Expiry tracking ka form test karne ke liye receiving screen par sirf clearly synthetic demo batch/date use karo. Is data se real patient ko dawa sell/dispense na karo. Live pharmacy mein exact product identity, pack size, batch aur expiry packaging/supplier ke authentic record se lena.
+
 ## Agla Qadam
 
-Shift report verify ho chuki hai. Pharmacy ke remaining operational features—customer return, expenses aur reports—ab aik aik karke test karenge.
+Yeh 12 products add hone ke baad unki supplier purchase, receiving, inventory aur price testing karenge; phir returns, expenses aur reports par jayenge.

@@ -23,7 +23,7 @@ abstract final class ReceiptPdfRenderer {
     final resolved = theme ?? await ReceiptPdfSupport.loadFonts();
     final doc = pw.Document(theme: resolved);
     if (model.design.isA4) {
-      final ink = _Ink(urduStyle, PdfPageFormat.a4.width - 64, model.fontScale);
+      final ink = _Ink(urduStyle, PdfPageFormat.a4.width - 64, model.fontScale, rtl: model.rtl);
       final widgets = await _A4(model, ink).build();
       doc.addPage(
         pw.MultiPage(
@@ -37,7 +37,7 @@ abstract final class ReceiptPdfRenderer {
 
     final rollWidth = model.paper.widthMm * PdfPageFormat.mm;
     final printable = rollWidth - _rollMargin.horizontal;
-    final ink = _Ink(urduStyle, printable, model.fontScale);
+    final ink = _Ink(urduStyle, printable, model.fontScale, rtl: model.rtl);
     final widgets = await _Thermal(model, ink, printable).build();
     final content = ReceiptPdfSupport.measureWidgetsHeight(
       widgets: widgets,
@@ -73,22 +73,36 @@ abstract final class ReceiptPdfRenderer {
 
 /// Text maker: Arabic-script text becomes an image, the rest stays text.
 class _Ink {
-  _Ink(this.style, this.width, this.scale);
+  _Ink(this.style, this.width, this.scale, {this.rtl = false});
 
   final UrduReceiptStyle style;
   final double width;
   final double scale;
 
+  /// Urdu receipt: everything is mirrored (labels on the right, values on the
+  /// left, columns in reverse order).
+  final bool rtl;
+
   double sz(double base) => base * scale;
+
+  /// [items] in reading order for the receipt direction.
+  List<T> dir<T>(List<T> items) => rtl ? items.reversed.toList() : items;
+
+  TextAlign _resolve(TextAlign a) => switch (a) {
+        TextAlign.start => rtl ? TextAlign.right : TextAlign.left,
+        TextAlign.end => rtl ? TextAlign.left : TextAlign.right,
+        _ => a,
+      };
 
   Future<pw.Widget> text(
     String value, {
     double size = 9,
     bool bold = false,
-    TextAlign align = TextAlign.left,
+    TextAlign align = TextAlign.start,
     double? maxWidth,
     PdfColor? color,
   }) async {
+    align = _resolve(align);
     final fontSize = sz(size);
     final pwAlign = switch (align) {
       TextAlign.center => pw.TextAlign.center,
@@ -126,10 +140,24 @@ class _Ink {
     );
   }
 
-  /// Label on the left (wraps inside [labelWidth]), value on the right.
+  /// The Urdu caption under an English one (both-language receipts).
+  Future<pw.Widget> alt(
+    String text_, {
+    double size = 8.5,
+    bool bold = false,
+    double? maxWidth,
+    PdfColor? color,
+    TextAlign align = TextAlign.right,
+  }) =>
+      text(text_,
+          size: size * 0.92, bold: bold, align: align, maxWidth: maxWidth, color: color);
+
+  /// Label at the start (wraps inside [labelWidth]), value at the end; the
+  /// Urdu caption of a both-language receipt goes on a second line.
   Future<pw.Widget> row(
     String label,
     String value, {
+    String? labelAlt,
     double size = 8.5,
     bool bold = false,
     double? labelWidth,
@@ -137,10 +165,10 @@ class _Ink {
   }) async {
     final l = await text(label,
         size: size, bold: bold, maxWidth: labelWidth ?? width * 0.62, color: color);
-    return pw.Row(
+    final line = pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
+      children: dir([
         pw.Flexible(child: l),
         pw.SizedBox(width: 4),
         pw.Text(
@@ -151,6 +179,15 @@ class _Ink {
             color: color,
           ),
         ),
+      ]),
+    );
+    if (labelAlt == null || labelAlt.isEmpty) return line;
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        line,
+        await alt(labelAlt,
+            size: size, bold: bold, maxWidth: labelWidth ?? width * 0.62, color: color),
       ],
     );
   }
@@ -183,6 +220,11 @@ class _Thermal {
       ? pw.Divider(thickness: 0.5, height: m.compactItems ? 6 : 10)
       : pw.SizedBox(height: m.compactItems ? 3 : 6);
 
+  /// Small indent under an item name, on the side the receipt reads from.
+  pw.EdgeInsets get _indent => ink.rtl
+      ? const pw.EdgeInsets.only(right: 6, top: 0.5)
+      : const pw.EdgeInsets.only(left: 6, top: 0.5);
+
   Future<List<pw.Widget>> build() async {
     final out = <pw.Widget>[];
     final h = m.header;
@@ -190,6 +232,9 @@ class _Thermal {
     if (m.isVoid) {
       out.add(await ink.text(m.voidLabel,
           size: 16, bold: true, align: TextAlign.center));
+      if (m.voidAlt != null) {
+        out.add(await ink.alt(m.voidAlt!, size: 16, bold: true, align: TextAlign.center));
+      }
     }
     final logo = _logo(m, 36);
     if (logo != null) {
@@ -215,7 +260,7 @@ class _Thermal {
       for (final r in m.meta) {
         out.add(pw.Padding(
           padding: const pw.EdgeInsets.symmetric(vertical: 0.5),
-          child: await ink.row(r.label, r.value, size: 8),
+          child: await ink.row(r.label, r.value, labelAlt: r.labelAlt, size: 8),
         ));
       }
     }
@@ -230,6 +275,7 @@ class _Thermal {
       out.add(await ink.row(
         t.label,
         t.value,
+        labelAlt: t.labelAlt,
         size: t.strong ? 11 : 8.5,
         bold: t.strong,
       ));
@@ -237,11 +283,14 @@ class _Thermal {
     if (m.taxNote != null) {
       out.add(pw.SizedBox(height: 1));
       out.add(await ink.text(m.taxNote!, size: 7.5, align: TextAlign.center));
+      if (m.taxNoteAlt != null) {
+        out.add(await ink.alt(m.taxNoteAlt!, size: 7.5, align: TextAlign.center));
+      }
     }
     if (m.payments.isNotEmpty) {
       out.add(pw.SizedBox(height: 4));
       for (final p in m.payments) {
-        out.add(await ink.row(p.label, p.value, size: 8));
+        out.add(await ink.row(p.label, p.value, labelAlt: p.labelAlt, size: 8));
       }
     }
 
@@ -284,14 +333,11 @@ class _Thermal {
           item.name,
           size: 9.5,
           bold: true,
-          align: ReceiptTextRenderer.hasArabicScript(item.name)
+          align: ink.rtl || ReceiptTextRenderer.hasArabicScript(item.name)
               ? TextAlign.right
               : TextAlign.left,
           maxWidth: compact && item.lineTotal != null ? printable * 0.68 : printable,
         ),
-      if (item.nameSecondary != null)
-        await ink.text(item.nameSecondary!,
-            size: 9, align: TextAlign.right, maxWidth: printable),
     ];
 
     final oneLine = compact &&
@@ -302,37 +348,37 @@ class _Thermal {
       children.add(pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
+        children: ink.dir([
           pw.Flexible(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.stretch, children: nameBlock)),
           pw.SizedBox(width: 4),
           pw.Text(item.lineTotal!,
               style: pw.TextStyle(fontSize: ink.sz(9), fontWeight: pw.FontWeight.bold)),
-        ],
+        ]),
       ));
     } else {
       children.addAll(nameBlock);
     }
     for (final extra in item.extraLines) {
       children.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(left: 6, top: 0.5),
+        padding: _indent,
         child: await ink.text(extra, size: 8),
       ));
     }
     for (final b in item.batches) {
       final text = [
-        if (b.batchNo != null) 'Batch ${b.batchNo}',
-        if (b.expiry != null) 'Exp ${b.expiry}',
+        if (b.batchNo != null) '${m.word('batch')} ${b.batchNo}',
+        if (b.expiry != null) '${m.word('expiry')} ${b.expiry}',
       ].join('  ');
       if (text.isNotEmpty) {
         children.add(pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 6, top: 0.5),
+          padding: _indent,
           child: await ink.text(text, size: 7.5),
         ));
       }
     }
     if (item.sku != null || item.barcode != null) {
       children.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(left: 6, top: 0.5),
+        padding: _indent,
         child: await ink.text(
           [if (item.sku != null) item.sku!, if (item.barcode != null) item.barcode!].join('  '),
           size: 7.5,
@@ -343,12 +389,12 @@ class _Thermal {
       children.add(pw.SizedBox(height: compact ? 0.5 : 1.5));
       children.add(pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
+        children: ink.dir([
           pw.Text(detail, style: pw.TextStyle(fontSize: ink.sz(8.5))),
           if (item.lineTotal != null)
             pw.Text(item.lineTotal!,
                 style: pw.TextStyle(fontSize: ink.sz(9), fontWeight: pw.FontWeight.bold)),
-        ],
+        ]),
       ));
     }
     return pw.Padding(
@@ -390,7 +436,10 @@ class _A4 {
     if (m.taxNote != null) {
       out
         ..add(pw.SizedBox(height: 6))
-        ..add(await ink.text(m.taxNote!, size: 8.5, align: TextAlign.right));
+        ..add(await ink.text(m.taxNote!, size: 8.5, align: TextAlign.end));
+      if (m.taxNoteAlt != null) {
+        out.add(await ink.alt(m.taxNoteAlt!, size: 8.5));
+      }
     }
     if (m.footerLines.isNotEmpty) {
       out.add(pw.SizedBox(height: 14));
@@ -419,26 +468,29 @@ class _A4 {
     final logo = _logo(m, 48);
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
+      children: ink.dir([
         if (logo != null) ...[logo, pw.SizedBox(width: 10)],
         pw.Expanded(
           child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: ink.rtl ? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
             children: lines,
           ),
         ),
-      ],
+      ]),
     );
   }
 
   Future<pw.Widget> _titleBlock({PdfColor? color}) async {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.end,
+      crossAxisAlignment: ink.rtl ? pw.CrossAxisAlignment.start : pw.CrossAxisAlignment.end,
       children: [
         await ink.text(m.title,
-            size: 20, bold: true, align: TextAlign.right, maxWidth: 220, color: color),
+            size: 20, bold: true, align: TextAlign.end, maxWidth: 220, color: color),
+        if (m.titleAlt != null)
+          await ink.alt(m.titleAlt!, size: 20, bold: true, maxWidth: 220, color: color),
         if (m.isVoid)
-          await ink.text(m.voidLabel, size: 14, bold: true, align: TextAlign.right, maxWidth: 220),
+          await ink.text(m.voidLabel, size: 14, bold: true, align: TextAlign.end, maxWidth: 220),
+        if (m.voidAlt != null) await ink.alt(m.voidAlt!, size: 14, bold: true, maxWidth: 220),
       ],
     );
   }
@@ -450,25 +502,29 @@ class _A4 {
         ),
         child: pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
+          children: ink.dir([
             pw.Expanded(flex: 3, child: await _businessBlock()),
             pw.Expanded(flex: 2, child: await _titleBlock()),
-          ],
+          ]),
         ),
       );
 
   Future<pw.Widget> _elegantHeader() async => pw.Container(
         decoration: pw.BoxDecoration(
           color: tintSolid,
-          border: pw.Border(left: pw.BorderSide(color: accent, width: 6)),
+          border: ink.rtl
+              ? pw.Border(right: pw.BorderSide(color: accent, width: 6))
+              : pw.Border(left: pw.BorderSide(color: accent, width: 6)),
         ),
-        padding: const pw.EdgeInsets.fromLTRB(14, 12, 12, 12),
+        padding: ink.rtl
+            ? const pw.EdgeInsets.fromLTRB(12, 12, 14, 12)
+            : const pw.EdgeInsets.fromLTRB(14, 12, 12, 12),
         child: pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
-          children: [
+          children: ink.dir([
             pw.Expanded(flex: 3, child: await _businessBlock()),
             pw.Expanded(flex: 2, child: await _titleBlock(color: accent)),
-          ],
+          ]),
         ),
       );
 
@@ -479,21 +535,24 @@ class _A4 {
       final r = m.meta[i];
       final w = pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
-        child: await ink.row(r.label, r.value, size: 9, labelWidth: 130),
+        child: await ink.row(r.label, r.value, labelAlt: r.labelAlt, size: 9, labelWidth: 130),
       );
       (i.isEven ? left : right).add(w);
     }
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
+      children: ink.dir([
         pw.Expanded(child: pw.Column(children: left)),
         pw.SizedBox(width: 28),
         pw.Expanded(child: pw.Column(children: right)),
-      ],
+      ]),
     );
   }
 
   List<ReceiptColumn> get _cols => m.columns;
+
+  /// "End" of a cell: right for English, left for a right-to-left receipt.
+  pw.TextAlign get _end => ink.rtl ? pw.TextAlign.left : pw.TextAlign.right;
   bool get _hasDiscount => m.items.any((i) => i.discount != null);
 
   Future<List<pw.Widget>> _table() async {
@@ -503,18 +562,30 @@ class _A4 {
     for (final c in cols) {
       head.add(pw.Expanded(
         flex: c.flex,
-        child: await ink.text(
-          c.label,
-          size: 9,
-          bold: true,
-          align: c.right ? TextAlign.right : TextAlign.left,
-          maxWidth: c.flex * 62.0,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            await ink.text(
+              c.label,
+              size: 9,
+              bold: true,
+              align: c.right ? TextAlign.end : TextAlign.start,
+              maxWidth: c.flex * 62.0,
+            ),
+            if (c.labelAlt != null)
+              await ink.alt(c.labelAlt!,
+                  size: 9,
+                  bold: true,
+                  maxWidth: c.flex * 62.0,
+                  align: c.right ? TextAlign.right : TextAlign.left),
+          ],
         ),
       ));
       if (c.key == 'price' && _hasDiscount) {
         head.add(pw.Expanded(
           flex: 2,
-          child: await ink.text('Discount', size: 9, bold: true, align: TextAlign.right, maxWidth: 100),
+          child: await ink.text(m.word('discount'),
+              size: 9, bold: true, align: TextAlign.end, maxWidth: 100),
         ));
       }
     }
@@ -526,7 +597,7 @@ class _A4 {
             : null,
       ),
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-      child: pw.Row(children: head),
+      child: pw.Row(children: ink.dir(head)),
     ));
 
     for (var n = 0; n < m.items.length; n++) {
@@ -543,7 +614,7 @@ class _A4 {
             child: item.discount == null
                 ? pw.SizedBox()
                 : pw.Text(item.discount!,
-                    textAlign: pw.TextAlign.right,
+                    textAlign: ink.rtl ? pw.TextAlign.left : pw.TextAlign.right,
                     style: pw.TextStyle(fontSize: ink.sz(9))),
           ));
         }
@@ -561,7 +632,7 @@ class _A4 {
         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: cells,
+          children: ink.dir(cells),
         ),
       ));
     }
@@ -572,12 +643,12 @@ class _A4 {
     switch (c.key) {
       case 'item':
         final sub = <String>[
-          if (item.sku != null) 'SKU ${item.sku}',
+          if (item.sku != null) '${m.word('sku')} ${item.sku}',
           if (item.barcode != null) item.barcode!,
           for (final b in item.batches)
             [
-              if (b.batchNo != null) 'Batch ${b.batchNo}',
-              if (b.expiry != null) 'Exp ${b.expiry}',
+              if (b.batchNo != null) '${m.word('batch')} ${b.batchNo}',
+              if (b.expiry != null) '${m.word('expiry')} ${b.expiry}',
             ].join('  '),
           ...item.extraLines,
         ].where((s) => s.isNotEmpty).toList();
@@ -586,23 +657,21 @@ class _A4 {
           children: [
             if (item.name.isNotEmpty)
               await ink.text(item.name, size: 9.5, bold: true, maxWidth: 270),
-            if (item.nameSecondary != null)
-              await ink.text(item.nameSecondary!, size: 9, maxWidth: 270),
             for (final s in sub) await ink.text(s, size: 7.5, maxWidth: 270),
           ],
         );
       case 'qty':
         return pw.Text(
           '${item.qty ?? ''}${item.unit != null ? ' ${item.unit}' : ''}',
-          textAlign: pw.TextAlign.right,
+          textAlign: _end,
           style: pw.TextStyle(fontSize: ink.sz(9.5)),
         );
       case 'price':
         return pw.Text(item.unitPrice ?? '',
-            textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: ink.sz(9.5)));
+            textAlign: _end, style: pw.TextStyle(fontSize: ink.sz(9.5)));
       default:
         return pw.Text(item.lineTotal ?? '',
-            textAlign: pw.TextAlign.right,
+            textAlign: _end,
             style: pw.TextStyle(fontSize: ink.sz(9.5), fontWeight: pw.FontWeight.bold));
     }
   }
@@ -615,6 +684,7 @@ class _A4 {
         child: await ink.row(
           t.label,
           t.value,
+          labelAlt: t.labelAlt,
           size: t.strong ? 12 : 9.5,
           bold: t.strong,
           labelWidth: 150,
@@ -625,17 +695,18 @@ class _A4 {
     for (final p in m.payments) {
       totals.add(pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
-        child: await ink.row(p.label, p.value, size: 9, bold: p.strong, labelWidth: 150),
+        child: await ink.row(p.label, p.value,
+            labelAlt: p.labelAlt, size: 9, bold: p.strong, labelWidth: 150),
       ));
     }
 
     final left = <pw.Widget>[];
     if (m.taxSummary.isNotEmpty) {
-      left.add(await ink.text('Tax summary', size: 9.5, bold: true));
+      left.add(await ink.text(m.word('tax_summary'), size: 9.5, bold: true));
       left.add(pw.SizedBox(height: 3));
       pw.Widget cell(String t, {bool bold = false}) => pw.Expanded(
             child: pw.Text(t,
-                textAlign: pw.TextAlign.right,
+                textAlign: _end,
                 style: pw.TextStyle(
                   fontSize: ink.sz(8.5),
                   fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
@@ -644,29 +715,29 @@ class _A4 {
       left.add(pw.Container(
         color: PdfColors.grey200,
         padding: const pw.EdgeInsets.all(3),
-        child: pw.Row(children: [
+        child: pw.Row(children: ink.dir([
           pw.Expanded(
-              child: pw.Text('Rate', style: pw.TextStyle(fontSize: ink.sz(8.5), fontWeight: pw.FontWeight.bold))),
-          cell('Taxable', bold: true),
-          cell('Tax', bold: true),
-        ]),
+              child: pw.Text(m.word('rate'), style: pw.TextStyle(fontSize: ink.sz(8.5), fontWeight: pw.FontWeight.bold))),
+          cell(m.word('taxable'), bold: true),
+          cell(m.word('tax'), bold: true),
+        ])),
       ));
       for (final r in m.taxSummary) {
         left.add(pw.Padding(
           padding: const pw.EdgeInsets.all(3),
-          child: pw.Row(children: [
+          child: pw.Row(children: ink.dir([
             pw.Expanded(
                 child: pw.Text('${r.label} ${r.rate}', style: pw.TextStyle(fontSize: ink.sz(8.5)))),
             cell(r.net),
             cell(r.tax),
-          ]),
+          ])),
         ));
       }
     }
 
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
+      children: ink.dir([
         pw.Expanded(flex: 5, child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.stretch, children: left)),
         pw.SizedBox(width: 24),
         pw.Expanded(
@@ -681,7 +752,7 @@ class _A4 {
             child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.stretch, children: totals),
           ),
         ),
-      ],
+      ]),
     );
   }
 
@@ -689,7 +760,7 @@ class _A4 {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
+      children: ink.dir([
         if (m.qrContent != null)
           ReceiptPdfSupport.qr(m.qrContent!, 78)
         else
@@ -705,12 +776,14 @@ class _A4 {
               pw.SizedBox(height: 28),
               pw.Container(width: 150, height: 0.8, color: PdfColors.black),
               pw.SizedBox(height: 3),
-              pw.Text(m.signatureLabel!, style: pw.TextStyle(fontSize: ink.sz(8.5))),
+              await ink.text(m.signatureLabel!, size: 8.5, align: TextAlign.center, maxWidth: 150),
+              if (m.signatureAlt != null)
+                await ink.alt(m.signatureAlt!, size: 8.5, align: TextAlign.center, maxWidth: 150),
             ],
           )
         else
           pw.SizedBox(width: 78),
-      ],
+      ]),
     );
   }
 }

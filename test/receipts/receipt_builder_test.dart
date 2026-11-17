@@ -267,14 +267,15 @@ void main() {
   });
 
   group('labels', () {
-    test('a bilingual caption prints "English / اردو"', () {
+    test('both languages: English line plus the Urdu caption under it', () {
       final l = layoutOf(
         ReceiptDesign.thermalClassic,
-        tweak: (c) => c.withLabel('total', en: 'Total', ur: 'کل'),
+        tweak: (c) => c.withLanguage(ReceiptLanguage.both).withLabel('total', en: 'Total', ur: 'کل'),
       );
       final m = build(ReceiptSamples.sale(), l);
       final row = m.totals.firstWhere((r) => r.key == 'total');
-      expect(row.label, 'Total / کل');
+      expect(row.label, 'Total');
+      expect(row.labelAlt, 'کل');
     });
 
     test('an English-only caption prints just English', () {
@@ -286,15 +287,18 @@ void main() {
       expect(m.totals.firstWhere((r) => r.key == 'total').label, 'Grand total');
     });
 
-    test('footer prints both languages when both are filled in', () {
-      final l = layoutOf(
-        ReceiptDesign.thermalClassic,
-        tweak: (c) => c
-            .withValue('footer', 'text_en', 'Thank you!')
-            .withValue('footer', 'text_ur', 'شکریہ'),
-      );
-      final m = build(ReceiptSamples.sale(), l);
-      expect(m.footerLines, ['Thank you!', 'شکریہ']);
+    test('footer follows the receipt language', () {
+      ReceiptLayout withLang(ReceiptLanguage lang) => layoutOf(
+            ReceiptDesign.thermalClassic,
+            tweak: (c) => c
+                .withValue('footer', 'text_en', 'Thank you!')
+                .withValue('footer', 'text_ur', 'شکریہ')
+                .withLanguage(lang),
+          );
+      expect(build(ReceiptSamples.sale(), withLang(ReceiptLanguage.en)).footerLines, ['Thank you!']);
+      expect(build(ReceiptSamples.sale(), withLang(ReceiptLanguage.ur)).footerLines, ['شکریہ']);
+      expect(build(ReceiptSamples.sale(), withLang(ReceiptLanguage.both)).footerLines,
+          ['Thank you!', 'شکریہ']);
     });
   });
 

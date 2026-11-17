@@ -136,6 +136,25 @@ void main() {
       expect(find.textContaining('B77'), findsOneWidget);
     });
 
+    testWidgets('a long batch label wraps in a narrow cart column without overflowing', (t) async {
+      await t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 208,
+            child: Wrap(children: [
+              BatchChip(
+                slice: BatchSlice(
+                    batchNo: 'DEMO-TEST-ONLY-001', expiry: '2028-12-31', qty: d('2'), daysLeft: 400),
+                nearDays: 30,
+              ),
+            ]),
+          ),
+        ),
+      ));
+      expect(t.takeException(), isNull);
+      expect(find.byKey(const Key('batch-chip-DEMO-TEST-ONLY-001')), findsOneWidget);
+    });
+
     testWidgets('near expiry and expired get a different colour than a safe batch', (t) async {
       Color? bg(WidgetTester t) {
         final c = t.widget<Container>(find.byKey(const Key('batch-chip-X')));

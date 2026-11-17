@@ -67,6 +67,7 @@ import 'package:frantend/features/receipts/presentation/pages/receipt_layouts_pa
 import 'package:frantend/features/settings/presentation/pages/devices_page.dart';
 import 'package:frantend/features/settings/presentation/pages/printer_settings_page.dart';
 import 'package:frantend/features/settings/presentation/pages/settings_page.dart';
+import 'package:frantend/features/settings/presentation/settings_catalog.dart';
 import 'package:frantend/features/sync/presentation/pages/failed_items_page.dart';
 import 'package:frantend/features/sync/presentation/pages/flags_page.dart';
 import 'package:frantend/features/sync/presentation/pages/sync_page.dart';
@@ -523,19 +524,21 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'business',
-                redirect: (_, __) => RouteNames.settings,
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.business),
               ),
+              // The old "Receipt & Printing" tab is now Receipt Printer
+              // (everything else moved into Receipt Layouts).
               GoRoute(
                 path: 'receipt',
-                redirect: (_, __) => RouteNames.settings,
+                redirect: (_, __) => RouteNames.settingsPrinter,
               ),
               GoRoute(
                 path: 'printer',
-                  builder: (_, __) => const PrinterSettingsPage(),
-                ),
-                GoRoute(
-                  path: 'tax',
-                redirect: (_, __) => RouteNames.settings,
+                builder: (_, __) => const PrinterSettingsPage(),
+              ),
+              GoRoute(
+                path: 'tax',
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.taxRates),
               ),
               GoRoute(
                 path: 'tax-prices',
@@ -545,6 +548,22 @@ class AppRouter {
                     child: TaxPricesPage(),
                   ),
                 ),
+              ),
+              GoRoute(
+                path: 'security',
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.security),
+              ),
+              GoRoute(
+                path: 'pos',
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.pos),
+              ),
+              GoRoute(
+                path: 'offline',
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.offline),
+              ),
+              GoRoute(
+                path: 'branch-overrides',
+                builder: (_, __) => const SettingsSectionPage(SettingsSection.branchOverrides),
               ),
               GoRoute(
                 path: 'receipt-layouts',
@@ -687,7 +706,7 @@ class AppRouter {
   if (path.startsWith(RouteNames.reports)) return ('Reports', 'Home / Reports');
   if (path.startsWith(RouteNames.settings)) {
     if (path.startsWith(RouteNames.settingsPrinter)) {
-      return ('Printer Settings', 'Home / System / Settings / Printer');
+      return ('Receipt Printer', 'Home / System / Settings / Receipt Printer');
     }
     if (path.startsWith(RouteNames.settingsReceiptLayouts)) {
       return ('Receipt Layouts', 'Home / System / Settings / Receipt Layouts');
@@ -703,6 +722,13 @@ class AppRouter {
     }
     if (path.startsWith(RouteNames.settingsRoles)) {
       return ('Roles & Permissions', 'Home / System / Settings / Roles');
+    }
+    for (final g in SettingsCatalog.groups) {
+      for (final e in g.entries) {
+        if (path.startsWith(e.route)) {
+          return (e.title, 'Home / System / Settings / ${e.title}');
+        }
+      }
     }
     return ('Settings', 'Home / System / Settings');
   }

@@ -1,8 +1,6 @@
-import 'package:frantend/features/settings/presentation/pages/tax_prices_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frantend/core/brand/app_brand.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
@@ -10,8 +8,6 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/session/access_cubit.dart';
-import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
-import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:frantend/features/settings/presentation/widgets/offline_settings_section.dart';
@@ -19,6 +15,7 @@ import 'package:frantend/features/settings/presentation/widgets/pos_settings_sec
 import 'package:frantend/features/settings/presentation/widgets/security_settings_section.dart';
 import 'package:frantend/features/receipts/domain/receipt_model_builder.dart';
 import 'package:frantend/features/settings/presentation/cubit/settings_state.dart';
+import 'package:frantend/features/settings/presentation/settings_catalog.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
@@ -26,6 +23,8 @@ import 'package:frantend/utils/app_phone_no_field.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
+/// The hub of Settings: every screen, in groups. Each entry opens its own page
+/// (its own route, so deep links and the back button work).
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -33,64 +32,180 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<SettingsCubit>()..loadAll(),
-      child: const _SettingsView(),
+      child: const _SettingsHub(),
     );
   }
 }
 
-class _SettingsView extends StatefulWidget {
-  const _SettingsView();
-
-  @override
-  State<_SettingsView> createState() => _SettingsViewState();
+bool _multiBranch(SettingsState state) {
+  if (state is! SettingsLoaded) return false;
+  final branchIds = sl<AccessCubit>().state.branchIds;
+  // ignore: invalid_use_of_visible_for_testing_member
+  final allowed = BranchSelectorCubit.allowedBranches(state.business.branches, branchIds);
+  if (branchIds.isNotEmpty) return allowed.isNotEmpty;
+  return state.business.branches.length > 1;
 }
 
-class _SettingsViewState extends State<_SettingsView>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-  int _tabCount = 4;
+class _SettingsHub extends StatelessWidget {
+  const _SettingsHub();
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabCount, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController?.dispose();
-    super.dispose();
-  }
-
-  int _tabCountFor(SettingsState state) {
-    return _showBranchTabFor(state) ? 5 : 4;
-  }
-
-  bool _showBranchTabFor(SettingsState state) {
-    if (state is! SettingsLoaded) return false;
-    final branchIds = sl<AccessCubit>().state.branchIds;
-    final allowed = BranchSelectorCubit.allowedBranches(
-      state.business.branches,
-      branchIds,
+  Widget build(BuildContext context) {
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        final groups = SettingsCatalog.visible(
+          can: (p) => hasPermission(context, p),
+          multiBranch: _multiBranch(state),
+        );
+        return ListView(
+          key: const Key('settings-hub'),
+          padding: const EdgeInsets.only(bottom: AppDimensions.spacingLg),
+          children: [
+            Text('Settings', style: AppTextStyles.headlineMedium),
+            const SizedBox(height: AppDimensions.spacingLg),
+            for (final g in groups) ...[
+              Text(g.title, key: Key('settings-group-${g.id}'), style: AppTextStyles.titleMedium),
+              const SizedBox(height: AppDimensions.spacingSm),
+              LayoutBuilder(
+                builder: (context, c) {
+                  final cols = c.maxWidth >= 900 ? 3 : (c.maxWidth >= 560 ? 2 : 1);
+                  final w = (c.maxWidth - 12 * (cols - 1)) / cols;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (final e in g.entries) SizedBox(width: w, child: _EntryCard(entry: e)),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: AppDimensions.spacingLg),
+            ],
+          ],
+        );
+      },
     );
-    if (branchIds.isNotEmpty) {
-      return allowed.isNotEmpty;
-    }
-    return state.business.branches.length > 1;
   }
+}
 
-  void _syncTabController(int count) {
-    if (_tabController != null && _tabCount == count) return;
-    _tabController?.dispose();
-    _tabCount = count;
-    _tabController = TabController(length: count, vsync: this);
+class _EntryCard extends StatelessWidget {
+  const _EntryCard({required this.entry});
+
+  final SettingsEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: Key('settings-entry-${entry.id}'),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.go(entry.route),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.spacingMd),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: Icon(entry.icon, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(entry.subtitle, style: AppTextStyles.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
+
+/// The screens that used to be tabs (and sections of the Business Profile
+/// tab), each on its own page now.
+enum SettingsSection { business, taxRates, branchOverrides, security, pos, offline }
+
+class SettingsSectionPage extends StatelessWidget {
+  const SettingsSectionPage(this.section, {super.key});
+
+  final SettingsSection section;
+
+  String get _title => switch (section) {
+        SettingsSection.business => 'Business Profile',
+        SettingsSection.taxRates => 'Tax Rates',
+        SettingsSection.branchOverrides => 'Branch Overrides',
+        SettingsSection.security => 'Security',
+        SettingsSection.pos => 'POS Settings',
+        SettingsSection.offline => 'Offline & Sync',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget body = switch (section) {
+      SettingsSection.security => const _Centered(child: SecuritySettingsSection()),
+      SettingsSection.pos => const _Centered(child: PosSettingsSection()),
+      SettingsSection.offline => const _Centered(child: OfflineSettingsSection()),
+      _ => BlocProvider(
+          create: (_) => sl<SettingsCubit>()..loadAll(),
+          child: _LoadedSection(section: section),
+        ),
+    };
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(_title),
+        leading: BackButton(
+          key: const Key('settings-back'),
+          onPressed: () => context.canPop() ? context.pop() : context.go(RouteNames.settings),
+        ),
+      ),
+      body: Padding(padding: const EdgeInsets.all(AppDimensions.spacingMd), child: body),
+    );
+  }
+}
+
+class _Centered extends StatelessWidget {
+  const _Centered({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: _SettingsCard(child: child),
+          ),
+        ),
+      );
+}
+
+class _LoadedSection extends StatelessWidget {
+  const _LoadedSection({required this.section});
+
+  final SettingsSection section;
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsCubit, SettingsState>(
       listener: (context, state) {
-        _syncTabController(_tabCountFor(state));
         if (state is SettingsError) {
           AppAlerts.showErrorMessage(context, state.message);
         }
@@ -99,51 +214,14 @@ class _SettingsViewState extends State<_SettingsView>
           context.read<SettingsCubit>().clearError();
         }
       },
-      builder: (context, state) {
-        final showBranchTab = _showBranchTabFor(state);
-        final tabController = _tabController!;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Settings', style: AppTextStyles.headlineMedium),
-            const SizedBox(height: AppDimensions.spacingMd),
-            TabBar(
-              controller: tabController,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primary,
-              isScrollable: true,
-              tabs: [
-                const Tab(text: 'Business Profile'),
-                const Tab(text: 'Receipt & Printing'),
-                const Tab(text: 'Tax Rates'),
-                const Tab(text: 'Tax & Prices'),
-                if (showBranchTab) const Tab(text: 'Branch Overrides'),
-              ],
-            ),
-            const SizedBox(height: AppDimensions.spacingMd),
-            Expanded(
-              child: switch (state) {
-                SettingsInitial() || SettingsLoading() =>
-                  const Center(child: CircularProgressIndicator()),
-                SettingsError(:final message) => Center(
-                    child: Text(message, style: AppTextStyles.bodyMedium),
-                  ),
-                SettingsLoaded loaded => TabBarView(
-                    controller: tabController,
-                    children: [
-                      _BusinessProfileTab(state: loaded),
-                      _ReceiptSettingsTab(state: loaded),
-                      _TaxRatesTab(state: loaded),
-                      const TaxPricesPage(),
-                      if (showBranchTab) _BranchOverridesTab(state: loaded),
-                    ],
-                  ),
-              },
-            ),
-          ],
-        );
+      builder: (context, state) => switch (state) {
+        SettingsInitial() || SettingsLoading() => const Center(child: CircularProgressIndicator()),
+        SettingsError(:final message) => Center(child: Text(message, style: AppTextStyles.bodyMedium)),
+        SettingsLoaded loaded => switch (section) {
+            SettingsSection.taxRates => _TaxRatesTab(state: loaded),
+            SettingsSection.branchOverrides => _BranchOverridesTab(state: loaded),
+            _ => _BusinessProfileTab(state: loaded),
+          },
       },
     );
   }
@@ -301,7 +379,7 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                     validator: (v) => ReceiptRules.looksLikeTaxText(v ?? '')
                         ? "That looks like a tax rate, not an NTN. Type your NTN "
                             "number only (for example 1234567-8). Tax rates are set "
-                            "in the 'Tax & Prices' tab."
+                            "in 'Tax & Prices'."
                         : null,
                     decoration: const InputDecoration(
                       labelText: 'NTN / Tax ID',
@@ -329,6 +407,13 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                   ),
                   const SizedBox(height: 12),
                   Text('Business Logo', style: AppTextStyles.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Upload your logo here once. Whether it prints is chosen per receipt '
+                    'in Receipt Layouts ("Show logo").',
+                    key: const Key('logo-help'),
+                    style: AppTextStyles.bodySmall,
+                  ),
                   const SizedBox(height: 8),
                   if (business.logoUrl != null &&
                       business.logoUrl!.trim().isNotEmpty) ...[
@@ -383,16 +468,6 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
                     child: Text(business.currencyCode),
                   ),
                   const SizedBox(height: 20),
-                  const _SubscriptionLinkSection(),
-                  const SizedBox(height: 20),
-                  const _AccessControlSection(),
-                  const SizedBox(height: 20),
-                  const SecuritySettingsSection(),
-                  const SizedBox(height: 20),
-                  const PosSettingsSection(),
-                  const SizedBox(height: 20),
-                  const OfflineSettingsSection(),
-                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,
                     child: PermissionGate(
@@ -423,384 +498,6 @@ class _BusinessProfileTabState extends State<_BusinessProfileTab> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SubscriptionLinkSection extends StatelessWidget {
-  const _SubscriptionLinkSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Subscription', style: AppTextStyles.titleMedium),
-        const SizedBox(height: 8),
-        Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          child: ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: AppColors.border),
-            ),
-            leading: const Icon(
-              Icons.workspace_premium_outlined,
-              color: AppColors.primary,
-            ),
-            title: const Text('Subscription & renewal'),
-            subtitle: const Text(
-              'See your plan, end date and how to contact us to renew',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(RouteNames.settingsSubscription),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AccessControlSection extends StatelessWidget {
-  const _AccessControlSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: sl<AuthLocalDataSource>().getCachedUser(),
-      builder: (context, snapshot) {
-        final user = snapshot.data;
-        if (!UserRoleUtils.canManageRoles(
-          role: user?.role,
-          permissionKeys: user?.permissionKeys ?? const [],
-        )) {
-          return const SizedBox.shrink();
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Access Control', style: AppTextStyles.titleMedium),
-            const SizedBox(height: 8),
-            Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.border),
-                ),
-                leading: Icon(Icons.admin_panel_settings_outlined,
-                    color: AppColors.primary),
-                title: const Text('Roles & Permissions'),
-                subtitle: const Text(
-                  'Manage staff roles and what they can access',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(RouteNames.settingsRoles),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _ReceiptSettingsTab extends StatefulWidget {
-  const _ReceiptSettingsTab({required this.state});
-
-  final SettingsLoaded state;
-
-  @override
-  State<_ReceiptSettingsTab> createState() => _ReceiptSettingsTabState();
-}
-
-class _ReceiptSettingsTabState extends State<_ReceiptSettingsTab> {
-  late final TextEditingController _footerController;
-
-  @override
-  void initState() {
-    super.initState();
-    _footerController = TextEditingController(text: widget.state.footerText);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ReceiptSettingsTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.state.footerText != widget.state.footerText) {
-      _footerController.text = widget.state.footerText;
-    }
-  }
-
-  @override
-  void dispose() {
-    _footerController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<SettingsCubit>();
-
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: Column(
-            children: [
-              _SettingsCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      controller: _footerController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Receipt Footer Text',
-                      ),
-                      onChanged: cubit.updateFooterText,
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Paper Size', style: AppTextStyles.titleMedium),
-                    const SizedBox(height: 8),
-                    SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: '58mm', label: Text('58mm')),
-                        ButtonSegment(value: '80mm', label: Text('80mm')),
-                      ],
-                      selected: {widget.state.paperSize},
-                      onSelectionChanged: (s) {
-                        if (s.isNotEmpty) cubit.updatePaperSize(s.first);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Show tax on receipt'),
-                      value: widget.state.showTaxOnReceipt,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: cubit.updateShowTaxOnReceipt,
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Show logo on receipt'),
-                      subtitle: const Text(
-                        'Logo is managed in the Business Profile tab',
-                      ),
-                      value: widget.state.showLogoOnReceipt,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: cubit.updateShowLogoOnReceipt,
-                    ),
-                    if (widget.state.business.logoUrl != null &&
-                        widget.state.business.logoUrl!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Current logo',
-                          helperText:
-                              'Edit logo URL in Business Profile → Save there',
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.state.business.logoUrl!,
-                                style: AppTextStyles.bodySmall,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Image.network(
-                                widget.state.business.logoUrl!.trim(),
-                                height: 32,
-                                width: 32,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.broken_image, size: 32),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: PermissionGate(
-                        permission: Perm.settingsManage,
-                        mutating: true,
-                        child: PrimaryButton(
-                          label: 'Save Changes',
-                          isLoading: widget.state.isSavingReceipt,
-                          onPressed: widget.state.isSavingReceipt
-                              ? null
-                              : () async {
-                                  final ok = await cubit.saveReceiptSettings();
-                                  if (ok && context.mounted) {
-                                    AppAlerts.showSuccessMessage(
-                                      context,
-                                      'Receipt settings saved',
-                                    );
-                                  }
-                                },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              _SettingsCard(
-                child: Row(
-                  children: [
-                    const Icon(Icons.print, color: AppColors.primary, size: 28),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Thermal Printer & Hardware', style: AppTextStyles.titleMedium),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Configure Windows thermal printers, paper size (80mm/58mm), auto-print, cash drawer pulse, and test printing.',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      onPressed: () => context.go(RouteNames.settingsPrinter),
-                      icon: const Icon(Icons.tune),
-                      label: const Text('Configure'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              _SettingsCard(
-                child: Row(
-                  children: [
-                    const Icon(Icons.receipt_long, color: AppColors.primary, size: 28),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Receipt Layouts', style: AppTextStyles.titleMedium),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Choose how your receipts look: classic, compact or A4 invoice. Pick what to show, edit the words in English and Urdu, and set which layout is used for printing and WhatsApp.',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      key: const Key('open-receipt-layouts'),
-                      onPressed: () => context.go(RouteNames.settingsReceiptLayouts),
-                      icon: const Icon(Icons.palette_outlined),
-                      label: const Text('Receipt layouts'),
-                    ),
-                  ],
-                ),
-              ),
-              if (hasPermission(context, Perm.settingsManage)) ...[
-              const SizedBox(height: 16),
-              _SettingsCard(
-                child: Row(
-                  children: [
-                    const Icon(Icons.point_of_sale, color: AppColors.primary, size: 28),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Devices', style: AppTextStyles.titleMedium),
-                          const SizedBox(height: 4),
-                          Text(
-                            'See each counter and change the short code that starts its receipt numbers (like C1-0042).',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      key: const Key('open-devices'),
-                      onPressed: () => context.go(RouteNames.settingsDevices),
-                      icon: const Icon(Icons.devices),
-                      label: const Text('Devices'),
-                    ),
-                  ],
-                ),
-              ),
-              ],
-              const SizedBox(height: 16),
-              _ReceiptPreviewCard(
-                footerText: widget.state.footerText,
-                paperSize: widget.state.paperSize,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptPreviewCard extends StatelessWidget {
-  const _ReceiptPreviewCard({
-    required this.footerText,
-    required this.paperSize,
-  });
-
-  final String footerText;
-  final String paperSize;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = paperSize == '58mm' ? 220.0 : 300.0;
-    return _SettingsCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Preview', style: AppTextStyles.titleMedium),
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              width: width,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  Text(AppBrand.current.shortName, style: TextStyle(fontWeight: FontWeight.bold)),
-                  const Divider(),
-                  const Text('Item x 1 ........ Rs. 100'),
-                  const Divider(),
-                  const Text('TOTAL  Rs. 100',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  Text(
-                    footerText.isEmpty ? 'Thank you!' : footerText,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1171,14 +868,18 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.spacingLg),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    // A Material (not a decorated Container) so list tiles and switches inside
+    // can paint their background and ink on it.
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border),
       ),
-      child: child,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.spacingLg),
+        child: child,
+      ),
     );
   }
 }

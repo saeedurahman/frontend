@@ -4,9 +4,11 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/platform/printer_service.dart';
+import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/sales/presentation/services/sale_receipt_service.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:pdf/pdf.dart';
+import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 class PrinterSettingsPage extends StatefulWidget {
@@ -53,7 +55,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   Future<void> _previewReceipt() async {
     try {
       final doc = await SaleReceiptService.buildTestPdf(
-        paperSize: _config.paperSize,
         urduStyle: _config.urduStyle,
       );
       final bytes = await doc.save();
@@ -93,9 +94,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
                     canDebug: false,
                     allowPrinting: true,
                     allowSharing: false,
-                    initialPageFormat: _config.paperSize == '58mm'
-                        ? PdfPageFormat.roll57
-                        : PdfPageFormat.roll80,
+                    initialPageFormat: PdfPageFormat.roll80,
                   ),
                 ),
               ],
@@ -132,7 +131,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
     setState(() => _isPrintingTest = true);
     try {
       final doc = await SaleReceiptService.buildTestPdf(
-        paperSize: _config.paperSize,
         urduStyle: _config.urduStyle,
       );
       final bytes = await doc.save();
@@ -214,7 +212,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Printer & Hardware Settings'),
+        title: const Text('Receipt Printer'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -234,6 +232,8 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildLayoutsNote(),
+                const SizedBox(height: AppDimensions.spacingMd),
                 _buildPrinterSelectionCard(),
                 const SizedBox(height: AppDimensions.spacingMd),
                 _buildPaperAndCopiesCard(),
@@ -244,6 +244,40 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Where everything about the look of the receipt went.
+  Widget _buildLayoutsNote() {
+    return Card(
+      key: const Key('printer-layouts-note'),
+      elevation: 0,
+      color: AppColors.primary.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.spacingMd),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.primary),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Paper size, language, footer text, tax lines and the logo are chosen '
+                'per receipt in Receipt Layouts. This page is only for the printer itself.',
+              ),
+            ),
+            const SizedBox(width: 12),
+            OutlinedButton(
+              key: const Key('open-layouts-from-printer'),
+              onPressed: () => context.go(RouteNames.settingsReceiptLayouts),
+              child: const Text('Receipt Layouts'),
+            ),
+          ],
         ),
       ),
     );
@@ -338,48 +372,12 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Paper Size & Copies',
+              'Copies & Urdu Font',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Thermal Paper Width',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('80 mm (Standard POS Roll)'),
-                    subtitle: const Text('Most common desktop thermal receipt roll'),
-                    value: '80mm',
-                    groupValue: _config.paperSize,
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _config = _config.copyWith(paperSize: val));
-                      }
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('58 mm (Compact Roll)'),
-                    subtitle: const Text('Narrow receipt format for mobile/small printers'),
-                    value: '58mm',
-                    groupValue: _config.paperSize,
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _config = _config.copyWith(paperSize: val));
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

@@ -35,9 +35,15 @@ class ReceiptService {
     required ReceiptLayoutStore layouts,
     required ReceiptContextLoader contexts,
     PrinterService? printer,
+    this.legacyFooter,
   })  : _layouts = layouts,
         _contexts = contexts,
         _printer = printer;
+
+  /// The footer text from the old "Receipt & Printing" settings. It is only a
+  /// fallback: used when the layout has no thank-you text of its own, so
+  /// shops that set a footer before layouts existed keep it.
+  final Future<String?> Function(String? branchId)? legacyFooter;
 
   final ReceiptLayoutStore _layouts;
   final ReceiptContextLoader _contexts;
@@ -56,8 +62,8 @@ class ReceiptService {
     bool allowNetwork = true,
     DateTime? now,
   }) async {
-    final chosen =
-        layout ?? await _layouts.resolve(channel, branchId: sale.branchId);
+    var chosen = layout ?? await _layouts.resolve(channel, branchId: sale.branchId);
+    if (layout == null) chosen = await _withLegacyFooter(chosen, sale.branchId);
     final ctx = context ??
         await _contexts.load(sale, chosen, isReturn: isReturn, allowNetwork: allowNetwork);
     return PreparedReceipt(
@@ -65,6 +71,21 @@ class ReceiptService {
       context: ctx,
       model: ReceiptModelBuilder.build(sale, chosen, channel, context: ctx, now: now),
     );
+  }
+
+  Future<ReceiptLayout> _withLegacyFooter(ReceiptLayout layout, String? branchId) async {
+    final read = legacyFooter;
+    final footer = layout.config.footer;
+    if (read == null || footer.textEn.trim().isNotEmpty || footer.textUr.trim().isNotEmpty) {
+      return layout;
+    }
+    try {
+      final text = (await read(branchId))?.trim();
+      if (text == null || text.isEmpty) return layout;
+      return layout.copyWith(config: layout.config.withValue('footer', 'text_en', text));
+    } catch (_) {
+      return layout;
+    }
   }
 
   Future<UrduReceiptStyle> _urduStyle() async {
