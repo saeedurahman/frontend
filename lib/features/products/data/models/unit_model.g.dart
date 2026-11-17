@@ -8,7 +8,7 @@ part of 'unit_model.dart';
 
 _UnitModel _$UnitModelFromJson(Map<String, dynamic> json) => _UnitModel(
   id: json['id'] as String,
-  businessId: json['business_id'] as String,
+  businessId: json['business_id'] as String? ?? '',
   name: json['name'] as String,
   symbol: json['symbol'] as String,
   isBaseUnit: json['is_base_unit'] as bool? ?? false,
@@ -32,7 +32,7 @@ _UnitConversionModel _$UnitConversionModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       fromUnitId: json['from_unit_id'] as String,
       toUnitId: json['to_unit_id'] as String,
-      conversionFactor: json['conversion_factor'] as String,
+      conversionFactor: JsonNum.stringOr(json['conversion_factor']),
     );
 
 Map<String, dynamic> _$UnitConversionModelToJson(

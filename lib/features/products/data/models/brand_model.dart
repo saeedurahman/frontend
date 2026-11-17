@@ -7,7 +7,7 @@ part 'brand_model.g.dart';
 abstract class BrandModel with _$BrandModel {
   const factory BrandModel({
     required String id,
-    @JsonKey(name: 'business_id') required String businessId,
+    @JsonKey(name: 'business_id') @Default('') String businessId,
     required String name,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'created_at') String? createdAt,

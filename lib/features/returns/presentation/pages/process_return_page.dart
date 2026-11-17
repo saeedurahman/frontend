@@ -20,6 +20,7 @@ import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 const _returnReasons = [
   'Defective',
@@ -157,7 +158,8 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sale = state.originalSale!;
-    final customerName = state.customer?.name ??
+    final customerName =
+        state.customer?.name ??
         (sale.customerId == null ? 'Walk-in Customer' : 'Customer');
     final invoice = sale.saleNumber ?? sale.id.substring(0, 8);
 
@@ -245,15 +247,15 @@ class _ReturnLineRow extends StatelessWidget {
           color: isFullyReturned
               ? AppColors.border.withValues(alpha: 0.15)
               : isActive
-                  ? AppColors.primary.withValues(alpha: 0.04)
-                  : AppColors.border.withValues(alpha: 0.2),
+              ? AppColors.primary.withValues(alpha: 0.04)
+              : AppColors.border.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isFullyReturned
                 ? AppColors.border
                 : isActive
-                    ? AppColors.primary.withValues(alpha: 0.2)
-                    : AppColors.border,
+                ? AppColors.primary.withValues(alpha: 0.2)
+                : AppColors.border,
           ),
         ),
         child: Column(
@@ -298,7 +300,10 @@ class _ReturnLineRow extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 120,
-                    child: TextField(
+                    child: SyncedTextField(
+                      value: line.returnQtyDecimal > Decimal.zero
+                          ? line.returnQty
+                          : '',
                       decoration: InputDecoration(
                         labelText: 'Return Qty',
                         border: const OutlineInputBorder(),
@@ -315,18 +320,9 @@ class _ReturnLineRow extends StatelessWidget {
                           RegExp(r'^\d*\.?\d*'),
                         ),
                       ],
-                      controller: TextEditingController(
-                        text: line.returnQtyDecimal > Decimal.zero
-                            ? line.returnQty
-                            : '',
-                      )..selection = TextSelection.collapsed(
-                          offset: line.returnQtyDecimal > Decimal.zero
-                              ? line.returnQty.length
-                              : 0,
-                        ),
+
                       onChanged: (value) {
-                        final parsed =
-                            Decimal.tryParse(value) ?? Decimal.zero;
+                        final parsed = Decimal.tryParse(value) ?? Decimal.zero;
                         onQtyChanged(parsed);
                       },
                     ),
@@ -388,40 +384,34 @@ class _ReasonCard extends StatelessWidget {
             ),
             items: _returnReasons
                 .map(
-                  (reason) => DropdownMenuItem(
-                    value: reason,
-                    child: Text(reason),
-                  ),
+                  (reason) =>
+                      DropdownMenuItem(value: reason, child: Text(reason)),
                 )
                 .toList(),
             onChanged: cubit.setReason,
           ),
           if (state.reason == 'Other') ...[
             const SizedBox(height: 12),
-            TextField(
+            SyncedTextField(
+              value: state.notes ?? '',
               decoration: const InputDecoration(
                 labelText: 'Notes *',
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
-              controller: TextEditingController(text: state.notes ?? '')
-                ..selection = TextSelection.collapsed(
-                  offset: (state.notes ?? '').length,
-                ),
+
               onChanged: cubit.setNotes,
             ),
           ] else ...[
             const SizedBox(height: 12),
-            TextField(
+            SyncedTextField(
+              value: state.notes ?? '',
               decoration: const InputDecoration(
                 labelText: 'Notes (optional)',
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
-              controller: TextEditingController(text: state.notes ?? '')
-                ..selection = TextSelection.collapsed(
-                  offset: (state.notes ?? '').length,
-                ),
+
               onChanged: cubit.setNotes,
             ),
           ],
@@ -442,8 +432,10 @@ class _RefundSummaryCard extends StatelessWidget {
       title: 'Refund Summary',
       child: Row(
         children: [
-          const Text('Estimated Return Amount:',
-              style: AppTextStyles.titleMedium),
+          const Text(
+            'Estimated Return Amount:',
+            style: AppTextStyles.titleMedium,
+          ),
           const Spacer(),
           Text(
             formatPKR(state.totalReturnAmount),
@@ -466,7 +458,8 @@ class _RefundMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProcessReturnCubit>();
-    final showNoShiftWarning = state.hasCashRefund &&
+    final showNoShiftWarning =
+        state.hasCashRefund &&
         !state.isCheckingShift &&
         state.activeShiftId == null;
 
@@ -523,16 +516,12 @@ class _RefundMethodCard extends StatelessWidget {
             );
           }),
           const Divider(),
+          _SummaryRow('Total Return', formatPKR(state.totalReturnAmount)),
+          _SummaryRow('Refund Allocated', formatPKR(state.totalRefundEntered)),
           _SummaryRow(
-            'Total Return',
-            formatPKR(state.totalReturnAmount),
-          ),
-          _SummaryRow(
-            'Refund Allocated',
-            formatPKR(state.totalRefundEntered),
-          ),
-          _SummaryRow(
-            state.remainingToRefund <= Decimal.zero ? 'Fully Allocated' : 'Remaining',
+            state.remainingToRefund <= Decimal.zero
+                ? 'Fully Allocated'
+                : 'Remaining',
             formatPKR(state.remainingToRefund.abs()),
             valueColor: state.remainingToRefund <= Decimal.zero
                 ? AppColors.success
@@ -569,26 +558,22 @@ class _RefundLineEditor extends StatelessWidget {
           ),
           Expanded(
             flex: 3,
-            child: TextField(
+            child: SyncedTextField(
+              value: line.amount > Decimal.zero
+                  ? DecimalUtils.format(line.amount)
+                  : '',
               decoration: const InputDecoration(
                 labelText: 'Amount',
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
-              controller: TextEditingController(
-                text: line.amount > Decimal.zero
-                    ? DecimalUtils.format(line.amount)
-                    : '',
-              )..selection = TextSelection.collapsed(
-                  offset: line.amount > Decimal.zero
-                      ? DecimalUtils.format(line.amount).length
-                      : 0,
-                ),
+
               onChanged: (value) {
                 onAmountChanged(Decimal.tryParse(value) ?? Decimal.zero);
               },
@@ -755,9 +740,5 @@ const _refundMethodOptions = [
     label: 'Cheque',
     icon: '📝',
   ),
-  _RefundMethodOption(
-    method: PaymentMethods.other,
-    label: 'Other',
-    icon: '⋯',
-  ),
+  _RefundMethodOption(method: PaymentMethods.other, label: 'Other', icon: '⋯'),
 ];

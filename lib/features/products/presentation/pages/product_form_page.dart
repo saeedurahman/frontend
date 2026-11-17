@@ -28,6 +28,7 @@ import 'package:frantend/features/products/presentation/utils/category_utils.dar
 import 'package:frantend/features/products/presentation/utils/variation_utils.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -275,12 +276,20 @@ class _PricingTabState extends State<_PricingTab> {
     final minQty = widget.state.minQty;
     if (price != _lastSyncedPrice) {
       _lastSyncedPrice = price;
-      _priceController.text = price ?? '';
+      _setKeepingCursorAtEnd(_priceController, price ?? '');
     }
     if (minQty != _lastSyncedMinQty) {
       _lastSyncedMinQty = minQty;
-      _minQtyController.text = minQty ?? '';
+      _setKeepingCursorAtEnd(_minQtyController, minQty ?? '');
     }
+  }
+
+  static void _setKeepingCursorAtEnd(TextEditingController c, String text) {
+    if (c.text == text) return;
+    c.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 
   @override
@@ -380,6 +389,7 @@ class _PricingTabState extends State<_PricingTab> {
             const SizedBox(height: 12),
           ],
           TextField(
+            key: const Key('product-price'),
             controller: _priceController,
             decoration: const InputDecoration(
               labelText: 'Price *',
@@ -387,15 +397,18 @@ class _PricingTabState extends State<_PricingTab> {
               helperText: 'Retail price on the default price list',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: const [NumberInputFormatter(decimals: 2)],
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('product-min-qty'),
             controller: _minQtyController,
             decoration: const InputDecoration(
               labelText: 'Min Qty (optional)',
               helperText: 'Minimum quantity for this price tier',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: const [NumberInputFormatter()],
           ),
           const SizedBox(height: AppDimensions.spacingLg),
           Align(
@@ -444,19 +457,25 @@ class _FormCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text(title, style: AppTextStyles.titleMedium),
-              const Spacer(),
-              if (trailing != null) trailing!,
-            ],
-          ),
-          const SizedBox(height: AppDimensions.spacingMd),
-          child,
-        ],
+      // The cards hold ListTiles/switches, which paint on the nearest Material:
+      // without one here they sit behind the white DecoratedBox (a debug
+      // assertion, and invisible ink).
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(title, style: AppTextStyles.titleMedium),
+                const Spacer(),
+                if (trailing != null) trailing!,
+              ],
+            ),
+            const SizedBox(height: AppDimensions.spacingMd),
+            child,
+          ],
+        ),
       ),
     );
   }
@@ -491,24 +510,23 @@ class _BasicInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
+          SyncedTextField(
+            key: const Key('product-name'),
+            value: state.name,
             decoration: InputDecoration(
               labelText: 'Product Name *',
               errorText: state.errors['name'],
             ),
-            controller: TextEditingController(text: state.name)
-              ..selection = TextSelection.collapsed(offset: state.name.length),
             onChanged: cubit.updateName,
           ),
           const SizedBox(height: 12),
-          TextField(
+          SyncedTextField(
+            key: const Key('product-sku'),
+            value: state.sku ?? '',
             decoration: const InputDecoration(
               labelText: 'SKU',
               helperText: 'Leave empty to auto-generate later',
             ),
-            controller: TextEditingController(text: state.sku ?? '')
-              ..selection =
-                  TextSelection.collapsed(offset: (state.sku ?? '').length),
             onChanged: (v) => cubit.updateSku(v.isEmpty ? null : v),
           ),
           const SizedBox(height: 12),
@@ -565,17 +583,15 @@ class _BasicInfoCard extends StatelessWidget {
           ),
           if (state.trackingType == 'expiry') ...[
             const SizedBox(height: 12),
-            TextField(
+            AppNumberField(
+              key: const Key('product-shelf-life'),
+              value: state.shelfLifeDays?.toString() ?? '',
+              allowDecimal: false,
               decoration: const InputDecoration(
                 labelText: 'Shelf Life (days)',
                 helperText: 'Used to calculate expiry alerts',
               ),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(
-                text: state.shelfLifeDays?.toString() ?? '',
-              ),
-              onChanged: (v) =>
-                  cubit.updateShelfLifeDays(int.tryParse(v)),
+              onChanged: (v) => cubit.updateShelfLifeDays(int.tryParse(v)),
             ),
           ],
           const SizedBox(height: 4),
@@ -592,13 +608,11 @@ class _BasicInfoCard extends StatelessWidget {
             onChanged: cubit.updateTrackExpiry,
           ),
           const SizedBox(height: 12),
-          TextField(
+          SyncedTextField(
+            key: const Key('product-description'),
+            value: state.description ?? '',
             decoration: const InputDecoration(labelText: 'Description'),
             maxLines: 3,
-            controller: TextEditingController(text: state.description ?? '')
-              ..selection = TextSelection.collapsed(
-                offset: (state.description ?? '').length,
-              ),
             onChanged: (v) => cubit.updateDescription(v.isEmpty ? null : v),
           ),
           const SizedBox(height: 12),
@@ -891,30 +905,26 @@ class _StockCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: AppNumberField(
+                  key: const Key('product-min-stock'),
+                  value: state.minStockLevel ?? '',
                   decoration: const InputDecoration(
                     labelText: 'Min Stock Level',
                     helperText: 'Used for low stock alerts',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  controller:
-                      TextEditingController(text: state.minStockLevel ?? ''),
                   onChanged: (v) =>
                       cubit.updateMinStockLevel(v.isEmpty ? null : v),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: TextField(
+                child: AppNumberField(
+                  key: const Key('product-max-stock'),
+                  value: state.maxStockLevel ?? '',
                   decoration: const InputDecoration(
                     labelText: 'Max Stock Level',
                     helperText: 'Used for low stock alerts',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  controller:
-                      TextEditingController(text: state.maxStockLevel ?? ''),
                   onChanged: (v) =>
                       cubit.updateMaxStockLevel(v.isEmpty ? null : v),
                 ),
@@ -1017,21 +1027,20 @@ class _VariationRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: TextField(
+            child: SyncedTextField(
+              key: Key('variation-name-$index'),
+              value: item.name,
               decoration: const InputDecoration(labelText: 'Name'),
-              controller: TextEditingController(text: item.name)
-                ..selection = TextSelection.collapsed(offset: item.name.length),
               onChanged: (v) =>
                   cubit.updateVariationRow(index, item.copyWith(name: v)),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: TextField(
+            child: SyncedTextField(
+              key: Key('variation-sku-$index'),
+              value: item.sku ?? '',
               decoration: const InputDecoration(labelText: 'SKU'),
-              controller: TextEditingController(text: item.sku ?? '')
-                ..selection =
-                    TextSelection.collapsed(offset: (item.sku ?? '').length),
               onChanged: (v) => cubit.updateVariationRow(
                 index,
                 item.copyWith(sku: v.isEmpty ? null : v),
@@ -1058,11 +1067,10 @@ class _VariationRow extends StatelessWidget {
           const SizedBox(width: 8),
           SizedBox(
             width: 90,
-            child: TextField(
+            child: AppNumberField(
+              key: Key('variation-weight-$index'),
+              value: item.weightGrams ?? '',
               decoration: const InputDecoration(labelText: 'Weight (g)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              controller: TextEditingController(text: item.weightGrams ?? ''),
               onChanged: (v) => cubit.updateVariationRow(
                 index,
                 item.copyWith(weightGrams: v.isEmpty ? null : v),
@@ -1147,7 +1155,9 @@ class _BarcodeRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: TextField(
+            child: SyncedTextField(
+              key: Key('barcode-value-$index'),
+              value: item.barcode,
               decoration: InputDecoration(
                 labelText: 'Barcode',
                 errorText: formState.errors['barcode_$index'],
@@ -1159,9 +1169,6 @@ class _BarcodeRow extends StatelessWidget {
                   ),
                 ),
               ),
-              controller: TextEditingController(text: item.barcode)
-                ..selection =
-                    TextSelection.collapsed(offset: item.barcode.length),
               onChanged: (v) =>
                   cubit.updateBarcodeRow(index, item.copyWith(barcode: v)),
             ),

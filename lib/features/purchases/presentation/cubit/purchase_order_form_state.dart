@@ -43,6 +43,9 @@ abstract class PurchaseOrderFormState with _$PurchaseOrderFormState {
     @Default(false) bool isLoading,
     @Default(false) bool isSubmitting,
     @Default({}) Map<String, String> errors,
+
+    /// Set once the order exists on the server (a retry must not create it again).
+    String? createdOrderId,
   }) = _PurchaseOrderFormState;
 
   double get subtotal =>

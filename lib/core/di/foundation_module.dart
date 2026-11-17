@@ -399,6 +399,8 @@ void registerFoundationServices(GetIt sl) {
       errorHandler: sl<ErrorHandler>(),
       catalog: sl<LocalCatalog>(),
       isReachable: reachable,
+      // The server accepted a change: pull it so every local reader agrees.
+      afterWrite: () => sl<SyncEngine>().requestSync(),
     ),
   );
   replace<InventoryRepository>(

@@ -13,6 +13,7 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class PurchaseOrderFormPage extends StatelessWidget {
   const PurchaseOrderFormPage({super.key});
@@ -21,9 +22,7 @@ class PurchaseOrderFormPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => sl<PurchaseOrderFormCubit>()..init(),
-        ),
+        BlocProvider(create: (_) => sl<PurchaseOrderFormCubit>()..init()),
         BlocProvider(create: (_) => sl<SuppliersListCubit>()),
       ],
       child: const _PurchaseOrderFormView(),
@@ -54,7 +53,10 @@ class _PurchaseOrderFormView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('New Purchase Order', style: AppTextStyles.headlineMedium),
+                  Text(
+                    'New Purchase Order',
+                    style: AppTextStyles.headlineMedium,
+                  ),
                   const SizedBox(height: AppDimensions.spacingLg),
                   _HeaderCard(state: state),
                   const SizedBox(height: AppDimensions.spacingMd),
@@ -101,7 +103,8 @@ class _HeaderCard extends StatelessWidget {
                   ),
                   items: state.suppliers
                       .map(
-                        (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
+                        (s) =>
+                            DropdownMenuItem(value: s.id, child: Text(s.name)),
                       )
                       .toList(),
                   onChanged: cubit.updateSupplierId,
@@ -143,10 +146,10 @@ class _HeaderCard extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: state.notes,
                   decoration: const InputDecoration(labelText: 'Notes'),
-                  controller: TextEditingController(text: state.notes)
-                    ..selection = TextSelection.collapsed(offset: state.notes.length),
+
                   onChanged: cubit.updateNotes,
                   maxLines: 2,
                 ),
@@ -231,14 +234,15 @@ class _LineRow extends StatelessWidget {
               Expanded(
                 flex: 3,
                 child: DropdownButtonFormField<String?>(
+                  // Driven by the line in the cubit state: when the state holds a
+                  // different product than the dropdown shows, the key rebuilds it.
+                  key: ValueKey('po-product-$index-${line.productId}'),
                   initialValue: line.productId,
                   decoration: const InputDecoration(labelText: 'Product'),
                   items: products
                       .map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text(p.name),
-                        ),
+                        (p) =>
+                            DropdownMenuItem(value: p.id, child: Text(p.name)),
                       )
                       .toList(),
                   onChanged: (id) {
@@ -250,11 +254,13 @@ class _LineRow extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: DropdownButtonFormField<String?>(
+                  key: ValueKey('po-variation-$index-${line.productId}-${line.variationId}'),
                   initialValue: line.variationId,
                   decoration: const InputDecoration(labelText: 'Variation'),
                   items: line.variations
                       .map(
-                        (v) => DropdownMenuItem(value: v.id, child: Text(v.name)),
+                        (v) =>
+                            DropdownMenuItem(value: v.id, child: Text(v.name)),
                       )
                       .toList(),
                   onChanged: (id) => cubit.selectVariation(index, id),
@@ -270,36 +276,42 @@ class _LineRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: line.orderedQty,
                   decoration: const InputDecoration(labelText: 'Ordered Qty'),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(text: line.orderedQty)
-                    ..selection =
-                        TextSelection.collapsed(offset: line.orderedQty.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, line.copyWith(orderedQty: v)),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: line.costPerUnit,
                   decoration: const InputDecoration(labelText: 'Cost/Unit'),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(text: line.costPerUnit)
-                    ..selection =
-                        TextSelection.collapsed(offset: line.costPerUnit.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, line.copyWith(costPerUnit: v)),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: line.taxRate,
                   decoration: const InputDecoration(labelText: 'Tax %'),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(text: line.taxRate)
-                    ..selection =
-                        TextSelection.collapsed(offset: line.taxRate.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, line.copyWith(taxRate: v)),
                 ),
@@ -381,11 +393,7 @@ class _TotalRow extends StatelessWidget {
 }
 
 class _FormCard extends StatelessWidget {
-  const _FormCard({
-    required this.title,
-    required this.child,
-    this.trailing,
-  });
+  const _FormCard({required this.title, required this.child, this.trailing});
 
   final String title;
   final Widget child;
@@ -444,7 +452,10 @@ class _BottomBar extends StatelessWidget {
         children: [
           SecondaryButton(
             label: 'Cancel',
-            onPressed: state.isSubmitting ? null : () => context.pop(),
+            // A draft that was already created must still refresh the list.
+            onPressed: state.isSubmitting
+                ? null
+                : () => context.pop(state.createdOrderId != null ? true : null),
           ),
           const SizedBox(width: 12),
           SecondaryButton(

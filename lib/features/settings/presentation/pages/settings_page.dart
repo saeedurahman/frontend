@@ -726,7 +726,16 @@ class _BranchOverridesTabState extends State<_BranchOverridesTab> {
   @override
   void didUpdateWidget(covariant _BranchOverridesTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _footerController.text = widget.state.branchOverrideFooter ?? '';
+    // Only when the saved value changed: a rebuild for any other reason must
+    // not overwrite (or move the cursor in) what the user is typing.
+    final saved = widget.state.branchOverrideFooter ?? '';
+    if (oldWidget.state.branchOverrideFooter != widget.state.branchOverrideFooter &&
+        _footerController.text != saved) {
+      _footerController.value = TextEditingValue(
+        text: saved,
+        selection: TextSelection.collapsed(offset: saved.length),
+      );
+    }
   }
 
   @override

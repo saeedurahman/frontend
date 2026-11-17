@@ -251,9 +251,7 @@ class _EntriesTable extends StatelessWidget {
       itemLabel: 'entries',
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
-      onRowTap: (entry) => context.push(
-        RouteNames.accountingJournalDetailPath(entry.id),
-      ),
+      onRowTap: (entry) => _openEntry(context, entry.id),
       rowBuilder: (context, entry, {required selected, required onSelected}) {
         return AppDataTableRowLayout(
           columns: _journalTableColumns,
@@ -277,12 +275,18 @@ class _EntriesTable extends StatelessWidget {
           actions: AppTableActionButton(
             icon: Icons.chevron_right,
             tooltip: 'View',
-            onPressed: () => context.push(
-              RouteNames.accountingJournalDetailPath(entry.id),
-            ),
+            onPressed: () => _openEntry(context, entry.id),
           ),
         );
       },
     );
   }
+}
+
+/// The detail screen can post or void an entry, so the list is read again when
+/// it comes back.
+Future<void> _openEntry(BuildContext context, String id) async {
+  final cubit = context.read<JournalEntriesListCubit>();
+  await context.push<Object?>(RouteNames.accountingJournalDetailPath(id));
+  if (!cubit.isClosed) await cubit.refresh();
 }

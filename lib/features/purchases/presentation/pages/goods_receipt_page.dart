@@ -12,6 +12,7 @@ import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class GoodsReceiptPage extends StatelessWidget {
   const GoodsReceiptPage({super.key, required this.purchaseOrderId});
@@ -103,7 +104,10 @@ class _MetaCard extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               title: const Text('Received Date'),
               subtitle: Text(
-                (state.receivedAt ?? DateTime.now()).toString().split(' ').first,
+                (state.receivedAt ?? DateTime.now())
+                    .toString()
+                    .split(' ')
+                    .first,
               ),
               trailing: IconButton(
                 icon: const Icon(Icons.calendar_today, size: 18),
@@ -121,21 +125,21 @@ class _MetaCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: TextField(
-              decoration: const InputDecoration(labelText: 'Supplier Invoice No'),
-              controller: TextEditingController(text: state.supplierInvoiceNo)
-                ..selection = TextSelection.collapsed(
-                  offset: state.supplierInvoiceNo.length,
-                ),
+            child: SyncedTextField(
+              value: state.supplierInvoiceNo,
+              decoration: const InputDecoration(
+                labelText: 'Supplier Invoice No',
+              ),
+
               onChanged: cubit.updateSupplierInvoiceNo,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: TextField(
+            child: SyncedTextField(
+              value: state.notes,
               decoration: const InputDecoration(labelText: 'Notes'),
-              controller: TextEditingController(text: state.notes)
-                ..selection = TextSelection.collapsed(offset: state.notes.length),
+
               onChanged: cubit.updateNotes,
             ),
           ),
@@ -175,11 +179,7 @@ class _LinesCard extends StatelessWidget {
 }
 
 class _ReceiptLineRow extends StatelessWidget {
-  const _ReceiptLineRow({
-    required this.index,
-    required this.item,
-    this.error,
-  });
+  const _ReceiptLineRow({required this.index, required this.item, this.error});
 
   final int index;
   final GoodsReceiptLineItem item;
@@ -217,38 +217,41 @@ class _ReceiptLineRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: item.qtyReceived,
                   decoration: const InputDecoration(labelText: 'Qty Receiving'),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(text: item.qtyReceived)
-                    ..selection =
-                        TextSelection.collapsed(offset: item.qtyReceived.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, item.copyWith(qtyReceived: v)),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: item.costPerUnit,
                   decoration: const InputDecoration(labelText: 'Cost/Unit'),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(text: item.costPerUnit)
-                    ..selection =
-                        TextSelection.collapsed(offset: item.costPerUnit.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, item.copyWith(costPerUnit: v)),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: item.batchNumber,
                   key: Key('grn-batch-$index'),
                   decoration: InputDecoration(
                     labelText: item.trackExpiry ? 'Batch No *' : 'Batch No',
                   ),
-                  controller: TextEditingController(text: item.batchNumber)
-                    ..selection =
-                        TextSelection.collapsed(offset: item.batchNumber.length),
+
                   onChanged: (v) =>
                       cubit.updateLine(index, item.copyWith(batchNumber: v)),
                 ),
@@ -267,14 +270,20 @@ class _ReceiptLineRow extends StatelessWidget {
                       final picked = await showDatePicker(
                         context: context,
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 3650)),
-                        initialDate: item.expiryDate != null &&
+                        lastDate: DateTime.now().add(
+                          const Duration(days: 3650),
+                        ),
+                        initialDate:
+                            item.expiryDate != null &&
                                 item.expiryDate!.isAfter(DateTime.now())
                             ? item.expiryDate!
                             : DateTime.now(),
                       );
                       if (picked != null) {
-                        cubit.updateLine(index, item.copyWith(expiryDate: picked));
+                        cubit.updateLine(
+                          index,
+                          item.copyWith(expiryDate: picked),
+                        );
                       }
                     },
                   ),

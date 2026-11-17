@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/features/manufacturing/presentation/cubit/bom_form_cubit.dart';
 import 'package:frantend/features/manufacturing/presentation/cubit/bom_form_state.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class BomLineRow extends StatelessWidget {
   const BomLineRow({
@@ -43,10 +44,8 @@ class BomLineRow extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Ingredient'),
                   items: products
                       .map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text(p.name),
-                        ),
+                        (p) =>
+                            DropdownMenuItem(value: p.id, child: Text(p.name)),
                       )
                       .toList(),
                   onChanged: (id) {
@@ -62,7 +61,8 @@ class BomLineRow extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Variation'),
                   items: line.variations
                       .map(
-                        (v) => DropdownMenuItem(value: v.id, child: Text(v.name)),
+                        (v) =>
+                            DropdownMenuItem(value: v.id, child: Text(v.name)),
                       )
                       .toList(),
                   onChanged: (id) => cubit.selectIngredientVariation(index, id),
@@ -78,26 +78,28 @@ class BomLineRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: line.qtyRequired,
                   decoration: const InputDecoration(labelText: 'Qty required'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  controller: TextEditingController(text: line.qtyRequired)
-                    ..selection = TextSelection.collapsed(
-                      offset: line.qtyRequired.length,
-                    ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, line.copyWith(qtyRequired: v)),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: line.wastagePct,
                   decoration: const InputDecoration(labelText: 'Wastage %'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  controller: TextEditingController(text: line.wastagePct)
-                    ..selection = TextSelection.collapsed(
-                      offset: line.wastagePct.length,
-                    ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: (v) =>
                       cubit.updateLine(index, line.copyWith(wastagePct: v)),
                 ),

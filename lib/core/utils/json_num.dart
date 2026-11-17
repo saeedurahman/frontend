@@ -45,6 +45,10 @@ abstract final class JsonNum {
     final s = value.toString();
     return s.isEmpty ? null : s;
   }
+
+  /// Like [stringOrNull] with a fallback for required text fields.
+  static String stringOr(Object? value, [String fallback = '']) =>
+      stringOrNull(value) ?? fallback;
 }
 
 /// A server response that could not be turned into a model.

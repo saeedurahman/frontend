@@ -542,20 +542,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
           'min_stock_level': state.minStockLevel,
         if (state.maxStockLevel != null && state.maxStockLevel!.isNotEmpty)
           'max_stock_level': state.maxStockLevel,
-        if (variations.isNotEmpty)
-          'variations': variations
-              .where((v) => v.name.trim().isNotEmpty)
-              .map(
-                (v) => {
-                  'name': v.name.trim(),
-                  if (v.sku != null && v.sku!.isNotEmpty) 'sku': v.sku,
-                  if (v.unitId != null) 'unit_id': v.unitId,
-                  'is_default': v.isDefault,
-                  if (v.weightGrams != null && v.weightGrams!.isNotEmpty)
-                    'weight_grams': v.weightGrams,
-                },
-              )
-              .toList(),
+        ...createBarcodePayload(variations, barcodes),
       };
 
       final result = await _createProduct(body);
@@ -570,19 +557,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
           return null;
         },
         (product) async {
-          for (final b in barcodes.where((x) => x.barcode.isNotEmpty)) {
-            final variationId = _resolveSubmitVariationId(
-              linkKey: b.variationId,
-              formVariations: variations,
-              createdVariations: product.variations,
-            );
-            await _addBarcode(product.id, {
-              'barcode': b.barcode,
-              'barcode_type': b.barcodeType,
-              if (variationId != null) 'variation_id': variationId,
-              'is_primary': b.isPrimary,
-            });
-          }
+          // Variations and every barcode were created with the product in one
+          // server transaction: nothing is left to add here.
           emit(state.copyWith(isSubmitting: false));
           return product.id;
         },

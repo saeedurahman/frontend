@@ -13,7 +13,6 @@ import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
 import 'package:frantend/shared/widgets/tables/app_table_pagination_helpers.dart';
-import 'package:go_router/go_router.dart';
 
 const _customerTableColumns = [
   AppDataTableColumn(label: 'Name / Phone', flex: 3, sortable: true),
@@ -45,7 +44,7 @@ class CustomersDataTable extends StatelessWidget {
       actionsWidth: 160,
       sortCompare: _sortCompare,
       onRowTap: (row) =>
-          context.push(RouteNames.customerDetail(row.customer.id)),
+          openCustomerDetail(context, RouteNames.customerDetail(row.customer.id)),
       rowBuilder: (context, row, {required selected, required onSelected}) {
         final customer = row.customer;
         final balanceDisplay =
@@ -127,7 +126,8 @@ class CustomersDataTable extends StatelessWidget {
               AppTableActionButton(
                 icon: Icons.receipt_long_outlined,
                 tooltip: 'View Ledger',
-                onPressed: () => context.push(
+                onPressed: () => openCustomerDetail(
+                  context,
                   RouteNames.customerDetail(customer.id),
                 ),
               ),

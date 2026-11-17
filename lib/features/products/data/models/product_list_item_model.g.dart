@@ -10,7 +10,7 @@ _ProductListItemModel _$ProductListItemModelFromJson(
   Map<String, dynamic> json,
 ) => _ProductListItemModel(
   id: json['id'] as String,
-  businessId: json['business_id'] as String,
+  businessId: json['business_id'] as String? ?? '',
   name: json['name'] as String,
   sku: json['sku'] as String?,
   productType: json['product_type'] as String,

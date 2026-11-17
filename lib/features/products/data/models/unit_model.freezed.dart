@@ -221,7 +221,7 @@ return $default(_that.id,_that.businessId,_that.name,_that.symbol,_that.isBaseUn
 @JsonSerializable()
 
 class _UnitModel implements UnitModel {
-  const _UnitModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, required this.name, required this.symbol, @JsonKey(name: 'is_base_unit') this.isBaseUnit = false, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'allows_decimal') this.allowsDecimal = false});
+  const _UnitModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', required this.name, required this.symbol, @JsonKey(name: 'is_base_unit') this.isBaseUnit = false, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'allows_decimal') this.allowsDecimal = false});
   factory _UnitModel.fromJson(Map<String, dynamic> json) => _$UnitModelFromJson(json);
 
 @override final  String id;
@@ -304,7 +304,7 @@ as bool,
 /// @nodoc
 mixin _$UnitConversionModel {
 
- String get id;@JsonKey(name: 'from_unit_id') String get fromUnitId;@JsonKey(name: 'to_unit_id') String get toUnitId;@JsonKey(name: 'conversion_factor') String get conversionFactor;
+ String get id;@JsonKey(name: 'from_unit_id') String get fromUnitId;@JsonKey(name: 'to_unit_id') String get toUnitId;@JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr) String get conversionFactor;
 /// Create a copy of UnitConversionModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -342,7 +342,7 @@ abstract mixin class $UnitConversionModelCopyWith<$Res>  {
   factory $UnitConversionModelCopyWith(UnitConversionModel value, $Res Function(UnitConversionModel) _then) = _$UnitConversionModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'from_unit_id') String fromUnitId,@JsonKey(name: 'to_unit_id') String toUnitId,@JsonKey(name: 'conversion_factor') String conversionFactor
+ String id,@JsonKey(name: 'from_unit_id') String fromUnitId,@JsonKey(name: 'to_unit_id') String toUnitId,@JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr) String conversionFactor
 });
 
 
@@ -450,7 +450,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor')  String conversionFactor)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr)  String conversionFactor)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UnitConversionModel() when $default != null:
 return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor);case _:
@@ -471,7 +471,7 @@ return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor')  String conversionFactor)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr)  String conversionFactor)  $default,) {final _that = this;
 switch (_that) {
 case _UnitConversionModel():
 return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor);case _:
@@ -491,7 +491,7 @@ return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor)
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor')  String conversionFactor)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'from_unit_id')  String fromUnitId, @JsonKey(name: 'to_unit_id')  String toUnitId, @JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr)  String conversionFactor)?  $default,) {final _that = this;
 switch (_that) {
 case _UnitConversionModel() when $default != null:
 return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor);case _:
@@ -506,13 +506,13 @@ return $default(_that.id,_that.fromUnitId,_that.toUnitId,_that.conversionFactor)
 @JsonSerializable()
 
 class _UnitConversionModel implements UnitConversionModel {
-  const _UnitConversionModel({required this.id, @JsonKey(name: 'from_unit_id') required this.fromUnitId, @JsonKey(name: 'to_unit_id') required this.toUnitId, @JsonKey(name: 'conversion_factor') required this.conversionFactor});
+  const _UnitConversionModel({required this.id, @JsonKey(name: 'from_unit_id') required this.fromUnitId, @JsonKey(name: 'to_unit_id') required this.toUnitId, @JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr) required this.conversionFactor});
   factory _UnitConversionModel.fromJson(Map<String, dynamic> json) => _$UnitConversionModelFromJson(json);
 
 @override final  String id;
 @override@JsonKey(name: 'from_unit_id') final  String fromUnitId;
 @override@JsonKey(name: 'to_unit_id') final  String toUnitId;
-@override@JsonKey(name: 'conversion_factor') final  String conversionFactor;
+@override@JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr) final  String conversionFactor;
 
 /// Create a copy of UnitConversionModel
 /// with the given fields replaced by the non-null parameter values.
@@ -549,7 +549,7 @@ abstract mixin class _$UnitConversionModelCopyWith<$Res> implements $UnitConvers
   factory _$UnitConversionModelCopyWith(_UnitConversionModel value, $Res Function(_UnitConversionModel) _then) = __$UnitConversionModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'from_unit_id') String fromUnitId,@JsonKey(name: 'to_unit_id') String toUnitId,@JsonKey(name: 'conversion_factor') String conversionFactor
+ String id,@JsonKey(name: 'from_unit_id') String fromUnitId,@JsonKey(name: 'to_unit_id') String toUnitId,@JsonKey(name: 'conversion_factor', fromJson: JsonNum.stringOr) String conversionFactor
 });
 
 

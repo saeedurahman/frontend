@@ -98,21 +98,48 @@ class PurchaseOrderFormCubit extends Cubit<PurchaseOrderFormState> {
     }
   }
 
+  /// Puts [productId] on line [index].
+  ///
+  /// The line holds the product from this very moment (the state is the single
+  /// source of truth for what the screen shows and what is validated and sent);
+  /// the product's variations arrive afterwards. Quantity, cost and tax already
+  /// typed on the line are kept, and an answer that arrives after the line has
+  /// moved on to another product is ignored.
   Future<void> selectProduct(int index, String productId) async {
-    final product = state.products.firstWhere(
-      (p) => p.id == productId,
-      orElse: () => state.products.first,
-    );
+    if (index < 0 || index >= state.lines.length) return;
+
+    String? name;
+    for (final p in state.products) {
+      if (p.id == productId) {
+        name = p.name;
+        break;
+      }
+    }
+    final current = state.lines[index];
+    if (current.productId != productId) {
+      final lines = [...state.lines];
+      lines[index] = current.copyWith(
+        productId: productId,
+        productName: name ?? current.productName,
+        variations: const [],
+        variationId: null,
+        variationName: null,
+      );
+      emit(state.copyWith(lines: lines, errors: _withoutLineError(index)));
+    }
 
     final result = await _getProductById(productId);
+    if (isClosed) return;
     result.fold(
       (failure) => emit(
-        state.copyWith(errors: {'_general': failure.message}),
+        state.copyWith(errors: {...state.errors, '_general': failure.message}),
       ),
       (fullProduct) {
-        final variations = fullProduct.variations
-            .where((v) => v.isActive)
-            .toList();
+        // The user picked something else meanwhile (or removed the line).
+        if (index >= state.lines.length || state.lines[index].productId != productId) {
+          return;
+        }
+        final variations = fullProduct.variations.where((v) => v.isActive).toList();
         VariationModel? defaultVar;
         for (final v in variations) {
           if (v.isDefault) {
@@ -123,18 +150,20 @@ class PurchaseOrderFormCubit extends Cubit<PurchaseOrderFormState> {
         defaultVar ??= variations.isNotEmpty ? variations.first : null;
 
         final lines = [...state.lines];
-        if (index < lines.length) {
-          lines[index] = PurchaseLineFormItem(
-            productId: productId,
-            productName: product.name,
-            variations: variations,
-            variationId: defaultVar?.id,
-            variationName: defaultVar?.name,
-          );
-          emit(state.copyWith(lines: lines));
-        }
+        lines[index] = lines[index].copyWith(
+          productName: fullProduct.name,
+          variations: variations,
+          variationId: defaultVar?.id,
+          variationName: defaultVar?.name,
+        );
+        emit(state.copyWith(lines: lines));
       },
     );
+  }
+
+  Map<String, String> _withoutLineError(int index) {
+    if (!state.errors.containsKey('line_$index')) return state.errors;
+    return {...state.errors}..remove('line_$index');
   }
 
   void selectVariation(int index, String? variationId) {
@@ -168,15 +197,14 @@ class PurchaseOrderFormCubit extends Cubit<PurchaseOrderFormState> {
     }
     for (var i = 0; i < state.lines.length; i++) {
       final line = state.lines[i];
+      // The first problem of a line is the one shown (the product comes first).
       if (line.productId == null) {
         errors['line_$i'] = 'Product is required';
-      }
-      if (line.orderedQty.trim().isEmpty ||
+      } else if (line.orderedQty.trim().isEmpty ||
           (double.tryParse(line.orderedQty) ?? 0) <= 0) {
         errors['line_$i'] = 'Valid quantity is required';
-      }
-      if (line.costPerUnit.trim().isEmpty ||
-          (double.tryParse(line.costPerUnit) ?? 0) < 0) {
+      } else if (line.costPerUnit.trim().isEmpty ||
+          (double.tryParse(line.costPerUnit) ?? -1) < 0) {
         errors['line_$i'] = 'Valid cost is required';
       }
     }
@@ -210,38 +238,40 @@ class PurchaseOrderFormCubit extends Cubit<PurchaseOrderFormState> {
 
     emit(state.copyWith(isSubmitting: true, errors: {}));
 
-    final params = CreatePurchaseOrderParams(
-      branchId: state.branchId!,
-      supplierId: state.supplierId!,
-      expectedAt: state.expectedAt,
-      notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
-      lines: _buildLineParams(),
-    );
-
-    final result = await _createOrder(params);
-
-    return await result.fold<Future<String?>>(
-      (failure) async {
+    // Create the order once. If a previous "Save & Submit" created it but could
+    // not submit it, a retry only submits that same order (no duplicate).
+    var orderId = state.createdOrderId;
+    if (orderId == null) {
+      final params = CreatePurchaseOrderParams(
+        branchId: state.branchId!,
+        supplierId: state.supplierId!,
+        expectedAt: state.expectedAt,
+        notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
+        lines: _buildLineParams(),
+      );
+      final created = await _createOrder(params);
+      final failure = created.fold<Failure?>((f) => f, (_) => null);
+      if (failure != null) {
         emit(state.copyWith(isSubmitting: false));
         return failure.message;
+      }
+      orderId = created.fold<String>((_) => '', (o) => o.id);
+      emit(state.copyWith(createdOrderId: orderId));
+    }
+
+    if (!submitAsOrdered) {
+      emit(state.copyWith(isSubmitting: false));
+      return null;
+    }
+
+    final statusResult = await _updateStatus(orderId, PurchaseOrderStatus.ordered);
+    return statusResult.fold(
+      (failure) {
+        emit(state.copyWith(isSubmitting: false));
+        return 'The order was saved as a draft but could not be submitted: '
+            '${failure.message}';
       },
-      (order) async {
-        if (submitAsOrdered) {
-          final statusResult = await _updateStatus(
-            order.id,
-            PurchaseOrderStatus.ordered,
-          );
-          return statusResult.fold(
-            (failure) {
-              emit(state.copyWith(isSubmitting: false));
-              return failure.message;
-            },
-            (_) {
-              emit(state.copyWith(isSubmitting: false));
-              return null;
-            },
-          );
-        }
+      (_) {
         emit(state.copyWith(isSubmitting: false));
         return null;
       },

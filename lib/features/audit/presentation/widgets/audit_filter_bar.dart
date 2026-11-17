@@ -43,10 +43,14 @@ class _AuditFilterBarState extends State<AuditFilterBar> {
   @override
   void didUpdateWidget(covariant AuditFilterBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.filters.tableName != oldWidget.filters.tableName) {
+    // Writing `.text` (even the same text) moves the caret to the start, so only
+    // write when the field really differs from the filter.
+    if (widget.filters.tableName != oldWidget.filters.tableName &&
+        _tableController.text != (widget.filters.tableName ?? '')) {
       _tableController.text = widget.filters.tableName ?? '';
     }
-    if (widget.filters.userId != oldWidget.filters.userId) {
+    if (widget.filters.userId != oldWidget.filters.userId &&
+        _userController.text != (widget.filters.userId ?? '')) {
       _userController.text = widget.filters.userId ?? '';
     }
   }

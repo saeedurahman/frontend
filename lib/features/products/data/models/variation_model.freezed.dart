@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VariationModel {
 
- String get id;@JsonKey(name: 'business_id') String get businessId;@JsonKey(name: 'product_id') String get productId; String get name; String? get sku;@JsonKey(name: 'unit_id') String? get unitId;@JsonKey(name: 'is_default') bool get isDefault;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'weight_grams') String? get weightGrams;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'updated_at') String? get updatedAt; List<BarcodeModel> get barcodes; UnitModel? get unit;
+ String get id;@JsonKey(name: 'business_id') String get businessId;@JsonKey(name: 'product_id') String get productId; String get name; String? get sku;@JsonKey(name: 'unit_id') String? get unitId;@JsonKey(name: 'is_default') bool get isDefault;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull) String? get weightGrams;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'updated_at') String? get updatedAt; List<BarcodeModel> get barcodes; UnitModel? get unit;
 /// Create a copy of VariationModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $VariationModelCopyWith<$Res>  {
   factory $VariationModelCopyWith(VariationModel value, $Res Function(VariationModel) _then) = _$VariationModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'product_id') String productId, String name, String? sku,@JsonKey(name: 'unit_id') String? unitId,@JsonKey(name: 'is_default') bool isDefault,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'weight_grams') String? weightGrams,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<BarcodeModel> barcodes, UnitModel? unit
+ String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'product_id') String productId, String name, String? sku,@JsonKey(name: 'unit_id') String? unitId,@JsonKey(name: 'is_default') bool isDefault,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull) String? weightGrams,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<BarcodeModel> barcodes, UnitModel? unit
 });
 
 
@@ -183,7 +183,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams')  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull)  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VariationModel() when $default != null:
 return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_that.unitId,_that.isDefault,_that.isActive,_that.weightGrams,_that.createdAt,_that.updatedAt,_that.barcodes,_that.unit);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams')  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull)  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)  $default,) {final _that = this;
 switch (_that) {
 case _VariationModel():
 return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_that.unitId,_that.isDefault,_that.isActive,_that.weightGrams,_that.createdAt,_that.updatedAt,_that.barcodes,_that.unit);case _:
@@ -224,7 +224,7 @@ return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams')  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'product_id')  String productId,  String name,  String? sku, @JsonKey(name: 'unit_id')  String? unitId, @JsonKey(name: 'is_default')  bool isDefault, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull)  String? weightGrams, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<BarcodeModel> barcodes,  UnitModel? unit)?  $default,) {final _that = this;
 switch (_that) {
 case _VariationModel() when $default != null:
 return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_that.unitId,_that.isDefault,_that.isActive,_that.weightGrams,_that.createdAt,_that.updatedAt,_that.barcodes,_that.unit);case _:
@@ -239,7 +239,7 @@ return $default(_that.id,_that.businessId,_that.productId,_that.name,_that.sku,_
 @JsonSerializable()
 
 class _VariationModel implements VariationModel {
-  const _VariationModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, @JsonKey(name: 'product_id') required this.productId, required this.name, this.sku, @JsonKey(name: 'unit_id') this.unitId, @JsonKey(name: 'is_default') this.isDefault = false, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'weight_grams') this.weightGrams, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt,  List<BarcodeModel> barcodes = const [], this.unit}): _barcodes = barcodes;
+  const _VariationModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', @JsonKey(name: 'product_id') required this.productId, required this.name, this.sku, @JsonKey(name: 'unit_id') this.unitId, @JsonKey(name: 'is_default') this.isDefault = false, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull) this.weightGrams, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt,  List<BarcodeModel> barcodes = const [], this.unit}): _barcodes = barcodes;
   factory _VariationModel.fromJson(Map<String, dynamic> json) => _$VariationModelFromJson(json);
 
 @override final  String id;
@@ -250,7 +250,7 @@ class _VariationModel implements VariationModel {
 @override@JsonKey(name: 'unit_id') final  String? unitId;
 @override@JsonKey(name: 'is_default') final  bool isDefault;
 @override@JsonKey(name: 'is_active') final  bool isActive;
-@override@JsonKey(name: 'weight_grams') final  String? weightGrams;
+@override@JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull) final  String? weightGrams;
 @override@JsonKey(name: 'created_at') final  String? createdAt;
 @override@JsonKey(name: 'updated_at') final  String? updatedAt;
  final  List<BarcodeModel> _barcodes;
@@ -297,7 +297,7 @@ abstract mixin class _$VariationModelCopyWith<$Res> implements $VariationModelCo
   factory _$VariationModelCopyWith(_VariationModel value, $Res Function(_VariationModel) _then) = __$VariationModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'product_id') String productId, String name, String? sku,@JsonKey(name: 'unit_id') String? unitId,@JsonKey(name: 'is_default') bool isDefault,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'weight_grams') String? weightGrams,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<BarcodeModel> barcodes, UnitModel? unit
+ String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'product_id') String productId, String name, String? sku,@JsonKey(name: 'unit_id') String? unitId,@JsonKey(name: 'is_default') bool isDefault,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'weight_grams', fromJson: JsonNum.stringOrNull) String? weightGrams,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<BarcodeModel> barcodes, UnitModel? unit
 });
 
 

@@ -3,6 +3,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/features/accounting/data/models/chart_of_account_model.dart';
 import 'package:frantend/features/accounting/domain/utils/coa_tree_utils.dart';
 import 'package:frantend/features/accounting/domain/utils/journal_balance.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class JournalLineRow extends StatelessWidget {
   const JournalLineRow({
@@ -93,8 +94,10 @@ class JournalLineRow extends StatelessWidget {
               const SizedBox(width: 12),
               SizedBox(
                 width: 120,
-                child: TextFormField(
-                  initialValue: line.amount,
+                // Follows the line in the cubit (a removed row must not leave its
+                // text in the row that takes its place).
+                child: SyncedTextField(
+                  value: line.amount,
                   enabled: !readOnly,
                   decoration: const InputDecoration(
                     labelText: 'Amount',
@@ -112,8 +115,8 @@ class JournalLineRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          TextFormField(
-            initialValue: line.description,
+          SyncedTextField(
+            value: line.description ?? '',
             enabled: !readOnly,
             decoration: const InputDecoration(
               labelText: 'Line description (optional)',

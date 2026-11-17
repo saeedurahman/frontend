@@ -50,7 +50,8 @@ Main pharmacy owner ke taur par software ko is tarah chalata hoon:
 - [x] Receipt aur sale record verify karna
 - [x] Cash reconcile karke shift close karna
 - [x] Closed shift report verify karna
-- [ ] Mazeed pharmacy demo products banana
+- [x] Mazeed pharmacy demo products banana
+- [ ] Mazeed products ka supplier purchase order banana
 - [ ] Receipt, returns aur reports verify karna
 
 ## Step 1: Business Register
@@ -254,7 +255,7 @@ Sale record verify ho gaya. Ab shift summary reconcile karke demo shift close ka
 
 **Wajah:** Shift report ek jagah par cashier/register, sales, cash movement aur reconciliation ka final record dikhati hai.
 
-## Step 14: Mazeed Pharmacy Products — Abhi Ka Qadam
+## Step 14: Mazeed Pharmacy Products — Complete
 
 Pehla product pehle hi bana hai. Ab neeche diye gaye **12 additional demo products** ko aik aik karke `Products` → `Add Product` se banao. Har product save karne ke baad list par wapas aa kar agla add karo. Agar table mein di hui category aapke business mein nahi milti to uski jagah maujooda `Medicines` category select karo; duplicate category na banao.
 
@@ -288,7 +289,7 @@ Pehla product pehle hi bana hai. Ab neeche diye gaye **12 additional demo produc
 | 9 | Demo Vitamin C 500 mg Tablet | PH-DEMO-009 | Vitamins & Supplements | Tablet (`tab`) | 730 | 1 Tablet | V-PH-DEMO-009 | TEST-PH-009 |
 | 10 | Demo Multivitamin Syrup 120 ml | PH-DEMO-010 | Vitamins & Supplements | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-010 | TEST-PH-010 |
 | 11 | Demo Cough Syrup 100 ml | PH-DEMO-011 | OTC Medicines | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-011 | TEST-PH-011 |
-| 12 | Demo Antiseptic Cream 20 g | PH-DEMO-012 | Medical Supplies & Devices | Tube (`tube`) | 730 | 1 Tube | V-PH-DEMO-012 | TEST-PH-012 |
+| 12 | Demo Antiseptic Cream 20 g | PH-DEMO-012 | Medical Supplies & Devices | Tube (`tube`) | 730 | 1 Tube | V-PH-DEM2O-01 | TEST-PH-012 |
 | 13 | Demo Hand Sanitizer 100 ml | PH-DEMO-013 | Personal Care | Bottle (`btl`) | 730 | 1 Bottle | V-PH-DEMO-013 | TEST-PH-013 |
 
 ### Variations aur barcode fields bhi fill karo
@@ -316,6 +317,39 @@ Har product ke `Variations` tab mein aik row add karo:
 
 **Demo data ehtiyat:** Yeh product names, SKUs, barcodes aur `730` din ki shelf life synthetic test data hai—asal manufacturer, product registration, storage condition, expiry ya clinical recommendation nahi. Expiry tracking ka form test karne ke liye receiving screen par sirf clearly synthetic demo batch/date use karo. Is data se real patient ko dawa sell/dispense na karo. Live pharmacy mein exact product identity, pack size, batch aur expiry packaging/supplier ke authentic record se lena.
 
+## Step 15: Mazeed Products ka Purchase Order — Abhi Ka Qadam
+
+Product catalogue mein 12 mazeed items add ho chuke hain. Ab supplier `Demo Pharma Distributors` ko aik combined test PO banao:
+
+1. `Purchases` → `New Purchase Order` kholo.
+2. Header ke tamam fields:
+   - `Supplier *`: `Demo Pharma Distributors`
+   - `Expected Date`: kal ki tareekh (date picker se)
+   - `Notes`: `Synthetic software demo order; not a real medicine purchase.`
+3. Pehli line pre-filled hogi. `Add Line` daba kar kul 12 line items banao. Har line par product select karo; product select karne par default variation auto-select honi chahiye. Phir neeche di hui `Ordered Qty`, `Cost/Unit`, aur `Tax %` values dakhil karo:
+
+| SKU | Product | Variation | Ordered Qty | Cost/Unit (Rs.) | Tax % |
+|---|---|---|---:|---:|---:|
+| PH-DEMO-002 | Demo Ibuprofen 200 mg Tablet | 1 Tablet | 10 | 2.00 | 0 |
+| PH-DEMO-003 | Demo Cetirizine 10 mg Tablet | 1 Tablet | 10 | 1.50 | 0 |
+| PH-DEMO-004 | Demo ORS Powder Sachet | 1 Sachet | 10 | 20.00 | 0 |
+| PH-DEMO-005 | Demo Amoxicillin 500 mg Capsule | 1 Capsule | 10 | 8.00 | 0 |
+| PH-DEMO-006 | Demo Omeprazole 20 mg Capsule | 1 Capsule | 10 | 5.00 | 0 |
+| PH-DEMO-007 | Demo Metformin 500 mg Tablet | 1 Tablet | 10 | 1.25 | 0 |
+| PH-DEMO-008 | Demo Amlodipine 5 mg Tablet | 1 Tablet | 10 | 1.00 | 0 |
+| PH-DEMO-009 | Demo Vitamin C 500 mg Tablet | 1 Tablet | 10 | 3.00 | 0 |
+| PH-DEMO-010 | Demo Multivitamin Syrup 120 ml | 1 Bottle | 10 | 120.00 | 0 |
+| PH-DEMO-011 | Demo Cough Syrup 100 ml | 1 Bottle | 10 | 90.00 | 0 |
+| PH-DEMO-012 | Demo Antiseptic Cream 20 g | 1 Tube | 10 | 55.00 | 0 |
+| PH-DEMO-013 | Demo Hand Sanitizer 100 ml | 1 Bottle | 10 | 45.00 | 0 |
+
+4. `Totals` mein subtotal/grand total `Rs. 3,517.50` verify karo.
+5. `Save & Submit` dabao. Purchase Orders list mein order `Submitted`/`In Progress` nazar aana chahiye. **Abhi receive mat karo**; goods receipt agla alag qadam hai.
+
+**Wajah:** Aik PO mein supplier ko bheje gaye tamam products aur quantities ek saath record hote hain. PO submit karna stock ko barhata nahi; receiving screen par jo quantity waqai receive ki jayegi wahi inventory mein add hogi.
+
+**Demo data ehtiyat:** Is table ke tamam costs aur zero tax values synthetic software-test numbers hain, asal wholesale prices/tax advice nahi. Yeh purchase/demo medicines real product ya real dispensing stock nahi hain. Real business mein har line ko actual supplier invoice, exact pack/unit, approved tax treatment aur authentic item identity se match karo. Agar product/variation dropdown mein item nahi milta to usay skip karke error batana—kisi doosre product ko substitute na karna.
+
 ## Agla Qadam
 
-Yeh 12 products add hone ke baad unki supplier purchase, receiving, inventory aur price testing karenge; phir returns, expenses aur reports par jayenge.
+PO submit hone ke baad is test order ki goods receipt banayenge; har line ki received quantity, cost, batch aur expiry ko demo data ke taur par enter karke inventory mein stock verify karenge.

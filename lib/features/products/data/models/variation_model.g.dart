@@ -9,14 +9,14 @@ part of 'variation_model.dart';
 _VariationModel _$VariationModelFromJson(Map<String, dynamic> json) =>
     _VariationModel(
       id: json['id'] as String,
-      businessId: json['business_id'] as String,
+      businessId: json['business_id'] as String? ?? '',
       productId: json['product_id'] as String,
       name: json['name'] as String,
       sku: json['sku'] as String?,
       unitId: json['unit_id'] as String?,
       isDefault: json['is_default'] as bool? ?? false,
       isActive: json['is_active'] as bool? ?? true,
-      weightGrams: json['weight_grams'] as String?,
+      weightGrams: JsonNum.stringOrNull(json['weight_grams']),
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       barcodes:

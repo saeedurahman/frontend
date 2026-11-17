@@ -10,10 +10,14 @@ import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/restaurant/data/models/modifier_group_model.dart';
+import 'package:frantend/features/products/data/models/barcode_model.dart';
+import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
 import 'package:frantend/features/products/data/models/product_list_item_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
+import 'package:frantend/features/products/data/models/unit_model.dart';
+import 'package:frantend/features/products/data/models/variation_model.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
 
 /// Everything the POS reads, from the local database only (no network).
@@ -586,6 +590,209 @@ class LocalCatalog {
       }
       _store.notePriceListRemoved(listId);
       await _store.deleteEntity('price_list', listId);
+    });
+  }
+
+  // ── write-through of catalog changes made on this device ───────────────
+  //
+  // The products screens talk to the server, but the POS grid, pickers and
+  // every offline read use this local copy. A change the server has accepted is
+  // written here in the same shape a pull delivers (so the next pull simply
+  // confirms it) and announced through [changes], so open screens update at
+  // once instead of at the next scheduled pull.
+
+  static Map<String, dynamic> _productRow(ProductModel p) => {
+        'id': p.id,
+        'business_id': p.businessId,
+        'name': p.name,
+        'sku': p.sku,
+        'product_type': p.productType,
+        'tracking_type': p.trackingType,
+        'is_sellable': p.isSellable,
+        'is_purchasable': p.isPurchasable,
+        'is_active': p.isActive,
+        'description': p.description,
+        'image_url': p.imageUrl,
+        'tax_rate_id': p.taxRateId,
+        'is_tax_exempt': p.isTaxExempt,
+        'track_expiry': p.trackExpiry,
+        'name_secondary': p.nameSecondary,
+        'shelf_life_days': p.shelfLifeDays,
+        'min_stock_level': p.minStockLevel,
+        'max_stock_level': p.maxStockLevel,
+        'category_id': p.category?.id,
+        'brand_id': p.brand?.id,
+        'base_unit_id': p.baseUnit?.id,
+        'created_at': p.createdAt,
+        'updated_at': p.updatedAt,
+      };
+
+  static Map<String, dynamic> _variationRow(VariationModel v, String productId) => {
+        'id': v.id,
+        'business_id': v.businessId,
+        'product_id': v.productId.isEmpty ? productId : v.productId,
+        'name': v.name,
+        'sku': v.sku,
+        'unit_id': v.unitId,
+        'is_default': v.isDefault,
+        'is_active': v.isActive,
+        'weight_grams': v.weightGrams,
+      };
+
+  static Map<String, dynamic> _barcodeRow(BarcodeModel b, String businessId) => {
+        'id': b.id,
+        'business_id': businessId,
+        'product_id': b.productId,
+        'variation_id': b.variationId,
+        'barcode': b.barcode,
+        'barcode_type': b.barcodeType,
+        'is_primary': b.isPrimary,
+      };
+
+  Future<String> _bizId(String? fromRow) async =>
+      (fromRow != null && fromRow.isNotEmpty) ? fromRow : (await _businessId()) ?? '';
+
+  /// A whole product as the server returned it (create / edit / read): the
+  /// product row, exactly its variations and exactly its barcodes.
+  Future<void> rememberProduct(ProductModel p) async {
+    final biz = await _bizId(p.businessId);
+    await _store.transaction(() async {
+      // Reference rows the product points at, if this device has not pulled
+      // them yet (never over a pulled row: it may be fuller than the brief).
+      final c = p.category;
+      if (c != null && await _store.entity('category', c.id) == null) {
+        await _store.putEntity('category', c.id, {
+          'id': c.id,
+          'business_id': biz,
+          'parent_id': c.parentId,
+          'name': c.name,
+          'is_active': true,
+        });
+      }
+      final b = p.brand;
+      if (b != null && await _store.entity('brand', b.id) == null) {
+        await _store.putEntity('brand', b.id,
+            {'id': b.id, 'business_id': biz, 'name': b.name, 'is_active': b.isActive});
+      }
+      final u = p.baseUnit;
+      if (u != null && await _store.entity('unit', u.id) == null) {
+        await _store.putEntity('unit', u.id, {
+          'id': u.id,
+          'business_id': biz,
+          'name': u.name,
+          'symbol': u.symbol,
+          'is_base_unit': u.isBaseUnit,
+          'allows_decimal': u.allowsDecimal,
+          'is_active': u.isActive,
+        });
+      }
+
+      await _store.putEntity('product', p.id, {..._productRow(p), 'business_id': biz});
+
+      final variationIds = <String>{};
+      for (final v in p.variations) {
+        variationIds.add(v.id);
+        await _store.putEntity(
+            'product_variation', v.id, {..._variationRow(v, p.id), 'business_id': biz});
+      }
+      for (final old in await _store.entities('product_variation',
+          where: 'parent_id = ?', args: [p.id])) {
+        final id = '${old['id']}';
+        if (!variationIds.contains(id)) await _store.deleteEntity('product_variation', id);
+      }
+
+      final barcodes = <String, BarcodeModel>{
+        for (final v in p.variations)
+          for (final b in v.barcodes) b.id: b,
+        for (final b in p.barcodes) b.id: b,
+      };
+      for (final b in barcodes.values) {
+        await _store.putEntity('barcode', b.id, _barcodeRow(b, biz));
+      }
+      for (final old
+          in await _store.entities('barcode', where: 'parent_id = ?', args: [p.id])) {
+        final id = '${old['id']}';
+        if (!barcodes.containsKey(id)) await _store.deleteEntity('barcode', id);
+      }
+    });
+  }
+
+  /// A product the server deleted, with its variations and barcodes.
+  Future<void> forgetProduct(String productId) async {
+    await _store.transaction(() async {
+      for (final v in await _store.entities('product_variation',
+          where: 'parent_id = ?', args: [productId])) {
+        await _store.deleteEntity('product_variation', '${v['id']}');
+      }
+      for (final b
+          in await _store.entities('barcode', where: 'parent_id = ?', args: [productId])) {
+        await _store.deleteEntity('barcode', '${b['id']}');
+      }
+      await _store.deleteEntity('product', productId);
+    });
+  }
+
+  /// One variation created or edited on its own.
+  Future<void> rememberVariation(VariationModel v, String productId) async {
+    final biz = await _bizId(v.businessId);
+    await _store.transaction(() async {
+      await _store.putEntity(
+          'product_variation', v.id, {..._variationRow(v, productId), 'business_id': biz});
+      for (final b in v.barcodes) {
+        await _store.putEntity('barcode', b.id, _barcodeRow(b, biz));
+      }
+    });
+  }
+
+  /// One barcode added on its own.
+  Future<void> rememberBarcode(BarcodeModel b) async {
+    final biz = await _bizId(null);
+    await _store.transaction(() async {
+      await _store.putEntity('barcode', b.id, _barcodeRow(b, biz));
+    });
+  }
+
+  Future<void> rememberCategory(CategoryModel c) async {
+    final biz = await _bizId(c.businessId);
+    await _store.transaction(() async {
+      await _store.putEntity('category', c.id, {
+        'id': c.id,
+        'business_id': biz,
+        'parent_id': c.parentId,
+        'name': c.name,
+        'slug': c.slug,
+        'sort_order': c.sortOrder,
+        'is_active': c.isActive,
+      });
+    });
+  }
+
+  Future<void> forgetCategory(String id) =>
+      _store.transaction(() => _store.deleteEntity('category', id));
+
+  Future<void> rememberBrand(BrandModel b) async {
+    final biz = await _bizId(b.businessId);
+    await _store.transaction(() async {
+      await _store.putEntity('brand', b.id,
+          {'id': b.id, 'business_id': biz, 'name': b.name, 'is_active': b.isActive});
+    });
+  }
+
+  Future<void> forgetBrand(String id) =>
+      _store.transaction(() => _store.deleteEntity('brand', id));
+
+  Future<void> rememberUnit(UnitModel u) async {
+    final biz = await _bizId(u.businessId);
+    await _store.transaction(() async {
+      await _store.putEntity('unit', u.id, {
+        'id': u.id,
+        'business_id': biz,
+        'name': u.name,
+        'symbol': u.symbol,
+        'is_base_unit': u.isBaseUnit,
+        'allows_decimal': u.allowsDecimal,
+        'is_active': u.isActive,
+      });
     });
   }
 

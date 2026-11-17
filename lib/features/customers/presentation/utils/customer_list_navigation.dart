@@ -9,3 +9,11 @@ Future<void> openCustomerForm(BuildContext context, String path) async {
     await context.read<CustomersListCubit>().refresh();
   }
 }
+
+/// The customer's screen can take a payment or change the balance, so the list
+/// is read again when it comes back.
+Future<void> openCustomerDetail(BuildContext context, String path) async {
+  final cubit = context.read<CustomersListCubit>();
+  await context.push<Object?>(path);
+  if (!cubit.isClosed) await cubit.refresh();
+}

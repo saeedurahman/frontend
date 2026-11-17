@@ -335,9 +335,7 @@ class _ExpensesTable extends StatelessWidget {
                           ) ??
                           '—';
                       return InkWell(
-                        onTap: () => context.push(
-                          RouteNames.expenseDetailPath(item.id),
-                        ),
+                        onTap: () => _openExpense(context, item.id),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -395,9 +393,7 @@ class _ExpensesTable extends StatelessWidget {
                                       tooltip: 'View',
                                       icon: const Icon(Icons.visibility_outlined,
                                           size: 20),
-                                      onPressed: () => context.push(
-                                        RouteNames.expenseDetailPath(item.id),
-                                      ),
+                                      onPressed: () => _openExpense(context, item.id),
                                     ),
                                     PermissionGate(
                                       permission: Perm.expensesDelete,
@@ -530,4 +526,12 @@ class _ShimmerTable extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The detail screen can change the expense, so the list is read again when it
+/// comes back.
+Future<void> _openExpense(BuildContext context, String id) async {
+  final cubit = context.read<ExpensesListCubit>();
+  await context.push<Object?>(RouteNames.expenseDetailPath(id));
+  if (!cubit.isClosed) await cubit.loadExpenses();
 }

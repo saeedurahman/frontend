@@ -7,7 +7,7 @@ part 'product_list_item_model.g.dart';
 abstract class ProductListItemModel with _$ProductListItemModel {
   const factory ProductListItemModel({
     required String id,
-    @JsonKey(name: 'business_id') required String businessId,
+    @JsonKey(name: 'business_id') @Default('') String businessId,
     required String name,
     String? sku,
     @JsonKey(name: 'product_type') required String productType,

@@ -16,6 +16,7 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class ExpenseFormPage extends StatelessWidget {
   const ExpenseFormPage({super.key, this.expenseId});
@@ -50,50 +51,6 @@ class _ExpenseFormView extends StatefulWidget {
 }
 
 class _ExpenseFormViewState extends State<_ExpenseFormView> {
-  late final TextEditingController _amountController;
-  late final TextEditingController _taxController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _paymentAmountController;
-  late final TextEditingController _referenceController;
-
-  @override
-  void initState() {
-    super.initState();
-    _amountController = TextEditingController();
-    _taxController = TextEditingController(text: '0');
-    _descriptionController = TextEditingController();
-    _paymentAmountController = TextEditingController();
-    _referenceController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _taxController.dispose();
-    _descriptionController.dispose();
-    _paymentAmountController.dispose();
-    _referenceController.dispose();
-    super.dispose();
-  }
-
-  void _syncControllers(ExpenseFormState state) {
-    if (_amountController.text != state.amount) {
-      _amountController.text = state.amount;
-    }
-    if (_taxController.text != state.taxAmount) {
-      _taxController.text = state.taxAmount;
-    }
-    if (_descriptionController.text != state.description) {
-      _descriptionController.text = state.description;
-    }
-    if (_paymentAmountController.text != state.paymentAmount) {
-      _paymentAmountController.text = state.paymentAmount;
-    }
-    if (_referenceController.text != (state.referenceNo ?? '')) {
-      _referenceController.text = state.referenceNo ?? '';
-    }
-  }
-
   Future<void> _pickDate(BuildContext context, ExpenseFormCubit cubit) async {
     final current = cubit.state.expenseDate ?? DateTime.now();
     final picked = await showDatePicker(
@@ -118,7 +75,6 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        _syncControllers(state);
         final cubit = context.read<ExpenseFormCubit>();
         final flatCategories = flattenExpenseCategories(state.categories);
         final showPaymentSection =
@@ -211,8 +167,8 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
                         Row(
                           children: [
                             Expanded(
-                              child: TextField(
-                                controller: _amountController,
+                              child: SyncedTextField(
+                                value: state.amount,
                                 keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true,
                                 ),
@@ -230,8 +186,8 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: TextField(
-                                controller: _taxController,
+                              child: SyncedTextField(
+                                value: state.taxAmount,
                                 keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true,
                                 ),
@@ -267,8 +223,8 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
                           ),
                         ),
                         const SizedBox(height: AppDimensions.spacingMd),
-                        TextField(
-                          controller: _descriptionController,
+                        SyncedTextField(
+                          value: state.description,
                           decoration: InputDecoration(
                             labelText: 'Description *',
                             errorText: state.errors['description'],
@@ -349,8 +305,8 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
                                 hasActiveShift:
                                     state.activePaymentShiftId != null,
                               ),
-                            TextField(
-                              controller: _paymentAmountController,
+                            SyncedTextField(
+                              value: state.paymentAmount,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                 decimal: true,
@@ -369,8 +325,8 @@ class _ExpenseFormViewState extends State<_ExpenseFormView> {
                             ),
                             if (state.paymentMethod != PaymentMethods.cash) ...[
                               const SizedBox(height: AppDimensions.spacingMd),
-                              TextField(
-                                controller: _referenceController,
+                              SyncedTextField(
+                                value: state.referenceNo ?? '',
                                 decoration: InputDecoration(
                                   labelText: 'Reference No *',
                                   errorText: state.errors['referenceNo'],

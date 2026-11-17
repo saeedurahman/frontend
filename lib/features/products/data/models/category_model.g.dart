@@ -9,10 +9,10 @@ part of 'category_model.dart';
 _CategoryModel _$CategoryModelFromJson(Map<String, dynamic> json) =>
     _CategoryModel(
       id: json['id'] as String,
-      businessId: json['business_id'] as String,
+      businessId: json['business_id'] as String? ?? '',
       parentId: json['parent_id'] as String?,
       name: json['name'] as String,
-      slug: json['slug'] as String,
+      slug: json['slug'] as String?,
       sortOrder: JsonNum.intOrNull(json['sort_order']),
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] as String?,

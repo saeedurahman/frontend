@@ -10,6 +10,7 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class CustomerFormPage extends StatelessWidget {
   const CustomerFormPage({super.key, this.customerId});
@@ -135,89 +136,86 @@ class _CustomerFields extends StatelessWidget {
 
     return Column(
       children: [
-        TextField(
+        SyncedTextField(
+          value: state.name,
           decoration: InputDecoration(
             labelText: 'Name *',
             errorText: state.errors['name'],
           ),
-          controller: TextEditingController(text: state.name)
-            ..selection = TextSelection.collapsed(offset: state.name.length),
+
           onChanged: cubit.updateName,
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.phone,
                 decoration: const InputDecoration(labelText: 'Phone'),
-                controller: TextEditingController(text: state.phone)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.phone.length),
+
                 onChanged: cubit.updatePhone,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.email,
                 decoration: const InputDecoration(labelText: 'Email'),
-                controller: TextEditingController(text: state.email)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.email.length),
+
                 onChanged: cubit.updateEmail,
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        TextField(
+        SyncedTextField(
+          value: state.addressLine1,
           decoration: const InputDecoration(labelText: 'Address'),
           enabled: !isEdit,
-          controller: TextEditingController(text: state.addressLine1)
-            ..selection =
-                TextSelection.collapsed(offset: state.addressLine1.length),
+
           onChanged: isEdit ? null : cubit.updateAddressLine1,
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.city,
                 decoration: const InputDecoration(labelText: 'City'),
                 enabled: !isEdit,
-                controller: TextEditingController(text: state.city)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.city.length),
+
                 onChanged: isEdit ? null : cubit.updateCity,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.creditLimit,
                 decoration: const InputDecoration(labelText: 'Credit Limit'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                controller: TextEditingController(text: state.creditLimit)
-                  ..selection = TextSelection.collapsed(
-                    offset: state.creditLimit.length,
-                  ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: const [NumberInputFormatter()],
+
                 onChanged: cubit.updateCreditLimit,
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        TextField(
+        SyncedTextField(
+          value: state.taxId,
           decoration: const InputDecoration(labelText: 'Tax ID'),
           enabled: !isEdit,
-          controller: TextEditingController(text: state.taxId)
-            ..selection = TextSelection.collapsed(offset: state.taxId.length),
+
           onChanged: isEdit ? null : cubit.updateTaxId,
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String?>(
           decoration: const InputDecoration(
             labelText: 'Assigned Price List',
-            helperText: 'Special pricing for this customer (falls back to default list)',
+            helperText:
+                'Special pricing for this customer (falls back to default list)',
           ),
           value: state.priceListId,
           items: [

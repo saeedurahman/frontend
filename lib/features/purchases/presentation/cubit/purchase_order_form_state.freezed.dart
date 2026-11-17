@@ -306,7 +306,8 @@ as List<VariationModel>,
 /// @nodoc
 mixin _$PurchaseOrderFormState {
 
- String? get branchId; String? get supplierId; DateTime? get expectedAt; String get notes; List<PurchaseLineFormItem> get lines; List<SupplierModel> get suppliers; List<ProductListItemModel> get products; bool get isLoading; bool get isSubmitting; Map<String, String> get errors;
+ String? get branchId; String? get supplierId; DateTime? get expectedAt; String get notes; List<PurchaseLineFormItem> get lines; List<SupplierModel> get suppliers; List<ProductListItemModel> get products; bool get isLoading; bool get isSubmitting; Map<String, String> get errors;/// Set once the order exists on the server (a retry must not create it again).
+ String? get createdOrderId;
 /// Create a copy of PurchaseOrderFormState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -318,20 +319,20 @@ $PurchaseOrderFormStateCopyWith<PurchaseOrderFormState> get copyWith => _$Purcha
 @override
 bool operator ==(Object other) {
   final _this = this as PurchaseOrderFormState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderFormState&&(identical(other.branchId, _this.branchId) || other.branchId == _this.branchId)&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.expectedAt, _this.expectedAt) || other.expectedAt == _this.expectedAt)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&const DeepCollectionEquality().equals(other.suppliers, _this.suppliers)&&const DeepCollectionEquality().equals(other.products, _this.products)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isSubmitting, _this.isSubmitting) || other.isSubmitting == _this.isSubmitting)&&const DeepCollectionEquality().equals(other.errors, _this.errors));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseOrderFormState&&(identical(other.branchId, _this.branchId) || other.branchId == _this.branchId)&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.expectedAt, _this.expectedAt) || other.expectedAt == _this.expectedAt)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&const DeepCollectionEquality().equals(other.suppliers, _this.suppliers)&&const DeepCollectionEquality().equals(other.products, _this.products)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isSubmitting, _this.isSubmitting) || other.isSubmitting == _this.isSubmitting)&&const DeepCollectionEquality().equals(other.errors, _this.errors)&&(identical(other.createdOrderId, _this.createdOrderId) || other.createdOrderId == _this.createdOrderId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PurchaseOrderFormState;
-  return Object.hash(runtimeType,_this.branchId,_this.supplierId,_this.expectedAt,_this.notes,const DeepCollectionEquality().hash(_this.lines),const DeepCollectionEquality().hash(_this.suppliers),const DeepCollectionEquality().hash(_this.products),_this.isLoading,_this.isSubmitting,const DeepCollectionEquality().hash(_this.errors));
+  return Object.hash(runtimeType,_this.branchId,_this.supplierId,_this.expectedAt,_this.notes,const DeepCollectionEquality().hash(_this.lines),const DeepCollectionEquality().hash(_this.suppliers),const DeepCollectionEquality().hash(_this.products),_this.isLoading,_this.isSubmitting,const DeepCollectionEquality().hash(_this.errors),_this.createdOrderId);
 }
 
 @override
 String toString() {
   final _this = this as PurchaseOrderFormState;
-  return 'PurchaseOrderFormState(branchId: ${_this.branchId}, supplierId: ${_this.supplierId}, expectedAt: ${_this.expectedAt}, notes: ${_this.notes}, lines: ${_this.lines}, suppliers: ${_this.suppliers}, products: ${_this.products}, isLoading: ${_this.isLoading}, isSubmitting: ${_this.isSubmitting}, errors: ${_this.errors})';
+  return 'PurchaseOrderFormState(branchId: ${_this.branchId}, supplierId: ${_this.supplierId}, expectedAt: ${_this.expectedAt}, notes: ${_this.notes}, lines: ${_this.lines}, suppliers: ${_this.suppliers}, products: ${_this.products}, isLoading: ${_this.isLoading}, isSubmitting: ${_this.isSubmitting}, errors: ${_this.errors}, createdOrderId: ${_this.createdOrderId})';
 }
 
 
@@ -342,7 +343,7 @@ abstract mixin class $PurchaseOrderFormStateCopyWith<$Res>  {
   factory $PurchaseOrderFormStateCopyWith(PurchaseOrderFormState value, $Res Function(PurchaseOrderFormState) _then) = _$PurchaseOrderFormStateCopyWithImpl;
 @useResult
 $Res call({
- String? branchId, String? supplierId, DateTime? expectedAt, String notes, List<PurchaseLineFormItem> lines, List<SupplierModel> suppliers, List<ProductListItemModel> products, bool isLoading, bool isSubmitting, Map<String, String> errors
+ String? branchId, String? supplierId, DateTime? expectedAt, String notes, List<PurchaseLineFormItem> lines, List<SupplierModel> suppliers, List<ProductListItemModel> products, bool isLoading, bool isSubmitting, Map<String, String> errors, String? createdOrderId
 });
 
 
@@ -359,7 +360,7 @@ class _$PurchaseOrderFormStateCopyWithImpl<$Res>
 
 /// Create a copy of PurchaseOrderFormState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? branchId = freezed,Object? supplierId = freezed,Object? expectedAt = freezed,Object? notes = null,Object? lines = null,Object? suppliers = null,Object? products = null,Object? isLoading = null,Object? isSubmitting = null,Object? errors = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? branchId = freezed,Object? supplierId = freezed,Object? expectedAt = freezed,Object? notes = null,Object? lines = null,Object? suppliers = null,Object? products = null,Object? isLoading = null,Object? isSubmitting = null,Object? errors = null,Object? createdOrderId = freezed,}) {
   return _then(PurchaseOrderFormState(
 branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
 as String?,supplierId: freezed == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
@@ -371,7 +372,8 @@ as List<SupplierModel>,products: null == products ? _self.products : products //
 as List<ProductListItemModel>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,errors: null == errors ? _self.errors : errors // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,
+as Map<String, String>,createdOrderId: freezed == createdOrderId ? _self.createdOrderId : createdOrderId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -456,10 +458,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors,  String? createdOrderId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PurchaseOrderFormState() when $default != null:
-return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors);case _:
+return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors,_that.createdOrderId);case _:
   return orElse();
 
 }
@@ -477,10 +479,10 @@ return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors,  String? createdOrderId)  $default,) {final _that = this;
 switch (_that) {
 case _PurchaseOrderFormState():
-return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors);case _:
+return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors,_that.createdOrderId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -497,10 +499,10 @@ return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? branchId,  String? supplierId,  DateTime? expectedAt,  String notes,  List<PurchaseLineFormItem> lines,  List<SupplierModel> suppliers,  List<ProductListItemModel> products,  bool isLoading,  bool isSubmitting,  Map<String, String> errors,  String? createdOrderId)?  $default,) {final _that = this;
 switch (_that) {
 case _PurchaseOrderFormState() when $default != null:
-return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors);case _:
+return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_that.lines,_that.suppliers,_that.products,_that.isLoading,_that.isSubmitting,_that.errors,_that.createdOrderId);case _:
   return null;
 
 }
@@ -512,7 +514,7 @@ return $default(_that.branchId,_that.supplierId,_that.expectedAt,_that.notes,_th
 
 
 class _PurchaseOrderFormState extends PurchaseOrderFormState {
-  const _PurchaseOrderFormState({this.branchId, this.supplierId, this.expectedAt, this.notes = '',  List<PurchaseLineFormItem> lines = const [],  List<SupplierModel> suppliers = const [],  List<ProductListItemModel> products = const [], this.isLoading = false, this.isSubmitting = false,  Map<String, String> errors = const {}}): _lines = lines,_suppliers = suppliers,_products = products,_errors = errors,super._();
+  const _PurchaseOrderFormState({this.branchId, this.supplierId, this.expectedAt, this.notes = '',  List<PurchaseLineFormItem> lines = const [],  List<SupplierModel> suppliers = const [],  List<ProductListItemModel> products = const [], this.isLoading = false, this.isSubmitting = false,  Map<String, String> errors = const {}, this.createdOrderId}): _lines = lines,_suppliers = suppliers,_products = products,_errors = errors,super._();
   
 
 @override final  String? branchId;
@@ -549,6 +551,8 @@ class _PurchaseOrderFormState extends PurchaseOrderFormState {
   return EqualUnmodifiableMapView(_errors);
 }
 
+/// Set once the order exists on the server (a retry must not create it again).
+@override final  String? createdOrderId;
 
 /// Create a copy of PurchaseOrderFormState
 /// with the given fields replaced by the non-null parameter values.
@@ -560,18 +564,18 @@ _$PurchaseOrderFormStateCopyWith<_PurchaseOrderFormState> get copyWith => __$Pur
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PurchaseOrderFormState&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.expectedAt, expectedAt) || other.expectedAt == expectedAt)&&(identical(other.notes, notes) || other.notes == notes)&&const DeepCollectionEquality().equals(other.lines, _lines)&&const DeepCollectionEquality().equals(other.suppliers, _suppliers)&&const DeepCollectionEquality().equals(other.products, _products)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&const DeepCollectionEquality().equals(other.errors, _errors));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PurchaseOrderFormState&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.expectedAt, expectedAt) || other.expectedAt == expectedAt)&&(identical(other.notes, notes) || other.notes == notes)&&const DeepCollectionEquality().equals(other.lines, _lines)&&const DeepCollectionEquality().equals(other.suppliers, _suppliers)&&const DeepCollectionEquality().equals(other.products, _products)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&const DeepCollectionEquality().equals(other.errors, _errors)&&(identical(other.createdOrderId, createdOrderId) || other.createdOrderId == createdOrderId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,branchId,supplierId,expectedAt,notes,const DeepCollectionEquality().hash(_lines),const DeepCollectionEquality().hash(_suppliers),const DeepCollectionEquality().hash(_products),isLoading,isSubmitting,const DeepCollectionEquality().hash(_errors));
+    return Object.hash(runtimeType,branchId,supplierId,expectedAt,notes,const DeepCollectionEquality().hash(_lines),const DeepCollectionEquality().hash(_suppliers),const DeepCollectionEquality().hash(_products),isLoading,isSubmitting,const DeepCollectionEquality().hash(_errors),createdOrderId);
 }
 
 @override
 String toString() {
-    return 'PurchaseOrderFormState(branchId: $branchId, supplierId: $supplierId, expectedAt: $expectedAt, notes: $notes, lines: $lines, suppliers: $suppliers, products: $products, isLoading: $isLoading, isSubmitting: $isSubmitting, errors: $errors)';
+    return 'PurchaseOrderFormState(branchId: $branchId, supplierId: $supplierId, expectedAt: $expectedAt, notes: $notes, lines: $lines, suppliers: $suppliers, products: $products, isLoading: $isLoading, isSubmitting: $isSubmitting, errors: $errors, createdOrderId: $createdOrderId)';
 }
 
 
@@ -582,7 +586,7 @@ abstract mixin class _$PurchaseOrderFormStateCopyWith<$Res> implements $Purchase
   factory _$PurchaseOrderFormStateCopyWith(_PurchaseOrderFormState value, $Res Function(_PurchaseOrderFormState) _then) = __$PurchaseOrderFormStateCopyWithImpl;
 @override @useResult
 $Res call({
- String? branchId, String? supplierId, DateTime? expectedAt, String notes, List<PurchaseLineFormItem> lines, List<SupplierModel> suppliers, List<ProductListItemModel> products, bool isLoading, bool isSubmitting, Map<String, String> errors
+ String? branchId, String? supplierId, DateTime? expectedAt, String notes, List<PurchaseLineFormItem> lines, List<SupplierModel> suppliers, List<ProductListItemModel> products, bool isLoading, bool isSubmitting, Map<String, String> errors, String? createdOrderId
 });
 
 
@@ -599,7 +603,7 @@ class __$PurchaseOrderFormStateCopyWithImpl<$Res>
 
 /// Create a copy of PurchaseOrderFormState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? branchId = freezed,Object? supplierId = freezed,Object? expectedAt = freezed,Object? notes = null,Object? lines = null,Object? suppliers = null,Object? products = null,Object? isLoading = null,Object? isSubmitting = null,Object? errors = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? branchId = freezed,Object? supplierId = freezed,Object? expectedAt = freezed,Object? notes = null,Object? lines = null,Object? suppliers = null,Object? products = null,Object? isLoading = null,Object? isSubmitting = null,Object? errors = null,Object? createdOrderId = freezed,}) {
   return _then(_PurchaseOrderFormState(
 branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
 as String?,supplierId: freezed == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
@@ -611,7 +615,8 @@ as List<SupplierModel>,products: null == products ? _self._products : products /
 as List<ProductListItemModel>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,errors: null == errors ? _self._errors : errors // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,
+as Map<String, String>,createdOrderId: freezed == createdOrderId ? _self.createdOrderId : createdOrderId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

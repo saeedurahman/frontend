@@ -13,6 +13,7 @@ import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class BomFormPage extends StatelessWidget {
   const BomFormPage({super.key, this.bomId});
@@ -112,7 +113,8 @@ class _HeaderCard extends StatelessWidget {
                   ),
                   items: state.manufacturedProducts
                       .map(
-                        (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+                        (p) =>
+                            DropdownMenuItem(value: p.id, child: Text(p.name)),
                       )
                       .toList(),
                   onChanged: state.isEdit
@@ -129,10 +131,13 @@ class _HeaderCard extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Variation'),
                   items: state.finishedVariations
                       .map(
-                        (v) => DropdownMenuItem(value: v.id, child: Text(v.name)),
+                        (v) =>
+                            DropdownMenuItem(value: v.id, child: Text(v.name)),
                       )
                       .toList(),
-                  onChanged: state.isEdit ? null : cubit.selectFinishedVariation,
+                  onChanged: state.isEdit
+                      ? null
+                      : cubit.selectFinishedVariation,
                 ),
               ),
             ],
@@ -142,27 +147,29 @@ class _HeaderCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: TextField(
+                child: SyncedTextField(
+                  value: state.name,
                   decoration: InputDecoration(
                     labelText: 'Recipe name *',
                     errorText: state.errors['name'],
                   ),
-                  controller: TextEditingController(text: state.name)
-                    ..selection = TextSelection.collapsed(offset: state.name.length),
+
                   onChanged: cubit.updateName,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: SyncedTextField(
+                  value: state.outputQty,
                   decoration: InputDecoration(
                     labelText: 'Output qty *',
                     errorText: state.errors['output_qty'],
                   ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  controller: TextEditingController(text: state.outputQty)
-                    ..selection =
-                        TextSelection.collapsed(offset: state.outputQty.length),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: const [NumberInputFormatter()],
+
                   onChanged: cubit.updateOutputQty,
                 ),
               ),
@@ -239,16 +246,17 @@ class _PreviewCard extends StatelessWidget {
         children: [
           SizedBox(
             width: 200,
-            child: TextField(
+            child: SyncedTextField(
+              value: state.previewBatchQty,
               decoration: const InputDecoration(
                 labelText: 'Preview batch qty',
                 helperText: 'Ingredient totals for this production batch size',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              controller: TextEditingController(text: state.previewBatchQty)
-                ..selection = TextSelection.collapsed(
-                  offset: state.previewBatchQty.length,
-                ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: const [NumberInputFormatter()],
+
               onChanged: cubit.updatePreviewBatchQty,
             ),
           ),
@@ -261,11 +269,7 @@ class _PreviewCard extends StatelessWidget {
 }
 
 class _FormCard extends StatelessWidget {
-  const _FormCard({
-    required this.title,
-    required this.child,
-    this.trailing,
-  });
+  const _FormCard({required this.title, required this.child, this.trailing});
 
   final String title;
   final Widget child;
@@ -345,10 +349,7 @@ class _BottomBar extends StatelessWidget {
                         context.pop(true);
                       }
                     },
-              child: Text(
-                'Delete',
-                style: TextStyle(color: AppColors.error),
-              ),
+              child: Text('Delete', style: TextStyle(color: AppColors.error)),
             ),
           const SizedBox(width: 12),
           SecondaryButton(

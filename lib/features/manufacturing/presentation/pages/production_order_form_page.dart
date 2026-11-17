@@ -11,6 +11,7 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class ProductionOrderFormPage extends StatelessWidget {
   const ProductionOrderFormPage({super.key});
@@ -77,7 +78,8 @@ class _ProductionOrderFormView extends StatelessWidget {
                               .selectBom,
                         ),
                         const SizedBox(height: 12),
-                        TextField(
+                        SyncedTextField(
+                          value: state.qtyToProduce,
                           decoration: InputDecoration(
                             labelText: 'Qty to produce *',
                             errorText: state.errors['qty'],
@@ -85,22 +87,17 @@ class _ProductionOrderFormView extends StatelessWidget {
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
-                          controller: TextEditingController(
-                            text: state.qtyToProduce,
-                          )..selection = TextSelection.collapsed(
-                              offset: state.qtyToProduce.length,
-                            ),
+                          inputFormatters: const [NumberInputFormatter()],
+
                           onChanged: context
                               .read<ProductionOrderFormCubit>()
                               .updateQtyToProduce,
                         ),
                         const SizedBox(height: 12),
-                        TextField(
+                        SyncedTextField(
+                          value: state.notes,
                           decoration: const InputDecoration(labelText: 'Notes'),
-                          controller: TextEditingController(text: state.notes)
-                            ..selection = TextSelection.collapsed(
-                              offset: state.notes.length,
-                            ),
+
                           onChanged: context
                               .read<ProductionOrderFormCubit>()
                               .updateNotes,
@@ -123,7 +120,9 @@ class _ProductionOrderFormView extends StatelessWidget {
                               color: AppColors.warning.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: AppColors.warning.withValues(alpha: 0.35),
+                                color: AppColors.warning.withValues(
+                                  alpha: 0.35,
+                                ),
                               ),
                             ),
                             child: const Text(
@@ -156,7 +155,9 @@ class _ProductionOrderFormView extends StatelessWidget {
                   children: [
                     SecondaryButton(
                       label: 'Cancel',
-                      onPressed: state.isSubmitting ? null : () => context.pop(),
+                      onPressed: state.isSubmitting
+                          ? null
+                          : () => context.pop(),
                     ),
                     const SizedBox(width: 12),
                     PrimaryButton(

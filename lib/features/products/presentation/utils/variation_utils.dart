@@ -64,3 +64,60 @@ String? resolveVariationDropdownValue(
 
   return values.contains(selectedKey) ? selectedKey : null;
 }
+
+/// The `variations` and `barcodes` parts of a create-product request.
+///
+/// The backend creates the product, its variations and every barcode in one
+/// transaction, so a barcode is not sent on its own: one that is linked to a
+/// variation row of the form (`local:<index>`) goes into that variation's
+/// `barcodes`, any other goes to the product's `barcodes`. A barcode linked to
+/// a row that has no name (and so is not sent) falls back to the product.
+///
+/// Only the first barcode marked primary stays primary (the backend rejects
+/// more than one).
+Map<String, dynamic> createBarcodePayload(
+  List<VariationFormItem> variations,
+  List<BarcodeFormItem> barcodes,
+) {
+  final sent = <int>[
+    for (var i = 0; i < variations.length; i++)
+      if (variations[i].name.trim().isNotEmpty) i,
+  ];
+  final byVariation = <int, List<Map<String, dynamic>>>{};
+  final productLevel = <Map<String, dynamic>>[];
+  var primaryTaken = false;
+  for (final b in barcodes) {
+    final code = b.barcode.trim();
+    if (code.isEmpty) continue;
+    final primary = b.isPrimary && !primaryTaken;
+    if (primary) primaryTaken = true;
+    final item = <String, dynamic>{
+      'barcode': code,
+      'barcode_type': b.barcodeType,
+      'is_primary': primary,
+    };
+    final index = b.variationId == null ? null : localVariationIndex(b.variationId!);
+    if (index != null && sent.contains(index)) {
+      (byVariation[index] ??= []).add(item);
+    } else {
+      productLevel.add(item);
+    }
+  }
+  return {
+    if (sent.isNotEmpty)
+      'variations': [
+        for (final i in sent)
+          {
+            'name': variations[i].name.trim(),
+            if (variations[i].sku != null && variations[i].sku!.isNotEmpty)
+              'sku': variations[i].sku,
+            if (variations[i].unitId != null) 'unit_id': variations[i].unitId,
+            'is_default': variations[i].isDefault,
+            if (variations[i].weightGrams != null && variations[i].weightGrams!.isNotEmpty)
+              'weight_grams': variations[i].weightGrams,
+            if (byVariation[i] != null) 'barcodes': byVariation[i],
+          },
+      ],
+    if (productLevel.isNotEmpty) 'barcodes': productLevel,
+  };
+}

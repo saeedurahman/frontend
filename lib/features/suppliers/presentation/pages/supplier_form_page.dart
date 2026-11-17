@@ -10,6 +10,7 @@ import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class SupplierFormPage extends StatelessWidget {
   const SupplierFormPage({super.key, this.supplierId});
@@ -134,83 +135,83 @@ class _SupplierFields extends StatelessWidget {
 
     return Column(
       children: [
-        TextField(
+        SyncedTextField(
+          value: state.name,
           decoration: InputDecoration(
             labelText: 'Name *',
             errorText: state.errors['name'],
           ),
-          controller: TextEditingController(text: state.name)
-            ..selection = TextSelection.collapsed(offset: state.name.length),
+
           onChanged: cubit.updateName,
         ),
         const SizedBox(height: 12),
-        TextField(
+        SyncedTextField(
+          value: state.contactPerson,
           decoration: const InputDecoration(labelText: 'Contact Person'),
-          controller: TextEditingController(text: state.contactPerson)
-            ..selection =
-                TextSelection.collapsed(offset: state.contactPerson.length),
+
           onChanged: cubit.updateContactPerson,
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.email,
                 decoration: const InputDecoration(labelText: 'Email'),
-                controller: TextEditingController(text: state.email)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.email.length),
+
                 onChanged: cubit.updateEmail,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.phone,
                 decoration: const InputDecoration(labelText: 'Phone'),
-                controller: TextEditingController(text: state.phone)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.phone.length),
+
                 onChanged: cubit.updatePhone,
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        TextField(
+        SyncedTextField(
+          value: state.taxId,
           decoration: const InputDecoration(labelText: 'Tax ID'),
-          controller: TextEditingController(text: state.taxId)
-            ..selection = TextSelection.collapsed(offset: state.taxId.length),
+
           onChanged: cubit.updateTaxId,
         ),
         const SizedBox(height: 12),
-        TextField(
+        SyncedTextField(
+          value: state.addressLine1,
           decoration: const InputDecoration(labelText: 'Address'),
-          controller: TextEditingController(text: state.addressLine1)
-            ..selection =
-                TextSelection.collapsed(offset: state.addressLine1.length),
+
           onChanged: cubit.updateAddressLine1,
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: TextField(
+              child: SyncedTextField(
+                value: state.city,
                 decoration: const InputDecoration(labelText: 'City'),
-                controller: TextEditingController(text: state.city)
-                  ..selection =
-                      TextSelection.collapsed(offset: state.city.length),
+
                 onChanged: cubit.updateCity,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: TextField(
-                decoration: const InputDecoration(labelText: 'Payment Terms (days)'),
-                keyboardType: TextInputType.number,
-                controller: TextEditingController(text: state.paymentTermsDays)
-                  ..selection = TextSelection.collapsed(
-                    offset: state.paymentTermsDays.length,
-                  ),
+              child: SyncedTextField(
+                value: state.paymentTermsDays,
+                decoration: const InputDecoration(
+                  labelText: 'Payment Terms (days)',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: false,
+                ),
+                inputFormatters: const [
+                  NumberInputFormatter(allowDecimal: false),
+                ],
+
                 onChanged: cubit.updatePaymentTermsDays,
               ),
             ),

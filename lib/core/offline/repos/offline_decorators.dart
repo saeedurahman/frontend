@@ -10,6 +10,7 @@ import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/core/utils/logger.dart';
 import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
@@ -25,9 +26,13 @@ import 'package:frantend/features/returns/data/models/sale_return_response_model
 import 'package:frantend/features/returns/data/repositories/returns_repository_impl.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/inventory/data/repositories/inventory_repository_impl.dart';
+import 'package:frantend/features/products/data/models/barcode_model.dart';
+import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
 import 'package:frantend/features/products/data/models/product_model.dart';
+import 'package:frantend/features/products/data/models/unit_model.dart';
+import 'package:frantend/features/products/data/models/variation_model.dart';
 import 'package:frantend/features/products/data/repositories/products_repository_impl.dart';
 import 'package:frantend/features/sales/data/models/paginated_sales_model.dart';
 import 'package:frantend/shared/widgets/sync/offline_aware.dart';
@@ -550,6 +555,11 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
 
 /// Products: **reading** works offline (list, detail, categories come from
 /// the pulled catalog); editing stays online-only and says so plainly.
+///
+/// Every change the server accepts is written into the local catalog at once
+/// (the POS grid, pickers and offline reads use that copy) and a pull is
+/// requested to confirm it, so no screen has to wait for the next scheduled
+/// pull to see what was just saved.
 class OfflineProductsRepository extends ProductsRepositoryImpl {
   OfflineProductsRepository({
     required super.remoteDataSource,
@@ -558,15 +568,41 @@ class OfflineProductsRepository extends ProductsRepositoryImpl {
     required super.errorHandler,
     required LocalCatalog catalog,
     bool Function()? isReachable,
+    void Function()? afterWrite,
   })  : _catalog = catalog,
-        _isReachable = isReachable;
+        _isReachable = isReachable,
+        _afterWrite = afterWrite;
 
   final LocalCatalog _catalog;
   final bool Function()? _isReachable;
 
+  /// Asks the sync engine for a pull (the server stays the source of truth).
+  final void Function()? _afterWrite;
+
   bool get _offline => _isReachable?.call() == false;
 
   static bool _network(Failure f) => f is NetworkFailure || f is ServerFailure;
+
+  /// Runs [write] after a successful server change. A failure here must never
+  /// turn the server's success into an error on screen, so it is only logged.
+  Future<void> _remember(Future<void> Function() write) async {
+    try {
+      await write();
+    } catch (e) {
+      AppLogger.warning('Local catalog write failed (${e.runtimeType})');
+    }
+    try {
+      _afterWrite?.call();
+    } catch (_) {}
+  }
+
+  Future<Either<Failure, T>> _after<T>(
+    Either<Failure, T> result,
+    Future<void> Function(T value) write,
+  ) async {
+    await result.fold((_) async {}, (value) => _remember(() => write(value)));
+    return result;
+  }
 
   @override
   Future<Either<Failure, PaginatedProductsModel>> getProducts({
@@ -626,13 +662,76 @@ class OfflineProductsRepository extends ProductsRepositoryImpl {
   Future<Either<Failure, ProductModel>> createProduct(Map<String, dynamic> body) async {
     if (_offline) return const Left(NetworkFailure(OfflineMessages.editingNeedsInternet));
     final result = await super.createProduct(body);
-    return result.fold(
-      (f) => f is NetworkFailure
-          ? const Left(NetworkFailure(OfflineMessages.editingNeedsInternet))
-          : Left(f),
-      (_) => result,
+    return _after(
+      result.fold(
+        (f) => f is NetworkFailure
+            ? const Left<Failure, ProductModel>(
+                NetworkFailure(OfflineMessages.editingNeedsInternet))
+            : Left<Failure, ProductModel>(f),
+        (_) => result,
+      ),
+      _catalog.rememberProduct,
     );
   }
+
+  @override
+  Future<Either<Failure, ProductModel>> updateProduct(
+    String id,
+    Map<String, dynamic> body,
+  ) async =>
+      _after(await super.updateProduct(id, body), _catalog.rememberProduct);
+
+  @override
+  Future<Either<Failure, void>> deleteProduct(String id) async =>
+      _after(await super.deleteProduct(id), (_) => _catalog.forgetProduct(id));
+
+  @override
+  Future<Either<Failure, VariationModel>> addVariation(
+    String productId,
+    Map<String, dynamic> body,
+  ) async =>
+      _after(
+        await super.addVariation(productId, body),
+        (v) => _catalog.rememberVariation(v, productId),
+      );
+
+  @override
+  Future<Either<Failure, VariationModel>> updateVariation(
+    String productId,
+    String variationId,
+    Map<String, dynamic> body,
+  ) async =>
+      _after(
+        await super.updateVariation(productId, variationId, body),
+        (v) => _catalog.rememberVariation(v, productId),
+      );
+
+  @override
+  Future<Either<Failure, BarcodeModel>> addBarcode(
+    String productId,
+    Map<String, dynamic> body,
+  ) async =>
+      _after(await super.addBarcode(productId, body), _catalog.rememberBarcode);
+
+  @override
+  Future<Either<Failure, CategoryModel>> createCategory(Map<String, dynamic> body) async =>
+      _after(await super.createCategory(body), _catalog.rememberCategory);
+
+  @override
+  Future<Either<Failure, void>> deleteCategory(String id) async =>
+      _after(await super.deleteCategory(id), (_) => _catalog.forgetCategory(id));
+
+  @override
+  Future<Either<Failure, BrandModel>> createBrand(Map<String, dynamic> body) async =>
+      _after(await super.createBrand(body), _catalog.rememberBrand);
+
+  @override
+  Future<Either<Failure, void>> deleteBrand(String id) async =>
+      _after(await super.deleteBrand(id), (_) => _catalog.forgetBrand(id));
+
+  @override
+  Future<Either<Failure, UnitModel>> createUnit(Map<String, dynamic> body) async =>
+      _after(await super.createUnit(body), _catalog.rememberUnit);
 }
 
 /// Inventory: stock levels read from the pulled stock offline; adjustments

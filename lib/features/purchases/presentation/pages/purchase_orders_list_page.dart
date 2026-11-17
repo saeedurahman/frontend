@@ -270,8 +270,12 @@ class _OrdersTable extends StatelessWidget {
     };
   }
 
-  void _openOrder(BuildContext context, PurchaseOrderModel order) {
-    context.push('${RouteNames.purchases}/${order.id}');
+  /// The detail screen can submit, cancel or receive the order, so the list
+  /// is read again when it comes back.
+  Future<void> _openOrder(BuildContext context, PurchaseOrderModel order) async {
+    final cubit = context.read<PurchaseOrdersListCubit>();
+    await context.push<Object?>('${RouteNames.purchases}/${order.id}');
+    if (!cubit.isClosed) await cubit.refresh();
   }
 
   @override

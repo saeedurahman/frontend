@@ -8,7 +8,7 @@ part of 'brand_model.dart';
 
 _BrandModel _$BrandModelFromJson(Map<String, dynamic> json) => _BrandModel(
   id: json['id'] as String,
-  businessId: json['business_id'] as String,
+  businessId: json['business_id'] as String? ?? '',
   name: json['name'] as String,
   isActive: json['is_active'] as bool? ?? true,
   createdAt: json['created_at'] as String?,

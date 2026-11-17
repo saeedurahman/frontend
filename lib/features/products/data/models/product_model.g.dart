@@ -25,8 +25,8 @@ _ProductModel _$ProductModelFromJson(Map<String, dynamic> json) =>
       trackExpiry: json['track_expiry'] as bool? ?? false,
       nameSecondary: json['name_secondary'] as String?,
       shelfLifeDays: JsonNum.intOrNull(json['shelf_life_days']),
-      minStockLevel: json['min_stock_level'] as String?,
-      maxStockLevel: json['max_stock_level'] as String?,
+      minStockLevel: JsonNum.stringOrNull(json['min_stock_level']),
+      maxStockLevel: JsonNum.stringOrNull(json['max_stock_level']),
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       category: json['category'] == null

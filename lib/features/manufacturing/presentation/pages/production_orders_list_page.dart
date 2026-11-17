@@ -282,9 +282,7 @@ class _OrdersTable extends StatelessWidget {
       itemLabel: 'orders',
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
-      onRowTap: (order) => context.push(
-        RouteNames.manufacturingProductionDetailPath(order.id),
-      ),
+      onRowTap: (order) => _openOrder(context, order.id),
       rowBuilder: (context, order, {required selected, required onSelected}) {
         return AppDataTableRowLayout(
           columns: _productionTableColumns,
@@ -309,12 +307,18 @@ class _OrdersTable extends StatelessWidget {
           actions: AppTableActionButton(
             icon: Icons.chevron_right,
             tooltip: 'View',
-            onPressed: () => context.push(
-              RouteNames.manufacturingProductionDetailPath(order.id),
-            ),
+            onPressed: () => _openOrder(context, order.id),
           ),
         );
       },
     );
   }
+}
+
+/// The detail screen can start, complete or cancel the order, so the list is
+/// read again when it comes back.
+Future<void> _openOrder(BuildContext context, String id) async {
+  final cubit = context.read<ProductionOrdersListCubit>();
+  await context.push<Object?>(RouteNames.manufacturingProductionDetailPath(id));
+  if (!cubit.isClosed) await cubit.refresh();
 }

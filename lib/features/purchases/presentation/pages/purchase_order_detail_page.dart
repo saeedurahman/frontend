@@ -100,8 +100,11 @@ class _DetailContent extends StatelessWidget {
                 );
               }
             },
-            onReceive: () =>
-                context.push('${RouteNames.purchases}/$orderId/receive'),
+            onReceive: () async {
+              final received = await context
+                  .push<bool>('${RouteNames.purchases}/$orderId/receive');
+              if (received == true && context.mounted) await cubit.refresh();
+            },
           ),
           const SizedBox(height: AppDimensions.spacingMd),
           _HeaderSummaryCard(order: order),

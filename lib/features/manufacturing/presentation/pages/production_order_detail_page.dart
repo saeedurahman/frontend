@@ -16,6 +16,7 @@ import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
 class ProductionOrderDetailPage extends StatelessWidget {
   const ProductionOrderDetailPage({super.key, required this.orderId});
@@ -81,7 +82,10 @@ class _ProductionOrderDetailView extends StatelessWidget {
     }
   }
 
-  Future<void> _complete(BuildContext context, ProductionOrderDetailState state) async {
+  Future<void> _complete(
+    BuildContext context,
+    ProductionOrderDetailState state,
+  ) async {
     final order = state.order;
     if (order == null) return;
     final cubit = context.read<ProductionOrderDetailCubit>();
@@ -91,16 +95,17 @@ class _ProductionOrderDetailView extends StatelessWidget {
       barrierDismissible: false,
       builder: (dialogContext) => BlocProvider.value(
         value: cubit,
-        child: BlocBuilder<ProductionOrderDetailCubit, ProductionOrderDetailState>(
-          builder: (_, dialogState) => CompleteProductionDialog(
-            productionNumber: order.productionNumber,
-            defaultQtyProduced: order.qtyToProduce,
-            maxQtyProduced: order.qtyToProduce,
-            availability: dialogState.completionAvailability,
-            isLoadingPreview: dialogState.isPreviewLoading,
-            onQtyChanged: cubit.prepareCompletionPreview,
-          ),
-        ),
+        child:
+            BlocBuilder<ProductionOrderDetailCubit, ProductionOrderDetailState>(
+              builder: (_, dialogState) => CompleteProductionDialog(
+                productionNumber: order.productionNumber,
+                defaultQtyProduced: order.qtyToProduce,
+                maxQtyProduced: order.qtyToProduce,
+                availability: dialogState.completionAvailability,
+                isLoadingPreview: dialogState.isPreviewLoading,
+                onQtyChanged: cubit.prepareCompletionPreview,
+              ),
+            ),
       ),
     );
 
@@ -151,13 +156,17 @@ class _ProductionOrderDetailView extends StatelessWidget {
                       permission: Perm.productionCreate,
                       mutating: true,
                       child: OutlinedButton(
-                        onPressed: state.isUpdating ? null : cubit.startEditingDraft,
+                        onPressed: state.isUpdating
+                            ? null
+                            : cubit.startEditingDraft,
                         child: const Text('Edit'),
                       ),
                     ),
                   if (isDraft && state.isEditingDraft) ...[
                     OutlinedButton(
-                      onPressed: state.isUpdating ? null : cubit.cancelEditingDraft,
+                      onPressed: state.isUpdating
+                          ? null
+                          : cubit.cancelEditingDraft,
                       child: const Text('Cancel edit'),
                     ),
                     const SizedBox(width: 8),
@@ -189,7 +198,9 @@ class _ProductionOrderDetailView extends StatelessWidget {
                       permission: Perm.productionCreate,
                       mutating: true,
                       child: FilledButton(
-                        onPressed: state.isUpdating ? null : () => _start(context),
+                        onPressed: state.isUpdating
+                            ? null
+                            : () => _start(context),
                         child: const Text('Start'),
                       ),
                     ),
@@ -212,7 +223,9 @@ class _ProductionOrderDetailView extends StatelessWidget {
                       permission: Perm.productionCancel,
                       mutating: true,
                       child: OutlinedButton(
-                        onPressed: state.isUpdating ? null : () => _cancel(context),
+                        onPressed: state.isUpdating
+                            ? null
+                            : () => _cancel(context),
                         child: Text(
                           'Cancel',
                           style: TextStyle(color: AppColors.error),
@@ -275,24 +288,24 @@ class _DraftEditCard extends StatelessWidget {
               onChanged: cubit.updateDraftBom,
             ),
             const SizedBox(height: 12),
-            TextField(
+            SyncedTextField(
+              value: state.draftQtyToProduce,
               decoration: InputDecoration(
                 labelText: 'Qty to produce',
                 errorText: state.errors['qty'],
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              controller: TextEditingController(text: state.draftQtyToProduce)
-                ..selection = TextSelection.collapsed(
-                  offset: state.draftQtyToProduce.length,
-                ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: const [NumberInputFormatter()],
+
               onChanged: cubit.updateDraftQty,
             ),
             const SizedBox(height: 12),
-            TextField(
+            SyncedTextField(
+              value: state.draftNotes,
               decoration: const InputDecoration(labelText: 'Notes'),
-              controller: TextEditingController(text: state.draftNotes)
-                ..selection =
-                    TextSelection.collapsed(offset: state.draftNotes.length),
+
               onChanged: cubit.updateDraftNotes,
               maxLines: 2,
             ),

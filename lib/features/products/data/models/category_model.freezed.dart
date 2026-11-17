@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryModel {
 
- String get id;@JsonKey(name: 'business_id') String get businessId;@JsonKey(name: 'parent_id') String? get parentId; String get name; String get slug;@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? get sortOrder;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'updated_at') String? get updatedAt; List<CategoryModel> get children;
+ String get id;@JsonKey(name: 'business_id') String get businessId;@JsonKey(name: 'parent_id') String? get parentId; String get name; String? get slug;@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? get sortOrder;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'updated_at') String? get updatedAt; List<CategoryModel> get children;
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $CategoryModelCopyWith<$Res>  {
   factory $CategoryModelCopyWith(CategoryModel value, $Res Function(CategoryModel) _then) = _$CategoryModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'parent_id') String? parentId, String name, String slug,@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? sortOrder,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<CategoryModel> children
+ String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'parent_id') String? parentId, String name, String? slug,@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? sortOrder,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<CategoryModel> children
 });
 
 
@@ -71,14 +71,14 @@ class _$CategoryModelCopyWithImpl<$Res>
 
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? parentId = freezed,Object? name = null,Object? slug = null,Object? sortOrder = freezed,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? children = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? parentId = freezed,Object? name = null,Object? slug = freezed,Object? sortOrder = freezed,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? children = null,}) {
   return _then(CategoryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
 as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,sortOrder: freezed == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as String,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String?,sortOrder: freezed == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -168,7 +168,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String? slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryModel() when $default != null:
 return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_that.sortOrder,_that.isActive,_that.createdAt,_that.updatedAt,_that.children);case _:
@@ -189,7 +189,7 @@ return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String? slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryModel():
 return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_that.sortOrder,_that.isActive,_that.createdAt,_that.updatedAt,_that.children);case _:
@@ -209,7 +209,7 @@ return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId, @JsonKey(name: 'parent_id')  String? parentId,  String name,  String? slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull)  int? sortOrder, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'updated_at')  String? updatedAt,  List<CategoryModel> children)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryModel() when $default != null:
 return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_that.sortOrder,_that.isActive,_that.createdAt,_that.updatedAt,_that.children);case _:
@@ -224,14 +224,14 @@ return $default(_that.id,_that.businessId,_that.parentId,_that.name,_that.slug,_
 @JsonSerializable()
 
 class _CategoryModel implements CategoryModel {
-  const _CategoryModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, @JsonKey(name: 'parent_id') this.parentId, required this.name, required this.slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) this.sortOrder, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt,  List<CategoryModel> children = const []}): _children = children;
+  const _CategoryModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', @JsonKey(name: 'parent_id') this.parentId, required this.name, this.slug, @JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) this.sortOrder, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt,  List<CategoryModel> children = const []}): _children = children;
   factory _CategoryModel.fromJson(Map<String, dynamic> json) => _$CategoryModelFromJson(json);
 
 @override final  String id;
 @override@JsonKey(name: 'business_id') final  String businessId;
 @override@JsonKey(name: 'parent_id') final  String? parentId;
 @override final  String name;
-@override final  String slug;
+@override final  String? slug;
 @override@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) final  int? sortOrder;
 @override@JsonKey(name: 'is_active') final  bool isActive;
 @override@JsonKey(name: 'created_at') final  String? createdAt;
@@ -279,7 +279,7 @@ abstract mixin class _$CategoryModelCopyWith<$Res> implements $CategoryModelCopy
   factory _$CategoryModelCopyWith(_CategoryModel value, $Res Function(_CategoryModel) _then) = __$CategoryModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'parent_id') String? parentId, String name, String slug,@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? sortOrder,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<CategoryModel> children
+ String id,@JsonKey(name: 'business_id') String businessId,@JsonKey(name: 'parent_id') String? parentId, String name, String? slug,@JsonKey(name: 'sort_order', fromJson: JsonNum.intOrNull) int? sortOrder,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'updated_at') String? updatedAt, List<CategoryModel> children
 });
 
 
@@ -296,14 +296,14 @@ class __$CategoryModelCopyWithImpl<$Res>
 
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? parentId = freezed,Object? name = null,Object? slug = null,Object? sortOrder = freezed,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? children = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? parentId = freezed,Object? name = null,Object? slug = freezed,Object? sortOrder = freezed,Object? isActive = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? children = null,}) {
   return _then(_CategoryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
 as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,sortOrder: freezed == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as String,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String?,sortOrder: freezed == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

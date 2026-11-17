@@ -220,7 +220,7 @@ return $default(_that.id,_that.businessId,_that.name,_that.isActive,_that.create
 @JsonSerializable()
 
 class _BrandModel implements BrandModel {
-  const _BrandModel({required this.id, @JsonKey(name: 'business_id') required this.businessId, required this.name, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
+  const _BrandModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', required this.name, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
   factory _BrandModel.fromJson(Map<String, dynamic> json) => _$BrandModelFromJson(json);
 
 @override final  String id;
