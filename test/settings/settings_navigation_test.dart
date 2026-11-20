@@ -33,13 +33,14 @@ void main() {
       [for (final e in g.firstWhere((x) => x.id == id).entries) e.title];
 
   group('Settings catalog', () {
-    test('"Business & Receipts" holds the five screens in order', () {
+    test('"Business & Receipts" holds the six screens in order', () {
       final groups = SettingsCatalog.visible(can: (_) => true, multiBranch: true);
       expect(groups.first.title, 'Business & Receipts');
       expect(titles(groups, SettingsCatalog.business), [
         'Business Profile',
         'Tax Rates',
         'Tax & Prices',
+        'Quick Add',
         'Receipt Layouts',
         'Receipt Printer',
       ]);
@@ -78,7 +79,7 @@ void main() {
       expect(all, isNot(contains('Roles & Permissions')));
       // Open entries stay.
       expect(titles(groups, SettingsCatalog.business),
-          ['Business Profile', 'Tax Rates', 'Tax & Prices', 'Receipt Printer']);
+          ['Business Profile', 'Tax Rates', 'Tax & Prices', 'Quick Add', 'Receipt Printer']);
     });
 
     test('Branch Overrides needs more than one branch', () {

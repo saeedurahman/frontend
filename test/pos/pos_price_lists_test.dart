@@ -1,6 +1,7 @@
 // Price Lists screen / sync pull -> local data -> POS card, grid and cart.
 import 'dart:async';
 
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/pos/presentation/widgets/product_grid_area.dart';
+import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
+import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/shared/widgets/quantity/quantity_calculator_sheet.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/error/error_handler.dart';
@@ -511,18 +514,143 @@ void main() {
     );
   });
 
+  testWidgets('the product grid fits every window width and text size (no overflow)',
+      (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    // Narrow window, the one from the bug report (about 150 px cards), a
+    // laptop, a full-HD screen and a very wide one; at 3 text sizes.
+    for (final width in [360.0, 520.0, 760.0, 1024.0, 1366.0, 1920.0, 2560.0]) {
+      for (final textScale in [0.85, 1.0, 1.3, 1.6]) {
+        tester.view.physicalSize = Size(width, 900);
+        await tester.pumpWidget(MediaQuery(
+          data: MediaQueryData(
+            size: Size(width, 900),
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: MaterialApp(
+            home: Scaffold(
+              body: BlocProvider<PosCubit>.value(
+                value: pos,
+                child: const ProductGridArea(),
+              ),
+            ),
+          ),
+        ));
+        await tester.pump();
+        expect(find.byType(GridView), findsOneWidget);
+        expect(tester.takeException(), isNull,
+            reason: 'overflow at width $width, text scale $textScale');
+      }
+    }
+  });
+
+  testWidgets('hovering a card and then losing it (grid removed, window resized) is safe',
+      (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    Widget app(Widget body) => MaterialApp(home: Scaffold(body: body));
+    await tester.pumpWidget(app(BlocProvider<PosCubit>.value(
+      value: pos,
+      child: const ProductGridArea(),
+    )));
+    await tester.pump();
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    final card = tester.getCenter(find.byType(InkWell).first);
+    await mouse.moveTo(card);
+    await tester.pump();
+
+    // The pointer is over a card; resize so that the cards move away from it ...
+    tester.view.physicalSize = const Size(600, 800);
+    await tester.pump();
+    await mouse.moveTo(card + const Offset(3, 3));
+    await tester.pump();
+    // ... and then remove the whole grid while the pointer is still on screen.
+    await tester.pumpWidget(app(const SizedBox.shrink()));
+    await mouse.moveTo(const Offset(5, 5));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('category tabs scroll sideways with a mouse drag, the wheel and the arrows',
+      (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(500, 300);
+    final state = PosState(
+      catalog: PosCatalogState(
+        categories: [
+          for (var i = 0; i < 14; i++)
+            CategoryModel(id: 'c$i', name: 'Category number $i'),
+        ],
+      ),
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: BlocProvider<PosCubit>.value(
+          value: pos,
+          child: PosCategoryTabs(state: state),
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    double offset() => tester
+        .state<ScrollableState>(find.byType(Scrollable))
+        .position
+        .pixels;
+
+    expect(offset(), 0);
+    expect(find.byKey(const Key('category-tabs-left')), findsNothing,
+        reason: 'nothing to the left at the start');
+    expect(find.byKey(const Key('category-tabs-right')), findsOneWidget);
+
+    // A mouse drag (right to left) moves the list.
+    await tester.drag(find.byType(ListView), const Offset(-250, 0),
+        kind: PointerDeviceKind.mouse);
+    await tester.pump();
+    final afterDrag = offset();
+    expect(afterDrag, greaterThan(100), reason: 'mouse drag did not scroll');
+    expect(find.byKey(const Key('category-tabs-left')), findsOneWidget);
+
+    // The mouse wheel (vertical delta) scrolls it sideways.
+    final wheel = TestPointer(7, PointerDeviceKind.mouse);
+    await tester.sendEventToBinding(
+        wheel.hover(tester.getCenter(find.byType(ListView))));
+    await tester.sendEventToBinding(wheel.scroll(const Offset(0, 200)));
+    await tester.pump();
+    expect(offset(), greaterThan(afterDrag), reason: 'wheel did not scroll');
+    final afterWheel = offset();
+    await tester.sendEventToBinding(wheel.scroll(const Offset(0, -120)));
+    await tester.pump();
+    expect(offset(), lessThan(afterWheel));
+
+    // The arrows.
+    final before = offset();
+    await tester.tap(find.byKey(const Key('category-tabs-right')));
+    await tester.pump();
+    expect(offset(), greaterThan(before));
+    await tester.tap(find.byKey(const Key('category-tabs-left')));
+    await tester.pump();
+    expect(offset(), lessThan(before + 240));
+
+    // At the far end there is no right arrow any more.
+    await tester.drag(find.byType(ListView), const Offset(-5000, 0),
+        kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('category-tabs-right')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('(h) the card shows the new price without leaving the screen',
       (tester) async {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final prev = FlutterError.onError;
-    FlutterError.onError = (d) {
-      if (d.exceptionAsString().contains('overflowed')) return;
-      prev?.call(d);
-    };
-    addTearDown(() => FlutterError.onError = prev);
-
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: BlocProvider<PosCubit>.value(

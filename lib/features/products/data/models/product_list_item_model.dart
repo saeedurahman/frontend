@@ -22,6 +22,10 @@ abstract class ProductListItemModel with _$ProductListItemModel {
     @JsonKey(name: 'is_tax_exempt') @Default(false) bool isTaxExempt,
     @JsonKey(name: 'track_expiry') @Default(false) bool trackExpiry,
     @JsonKey(name: 'name_secondary') String? nameSecondary,
+    // Set by the server (and the local copy): what the product still lacks to
+    // sell well. `missing` holds `category`, `image` and/or `price`.
+    @JsonKey(name: 'needs_attention') @Default(false) bool needsAttention,
+    @Default(<String>[]) List<String> missing,
     String? categoryName,
     String? brandName,
   }) = _ProductListItemModel;

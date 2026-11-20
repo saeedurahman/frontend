@@ -33,6 +33,9 @@ import 'package:frantend/features/inventory/presentation/pages/stock_movements_p
 import 'package:frantend/features/products/presentation/pages/price_lists_page.dart';
 import 'package:frantend/features/products/presentation/pages/product_form_page.dart';
 import 'package:frantend/features/products/presentation/pages/products_list_page.dart';
+import 'package:frantend/features/quick_add/presentation/pages/quick_add_page.dart';
+import 'package:frantend/features/quick_add/presentation/pages/quick_add_settings_page.dart';
+import 'package:frantend/features/products/presentation/complete_details/complete_details_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/goods_receipt_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/purchase_order_detail_page.dart';
 import 'package:frantend/features/purchases/presentation/pages/purchase_order_form_page.dart';
@@ -225,6 +228,16 @@ class AppRouter {
               GoRoute(
                 path: 'new',
                 builder: (_, __) => const ProductFormPage(),
+              ),
+              GoRoute(
+                path: 'quick-add',
+                builder: (_, state) => QuickAddPage(
+                  startInPurchaseMode: state.uri.queryParameters['mode'] == 'purchase',
+                ),
+              ),
+              GoRoute(
+                path: 'complete-details',
+                builder: (_, __) => const CompleteDetailsPage(),
               ),
               GoRoute(
                 path: ':id/edit',
@@ -547,6 +560,12 @@ class AppRouter {
                     padding: EdgeInsets.all(24),
                     child: TaxPricesPage(),
                   ),
+                ),
+              ),
+              GoRoute(
+                path: 'quick-add',
+                builder: (_, __) => const Scaffold(
+                  body: QuickAddSettingsPage(),
                 ),
               ),
               GoRoute(

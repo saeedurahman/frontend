@@ -35,6 +35,7 @@ class _Repo extends Fake implements ProductsRepository {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async =>

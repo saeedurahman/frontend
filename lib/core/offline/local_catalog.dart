@@ -45,9 +45,19 @@ class LocalCatalog {
     String? search,
     String? categoryId,
     bool activeOnly = true,
+    bool needsAttention = false,
     int skip = 0,
     int limit = 50,
   }) async {
+    if (needsAttention) {
+      return _productsNeedingAttention(
+        search: search,
+        categoryId: categoryId,
+        activeOnly: activeOnly,
+        skip: skip,
+        limit: limit,
+      );
+    }
     final q = search?.trim().toLowerCase() ?? '';
     final where = <String>[];
     final args = <Object?>[];
@@ -83,6 +93,50 @@ class LocalCatalog {
       }).copyWith(categoryName: categories['${data['category_id']}']));
     }
     return PaginatedProductsModel(total: total, skip: skip, limit: limit, items: items);
+  }
+
+  /// "Needs details": no category, no picture or no price in the default list.
+  /// Worked out here (the server does the same online) over the whole local
+  /// catalog, then paged.
+  Future<PaginatedProductsModel> _productsNeedingAttention({
+    String? search,
+    String? categoryId,
+    required bool activeOnly,
+    required int skip,
+    required int limit,
+  }) async {
+    final all = await products(
+      search: search,
+      categoryId: categoryId,
+      activeOnly: activeOnly,
+      skip: 0,
+      limit: 1000000,
+    );
+    final defaultList = await _defaultPriceListId();
+    final priced = <String>{};
+    for (final row in await _store.entities('price_list_item')) {
+      if (defaultList != null && '${row['price_list_id']}' != defaultList) continue;
+      final price = Decimal.tryParse('${row['unit_price']}');
+      if (price != null && price > Decimal.zero) priced.add('${row['product_id']}');
+    }
+    final flagged = <ProductListItemModel>[];
+    for (final p in all.items) {
+      final missing = <String>[
+        if ((p.categoryId ?? '').isEmpty) 'category',
+        if ((p.imageUrl ?? '').isEmpty) 'image',
+        if (!priced.contains(p.id)) 'price',
+      ];
+      if (missing.isNotEmpty) {
+        flagged.add(p.copyWith(needsAttention: true, missing: missing));
+      }
+    }
+    final page = flagged.skip(skip).take(limit).toList();
+    return PaginatedProductsModel(
+      total: flagged.length,
+      skip: skip,
+      limit: limit,
+      items: page,
+    );
   }
 
   Future<Map<String, String>> _categoryNames() async {
@@ -163,6 +217,41 @@ class LocalCatalog {
     }
     return list;
   }
+
+  /// Units pulled to this device (active ones), for pickers that must work
+  /// offline.
+  Future<List<UnitModel>> units() async {
+    final rows = await _store.entities('unit', orderBy: 'search_text');
+    return [
+      for (final u in rows)
+        if (u['is_active'] != false && u['name'] != null && u['symbol'] != null)
+          UnitModel.fromJson(await _withBusiness(u)),
+    ];
+  }
+
+  /// Quick Add writes a barcode row under a made-up id the moment a save
+  /// succeeds (the response does not carry the barcode id). Once the pull has
+  /// delivered the real row for the same code this removes the made-up twin.
+  Future<void> dropSyntheticBarcodes(Iterable<String> productIds) async {
+    await _store.transaction(() async {
+      for (final pid in productIds) {
+        final rows =
+            await _store.entities('barcode', where: 'parent_id = ?', args: [pid]);
+        final real = {
+          for (final b in rows)
+            if (!'${b['id']}'.startsWith(syntheticBarcodePrefix)) '${b['barcode']}',
+        };
+        for (final b in rows) {
+          final id = '${b['id']}';
+          if (id.startsWith(syntheticBarcodePrefix) && real.contains('${b['barcode']}')) {
+            await _store.deleteEntity('barcode', id);
+          }
+        }
+      }
+    });
+  }
+
+  static const syntheticBarcodePrefix = 'qa:';
 
   // ── restaurant modifiers (pulled: modifier_group / modifier /
   //    product_modifier_group) ─────────────────────────────────────────────

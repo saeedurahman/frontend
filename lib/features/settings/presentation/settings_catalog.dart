@@ -63,6 +63,13 @@ abstract final class SettingsCatalog {
         route: RouteNames.settingsTaxPrices,
       ),
       SettingsEntry(
+        id: 'quick-add',
+        title: 'Quick Add',
+        subtitle: 'Adding stock by scanning: cost, expiry and suggested prices.',
+        icon: Icons.qr_code_scanner,
+        route: RouteNames.settingsQuickAdd,
+      ),
+      SettingsEntry(
         id: 'receipt-layouts',
         title: 'Receipt Layouts',
         subtitle: 'How receipts look: design, language, paper size and wording.',

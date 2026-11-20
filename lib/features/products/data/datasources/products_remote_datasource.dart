@@ -18,6 +18,7 @@ abstract class ProductsRemoteDataSource {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   });
@@ -103,6 +104,7 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async {
@@ -113,6 +115,7 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
         if (brandId != null) 'brand_id': brandId,
         if (isActive != null) 'is_active': isActive,
         if (search != null && search.isNotEmpty) 'search': search,
+        if (needsAttention != null) 'needs_attention': needsAttention,
         'skip': skip,
         'limit': limit,
       },

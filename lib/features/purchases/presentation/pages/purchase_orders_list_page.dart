@@ -138,6 +138,31 @@ class _Toolbar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
+        // Receive a delivery by scanning it: needs to add products, create the
+        // order and receive it (the Quick Add screen checks the same).
+        PermissionGate(
+          permission: Perm.productsCreate,
+          mutating: true,
+          child: PermissionGate(
+            permission: Perm.purchasesCreate,
+            child: PermissionGate(
+              permission: Perm.purchasesReceive,
+              child: OutlinedButton.icon(
+                key: const ValueKey('purchases-quick-add-button'),
+                onPressed: () async {
+                  final saved = await context
+                      .push<bool>('${RouteNames.productsQuickAdd}?mode=purchase');
+                  if (saved == true && context.mounted) {
+                    await context.read<PurchaseOrdersListCubit>().refresh();
+                  }
+                },
+                icon: const Icon(Icons.qr_code_scanner, size: 18),
+                label: const Text('Receive by scanning'),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
         PermissionGate(
           permission: Perm.purchasesCreate,
           mutating: true,

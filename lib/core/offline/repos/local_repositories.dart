@@ -32,11 +32,13 @@ class LocalProductsRepository implements ProductsRepository {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async {
     try {
       return Right(await _catalog.products(
+        needsAttention: needsAttention == true,
         search: search,
         categoryId: categoryId,
         activeOnly: isActive ?? true,

@@ -24,6 +24,8 @@ abstract final class RouteNames {
   static const String dashboard = '/dashboard';
   static const String pos = '/pos';
   static const String products = '/products';
+  static const String productsQuickAdd = '/products/quick-add';
+  static const String productsCompleteDetails = '/products/complete-details';
   static const String productDetail = '/products/:id';
   static const String productNew = '/products/new';
   static const String priceLists = '/prices/lists';
@@ -101,6 +103,7 @@ abstract final class RouteNames {
   static const String settingsOffline = '/settings/offline';
   static const String settingsBranchOverrides = '/settings/branch-overrides';
   static const String settingsTaxPrices = '/settings/tax-prices';
+  static const String settingsQuickAdd = '/settings/quick-add';
   static const String settingsSubscription = '/settings/subscription';
   static const String settingsRoles = '/settings/roles';
   static const String settingsRoleNew = '/settings/roles/new';

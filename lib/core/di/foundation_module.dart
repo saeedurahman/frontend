@@ -95,6 +95,15 @@ import 'package:frantend/features/returns/domain/repositories/returns_repository
 import 'package:frantend/features/sales/data/datasources/sales_remote_datasource.dart';
 import 'package:frantend/features/sales/domain/repositories/sales_repository.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
+import 'package:frantend/features/quick_add/data/feedback_sound.dart';
+import 'package:frantend/features/quick_add/data/quick_add_remote_datasource.dart';
+import 'package:frantend/features/quick_add/data/quick_add_repository_impl.dart';
+import 'package:frantend/features/quick_add/data/shared_prefs_draft_store.dart';
+import 'package:frantend/features/quick_add/domain/quick_add_repository.dart';
+import 'package:frantend/features/quick_add/presentation/cubit/quick_add_cubit.dart';
+import 'package:frantend/features/suppliers/domain/repositories/suppliers_repository.dart';
+import 'package:frantend/core/network/dio_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_it/get_it.dart';
 
 /// Hand-registered services: platform adapters, identity, reachability,
@@ -530,6 +539,48 @@ void registerFoundationServices(GetIt sl) {
         productsRepository: sl<ProductsRepository>(),
         connectivityProbe:
             sl.isRegistered<ConnectivityProbe>() ? sl<ConnectivityProbe>() : null,
+      ),
+    );
+  }
+
+  // Quick Add by Scan.
+  once<QuickAddRemoteDataSource>(() => QuickAddRemoteDataSource(sl<DioClient>()));
+  once<QuickAddRepository>(
+    () => QuickAddRepositoryImpl(
+      remote: sl<QuickAddRemoteDataSource>(),
+      catalog: sl<LocalCatalog>(),
+      probe: sl<ConnectivityProbe>(),
+      errorHandler: sl<ErrorHandler>(),
+      branchId: () => sl<PreferencesStorage>().getSelectedBranchId(),
+      syncNow: () => sl<SyncEngine>().syncNow(manual: true),
+      suppliers: () async {
+        final result = await sl<SuppliersRepository>().getSuppliers();
+        return result.fold(
+          (_) => const <PickOption>[],
+          (list) => [
+            for (final s in list)
+              if (s.isActive) PickOption(s.id, s.name),
+          ],
+        );
+      },
+    ),
+  );
+  once<QuickAddDraftStore>(
+    () => SharedPrefsQuickAddDraftStore(
+      sl<SharedPreferences>(),
+      scope: () async {
+        final u = await cachedUser();
+        return u == null ? null : '${u.businessId}:${u.id}';
+      },
+    ),
+  );
+  once<FeedbackSoundService>(() => SystemFeedbackSoundService(sl<SharedPreferences>()));
+  if (!sl.isRegistered<QuickAddCubit>()) {
+    sl.registerFactory<QuickAddCubit>(
+      () => QuickAddCubit(
+        repository: sl<QuickAddRepository>(),
+        draftStore: sl<QuickAddDraftStore>(),
+        ids: sl<IdGenerator>(),
       ),
     );
   }

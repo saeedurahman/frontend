@@ -16,6 +16,10 @@ abstract final class RoutePermissions {
     _Rule(RouteNames.products, [Perm.productsView]),
     _Rule(RouteNames.priceLists, [Perm.productsView, Perm.productsManagePrices]),
     _Rule('/products/new', [Perm.productsCreate]),
+    // The page also needs inventory.adjust (opening stock) or the purchase
+    // permissions (purchase mode) and only offers what the user may do.
+    _Rule('/products/quick-add', [Perm.productsCreate]),
+    _Rule('/products/complete-details', [Perm.productsUpdate]),
     _Rule('/products/:id/edit', [Perm.productsUpdate]),
 
     // Inventory

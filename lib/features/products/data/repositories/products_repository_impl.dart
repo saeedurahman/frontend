@@ -50,6 +50,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async {
@@ -59,10 +60,11 @@ class ProductsRepositoryImpl implements ProductsRepository {
         brandId: brandId,
         isActive: isActive,
         search: search,
+        needsAttention: needsAttention,
         skip: skip,
         limit: limit,
       );
-      if (skip == 0) {
+      if (skip == 0 && needsAttention != true) {
         await _local.cacheProducts(result.items);
       }
       return Right(result);

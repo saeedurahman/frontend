@@ -15,6 +15,7 @@ class GetProductsUseCase {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) =>
@@ -23,6 +24,7 @@ class GetProductsUseCase {
         brandId: brandId,
         isActive: isActive,
         search: search,
+        needsAttention: needsAttention,
         skip: skip,
         limit: limit,
       );

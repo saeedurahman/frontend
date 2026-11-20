@@ -205,6 +205,17 @@ class _Toolbar extends StatelessWidget {
         PermissionGate(
           permission: Perm.productsCreate,
           mutating: true,
+          child: OutlinedButton.icon(
+            key: const ValueKey('products-quick-add-button'),
+            onPressed: () => openProductForm(context, RouteNames.productsQuickAdd),
+            icon: const Icon(Icons.qr_code_scanner, size: 18),
+            label: const Text('Quick Add (Scan)'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        PermissionGate(
+          permission: Perm.productsCreate,
+          mutating: true,
           child: ElevatedButton.icon(
             onPressed: () => openProductForm(context, RouteNames.productNew),
             style: ElevatedButton.styleFrom(
@@ -260,7 +271,37 @@ class _FilterBar extends StatelessWidget {
             ),
           ),
         ),
-       const SizedBox(width: 18,),
+        const SizedBox(width: 18),
+        Builder(builder: (context) {
+          context.watch<ProductsListCubit>();
+          final on = cubit.needsDetailsOnly;
+          return FilterChip(
+            key: const ValueKey('products-needs-details-chip'),
+            avatar: const Icon(Icons.edit_note, size: 18),
+            label: const Text('Needs details'),
+            selected: on,
+            onSelected: cubit.filterNeedsDetails,
+          );
+        }),
+        Builder(builder: (context) {
+          context.watch<ProductsListCubit>();
+          if (!cubit.needsDetailsOnly) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: PermissionGate(
+              permission: Perm.productsUpdate,
+              mutating: true,
+              child: FilledButton.icon(
+                key: const ValueKey('products-complete-details-button'),
+                onPressed: () =>
+                    openProductForm(context, RouteNames.productsCompleteDetails),
+                icon: const Icon(Icons.checklist, size: 18),
+                label: const Text('Complete details'),
+              ),
+            ),
+          );
+        }),
+        const SizedBox(width: 18),
         BlocBuilder<CategoriesCubit, CategoriesState>(
           builder: (context, catState) {
             final categories = switch (catState) {
@@ -665,13 +706,25 @@ class _EmptyState extends StatelessWidget {
             permission: Perm.productsCreate,
             mutating: true,
             child: ElevatedButton.icon(
-              onPressed: () => openProductForm(context, RouteNames.productNew),
+              key: const ValueKey('products-empty-scan-cta'),
+              onPressed: () => openProductForm(context, RouteNames.productsQuickAdd),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               ),
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('Add your products by scanning'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          PermissionGate(
+            permission: Perm.productsCreate,
+            mutating: true,
+            child: OutlinedButton.icon(
+              onPressed: () => openProductForm(context, RouteNames.productNew),
               icon: const Icon(Icons.add),
-              label: const Text('Add Product'),
+              label: const Text('Add one product by hand'),
             ),
           ),
         ],

@@ -34,6 +34,7 @@ class ProductsListCubit extends Cubit<ProductsListState> {
   String? _categoryId;
   String? _brandId;
   bool? _isActive;
+  bool _needsAttention = false;
 
   @override
   Future<void> close() {
@@ -63,6 +64,7 @@ class ProductsListCubit extends Cubit<ProductsListState> {
       brandId: _brandId,
       isActive: _isActive,
       search: _search,
+      needsAttention: _needsAttention ? true : null,
       skip: skip,
       limit: _pageSize,
     );
@@ -131,6 +133,7 @@ class ProductsListCubit extends Cubit<ProductsListState> {
       brandId: _brandId,
       isActive: _isActive,
       search: _search,
+      needsAttention: _needsAttention ? true : null,
       skip: skip,
       limit: _pageSize,
     );
@@ -180,7 +183,17 @@ class ProductsListCubit extends Cubit<ProductsListState> {
     loadProducts();
   }
 
+  /// "Needs details": products without a category, a picture or a price.
+  bool get needsDetailsOnly => _needsAttention;
+
+  void filterNeedsDetails(bool on) {
+    if (_needsAttention == on) return;
+    _needsAttention = on;
+    loadProducts();
+  }
+
   void clearFilters() {
+    _needsAttention = false;
     _search = null;
     _categoryId = null;
     _brandId = null;
@@ -192,6 +205,7 @@ class ProductsListCubit extends Cubit<ProductsListState> {
       _search != null ||
       _categoryId != null ||
       _brandId != null ||
+      _needsAttention ||
       _isActive != null;
 
   Future<void> loadMore() async {

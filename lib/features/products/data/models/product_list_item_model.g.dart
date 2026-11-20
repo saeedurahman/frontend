@@ -25,6 +25,10 @@ _ProductListItemModel _$ProductListItemModelFromJson(
   isTaxExempt: json['is_tax_exempt'] as bool? ?? false,
   trackExpiry: json['track_expiry'] as bool? ?? false,
   nameSecondary: json['name_secondary'] as String?,
+  needsAttention: json['needs_attention'] as bool? ?? false,
+  missing:
+      (json['missing'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const <String>[],
   categoryName: json['categoryName'] as String?,
   brandName: json['brandName'] as String?,
 );
@@ -48,6 +52,8 @@ Map<String, dynamic> _$ProductListItemModelToJson(
   'is_tax_exempt': instance.isTaxExempt,
   'track_expiry': instance.trackExpiry,
   'name_secondary': instance.nameSecondary,
+  'needs_attention': instance.needsAttention,
+  'missing': instance.missing,
   'categoryName': instance.categoryName,
   'brandName': instance.brandName,
 };

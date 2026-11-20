@@ -610,11 +610,13 @@ class OfflineProductsRepository extends ProductsRepositoryImpl {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async {
     Future<Either<Failure, PaginatedProductsModel>> local() async => Right(
           await _catalog.products(
+            needsAttention: needsAttention == true,
             search: search,
             categoryId: categoryId,
             activeOnly: isActive ?? false,
@@ -628,6 +630,7 @@ class OfflineProductsRepository extends ProductsRepositoryImpl {
       brandId: brandId,
       isActive: isActive,
       search: search,
+      needsAttention: needsAttention,
       skip: skip,
       limit: limit,
     );

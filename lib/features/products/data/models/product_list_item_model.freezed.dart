@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProductListItemModel {
 
- String get id;@JsonKey(name: 'business_id') String get businessId; String get name; String? get sku;@JsonKey(name: 'product_type') String get productType;@JsonKey(name: 'tracking_type') String get trackingType;@JsonKey(name: 'is_sellable') bool get isSellable;@JsonKey(name: 'is_purchasable') bool get isPurchasable;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'category_id') String? get categoryId;@JsonKey(name: 'brand_id') String? get brandId;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'tax_rate_id') String? get taxRateId;@JsonKey(name: 'is_tax_exempt') bool get isTaxExempt;@JsonKey(name: 'track_expiry') bool get trackExpiry;@JsonKey(name: 'name_secondary') String? get nameSecondary; String? get categoryName; String? get brandName;
+ String get id;@JsonKey(name: 'business_id') String get businessId; String get name; String? get sku;@JsonKey(name: 'product_type') String get productType;@JsonKey(name: 'tracking_type') String get trackingType;@JsonKey(name: 'is_sellable') bool get isSellable;@JsonKey(name: 'is_purchasable') bool get isPurchasable;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'category_id') String? get categoryId;@JsonKey(name: 'brand_id') String? get brandId;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'tax_rate_id') String? get taxRateId;@JsonKey(name: 'is_tax_exempt') bool get isTaxExempt;@JsonKey(name: 'track_expiry') bool get trackExpiry;@JsonKey(name: 'name_secondary') String? get nameSecondary;@JsonKey(name: 'needs_attention') bool get needsAttention; List<String> get missing; String? get categoryName; String? get brandName;
 /// Create a copy of ProductListItemModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ProductListItemModelCopyWith<ProductListItemModel> get copyWith => _$ProductLis
 @override
 bool operator ==(Object other) {
   final _this = this as ProductListItemModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductListItemModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.businessId, _this.businessId) || other.businessId == _this.businessId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sku, _this.sku) || other.sku == _this.sku)&&(identical(other.productType, _this.productType) || other.productType == _this.productType)&&(identical(other.trackingType, _this.trackingType) || other.trackingType == _this.trackingType)&&(identical(other.isSellable, _this.isSellable) || other.isSellable == _this.isSellable)&&(identical(other.isPurchasable, _this.isPurchasable) || other.isPurchasable == _this.isPurchasable)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.categoryId, _this.categoryId) || other.categoryId == _this.categoryId)&&(identical(other.brandId, _this.brandId) || other.brandId == _this.brandId)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.taxRateId, _this.taxRateId) || other.taxRateId == _this.taxRateId)&&(identical(other.isTaxExempt, _this.isTaxExempt) || other.isTaxExempt == _this.isTaxExempt)&&(identical(other.trackExpiry, _this.trackExpiry) || other.trackExpiry == _this.trackExpiry)&&(identical(other.nameSecondary, _this.nameSecondary) || other.nameSecondary == _this.nameSecondary)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.brandName, _this.brandName) || other.brandName == _this.brandName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductListItemModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.businessId, _this.businessId) || other.businessId == _this.businessId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sku, _this.sku) || other.sku == _this.sku)&&(identical(other.productType, _this.productType) || other.productType == _this.productType)&&(identical(other.trackingType, _this.trackingType) || other.trackingType == _this.trackingType)&&(identical(other.isSellable, _this.isSellable) || other.isSellable == _this.isSellable)&&(identical(other.isPurchasable, _this.isPurchasable) || other.isPurchasable == _this.isPurchasable)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.categoryId, _this.categoryId) || other.categoryId == _this.categoryId)&&(identical(other.brandId, _this.brandId) || other.brandId == _this.brandId)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.taxRateId, _this.taxRateId) || other.taxRateId == _this.taxRateId)&&(identical(other.isTaxExempt, _this.isTaxExempt) || other.isTaxExempt == _this.isTaxExempt)&&(identical(other.trackExpiry, _this.trackExpiry) || other.trackExpiry == _this.trackExpiry)&&(identical(other.nameSecondary, _this.nameSecondary) || other.nameSecondary == _this.nameSecondary)&&(identical(other.needsAttention, _this.needsAttention) || other.needsAttention == _this.needsAttention)&&const DeepCollectionEquality().equals(other.missing, _this.missing)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.brandName, _this.brandName) || other.brandName == _this.brandName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProductListItemModel;
-  return Object.hash(runtimeType,_this.id,_this.businessId,_this.name,_this.sku,_this.productType,_this.trackingType,_this.isSellable,_this.isPurchasable,_this.isActive,_this.categoryId,_this.brandId,_this.imageUrl,_this.taxRateId,_this.isTaxExempt,_this.trackExpiry,_this.nameSecondary,_this.categoryName,_this.brandName);
+  return Object.hashAll([runtimeType,_this.id,_this.businessId,_this.name,_this.sku,_this.productType,_this.trackingType,_this.isSellable,_this.isPurchasable,_this.isActive,_this.categoryId,_this.brandId,_this.imageUrl,_this.taxRateId,_this.isTaxExempt,_this.trackExpiry,_this.nameSecondary,_this.needsAttention,const DeepCollectionEquality().hash(_this.missing),_this.categoryName,_this.brandName]);
 }
 
 @override
 String toString() {
   final _this = this as ProductListItemModel;
-  return 'ProductListItemModel(id: ${_this.id}, businessId: ${_this.businessId}, name: ${_this.name}, sku: ${_this.sku}, productType: ${_this.productType}, trackingType: ${_this.trackingType}, isSellable: ${_this.isSellable}, isPurchasable: ${_this.isPurchasable}, isActive: ${_this.isActive}, categoryId: ${_this.categoryId}, brandId: ${_this.brandId}, imageUrl: ${_this.imageUrl}, taxRateId: ${_this.taxRateId}, isTaxExempt: ${_this.isTaxExempt}, trackExpiry: ${_this.trackExpiry}, nameSecondary: ${_this.nameSecondary}, categoryName: ${_this.categoryName}, brandName: ${_this.brandName})';
+  return 'ProductListItemModel(id: ${_this.id}, businessId: ${_this.businessId}, name: ${_this.name}, sku: ${_this.sku}, productType: ${_this.productType}, trackingType: ${_this.trackingType}, isSellable: ${_this.isSellable}, isPurchasable: ${_this.isPurchasable}, isActive: ${_this.isActive}, categoryId: ${_this.categoryId}, brandId: ${_this.brandId}, imageUrl: ${_this.imageUrl}, taxRateId: ${_this.taxRateId}, isTaxExempt: ${_this.isTaxExempt}, trackExpiry: ${_this.trackExpiry}, nameSecondary: ${_this.nameSecondary}, needsAttention: ${_this.needsAttention}, missing: ${_this.missing}, categoryName: ${_this.categoryName}, brandName: ${_this.brandName})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ProductListItemModelCopyWith<$Res>  {
   factory $ProductListItemModelCopyWith(ProductListItemModel value, $Res Function(ProductListItemModel) _then) = _$ProductListItemModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId, String name, String? sku,@JsonKey(name: 'product_type') String productType,@JsonKey(name: 'tracking_type') String trackingType,@JsonKey(name: 'is_sellable') bool isSellable,@JsonKey(name: 'is_purchasable') bool isPurchasable,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'category_id') String? categoryId,@JsonKey(name: 'brand_id') String? brandId,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'tax_rate_id') String? taxRateId,@JsonKey(name: 'is_tax_exempt') bool isTaxExempt,@JsonKey(name: 'track_expiry') bool trackExpiry,@JsonKey(name: 'name_secondary') String? nameSecondary, String? categoryName, String? brandName
+ String id,@JsonKey(name: 'business_id') String businessId, String name, String? sku,@JsonKey(name: 'product_type') String productType,@JsonKey(name: 'tracking_type') String trackingType,@JsonKey(name: 'is_sellable') bool isSellable,@JsonKey(name: 'is_purchasable') bool isPurchasable,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'category_id') String? categoryId,@JsonKey(name: 'brand_id') String? brandId,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'tax_rate_id') String? taxRateId,@JsonKey(name: 'is_tax_exempt') bool isTaxExempt,@JsonKey(name: 'track_expiry') bool trackExpiry,@JsonKey(name: 'name_secondary') String? nameSecondary,@JsonKey(name: 'needs_attention') bool needsAttention, List<String> missing, String? categoryName, String? brandName
 });
 
 
@@ -71,7 +71,7 @@ class _$ProductListItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ProductListItemModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? sku = freezed,Object? productType = null,Object? trackingType = null,Object? isSellable = null,Object? isPurchasable = null,Object? isActive = null,Object? categoryId = freezed,Object? brandId = freezed,Object? imageUrl = freezed,Object? taxRateId = freezed,Object? isTaxExempt = null,Object? trackExpiry = null,Object? nameSecondary = freezed,Object? categoryName = freezed,Object? brandName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? sku = freezed,Object? productType = null,Object? trackingType = null,Object? isSellable = null,Object? isPurchasable = null,Object? isActive = null,Object? categoryId = freezed,Object? brandId = freezed,Object? imageUrl = freezed,Object? taxRateId = freezed,Object? isTaxExempt = null,Object? trackExpiry = null,Object? nameSecondary = freezed,Object? needsAttention = null,Object? missing = null,Object? categoryName = freezed,Object? brandName = freezed,}) {
   return _then(ProductListItemModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
@@ -89,7 +89,9 @@ as String?,taxRateId: freezed == taxRateId ? _self.taxRateId : taxRateId // igno
 as String?,isTaxExempt: null == isTaxExempt ? _self.isTaxExempt : isTaxExempt // ignore: cast_nullable_to_non_nullable
 as bool,trackExpiry: null == trackExpiry ? _self.trackExpiry : trackExpiry // ignore: cast_nullable_to_non_nullable
 as bool,nameSecondary: freezed == nameSecondary ? _self.nameSecondary : nameSecondary // ignore: cast_nullable_to_non_nullable
-as String?,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
+as String?,needsAttention: null == needsAttention ? _self.needsAttention : needsAttention // ignore: cast_nullable_to_non_nullable
+as bool,missing: null == missing ? _self.missing : missing // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String?,brandName: freezed == brandName ? _self.brandName : brandName // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -176,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary,  String? categoryName,  String? brandName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary, @JsonKey(name: 'needs_attention')  bool needsAttention,  List<String> missing,  String? categoryName,  String? brandName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProductListItemModel() when $default != null:
-return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.categoryName,_that.brandName);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.needsAttention,_that.missing,_that.categoryName,_that.brandName);case _:
   return orElse();
 
 }
@@ -197,10 +199,10 @@ return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary,  String? categoryName,  String? brandName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary, @JsonKey(name: 'needs_attention')  bool needsAttention,  List<String> missing,  String? categoryName,  String? brandName)  $default,) {final _that = this;
 switch (_that) {
 case _ProductListItemModel():
-return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.categoryName,_that.brandName);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.needsAttention,_that.missing,_that.categoryName,_that.brandName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -217,10 +219,10 @@ return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary,  String? categoryName,  String? brandName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'business_id')  String businessId,  String name,  String? sku, @JsonKey(name: 'product_type')  String productType, @JsonKey(name: 'tracking_type')  String trackingType, @JsonKey(name: 'is_sellable')  bool isSellable, @JsonKey(name: 'is_purchasable')  bool isPurchasable, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'category_id')  String? categoryId, @JsonKey(name: 'brand_id')  String? brandId, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'tax_rate_id')  String? taxRateId, @JsonKey(name: 'is_tax_exempt')  bool isTaxExempt, @JsonKey(name: 'track_expiry')  bool trackExpiry, @JsonKey(name: 'name_secondary')  String? nameSecondary, @JsonKey(name: 'needs_attention')  bool needsAttention,  List<String> missing,  String? categoryName,  String? brandName)?  $default,) {final _that = this;
 switch (_that) {
 case _ProductListItemModel() when $default != null:
-return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.categoryName,_that.brandName);case _:
+return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType,_that.trackingType,_that.isSellable,_that.isPurchasable,_that.isActive,_that.categoryId,_that.brandId,_that.imageUrl,_that.taxRateId,_that.isTaxExempt,_that.trackExpiry,_that.nameSecondary,_that.needsAttention,_that.missing,_that.categoryName,_that.brandName);case _:
   return null;
 
 }
@@ -232,7 +234,7 @@ return $default(_that.id,_that.businessId,_that.name,_that.sku,_that.productType
 @JsonSerializable()
 
 class _ProductListItemModel implements ProductListItemModel {
-  const _ProductListItemModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', required this.name, this.sku, @JsonKey(name: 'product_type') required this.productType, @JsonKey(name: 'tracking_type') required this.trackingType, @JsonKey(name: 'is_sellable') this.isSellable = true, @JsonKey(name: 'is_purchasable') this.isPurchasable = true, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'category_id') this.categoryId, @JsonKey(name: 'brand_id') this.brandId, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'tax_rate_id') this.taxRateId, @JsonKey(name: 'is_tax_exempt') this.isTaxExempt = false, @JsonKey(name: 'track_expiry') this.trackExpiry = false, @JsonKey(name: 'name_secondary') this.nameSecondary, this.categoryName, this.brandName});
+  const _ProductListItemModel({required this.id, @JsonKey(name: 'business_id') this.businessId = '', required this.name, this.sku, @JsonKey(name: 'product_type') required this.productType, @JsonKey(name: 'tracking_type') required this.trackingType, @JsonKey(name: 'is_sellable') this.isSellable = true, @JsonKey(name: 'is_purchasable') this.isPurchasable = true, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'category_id') this.categoryId, @JsonKey(name: 'brand_id') this.brandId, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'tax_rate_id') this.taxRateId, @JsonKey(name: 'is_tax_exempt') this.isTaxExempt = false, @JsonKey(name: 'track_expiry') this.trackExpiry = false, @JsonKey(name: 'name_secondary') this.nameSecondary, @JsonKey(name: 'needs_attention') this.needsAttention = false,  List<String> missing = const <String>[], this.categoryName, this.brandName}): _missing = missing;
   factory _ProductListItemModel.fromJson(Map<String, dynamic> json) => _$ProductListItemModelFromJson(json);
 
 @override final  String id;
@@ -251,6 +253,14 @@ class _ProductListItemModel implements ProductListItemModel {
 @override@JsonKey(name: 'is_tax_exempt') final  bool isTaxExempt;
 @override@JsonKey(name: 'track_expiry') final  bool trackExpiry;
 @override@JsonKey(name: 'name_secondary') final  String? nameSecondary;
+@override@JsonKey(name: 'needs_attention') final  bool needsAttention;
+ final  List<String> _missing;
+@override@JsonKey() List<String> get missing {
+  if (_missing is EqualUnmodifiableListView) return _missing;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_missing);
+}
+
 @override final  String? categoryName;
 @override final  String? brandName;
 
@@ -267,18 +277,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductListItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.name, name) || other.name == name)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.productType, productType) || other.productType == productType)&&(identical(other.trackingType, trackingType) || other.trackingType == trackingType)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isPurchasable, isPurchasable) || other.isPurchasable == isPurchasable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.brandId, brandId) || other.brandId == brandId)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.taxRateId, taxRateId) || other.taxRateId == taxRateId)&&(identical(other.isTaxExempt, isTaxExempt) || other.isTaxExempt == isTaxExempt)&&(identical(other.trackExpiry, trackExpiry) || other.trackExpiry == trackExpiry)&&(identical(other.nameSecondary, nameSecondary) || other.nameSecondary == nameSecondary)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.brandName, brandName) || other.brandName == brandName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductListItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.name, name) || other.name == name)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.productType, productType) || other.productType == productType)&&(identical(other.trackingType, trackingType) || other.trackingType == trackingType)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isPurchasable, isPurchasable) || other.isPurchasable == isPurchasable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.brandId, brandId) || other.brandId == brandId)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.taxRateId, taxRateId) || other.taxRateId == taxRateId)&&(identical(other.isTaxExempt, isTaxExempt) || other.isTaxExempt == isTaxExempt)&&(identical(other.trackExpiry, trackExpiry) || other.trackExpiry == trackExpiry)&&(identical(other.nameSecondary, nameSecondary) || other.nameSecondary == nameSecondary)&&(identical(other.needsAttention, needsAttention) || other.needsAttention == needsAttention)&&const DeepCollectionEquality().equals(other.missing, _missing)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.brandName, brandName) || other.brandName == brandName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,businessId,name,sku,productType,trackingType,isSellable,isPurchasable,isActive,categoryId,brandId,imageUrl,taxRateId,isTaxExempt,trackExpiry,nameSecondary,categoryName,brandName);
+    return Object.hashAll([runtimeType,id,businessId,name,sku,productType,trackingType,isSellable,isPurchasable,isActive,categoryId,brandId,imageUrl,taxRateId,isTaxExempt,trackExpiry,nameSecondary,needsAttention,const DeepCollectionEquality().hash(_missing),categoryName,brandName]);
 }
 
 @override
 String toString() {
-    return 'ProductListItemModel(id: $id, businessId: $businessId, name: $name, sku: $sku, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, categoryId: $categoryId, brandId: $brandId, imageUrl: $imageUrl, taxRateId: $taxRateId, isTaxExempt: $isTaxExempt, trackExpiry: $trackExpiry, nameSecondary: $nameSecondary, categoryName: $categoryName, brandName: $brandName)';
+    return 'ProductListItemModel(id: $id, businessId: $businessId, name: $name, sku: $sku, productType: $productType, trackingType: $trackingType, isSellable: $isSellable, isPurchasable: $isPurchasable, isActive: $isActive, categoryId: $categoryId, brandId: $brandId, imageUrl: $imageUrl, taxRateId: $taxRateId, isTaxExempt: $isTaxExempt, trackExpiry: $trackExpiry, nameSecondary: $nameSecondary, needsAttention: $needsAttention, missing: $missing, categoryName: $categoryName, brandName: $brandName)';
 }
 
 
@@ -289,7 +299,7 @@ abstract mixin class _$ProductListItemModelCopyWith<$Res> implements $ProductLis
   factory _$ProductListItemModelCopyWith(_ProductListItemModel value, $Res Function(_ProductListItemModel) _then) = __$ProductListItemModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'business_id') String businessId, String name, String? sku,@JsonKey(name: 'product_type') String productType,@JsonKey(name: 'tracking_type') String trackingType,@JsonKey(name: 'is_sellable') bool isSellable,@JsonKey(name: 'is_purchasable') bool isPurchasable,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'category_id') String? categoryId,@JsonKey(name: 'brand_id') String? brandId,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'tax_rate_id') String? taxRateId,@JsonKey(name: 'is_tax_exempt') bool isTaxExempt,@JsonKey(name: 'track_expiry') bool trackExpiry,@JsonKey(name: 'name_secondary') String? nameSecondary, String? categoryName, String? brandName
+ String id,@JsonKey(name: 'business_id') String businessId, String name, String? sku,@JsonKey(name: 'product_type') String productType,@JsonKey(name: 'tracking_type') String trackingType,@JsonKey(name: 'is_sellable') bool isSellable,@JsonKey(name: 'is_purchasable') bool isPurchasable,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'category_id') String? categoryId,@JsonKey(name: 'brand_id') String? brandId,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'tax_rate_id') String? taxRateId,@JsonKey(name: 'is_tax_exempt') bool isTaxExempt,@JsonKey(name: 'track_expiry') bool trackExpiry,@JsonKey(name: 'name_secondary') String? nameSecondary,@JsonKey(name: 'needs_attention') bool needsAttention, List<String> missing, String? categoryName, String? brandName
 });
 
 
@@ -306,7 +316,7 @@ class __$ProductListItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ProductListItemModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? sku = freezed,Object? productType = null,Object? trackingType = null,Object? isSellable = null,Object? isPurchasable = null,Object? isActive = null,Object? categoryId = freezed,Object? brandId = freezed,Object? imageUrl = freezed,Object? taxRateId = freezed,Object? isTaxExempt = null,Object? trackExpiry = null,Object? nameSecondary = freezed,Object? categoryName = freezed,Object? brandName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? businessId = null,Object? name = null,Object? sku = freezed,Object? productType = null,Object? trackingType = null,Object? isSellable = null,Object? isPurchasable = null,Object? isActive = null,Object? categoryId = freezed,Object? brandId = freezed,Object? imageUrl = freezed,Object? taxRateId = freezed,Object? isTaxExempt = null,Object? trackExpiry = null,Object? nameSecondary = freezed,Object? needsAttention = null,Object? missing = null,Object? categoryName = freezed,Object? brandName = freezed,}) {
   return _then(_ProductListItemModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,businessId: null == businessId ? _self.businessId : businessId // ignore: cast_nullable_to_non_nullable
@@ -324,7 +334,9 @@ as String?,taxRateId: freezed == taxRateId ? _self.taxRateId : taxRateId // igno
 as String?,isTaxExempt: null == isTaxExempt ? _self.isTaxExempt : isTaxExempt // ignore: cast_nullable_to_non_nullable
 as bool,trackExpiry: null == trackExpiry ? _self.trackExpiry : trackExpiry // ignore: cast_nullable_to_non_nullable
 as bool,nameSecondary: freezed == nameSecondary ? _self.nameSecondary : nameSecondary // ignore: cast_nullable_to_non_nullable
-as String?,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
+as String?,needsAttention: null == needsAttention ? _self.needsAttention : needsAttention // ignore: cast_nullable_to_non_nullable
+as bool,missing: null == missing ? _self._missing : missing // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryName: freezed == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String?,brandName: freezed == brandName ? _self.brandName : brandName // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

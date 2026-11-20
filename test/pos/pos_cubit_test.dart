@@ -44,6 +44,7 @@ class _Products extends Fake implements GetProductsUseCase {
     String? brandId,
     bool? isActive,
     String? search,
+    bool? needsAttention,
     int skip = 0,
     int limit = 50,
   }) async => const Right(PaginatedProductsModel(total: 0, skip: 0, limit: 60));
