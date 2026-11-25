@@ -350,6 +350,9 @@ class _RowView extends StatelessWidget {
               readOnly: known,
               error: errorFor(QuickAddField.unit),
               onPick: (o) => cubit.setUnit(row.id, o),
+              onCreate: (n) => cubit.setNewUnit(row.id, n),
+              isNew: row.newUnitName != null,
+              cellKey: ValueKey('qa-unit-${row.id}'),
             ),
             _PickCell(
               width: _Cols.category,
@@ -359,6 +362,9 @@ class _RowView extends StatelessWidget {
               readOnly: known,
               error: errorFor(QuickAddField.category),
               onPick: (o) => cubit.setCategory(row.id, o),
+              onCreate: (n) => cubit.setNewCategory(row.id, n),
+              isNew: row.newCategoryName != null,
+              cellKey: ValueKey('qa-category-${row.id}'),
             ),
             _TextCell(
               width: _Cols.qty,
@@ -702,11 +708,21 @@ class _PickCell extends StatelessWidget {
     required this.placeholder,
     required this.options,
     required this.onPick,
+    this.onCreate,
+    this.isNew = false,
+    this.cellKey,
     this.readOnly = false,
     this.error,
   });
 
   final double width;
+  final Key? cellKey;
+
+  /// Typing a name the shop does not have offers "Create 'name'".
+  final void Function(String name)? onCreate;
+
+  /// The label is a name the server will create when saving.
+  final bool isNew;
   final String? label;
   final String placeholder;
   final List<PickOption> options;
@@ -723,12 +739,24 @@ class _PickCell extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
         child: InkWell(
+          key: cellKey,
           borderRadius: BorderRadius.circular(6),
-          onTap: readOnly || options.isEmpty
+          onTap: readOnly || (options.isEmpty && onCreate == null)
               ? null
               : () async {
-                  final picked = await showQuickAddPicker(context, title: placeholder, options: options, allowClear: !isPlaceholder);
-                  if (picked != null) onPick(picked.option);
+                  final picked = await showQuickAddPicker(
+                    context,
+                    title: placeholder,
+                    options: options,
+                    allowClear: !isPlaceholder,
+                    createNoun: onCreate == null ? null : placeholder.toLowerCase(),
+                  );
+                  if (picked == null) return;
+                  if (picked.newName != null) {
+                    onCreate?.call(picked.newName!);
+                  } else {
+                    onPick(picked.option);
+                  }
                 },
           child: Container(
             height: 34,
@@ -743,7 +771,7 @@ class _PickCell extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    text,
+                    isNew ? '$text (new)' : text,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
@@ -762,8 +790,11 @@ class _PickCell extends StatelessWidget {
 }
 
 class PickResult {
-  const PickResult(this.option);
+  const PickResult(this.option, {this.newName});
   final PickOption? option;
+
+  /// "Create 'Strip'": a name the shop does not have yet.
+  final String? newName;
 }
 
 /// A searchable list. Enter picks the first match, so it works from the keyboard.
@@ -772,16 +803,31 @@ Future<PickResult?> showQuickAddPicker(
   required String title,
   required List<PickOption> options,
   bool allowClear = false,
+
+  /// "unit" / "category": typing a name that is not in the list then offers
+  /// "Create 'name'". Null: pick from the list only.
+  String? createNoun,
 }) {
   return showDialog<PickResult>(
     context: context,
-    builder: (_) => _PickerDialog(title: title, options: options, allowClear: allowClear),
+    builder: (_) => _PickerDialog(
+      title: title,
+      options: options,
+      allowClear: allowClear,
+      createNoun: createNoun,
+    ),
   );
 }
 
 class _PickerDialog extends StatefulWidget {
-  const _PickerDialog({required this.title, required this.options, required this.allowClear});
+  const _PickerDialog({
+    required this.title,
+    required this.options,
+    required this.allowClear,
+    this.createNoun,
+  });
 
+  final String? createNoun;
   final String title;
   final List<PickOption> options;
   final bool allowClear;
@@ -802,6 +848,11 @@ class _PickerDialogState extends State<_PickerDialog> {
   @override
   Widget build(BuildContext context) {
     final matches = _matches;
+    final typed = _query.trim();
+    // "Create 'Strip'" appears for a name that is not in the list yet.
+    final canCreate = widget.createNoun != null &&
+        typed.isNotEmpty &&
+        !widget.options.any((o) => o.label.toLowerCase() == typed.toLowerCase());
     return AlertDialog(
       title: Text(widget.title),
       content: SizedBox(
@@ -813,22 +864,42 @@ class _PickerDialogState extends State<_PickerDialog> {
               autofocus: true,
               decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search'),
               onChanged: (v) => setState(() => _query = v),
-              onSubmitted: (_) {
-                if (matches.isNotEmpty) Navigator.pop(context, PickResult(matches.first));
+              onSubmitted: (text) {
+                // Read the latest text, not the last build's (Enter can arrive
+                // before the next frame).
+                _query = text;
+                final now = _matches;
+                final name = text.trim();
+                if (now.isNotEmpty) {
+                  Navigator.pop(context, PickResult(now.first));
+                } else if (widget.createNoun != null && name.isNotEmpty) {
+                  Navigator.pop(context, PickResult(null, newName: name));
+                }
               },
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: matches.isEmpty
-                  ? const Center(child: Text('Nothing found'))
-                  : ListView.builder(
-                      itemCount: matches.length,
-                      itemBuilder: (_, i) => ListTile(
-                        dense: true,
-                        title: Text(matches[i].label),
-                        onTap: () => Navigator.pop(context, PickResult(matches[i])),
-                      ),
+              child: ListView(
+                children: [
+                  if (canCreate)
+                    ListTile(
+                      key: const ValueKey('quick-add-create-option'),
+                      dense: true,
+                      leading: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                      title: Text("Create '$typed'"),
+                      subtitle: Text('Adds this new ${widget.createNoun} when you save'),
+                      onTap: () => Navigator.pop(context, PickResult(null, newName: typed)),
                     ),
+                  if (matches.isEmpty && !canCreate)
+                    const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('Nothing found'))),
+                  for (final m in matches)
+                    ListTile(
+                      dense: true,
+                      title: Text(m.label),
+                      onTap: () => Navigator.pop(context, PickResult(m)),
+                    ),
+                ],
+              ),
             ),
           ],
         ),

@@ -48,6 +48,7 @@ class _CacheKey {
   final bool isBold;
   final UrduReceiptStyle style;
   final TextAlign textAlign;
+  final int colorValue;
 
   const _CacheKey({
     required this.text,
@@ -56,6 +57,7 @@ class _CacheKey {
     required this.isBold,
     required this.style,
     required this.textAlign,
+    this.colorValue = 0xFF000000,
   });
 
   @override
@@ -68,11 +70,12 @@ class _CacheKey {
           maxWidth == other.maxWidth &&
           isBold == other.isBold &&
           style == other.style &&
-          textAlign == other.textAlign;
+          textAlign == other.textAlign &&
+          colorValue == other.colorValue;
 
   @override
   int get hashCode =>
-      Object.hash(text, fontSize, maxWidth, isBold, style, textAlign);
+      Object.hash(text, fontSize, maxWidth, isBold, style, textAlign, colorValue);
 }
 
 abstract final class ReceiptTextRenderer {
@@ -165,6 +168,7 @@ abstract final class ReceiptTextRenderer {
     bool isBold = false,
     UrduReceiptStyle style = UrduReceiptStyle.nastaliq,
     TextAlign textAlign = TextAlign.start,
+    Color color = const Color(0xFF000000),
   }) async {
     if (text.trim().isEmpty) return null;
 
@@ -175,6 +179,7 @@ abstract final class ReceiptTextRenderer {
       isBold: isBold,
       style: style,
       textAlign: textAlign,
+      colorValue: color.toARGB32(),
     );
 
     final cached = _cache[key];
@@ -188,7 +193,7 @@ abstract final class ReceiptTextRenderer {
     final textSpan = TextSpan(
       text: text,
       style: TextStyle(
-        color: const Color(0xFF000000),
+        color: color,
         fontFamily: style.fontFamily,
         fontFamilyFallback: const [
           'NotoNastaliqUrdu',

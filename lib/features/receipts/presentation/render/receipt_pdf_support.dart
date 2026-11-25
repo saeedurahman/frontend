@@ -38,6 +38,29 @@ abstract final class ReceiptPdfSupport {
     }
   }
 
+  static pw.ThemeData? _a4Theme;
+
+  /// Inter (regular and a real bold) for the A4 invoices, with Noto Naskh as
+  /// the Urdu fallback. The thermal rolls keep Noto Sans.
+  static Future<pw.ThemeData> loadA4Fonts() async {
+    final cached = _a4Theme;
+    if (cached != null) return cached;
+    try {
+      final regular = pw.Font.ttf(await rootBundle.load('assets/fonts/Inter-400.ttf'));
+      final bold = pw.Font.ttf(await rootBundle.load('assets/fonts/Inter-700.ttf'));
+      final arabic = pw.Font.ttf(await rootBundle.load('assets/fonts/NotoNaskhArabic-Regular.ttf'));
+      return _a4Theme = pw.ThemeData.withFont(
+        base: regular,
+        bold: bold,
+        italic: regular,
+        boldItalic: bold,
+        fontFallback: [arabic],
+      );
+    } catch (_) {
+      return loadFonts();
+    }
+  }
+
   /// Layout height of [widgets] at a fixed [maxWidth] (exact thermal pages).
   static double measureWidgetsHeight({
     required List<pw.Widget> widgets,

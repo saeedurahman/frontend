@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:drift/native.dart';
@@ -7,7 +6,6 @@ import 'package:frantend/core/database/app_database.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/auth/domain/entities/user.dart';
 import 'package:frantend/features/auth/domain/repositories/auth_repository.dart';
-import 'package:frantend/features/products/presentation/pages/product_import_dialog.dart';
 import 'package:frantend/features/register/data/repositories/register_repository_impl.dart';
 import 'package:frantend/features/register/domain/entities/register_entity.dart';
 import 'package:frantend/features/settings/data/models/app_setting_model.dart';
@@ -173,18 +171,6 @@ void main() {
         cols.map((r) => r.read<String>('name')),
         containsAll(['tax_inclusive', 'tax_rounding_mode', 'rounding_amount']),
       );
-    });
-  });
-
-  group('product CSV template', () {
-    test('has the tax columns the server import reads', () {
-      final lines = const LineSplitter().convert(kProductImportTemplateCsv);
-      final header = lines.first.split(',');
-      expect(header, containsAll(['tax_rate_name', 'tax_exempt']));
-      for (final row in lines.skip(1)) {
-        expect(row.split(',').length, header.length, reason: row);
-      }
-      expect(lines.last, endsWith(',true'));
     });
   });
 }

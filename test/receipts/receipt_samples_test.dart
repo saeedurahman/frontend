@@ -53,6 +53,11 @@ void main() {
       final loader = FontLoader(f.key)..addFont(rootBundle.load(f.value));
       await loader.load();
     }
+    // Inter with its real bold (the A4 invoices).
+    final inter = FontLoader('Inter')
+      ..addFont(rootBundle.load('assets/fonts/Inter-400.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Inter-700.ttf'));
+    await inter.load();
   });
 
   for (final s in _samples) {

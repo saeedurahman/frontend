@@ -74,6 +74,7 @@ dependencies:
   rational: any
   url_launcher: ^6.3.3
   ed25519_edwards: ^0.3.2
+  desktop_drop: ^0.8.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -104,3 +105,8 @@ flutter:
     - family: NotoSans
       fonts:
         - asset: assets/fonts/NotoSans-Regular.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700

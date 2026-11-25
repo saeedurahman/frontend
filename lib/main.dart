@@ -40,6 +40,7 @@ void _configureDiagnostics() {
   };
 
   FlutterError.onError = (details) {
+    
     FlutterError.presentError(details);
     CrashLog.write('flutter', details.exception, details.stack);
   };

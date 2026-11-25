@@ -8,6 +8,8 @@ import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/url_launcher_service.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
+import 'package:frantend/core/platform/file_saver_service.dart';
+import 'package:frantend/features/product_import/domain/import_repository.dart';
 import 'package:frantend/features/products/data/models/brand_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
@@ -27,6 +29,8 @@ import 'package:frantend/features/products/presentation/pages/products_list_page
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
 import 'package:frantend/features/settings/presentation/pages/printer_settings_page.dart';
 import 'package:printing/printing.dart';
+
+import '../product_import/import_fakes.dart';
 
 class _Repo extends Fake implements ProductsRepository {
   @override
@@ -138,12 +142,24 @@ void main() {
       expect(find.text('Export Products'), findsOneWidget);
     });
 
-    testWidgets('Import CSV button opens the product import dialog',
+    testWidgets('Import products button opens the 3-step import dialog',
         (tester) async {
+      final importRepo = FakeImportRepository();
+      if (sl.isRegistered<ProductImportRepository>()) sl.unregister<ProductImportRepository>();
+      sl.registerSingleton<ProductImportRepository>(importRepo);
+      final hadFiles = sl.isRegistered<FileSaverService>();
+      if (!hadFiles) sl.registerSingleton<FileSaverService>(FakeFiles());
+      addTearDown(() async {
+        if (!hadFiles) sl.unregister<FileSaverService>();
+        sl.unregister<ProductImportRepository>();
+        await importRepo.dispose();
+      });
       await pumpProducts(tester);
-      await tester.tap(find.text('Import CSV'));
+      await tester.tap(find.byKey(const ValueKey('products-import-button')));
       await tester.pumpAndSettle();
-      expect(find.text('Import Products from CSV'), findsOneWidget);
+      expect(find.text('Import products'), findsWidgets);
+      expect(find.byKey(const ValueKey('import-stepper')), findsOneWidget);
+      expect(find.text('Drag your file here'), findsOneWidget);
     });
   });
 

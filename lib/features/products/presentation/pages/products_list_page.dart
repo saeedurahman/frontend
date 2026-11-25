@@ -16,7 +16,7 @@ import 'package:frantend/features/products/presentation/cubit/categories_state.d
 import 'package:frantend/features/products/presentation/cubit/products_list_cubit.dart';
 import 'package:frantend/features/products/presentation/cubit/products_list_state.dart';
 import 'package:frantend/features/products/presentation/utils/category_utils.dart';
-import 'package:frantend/features/products/presentation/pages/product_import_dialog.dart';
+import 'package:frantend/features/product_import/presentation/pages/product_import_dialog.dart';
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
@@ -193,12 +193,15 @@ class _Toolbar extends StatelessWidget {
         PermissionGate(
           permission: Perm.productsCreate,
           child: OutlinedButton.icon(
+            key: const ValueKey('products-import-button'),
             onPressed: () => ProductImportDialog.show(
               context,
-              onSuccess: () => context.read<ProductsListCubit>().refresh(),
+              onChanged: () => context.read<ProductsListCubit>().refresh(),
+              onReviewNeedsDetails: () =>
+                  context.read<ProductsListCubit>().filterNeedsDetails(true),
             ),
             icon: const Icon(Icons.file_upload_outlined, size: 18),
-            label: const Text('Import CSV'),
+            label: const Text('Import products'),
           ),
         ),
         const SizedBox(width: 8),

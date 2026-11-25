@@ -122,8 +122,14 @@ Map<String, dynamic> quickAddLineJson(QuickAddRow r) {
     'barcode': r.barcode,
     'name': r.name.trim(),
     if (r.brand.trim().isNotEmpty) 'brand': r.brand.trim(),
-    if (r.categoryId != null) 'category_id': r.categoryId,
-    if (r.unitId != null) 'unit_id': r.unitId,
+    if (r.categoryId != null)
+      'category_id': r.categoryId
+    else if ((r.newCategoryName ?? '').trim().isNotEmpty)
+      'category_name': r.newCategoryName!.trim(),
+    if (r.unitId != null)
+      'unit_id': r.unitId
+    else if ((r.newUnitName ?? '').trim().isNotEmpty)
+      'unit_name': r.newUnitName!.trim(),
     if (r.packSize.trim().isNotEmpty) 'pack_size': r.packSize.trim(),
     'qty': r.qty.toString(),
     'cost_price': money(r.cost) ?? '0',

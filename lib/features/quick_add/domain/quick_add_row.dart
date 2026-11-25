@@ -79,6 +79,8 @@ class QuickAddRow {
     this.unitLabel,
     this.categoryId,
     this.categoryLabel,
+    this.newUnitName,
+    this.newCategoryName,
     Decimal? qty,
     this.cost,
     this.salePrice,
@@ -122,6 +124,12 @@ class QuickAddRow {
   final String? unitLabel;
   final String? categoryId;
   final String? categoryLabel;
+
+  /// A unit / category the owner typed that the shop does not have yet. The
+  /// server creates it while saving (`unit_name` / `category_name`), so there
+  /// is no separate "create" step. The id is null while this is set.
+  final String? newUnitName;
+  final String? newCategoryName;
   final Decimal qty;
   final Decimal? cost;
   final Decimal? salePrice;
@@ -179,6 +187,8 @@ class QuickAddRow {
     String? categoryId,
     String? categoryLabel,
     bool clearCategory = false,
+    String? newUnitName,
+    String? newCategoryName,
     Decimal? qty,
     Decimal? cost,
     bool clearCost = false,
@@ -213,8 +223,14 @@ class QuickAddRow {
         brand: brand ?? this.brand,
         packSize: packSize ?? this.packSize,
         unitId: clearUnit ? null : (unitId ?? this.unitId),
+        newUnitName: clearUnit || unitId != null
+            ? null
+            : (newUnitName ?? this.newUnitName),
         unitLabel: clearUnit ? null : (unitLabel ?? this.unitLabel),
         categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+        newCategoryName: clearCategory || categoryId != null
+            ? null
+            : (newCategoryName ?? this.newCategoryName),
         categoryLabel:
             clearCategory ? null : (categoryLabel ?? this.categoryLabel),
         qty: qty ?? this.qty,
@@ -251,6 +267,8 @@ class QuickAddRow {
         'unit': unitLabel,
         'category_id': categoryId,
         'category': categoryLabel,
+        'new_unit': newUnitName,
+        'new_category': newCategoryName,
         'qty': qty.toString(),
         'cost': cost?.toString(),
         'sale': salePrice?.toString(),
@@ -283,6 +301,8 @@ class QuickAddRow {
         unitLabel: j['unit'] as String?,
         categoryId: j['category_id'] as String?,
         categoryLabel: j['category'] as String?,
+        newUnitName: j['new_unit'] as String?,
+        newCategoryName: j['new_category'] as String?,
         qty: _dec(j['qty']) ?? Decimal.one,
         cost: _dec(j['cost']),
         salePrice: _dec(j['sale']),

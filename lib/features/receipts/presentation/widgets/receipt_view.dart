@@ -26,6 +26,7 @@ class ReceiptView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = paperWidth(model);
+    final a4 = model.design.isA4;
     final sheet = Container(
       width: width,
       color: Colors.white,
@@ -33,14 +34,15 @@ class ReceiptView extends StatelessWidget {
           ? const EdgeInsets.all(32)
           : const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       child: DefaultTextStyle(
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.black,
           fontSize: 12,
           height: 1.25,
           // The fonts the app ships, so the preview looks the same on every
           // computer and Urdu never falls back to boxes.
-          fontFamily: 'NotoSans',
-          fontFamilyFallback: ['NotoNaskhArabic', 'NotoNastaliqUrdu'],
+          // The A4 invoices use Inter, like the A4 PDF.
+          fontFamily: a4 ? 'Inter' : 'NotoSans',
+          fontFamilyFallback: const ['NotoSans', 'NotoNaskhArabic', 'NotoNastaliqUrdu'],
         ),
         // Urdu receipts read right-to-left: rows, columns and headers mirror.
         child: Directionality(
@@ -350,33 +352,69 @@ class _Item extends StatelessWidget {
 
 // ── A4 ───────────────────────────────────────────────────────────────────
 
+/// Same design as the A4 PDF: banner (elegant) or ruled (tax invoice) header,
+/// a details card, a striped item table, tax summary and a totals card with a
+/// highlighted Total, a thank-you bar and the signature line.
 class _A4Body extends StatelessWidget {
   const _A4Body(this.m);
   final ReceiptModel m;
 
-  bool get elegant => m.design == ReceiptDesign.a4Elegant;
-  Color get accent => Color(m.accentColor);
-  Color get tint => accent.withValues(alpha: 0.10);
+  static const _text = Color(0xFF111827);
+  static const _muted = Color(0xFF6B7280);
+  static const _line = Color(0xFFD9DDE3);
+  static const _slate = Color(0xFF1F2937);
+  static const _soft = Color(0xFFF3F4F6);
+  static const _onDarkMuted = Color(0xFFE5E7EB);
 
-  Widget _business() {
+  bool get elegant => m.design == ReceiptDesign.a4Elegant;
+  Color get accent => elegant ? Color(m.accentColor) : _slate;
+  Color get tint => elegant ? Color.lerp(Colors.white, accent, 0.1)! : _soft;
+
+  TextStyle _s(double size, {bool bold = false, Color color = _text}) =>
+      _t(m, size, bold: bold, color: color);
+
+  /// The Urdu caption of a both-language receipt: small, under its English
+  /// caption, on the reading side of the sheet.
+  Widget _caption(String? text, double size, {Color color = _muted, bool bold = false}) {
+    if (text == null || text.isEmpty) return const SizedBox.shrink();
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(text, textDirection: TextDirection.rtl, style: _s(size * 0.85, color: color, bold: bold)),
+    );
+  }
+
+  Widget _business({required Color nameColor, required Color detailColor}) {
     final h = m.header;
-    final logo = _logo(m, 52);
+    final logo = _logo(m, 46);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (logo != null) ...[logo, const SizedBox(width: 10)],
+        if (logo != null)
+          Container(
+            margin: const EdgeInsetsDirectional.only(end: 12),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: elegant ? null : Border.all(color: _line, width: 0.8),
+            ),
+            child: logo,
+          ),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (h.businessName != null) Text(h.businessName!, style: _t(m, 18, bold: true)),
+              if (h.businessName != null) Text(h.businessName!, style: _s(18, bold: true, color: nameColor)),
               for (final l in [
                 if (h.address != null) h.address!,
                 if (h.phone != null) h.phone!,
                 if (h.ntnLine != null) h.ntnLine!,
                 ...h.extraLines,
               ])
-                Text(l, style: _t(m, 10)),
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.5),
+                  child: Text(l, style: _s(9, color: detailColor)),
+                ),
             ],
           ),
         ),
@@ -384,53 +422,122 @@ class _A4Body extends StatelessWidget {
     );
   }
 
-  Widget _title() => Column(
+  Widget _title(Color color) => Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(m.title, style: _t(m, 22, bold: true, color: elegant ? accent : null)),
+          Text(m.title.toUpperCase(), style: _s(18, bold: true, color: color)),
           if (m.titleAlt != null)
-            Text(m.titleAlt!,
-                textDirection: TextDirection.rtl,
-                style: _t(m, 18, bold: true, color: elegant ? accent : null)),
-          if (m.isVoid) Text(m.voidLabel, style: _t(m, 15, bold: true)),
-          if (m.voidAlt != null)
-            Text(m.voidAlt!, textDirection: TextDirection.rtl, style: _t(m, 13, bold: true)),
+            Text(m.titleAlt!, textDirection: TextDirection.rtl, style: _s(16, bold: true, color: color)),
+          if (m.isVoid) ...[
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+              child: Text(m.voidLabel, style: _s(11, bold: true, color: Colors.red.shade800)),
+            ),
+            if (m.voidAlt != null)
+              Text(m.voidAlt!, textDirection: TextDirection.rtl, style: _s(11, bold: true, color: color)),
+          ],
         ],
       );
 
-  Widget _header() => Container(
-        padding: elegant
-            ? const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12)
-            : const EdgeInsets.only(bottom: 8),
-        decoration: elegant
-            ? BoxDecoration(
-                color: tint,
-                border: BorderDirectional(start: BorderSide(color: accent, width: 6)),
-              )
-            : const BoxDecoration(border: Border(bottom: BorderSide(width: 1.2))),
+  Widget _header() {
+    if (elegant) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(10)),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 3, child: _business()),
-            Expanded(flex: 2, child: _title()),
+            Expanded(
+              flex: 3,
+              child: _business(nameColor: Colors.white, detailColor: _onDarkMuted),
+            ),
+            const SizedBox(width: 12),
+            Expanded(flex: 2, child: _title(Colors.white)),
           ],
         ),
       );
-
-  Widget _meta() {
-    final left = <Widget>[];
-    final right = <Widget>[];
-    for (var i = 0; i < m.meta.length; i++) {
-      final r = m.meta[i];
-      (i.isEven ? left : right).add(_Row(r.label, r.value, m, labelAlt: r.labelAlt, size: 10));
     }
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: Column(children: left)),
-        const SizedBox(width: 28),
-        Expanded(child: Column(children: right)),
-      ],
+    return Container(
+      padding: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: accent, width: 2.2))),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: _business(nameColor: _text, detailColor: _muted)),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(6)),
+                child: _title(Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _metaCell(ReceiptMetaRow r) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(r.label, style: _s(8.5, color: _muted)),
+          _caption(r.labelAlt, 8.5),
+          const SizedBox(height: 1.5),
+          Text(r.value, style: _s(10.5, bold: true)),
+        ],
+      );
+
+  Widget _metaGrid(List<ReceiptMetaRow> rows, int perRow) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < rows.length; i += perRow)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var j = i; j < i + perRow; j++)
+                    Expanded(child: j < rows.length ? _metaCell(rows[j]) : const SizedBox.shrink()),
+                ],
+              ),
+            ),
+        ],
+      );
+
+  Widget _details() {
+    bool isParty(ReceiptMetaRow r) => r.key == 'customer' || r.key == 'customer_phone';
+    final party = m.meta.where(isParty).toList();
+    final doc = m.meta.where((r) => !isParty(r)).toList();
+    final Widget body;
+    if (party.isEmpty || doc.isEmpty) {
+      body = _metaGrid(party.isEmpty ? doc : party, 3);
+    } else {
+      body = IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(flex: 3, child: _metaGrid(doc, 2)),
+            Container(
+              width: 0.8,
+              margin: const EdgeInsets.symmetric(horizontal: 14),
+              color: _line,
+            ),
+            Expanded(flex: 2, child: _metaGrid(party, 1)),
+          ],
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: _line, width: 0.8),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: body,
     );
   }
 
@@ -447,29 +554,34 @@ class _A4Body extends StatelessWidget {
           children: [
             Text(c.label,
                 textAlign: c.right ? TextAlign.end : TextAlign.start,
-                style: _t(m, 10, bold: true)),
+                style: _s(9.5, bold: true, color: Colors.white)),
             if (c.labelAlt != null)
               Text(c.labelAlt!,
-                  textDirection: TextDirection.rtl, style: _t(m, 9, bold: true)),
+                  textDirection: TextDirection.rtl, style: _s(8.5, bold: true, color: Colors.white)),
           ],
         ),
       ));
       if (c.key == 'price' && _hasDiscount) {
         head.add(Expanded(
           flex: 2,
-          child: Text(m.word('discount'), textAlign: TextAlign.end, style: _t(m, 10, bold: true)),
+          child: Text(m.word('discount'),
+              textAlign: TextAlign.end, style: _s(9.5, bold: true, color: Colors.white)),
         ));
       }
     }
     final rows = <Widget>[
       Container(
-        color: elegant ? tint : Colors.grey.shade300,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-        child: Row(children: head),
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(7)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: head),
       ),
     ];
     for (var n = 0; n < m.items.length; n++) {
       final item = m.items[n];
+      final last = n == m.items.length - 1;
       final cells = <Widget>[];
       for (final c in m.columns) {
         cells.add(cell(c, _cellFor(c, item)));
@@ -477,21 +589,21 @@ class _A4Body extends StatelessWidget {
           cells.add(Expanded(
             flex: 2,
             child: Text(item.discount ?? '',
-                textAlign: TextAlign.end, style: _t(m, 10)),
+                textAlign: TextAlign.end, style: _s(10, color: _muted)),
           ));
         }
       }
       rows.add(Container(
         decoration: BoxDecoration(
-          color: elegant && n.isOdd ? tint : null,
+          color: n.isOdd ? tint : Colors.white,
           border: Border(
             bottom: BorderSide(
-              color: Colors.grey.shade500,
-              width: m.showDividers ? 0.5 : 0,
+              color: last ? accent : _line,
+              width: last ? 1.2 : (m.showDividers ? 0.5 : 0),
             ),
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: cells),
       ));
     }
@@ -514,75 +626,126 @@ class _A4Body extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (item.name.isNotEmpty) Text(item.name, style: _t(m, 10.5, bold: true)),
-            for (final s in sub) Text(s, style: _t(m, 8.5)),
+            if (item.name.isNotEmpty) Text(item.name, style: _s(10.5, bold: true)),
+            for (final s in sub) Text(s, style: _s(8.5, color: _muted)),
           ],
         );
       case 'qty':
         return Text('${item.qty ?? ''}${item.unit != null ? ' ${item.unit}' : ''}',
-            textAlign: TextAlign.end, style: _t(m, 10.5));
+            textAlign: TextAlign.end, style: _s(10.5));
       case 'price':
-        return Text(item.unitPrice ?? '', textAlign: TextAlign.end, style: _t(m, 10.5));
+        return Text(item.unitPrice ?? '', textAlign: TextAlign.end, style: _s(10.5));
       default:
-        return Text(item.lineTotal ?? '',
-            textAlign: TextAlign.end, style: _t(m, 10.5, bold: true));
+        return Text(item.lineTotal ?? '', textAlign: TextAlign.end, style: _s(10.5, bold: true));
     }
   }
 
-  Widget _summary() {
-    Widget tax(String a, String b, String c, {bool bold = false}) => Padding(
-          padding: const EdgeInsets.all(3),
+  Widget _taxCard() {
+    Widget row(String a, String b, String c, {bool bold = false, Color? fill}) => Container(
+          color: fill,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
           child: Row(children: [
-            Expanded(child: Text(a, style: _t(m, 9.5, bold: bold))),
-            Expanded(child: Text(b, textAlign: TextAlign.end, style: _t(m, 9.5, bold: bold))),
-            Expanded(child: Text(c, textAlign: TextAlign.end, style: _t(m, 9.5, bold: bold))),
+            Expanded(child: Text(a, style: _s(9.5, bold: bold))),
+            Expanded(child: Text(b, textAlign: TextAlign.end, style: _s(9.5, bold: bold))),
+            Expanded(child: Text(c, textAlign: TextAlign.end, style: _s(9.5, bold: bold))),
           ]),
         );
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          flex: 5,
-          child: m.taxSummary.isEmpty
-              ? const SizedBox.shrink()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(m.word('tax_summary'), style: _t(m, 10.5, bold: true)),
-                    const SizedBox(height: 3),
-                    Container(
-                        color: Colors.grey.shade300,
-                        child: tax(m.word('rate'), m.word('taxable'), m.word('tax'), bold: true)),
-                    for (final r in m.taxSummary) tax('${r.label} ${r.rate}', r.net, r.tax),
-                  ],
-                ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(m.word('tax_summary'), style: _s(10, bold: true)),
         ),
-        const SizedBox(width: 24),
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.only(top: 4),
-            decoration: elegant
-                ? BoxDecoration(border: Border(top: BorderSide(color: accent, width: 1.5)))
-                : null,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final t in m.totals)
-                  _Row(t.label, t.value, m,
-                      labelAlt: t.labelAlt,
-                      size: t.strong ? 13 : 10.5,
-                      bold: t.strong,
-                      color: t.strong && elegant ? accent : null),
-                for (final p in m.payments)
-                  _Row(p.label, p.value, m, labelAlt: p.labelAlt, size: 10, bold: p.strong),
-              ],
-            ),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            border: Border.all(color: _line, width: 0.8),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              row(m.word('rate'), m.word('taxable'), m.word('tax'), bold: true, fill: tint),
+              for (final r in m.taxSummary) row('${r.label} ${r.rate}', r.net, r.tax),
+            ],
           ),
         ),
       ],
     );
   }
+
+  Widget _totalsCard() => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(10)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final t in m.totals)
+              if (t.strong)
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(6)),
+                  child: _Row(t.label, t.value, m,
+                      labelAlt: t.labelAlt, size: 13, bold: true, color: Colors.white),
+                )
+              else
+                _Row(t.label, t.value, m, labelAlt: t.labelAlt, size: 10.5),
+            if (m.payments.isNotEmpty) ...[
+              const Divider(color: _line, thickness: 0.8, height: 12),
+              for (final p in m.payments)
+                _Row(p.label, p.value, m, labelAlt: p.labelAlt, size: 10, bold: p.strong),
+            ],
+          ],
+        ),
+      );
+
+  Widget _summary() => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (m.taxSummary.isNotEmpty) _taxCard(),
+                if (m.taxSummary.isNotEmpty && m.qrContent != null) const SizedBox(height: 12),
+                if (m.qrContent != null)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: _line, width: 0.8),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: ReceiptQrView(content: m.qrContent!, size: 74),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(flex: 4, child: _totalsCard()),
+        ],
+      );
+
+  Widget _thanks() => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: elegant ? accent : tint,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            for (final l in m.footerLines)
+              Text(l,
+                  textAlign: TextAlign.center,
+                  style: _s(10.5, bold: elegant, color: elegant ? Colors.white : _text)),
+          ],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -590,48 +753,44 @@ class _A4Body extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _header(),
-        const SizedBox(height: 10),
-        _meta(),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
+        if (m.meta.isNotEmpty) ...[
+          _details(),
+          const SizedBox(height: 12),
+        ],
         _table(),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         _summary(),
         if (m.taxNote != null) ...[
           const SizedBox(height: 6),
-          Text(m.taxNote!, textAlign: TextAlign.end, style: _t(m, 9.5)),
-          if (m.taxNoteAlt != null) _Alt(m.taxNoteAlt, m, size: 9.5),
+          Text(m.taxNote!, textAlign: TextAlign.end, style: _s(9, color: _muted)),
+          if (m.taxNoteAlt != null) _Alt(m.taxNoteAlt, m, size: 9, color: _muted),
         ],
         if (m.footerLines.isNotEmpty) ...[
           const SizedBox(height: 14),
-          for (final l in m.footerLines)
-            Text(l, textAlign: TextAlign.center, style: _t(m, 10.5)),
+          _thanks(),
         ],
         const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            m.qrContent != null
-                ? ReceiptQrView(content: m.qrContent!, size: 78)
-                : const SizedBox(width: 78),
             if (m.poweredBy != null)
-              Text(m.poweredBy!, textAlign: TextAlign.center, style: _t(m, 8.5))
+              Text(m.poweredBy!, style: _s(8.5, color: _muted))
             else
               const SizedBox.shrink(),
             if (m.signatureLabel != null)
               Column(
                 children: [
-                  const SizedBox(height: 28),
-                  Container(width: 150, height: 0.8, color: Colors.black),
+                  const SizedBox(height: 22),
+                  Container(width: 150, height: 0.8, color: _text),
                   const SizedBox(height: 3),
-                  Text(m.signatureLabel!, style: _t(m, 9.5)),
+                  Text(m.signatureLabel!, style: _s(9, color: _muted)),
                   if (m.signatureAlt != null)
                     Text(m.signatureAlt!,
-                        textDirection: TextDirection.rtl, style: _t(m, 9)),
+                        textDirection: TextDirection.rtl, style: _s(8.5, color: _muted)),
                 ],
-              )
-            else
-              const SizedBox(width: 78),
+              ),
           ],
         ),
       ],

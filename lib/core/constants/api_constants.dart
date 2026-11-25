@@ -47,6 +47,10 @@ abstract final class ApiConstants {
   static String priceListItemsBulk(String priceListId) => '/prices/lists/$priceListId/items/bulk';
   static String priceListItemDelete(String priceListId, String itemId) => '/prices/lists/$priceListId/items/$itemId';
   static const String productsImport = '/products/import';
+  static const String productsImportUpload = '/products/import/upload';
+  static const String productsImportTemplate = '/products/import/template';
+  static const String productsImportBatches = '/products/import/batches';
+  static String productsImportUndo(String batchId) => '/products/import/$batchId/undo';
   static const String uploadsImage = '/uploads/image';
   static const String export = '/export';
   static String exportDataset(String dataset) => '/export/$dataset';

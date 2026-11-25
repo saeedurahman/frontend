@@ -449,6 +449,7 @@ class QuickAddCubit extends Cubit<QuickAddState> {
             unitLabel: state.options.defaultUnit?.label,
             categoryId: r.categoryId,
             categoryLabel: r.categoryLabel,
+            newCategoryName: r.newCategoryName,
             qty: r.qty,
             cost: r.cost,
             salePrice: r.salePrice,
@@ -514,6 +515,36 @@ class QuickAddCubit extends Cubit<QuickAddState> {
       unit == null
           ? row.copyWith(clearUnit: true, clearError: true)
           : row.copyWith(unitId: unit.id, unitLabel: unit.label, clearError: true),
+      persist: true,
+      validated: false,
+    );
+  }
+
+  /// A unit the shop does not have yet ("Create 'Strip'"): the server creates
+  /// it while saving.
+  void setNewUnit(String rowId, String name) {
+    final row = state.row(rowId);
+    final clean = name.trim();
+    if (row == null || clean.isEmpty) return;
+    _replaceRow(
+      row
+          .copyWith(clearUnit: true, clearError: true)
+          .copyWith(unitLabel: clean, newUnitName: clean),
+      persist: true,
+      validated: false,
+    );
+  }
+
+  /// Same for a category. Unlike a picked category it is not carried to the
+  /// next scans: it has no id until the server creates it.
+  void setNewCategory(String rowId, String name) {
+    final row = state.row(rowId);
+    final clean = name.trim();
+    if (row == null || clean.isEmpty) return;
+    _replaceRow(
+      row
+          .copyWith(clearCategory: true, clearError: true)
+          .copyWith(categoryLabel: clean, newCategoryName: clean),
       persist: true,
       validated: false,
     );

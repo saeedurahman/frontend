@@ -234,6 +234,11 @@ void main() {
           final bytes = await doc.save();
           expect(String.fromCharCodes(bytes.take(5)), '%PDF-', reason: '$lang');
           expect(doc.document.pdfPageList.pages, isNotEmpty, reason: '$lang');
+          // The sample invoice (3 items) must stay on one A4 page, Urdu captions
+          // included: a second page would only hold the thank-you bar.
+          if (s.design.isA4) {
+            expect(doc.document.pdfPageList.pages, hasLength(1), reason: '$lang');
+          }
         }
       });
     });

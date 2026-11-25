@@ -95,6 +95,9 @@ import 'package:frantend/features/returns/domain/repositories/returns_repository
 import 'package:frantend/features/sales/data/datasources/sales_remote_datasource.dart';
 import 'package:frantend/features/sales/domain/repositories/sales_repository.dart';
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
+import 'package:frantend/features/product_import/data/product_import_remote_datasource.dart';
+import 'package:frantend/features/product_import/data/product_import_repository_impl.dart';
+import 'package:frantend/features/product_import/domain/import_repository.dart';
 import 'package:frantend/features/quick_add/data/feedback_sound.dart';
 import 'package:frantend/features/quick_add/data/quick_add_remote_datasource.dart';
 import 'package:frantend/features/quick_add/data/quick_add_repository_impl.dart';
@@ -575,6 +578,18 @@ void registerFoundationServices(GetIt sl) {
     ),
   );
   once<FeedbackSoundService>(() => SystemFeedbackSoundService(sl<SharedPreferences>()));
+  // Friendly product import.
+  once<ProductImportRemoteDataSource>(() => ProductImportRemoteDataSource(sl<DioClient>()));
+  once<ProductImportRepository>(
+    () => ProductImportRepositoryImpl(
+      remote: sl<ProductImportRemoteDataSource>(),
+      catalog: sl<LocalCatalog>(),
+      probe: sl<ConnectivityProbe>(),
+      errorHandler: sl<ErrorHandler>(),
+      branchId: () => sl<PreferencesStorage>().getSelectedBranchId(),
+      syncNow: () => sl<SyncEngine>().syncNow(manual: true),
+    ),
+  );
   if (!sl.isRegistered<QuickAddCubit>()) {
     sl.registerFactory<QuickAddCubit>(
       () => QuickAddCubit(
