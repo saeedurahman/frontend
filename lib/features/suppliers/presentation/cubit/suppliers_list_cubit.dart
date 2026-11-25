@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
@@ -16,12 +17,19 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
     required UpdateSupplierUseCase updateSupplierUseCase,
     required DeleteSupplierUseCase deleteSupplierUseCase,
     required CreateSupplierUseCase createSupplierUseCase,
+    required KhataEvents khataEvents,
   })  : _getSuppliers = getSuppliersUseCase,
         _getBalance = getSupplierBalanceUseCase,
         _updateSupplier = updateSupplierUseCase,
         _deleteSupplier = deleteSupplierUseCase,
         _createSupplier = createSupplierUseCase,
-        super(const SuppliersListState.initial());
+        super(const SuppliersListState.initial()) {
+    // A payment or reversal elsewhere changes what is owed.
+    _khataSub = khataEvents.changes.listen((_) {
+      final current = state;
+      if (current is SuppliersListLoaded) _loadBalances(current.allItems);
+    });
+  }
 
   final GetSuppliersUseCase _getSuppliers;
   final GetSupplierBalanceUseCase _getBalance;
@@ -29,12 +37,14 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
   final DeleteSupplierUseCase _deleteSupplier;
   final CreateSupplierUseCase _createSupplier;
 
+  StreamSubscription<void>? _khataSub;
   Timer? _searchDebounce;
   String? _search;
 
   @override
   Future<void> close() {
     _searchDebounce?.cancel();
+    _khataSub?.cancel();
     return super.close();
   }
 

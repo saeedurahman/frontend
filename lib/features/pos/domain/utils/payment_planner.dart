@@ -7,12 +7,18 @@ import 'package:frantend/features/pos/domain/utils/payment_allocator.dart';
 /// left, how the typed lines are allocated, and what each new line should be
 /// pre-filled with.
 abstract final class PaymentPlanner {
-  static CreditContext creditContext(CustomerModel? customer) {
+  /// [canSeeBalance] false = the user has no `customers.balance.view`, so the
+  /// limit cannot be pre-checked here and the server decides.
+  static CreditContext creditContext(
+    CustomerModel? customer, {
+    bool canSeeBalance = true,
+  }) {
     if (customer == null) return CreditContext.none;
     return CreditContext(
       hasCustomer: true,
       creditLimit: Decimal.tryParse(customer.creditLimit),
       balance: Decimal.tryParse(customer.balance ?? ''),
+      serverChecksLimit: !canSeeBalance,
     );
   }
 
@@ -20,11 +26,12 @@ abstract final class PaymentPlanner {
     required Decimal total,
     required Iterable<PaymentInput> inputs,
     required CustomerModel? customer,
+    bool canSeeBalance = true,
   }) =>
       PaymentAllocator.allocate(
         total: total,
         inputs: inputs.toList(),
-        credit: creditContext(customer),
+        credit: creditContext(customer, canSeeBalance: canSeeBalance),
       );
 
   /// What is still unpaid by every line except the one being edited

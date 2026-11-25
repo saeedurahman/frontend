@@ -411,12 +411,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId,  bool isOpeningPaymentShift)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CustomerLedgerInitial() when initial != null:
 return initial();case CustomerLedgerLoading() when loading != null:
 return loading();case CustomerLedgerLoaded() when loaded != null:
-return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError() when error != null:
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId,_that.isOpeningPaymentShift);case CustomerLedgerError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -435,12 +435,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId,  bool isOpeningPaymentShift)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case CustomerLedgerInitial():
 return initial();case CustomerLedgerLoading():
 return loading();case CustomerLedgerLoaded():
-return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError():
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId,_that.isOpeningPaymentShift);case CustomerLedgerError():
 return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -455,12 +455,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( CustomerModel customer,  String balance,  List<LedgerDisplayRow> entries,  bool isLoadingMore,  bool hasMore,  int currentPage,  int pageSize,  bool isRecordingPayment,  String? paymentError,  bool isCheckingPaymentShift,  String? activePaymentShiftId,  bool isOpeningPaymentShift)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case CustomerLedgerInitial() when initial != null:
 return initial();case CustomerLedgerLoading() when loading != null:
 return loading();case CustomerLedgerLoaded() when loaded != null:
-return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId);case CustomerLedgerError() when error != null:
+return loaded(_that.customer,_that.balance,_that.entries,_that.isLoadingMore,_that.hasMore,_that.currentPage,_that.pageSize,_that.isRecordingPayment,_that.paymentError,_that.isCheckingPaymentShift,_that.activePaymentShiftId,_that.isOpeningPaymentShift);case CustomerLedgerError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -537,7 +537,7 @@ String toString() {
 
 
 class CustomerLedgerLoaded implements CustomerLedgerState {
-  const CustomerLedgerLoaded({required this.customer, required this.balance, required  List<LedgerDisplayRow> entries, this.isLoadingMore = false, this.hasMore = true, this.currentPage = 1, this.pageSize = 10, this.isRecordingPayment = false, this.paymentError, this.isCheckingPaymentShift = false, this.activePaymentShiftId}): _entries = entries;
+  const CustomerLedgerLoaded({required this.customer, required this.balance, required  List<LedgerDisplayRow> entries, this.isLoadingMore = false, this.hasMore = true, this.currentPage = 1, this.pageSize = 10, this.isRecordingPayment = false, this.paymentError, this.isCheckingPaymentShift = false, this.activePaymentShiftId, this.isOpeningPaymentShift = false}): _entries = entries;
   
 
  final  CustomerModel customer;
@@ -557,6 +557,7 @@ class CustomerLedgerLoaded implements CustomerLedgerState {
  final  String? paymentError;
 @JsonKey() final  bool isCheckingPaymentShift;
  final  String? activePaymentShiftId;
+@JsonKey() final  bool isOpeningPaymentShift;
 
 /// Create a copy of CustomerLedgerState
 /// with the given fields replaced by the non-null parameter values.
@@ -568,18 +569,18 @@ $CustomerLedgerLoadedCopyWith<CustomerLedgerLoaded> get copyWith => _$CustomerLe
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerLoaded&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.balance, balance) || other.balance == balance)&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.isLoadingMore, isLoadingMore) || other.isLoadingMore == isLoadingMore)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.isRecordingPayment, isRecordingPayment) || other.isRecordingPayment == isRecordingPayment)&&(identical(other.paymentError, paymentError) || other.paymentError == paymentError)&&(identical(other.isCheckingPaymentShift, isCheckingPaymentShift) || other.isCheckingPaymentShift == isCheckingPaymentShift)&&(identical(other.activePaymentShiftId, activePaymentShiftId) || other.activePaymentShiftId == activePaymentShiftId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerLedgerLoaded&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.balance, balance) || other.balance == balance)&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.isLoadingMore, isLoadingMore) || other.isLoadingMore == isLoadingMore)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.isRecordingPayment, isRecordingPayment) || other.isRecordingPayment == isRecordingPayment)&&(identical(other.paymentError, paymentError) || other.paymentError == paymentError)&&(identical(other.isCheckingPaymentShift, isCheckingPaymentShift) || other.isCheckingPaymentShift == isCheckingPaymentShift)&&(identical(other.activePaymentShiftId, activePaymentShiftId) || other.activePaymentShiftId == activePaymentShiftId)&&(identical(other.isOpeningPaymentShift, isOpeningPaymentShift) || other.isOpeningPaymentShift == isOpeningPaymentShift));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,customer,balance,const DeepCollectionEquality().hash(_entries),isLoadingMore,hasMore,currentPage,pageSize,isRecordingPayment,paymentError,isCheckingPaymentShift,activePaymentShiftId);
+    return Object.hash(runtimeType,customer,balance,const DeepCollectionEquality().hash(_entries),isLoadingMore,hasMore,currentPage,pageSize,isRecordingPayment,paymentError,isCheckingPaymentShift,activePaymentShiftId,isOpeningPaymentShift);
 }
 
 @override
 String toString() {
-    return 'CustomerLedgerState.loaded(customer: $customer, balance: $balance, entries: $entries, isLoadingMore: $isLoadingMore, hasMore: $hasMore, currentPage: $currentPage, pageSize: $pageSize, isRecordingPayment: $isRecordingPayment, paymentError: $paymentError, isCheckingPaymentShift: $isCheckingPaymentShift, activePaymentShiftId: $activePaymentShiftId)';
+    return 'CustomerLedgerState.loaded(customer: $customer, balance: $balance, entries: $entries, isLoadingMore: $isLoadingMore, hasMore: $hasMore, currentPage: $currentPage, pageSize: $pageSize, isRecordingPayment: $isRecordingPayment, paymentError: $paymentError, isCheckingPaymentShift: $isCheckingPaymentShift, activePaymentShiftId: $activePaymentShiftId, isOpeningPaymentShift: $isOpeningPaymentShift)';
 }
 
 
@@ -590,7 +591,7 @@ abstract mixin class $CustomerLedgerLoadedCopyWith<$Res> implements $CustomerLed
   factory $CustomerLedgerLoadedCopyWith(CustomerLedgerLoaded value, $Res Function(CustomerLedgerLoaded) _then) = _$CustomerLedgerLoadedCopyWithImpl;
 @useResult
 $Res call({
- CustomerModel customer, String balance, List<LedgerDisplayRow> entries, bool isLoadingMore, bool hasMore, int currentPage, int pageSize, bool isRecordingPayment, String? paymentError, bool isCheckingPaymentShift, String? activePaymentShiftId
+ CustomerModel customer, String balance, List<LedgerDisplayRow> entries, bool isLoadingMore, bool hasMore, int currentPage, int pageSize, bool isRecordingPayment, String? paymentError, bool isCheckingPaymentShift, String? activePaymentShiftId, bool isOpeningPaymentShift
 });
 
 
@@ -607,7 +608,7 @@ class _$CustomerLedgerLoadedCopyWithImpl<$Res>
 
 /// Create a copy of CustomerLedgerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? customer = null,Object? balance = null,Object? entries = null,Object? isLoadingMore = null,Object? hasMore = null,Object? currentPage = null,Object? pageSize = null,Object? isRecordingPayment = null,Object? paymentError = freezed,Object? isCheckingPaymentShift = null,Object? activePaymentShiftId = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? customer = null,Object? balance = null,Object? entries = null,Object? isLoadingMore = null,Object? hasMore = null,Object? currentPage = null,Object? pageSize = null,Object? isRecordingPayment = null,Object? paymentError = freezed,Object? isCheckingPaymentShift = null,Object? activePaymentShiftId = freezed,Object? isOpeningPaymentShift = null,}) {
   return _then(CustomerLedgerLoaded(
 customer: null == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
 as CustomerModel,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
@@ -620,7 +621,8 @@ as int,isRecordingPayment: null == isRecordingPayment ? _self.isRecordingPayment
 as bool,paymentError: freezed == paymentError ? _self.paymentError : paymentError // ignore: cast_nullable_to_non_nullable
 as String?,isCheckingPaymentShift: null == isCheckingPaymentShift ? _self.isCheckingPaymentShift : isCheckingPaymentShift // ignore: cast_nullable_to_non_nullable
 as bool,activePaymentShiftId: freezed == activePaymentShiftId ? _self.activePaymentShiftId : activePaymentShiftId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,isOpeningPaymentShift: null == isOpeningPaymentShift ? _self.isOpeningPaymentShift : isOpeningPaymentShift // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

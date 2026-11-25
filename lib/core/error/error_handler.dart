@@ -73,10 +73,12 @@ class ErrorHandler {
         );
       case 404:
         return NotFoundFailure(
-          data is Map && data['detail'] is String ? message : 'Not found',
+          data is Map && (data['detail'] is String || data['detail'] is Map)
+              ? message
+              : 'Not found',
         );
       case 409:
-        return ConflictFailure(message);
+        return ConflictFailure(message, ApiErrorParser.code(data));
       case 422:
         final fields = data is Map
             ? ApiErrorParser.fieldErrors(data['detail'])
@@ -87,7 +89,7 @@ class ErrorHandler {
           retryAfterSeconds: parseRetryAfter(headers?.value('retry-after')),
         );
       default:
-        return ServerFailure(message);
+        return ServerFailure(message, ApiErrorParser.code(data));
     }
   }
 

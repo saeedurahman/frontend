@@ -322,7 +322,7 @@ as String?,
 /// @nodoc
 mixin _$SupplierBalanceModel {
 
-@JsonKey(name: 'supplier_id') String get supplierId; String get balance;
+@JsonKey(name: 'supplier_id') String get supplierId; String get balance;@JsonKey(name: 'balance_owed') String? get balanceOwed;@JsonKey(name: 'is_advance') bool get isAdvance;
 /// Create a copy of SupplierBalanceModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -336,20 +336,20 @@ $SupplierBalanceModelCopyWith<SupplierBalanceModel> get copyWith => _$SupplierBa
 @override
 bool operator ==(Object other) {
   final _this = this as SupplierBalanceModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SupplierBalanceModel&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.balance, _this.balance) || other.balance == _this.balance));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SupplierBalanceModel&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.balance, _this.balance) || other.balance == _this.balance)&&(identical(other.balanceOwed, _this.balanceOwed) || other.balanceOwed == _this.balanceOwed)&&(identical(other.isAdvance, _this.isAdvance) || other.isAdvance == _this.isAdvance));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SupplierBalanceModel;
-  return Object.hash(runtimeType,_this.supplierId,_this.balance);
+  return Object.hash(runtimeType,_this.supplierId,_this.balance,_this.balanceOwed,_this.isAdvance);
 }
 
 @override
 String toString() {
   final _this = this as SupplierBalanceModel;
-  return 'SupplierBalanceModel(supplierId: ${_this.supplierId}, balance: ${_this.balance})';
+  return 'SupplierBalanceModel(supplierId: ${_this.supplierId}, balance: ${_this.balance}, balanceOwed: ${_this.balanceOwed}, isAdvance: ${_this.isAdvance})';
 }
 
 
@@ -360,7 +360,7 @@ abstract mixin class $SupplierBalanceModelCopyWith<$Res>  {
   factory $SupplierBalanceModelCopyWith(SupplierBalanceModel value, $Res Function(SupplierBalanceModel) _then) = _$SupplierBalanceModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'supplier_id') String supplierId, String balance
+@JsonKey(name: 'supplier_id') String supplierId, String balance,@JsonKey(name: 'balance_owed') String? balanceOwed,@JsonKey(name: 'is_advance') bool isAdvance
 });
 
 
@@ -377,11 +377,13 @@ class _$SupplierBalanceModelCopyWithImpl<$Res>
 
 /// Create a copy of SupplierBalanceModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? supplierId = null,Object? balance = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? supplierId = null,Object? balance = null,Object? balanceOwed = freezed,Object? isAdvance = null,}) {
   return _then(SupplierBalanceModel(
 supplierId: null == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
 as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
-as String,
+as String,balanceOwed: freezed == balanceOwed ? _self.balanceOwed : balanceOwed // ignore: cast_nullable_to_non_nullable
+as String?,isAdvance: null == isAdvance ? _self.isAdvance : isAdvance // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -466,10 +468,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance, @JsonKey(name: 'balance_owed')  String? balanceOwed, @JsonKey(name: 'is_advance')  bool isAdvance)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SupplierBalanceModel() when $default != null:
-return $default(_that.supplierId,_that.balance);case _:
+return $default(_that.supplierId,_that.balance,_that.balanceOwed,_that.isAdvance);case _:
   return orElse();
 
 }
@@ -487,10 +489,10 @@ return $default(_that.supplierId,_that.balance);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance, @JsonKey(name: 'balance_owed')  String? balanceOwed, @JsonKey(name: 'is_advance')  bool isAdvance)  $default,) {final _that = this;
 switch (_that) {
 case _SupplierBalanceModel():
-return $default(_that.supplierId,_that.balance);case _:
+return $default(_that.supplierId,_that.balance,_that.balanceOwed,_that.isAdvance);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -507,10 +509,10 @@ return $default(_that.supplierId,_that.balance);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'supplier_id')  String supplierId,  String balance, @JsonKey(name: 'balance_owed')  String? balanceOwed, @JsonKey(name: 'is_advance')  bool isAdvance)?  $default,) {final _that = this;
 switch (_that) {
 case _SupplierBalanceModel() when $default != null:
-return $default(_that.supplierId,_that.balance);case _:
+return $default(_that.supplierId,_that.balance,_that.balanceOwed,_that.isAdvance);case _:
   return null;
 
 }
@@ -522,11 +524,13 @@ return $default(_that.supplierId,_that.balance);case _:
 @JsonSerializable()
 
 class _SupplierBalanceModel implements SupplierBalanceModel {
-  const _SupplierBalanceModel({@JsonKey(name: 'supplier_id') required this.supplierId, required this.balance});
+  const _SupplierBalanceModel({@JsonKey(name: 'supplier_id') required this.supplierId, required this.balance, @JsonKey(name: 'balance_owed') this.balanceOwed, @JsonKey(name: 'is_advance') this.isAdvance = false});
   factory _SupplierBalanceModel.fromJson(Map<String, dynamic> json) => _$SupplierBalanceModelFromJson(json);
 
 @override@JsonKey(name: 'supplier_id') final  String supplierId;
 @override final  String balance;
+@override@JsonKey(name: 'balance_owed') final  String? balanceOwed;
+@override@JsonKey(name: 'is_advance') final  bool isAdvance;
 
 /// Create a copy of SupplierBalanceModel
 /// with the given fields replaced by the non-null parameter values.
@@ -541,18 +545,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SupplierBalanceModel&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.balance, balance) || other.balance == balance));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SupplierBalanceModel&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.balance, balance) || other.balance == balance)&&(identical(other.balanceOwed, balanceOwed) || other.balanceOwed == balanceOwed)&&(identical(other.isAdvance, isAdvance) || other.isAdvance == isAdvance));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,supplierId,balance);
+    return Object.hash(runtimeType,supplierId,balance,balanceOwed,isAdvance);
 }
 
 @override
 String toString() {
-    return 'SupplierBalanceModel(supplierId: $supplierId, balance: $balance)';
+    return 'SupplierBalanceModel(supplierId: $supplierId, balance: $balance, balanceOwed: $balanceOwed, isAdvance: $isAdvance)';
 }
 
 
@@ -563,7 +567,7 @@ abstract mixin class _$SupplierBalanceModelCopyWith<$Res> implements $SupplierBa
   factory _$SupplierBalanceModelCopyWith(_SupplierBalanceModel value, $Res Function(_SupplierBalanceModel) _then) = __$SupplierBalanceModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'supplier_id') String supplierId, String balance
+@JsonKey(name: 'supplier_id') String supplierId, String balance,@JsonKey(name: 'balance_owed') String? balanceOwed,@JsonKey(name: 'is_advance') bool isAdvance
 });
 
 
@@ -580,11 +584,13 @@ class __$SupplierBalanceModelCopyWithImpl<$Res>
 
 /// Create a copy of SupplierBalanceModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? supplierId = null,Object? balance = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? supplierId = null,Object? balance = null,Object? balanceOwed = freezed,Object? isAdvance = null,}) {
   return _then(_SupplierBalanceModel(
 supplierId: null == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
 as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
-as String,
+as String,balanceOwed: freezed == balanceOwed ? _self.balanceOwed : balanceOwed // ignore: cast_nullable_to_non_nullable
+as String?,isAdvance: null == isAdvance ? _self.isAdvance : isAdvance // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

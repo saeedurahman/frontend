@@ -28,10 +28,25 @@ abstract final class ApiErrorParser {
       final fields = fieldErrors(detail);
       if (fields.isNotEmpty) return describeFields(fields);
       if (detail is String && detail.isNotEmpty) return detail;
+      if (detail is Map) {
+        final text = detail['message'];
+        if (text is String && text.isNotEmpty) return text;
+      }
       final message = data['message'];
       if (message is String && message.isNotEmpty) return message;
     }
     return fallback;
+  }
+
+  /// The machine code of a `detail: {"code": ..., "message": ...}` body.
+  static String? code(dynamic data) {
+    if (data is! Map) return null;
+    final detail = data['detail'];
+    if (detail is Map) {
+      final code = detail['code'];
+      if (code is String && code.isNotEmpty) return code;
+    }
+    return null;
   }
 
   /// One line per field: `Phone: field required`.

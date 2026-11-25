@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/suppliers/data/datasources/suppliers_remote_datasource.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/repositories/suppliers_repository.dart';
@@ -80,6 +81,60 @@ class SuppliersRepositoryImpl implements SuppliersRepository {
     try {
       final result = await _remote.getSupplierBalance(supplierId, branchId: branchId);
       return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SupplierLedgerPage>> getLedger(
+    String supplierId, {
+    String? branchId,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    try {
+      return Right(
+        await _remote.getLedger(
+          supplierId,
+          branchId: branchId,
+          skip: skip,
+          limit: limit,
+        ),
+      );
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SupplierPaymentResult>> paySupplier(
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    try {
+      return Right(
+        await _remote.paySupplier(body, idempotencyKey: idempotencyKey),
+      );
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PaymentReversalResult>> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    try {
+      return Right(
+        await _remote.reversePayment(
+          paymentId,
+          body,
+          idempotencyKey: idempotencyKey,
+        ),
+      );
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

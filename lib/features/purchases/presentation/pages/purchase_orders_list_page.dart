@@ -7,6 +7,8 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/pay_supplier_dialog.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
@@ -303,6 +305,17 @@ class _OrdersTable extends StatelessWidget {
     if (!cubit.isClosed) await cubit.refresh();
   }
 
+  Future<void> _paySupplier(BuildContext context, PurchaseOrderModel order) async {
+    final cubit = context.read<PurchaseOrdersListCubit>();
+    final paid = await PaySupplierDialog.show(
+      context,
+      supplierId: order.supplierId,
+      supplierName: order.supplier?.name,
+      supplierPhone: order.supplier?.phone,
+    );
+    if (paid && !cubit.isClosed) await cubit.refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppPaginatedDataTable<PurchaseOrderModel>(
@@ -310,6 +323,7 @@ class _OrdersTable extends StatelessWidget {
       items: orders,
       itemId: (order) => order.id,
       itemLabel: 'orders',
+      actionsWidth: 110,
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
       onRowTap: (order) => _openOrder(context, order),
@@ -318,6 +332,7 @@ class _OrdersTable extends StatelessWidget {
           columns: _purchaseOrderTableColumns,
           selected: selected,
           onSelected: onSelected,
+          actionsWidth: 110,
           cells: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,10 +402,27 @@ class _OrdersTable extends StatelessWidget {
               ),
             ),
           ],
-          actions: AppTableActionButton(
-            icon: Icons.chevron_right,
-            tooltip: 'View',
-            onPressed: () => _openOrder(context, order),
+          actions: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PermissionGate(
+                permission: Perm.suppliersPaymentsCreate,
+                mode: GateMode.disable,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.payments_outlined,
+                  iconColor: AppColors.primary,
+                  tooltip: KhataText.paySupplierTitle,
+                  onPressed: () => _paySupplier(context, order),
+                ),
+              ),
+              const SizedBox(width: 6),
+              AppTableActionButton(
+                icon: Icons.chevron_right,
+                tooltip: 'View',
+                onPressed: () => _openOrder(context, order),
+              ),
+            ],
           ),
         );
       },

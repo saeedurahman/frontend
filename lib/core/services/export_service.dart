@@ -26,6 +26,7 @@ abstract final class ExportService {
     DateTime? dateFrom,
     DateTime? dateTo,
     String? branchId,
+    Map<String, String>? filters,
     String? suggestedName,
     String? preselectedPath,
     CancelToken? externalCancelToken,
@@ -69,15 +70,13 @@ abstract final class ExportService {
       }
     }
 
-    final query = <String, dynamic>{
-      'format': normalizedFormat,
-      if (dateFrom != null)
-        'date_from': DateFormat('yyyy-MM-dd').format(dateFrom),
-      if (dateTo != null)
-        'date_to': DateFormat('yyyy-MM-dd').format(dateTo),
-      if (branchId != null && branchId.isNotEmpty)
-        'branch_id': branchId,
-    };
+    final query = buildQuery(
+      format: normalizedFormat,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      branchId: branchId,
+      filters: filters,
+    );
 
     final endpoint = ApiConstants.exportDataset(dataset);
     final fullUrl = '${dio.options.baseUrl}$endpoint';
@@ -332,6 +331,44 @@ abstract final class ExportService {
     }
 
     return true;
+  }
+
+  /// Query string of `GET /export/{dataset}`. [filters] scope the file to one
+  /// record (`customer_id`, `supplier_id`); empty values are left out.
+  static Map<String, dynamic> buildQuery({
+    required String format,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? branchId,
+    Map<String, String>? filters,
+  }) {
+    final day = DateFormat('yyyy-MM-dd');
+    return <String, dynamic>{
+      'format': format,
+      if (dateFrom != null) 'date_from': day.format(dateFrom),
+      if (dateTo != null) 'date_to': day.format(dateTo),
+      if (branchId != null && branchId.isNotEmpty) 'branch_id': branchId,
+      if (filters != null)
+        for (final e in filters.entries)
+          if (e.value.isNotEmpty) e.key: e.value,
+    };
+  }
+
+  /// A safe file name: `Ali Khan` + `ledger` -> `Ali_Khan_ledger_20261125.xlsx`.
+  static String fileNameFor(
+    String name,
+    String suffix,
+    String format, {
+    DateTime? on,
+  }) {
+    final clean = name
+        .trim()
+        .replaceAll(RegExp(r'[\/:*?"<>|]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final stamp = DateFormat('yyyyMMdd').format(on ?? DateTime.now());
+    final base = clean.isEmpty ? suffix : '${clean}_$suffix';
+    return '${base}_$stamp.$format';
   }
 
   static String _formatBytes(int bytes) {

@@ -31,6 +31,8 @@ abstract class SupplierBalanceModel with _$SupplierBalanceModel {
   const factory SupplierBalanceModel({
     @JsonKey(name: 'supplier_id') required String supplierId,
     required String balance,
+    @JsonKey(name: 'balance_owed') String? balanceOwed,
+    @JsonKey(name: 'is_advance') @Default(false) bool isAdvance,
   }) = _SupplierBalanceModel;
 
   factory SupplierBalanceModel.fromJson(Map<String, dynamic> json) =>

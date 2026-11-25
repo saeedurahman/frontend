@@ -1,3 +1,5 @@
+import 'package:frantend/features/khata/domain/khata_text.dart';
+
 /// Tunables of the sync engine. Server-side limits (`SYNC_MAX_OPS` = 200,
 /// `SYNC_MAX_PAYLOAD_BYTES` = 65536) are the backend defaults; a smaller batch
 /// is always safe, and `413` halves it further at run time.
@@ -102,6 +104,12 @@ abstract final class SyncErrorText {
         'The shift on this sale was not open for you at that time. The sale is kept but no cash was posted to a drawer.',
     'subscription_expired':
         'This sale was accepted while the subscription was expired.',
+    'underpaid_unreconciled': KhataText.underpaidFlagExplain,
+  };
+
+  /// Short names for the flags that need a clearer title than the code.
+  static const flagTitle = <String, String>{
+    'underpaid_unreconciled': KhataText.underpaidFlagTitle,
   };
 
   static String flag(String code) =>

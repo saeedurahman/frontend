@@ -99,7 +99,25 @@ class _FlaggedTile extends StatelessWidget {
                   children: [
                     const Icon(Icons.flag, size: 16, color: AppColors.warning),
                     const SizedBox(width: 6),
-                    Expanded(child: Text(SyncErrorText.flag(flag))),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (SyncErrorText.flagTitle[flag] != null)
+                            Text(
+                              SyncErrorText.flagTitle[flag]!,
+                              key: Key('flag-title-$flag'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          Text(
+                            SyncErrorText.flag(flag),
+                            key: Key('flag-text-$flag'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

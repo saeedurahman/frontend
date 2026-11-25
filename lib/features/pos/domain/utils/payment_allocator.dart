@@ -22,9 +22,15 @@ class CreditContext {
     required this.hasCustomer,
     this.creditLimit,
     this.balance,
+    this.serverChecksLimit = false,
   });
 
   final bool hasCustomer;
+
+  /// The cashier may not see balances (no `customers.balance.view`): the app
+  /// cannot pre-check the limit, so the server's answer decides. The server
+  /// always checks the limit, whoever the caller is.
+  final bool serverChecksLimit;
 
   /// Customer `credit_limit`; null or <= 0 means "no limit" (backend rule).
   final Decimal? creditLimit;
@@ -156,6 +162,8 @@ abstract final class PaymentAllocator {
 
       if (!credit.hasCustomer) {
         error = 'Select a customer to sell on credit';
+      } else if (credit.serverChecksLimit) {
+        // Nothing to pre-check; a refusal comes back with a clear message.
       } else if (credit.creditLimit != null &&
           credit.creditLimit! > Decimal.zero &&
           credit.balance == null) {

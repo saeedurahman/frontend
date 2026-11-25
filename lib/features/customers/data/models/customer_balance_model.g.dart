@@ -11,6 +11,9 @@ _CustomerBalanceModel _$CustomerBalanceModelFromJson(
 ) => _CustomerBalanceModel(
   customerId: json['customer_id'] as String,
   balance: json['balance'] as String,
+  balanceOwed: json['balance_owed'] as String?,
+  creditLimit: json['credit_limit'] as String?,
+  creditAvailable: json['credit_available'] as String?,
 );
 
 Map<String, dynamic> _$CustomerBalanceModelToJson(
@@ -18,4 +21,7 @@ Map<String, dynamic> _$CustomerBalanceModelToJson(
 ) => <String, dynamic>{
   'customer_id': instance.customerId,
   'balance': instance.balance,
+  'balance_owed': instance.balanceOwed,
+  'credit_limit': instance.creditLimit,
+  'credit_available': instance.creditAvailable,
 };

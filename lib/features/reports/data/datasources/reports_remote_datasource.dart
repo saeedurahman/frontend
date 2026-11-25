@@ -166,10 +166,15 @@ class ReportsRemoteDataSource {
   Future<List<CustomerInsightModel>> getCustomerInsights({
     int limit = 50,
     String sortBy = 'total_spent',
+    String? branchId,
   }) async {
     final response = await _dio.get<dynamic>(
       ApiConstants.analyticsCustomerInsights,
-      queryParameters: {'limit': limit, 'sort_by': sortBy},
+      queryParameters: {
+        'limit': limit,
+        'sort_by': sortBy,
+        if (branchId != null) 'branch_id': branchId,
+      },
       options: _opts,
     );
     return _list(response.data, CustomerInsightModel.fromJson);

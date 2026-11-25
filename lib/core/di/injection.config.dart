@@ -141,6 +141,15 @@ import '../../features/inventory/presentation/cubit/inventory_stock_cubit.dart'
     as _i296;
 import '../../features/inventory/presentation/cubit/stock_movements_cubit.dart'
     as _i983;
+import '../../features/khata/domain/khata_events.dart' as _i738;
+import '../../features/khata/domain/last_payment_source_store.dart' as _i782;
+import '../../features/khata/domain/payment_receipt_service.dart' as _i222;
+import '../../features/khata/domain/shift_guard.dart' as _i942;
+import '../../features/khata/presentation/cubit/paid_now_cubit.dart' as _i474;
+import '../../features/khata/presentation/cubit/supplier_ledger_cubit.dart'
+    as _i418;
+import '../../features/khata/presentation/cubit/supplier_payment_cubit.dart'
+    as _i57;
 import '../../features/manufacturing/data/datasources/manufacturing_remote_datasource.dart'
     as _i534;
 import '../../features/manufacturing/data/repositories/manufacturing_repository_impl.dart'
@@ -347,9 +356,12 @@ import '../localization/locale_cubit.dart' as _i960;
 import '../network/dio_client.dart' as _i667;
 import '../offline/offline_policy.dart' as _i607;
 import '../platform/image_picker_service.dart' as _i916;
+import '../platform/printer_service.dart' as _i397;
 import '../platform/secure_key_store.dart' as _i533;
+import '../platform/url_launcher_service.dart' as _i349;
 import '../router/route_guards.dart' as _i525;
 import '../services/image_upload_service.dart' as _i606;
+import '../session/active_branch_resolver.dart' as _i390;
 import '../session/business_session_cubit.dart' as _i166;
 import '../storage/preferences_storage.dart' as _i574;
 import '../storage/secure_storage.dart' as _i619;
@@ -377,6 +389,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i166.BusinessSessionCubit>(
       () => _i166.BusinessSessionCubit(),
     );
+    gh.lazySingleton<_i738.KhataEvents>(() => _i738.KhataEvents());
     gh.lazySingleton<_i606.ImageUploadService>(
       () => _i606.ImageUploadService(
         dioClient: gh<_i667.DioClient>(),
@@ -502,6 +515,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i449.PosRemoteDataSource>(
       () => _i449.PosRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i782.LastPaymentSourceStore>(
+      () => _i782.PrefsLastPaymentSourceStore(gh<_i574.PreferencesStorage>()),
     );
     gh.factory<_i279.GetBusinessProfileUseCase>(
       () => _i279.GetBusinessProfileUseCase(gh<_i674.SettingsRepository>()),
@@ -698,6 +714,13 @@ extension GetItInjectableX on _i174.GetIt {
         getShiftByIdUseCase: gh<_i820.GetRegisterShiftByIdUseCase>(),
         getShiftSummaryUseCase: gh<_i820.GetRegisterShiftSummaryUseCase>(),
         getRegistersUseCase: gh<_i820.GetCashRegistersUseCase>(),
+      ),
+    );
+    gh.lazySingleton<_i222.PaymentReceiptService>(
+      () => _i222.PaymentReceiptService(
+        gh<_i992.AuthLocalDataSource>(),
+        gh<_i349.UrlLauncherService>(),
+        gh<_i397.PrinterService>(),
       ),
     );
     gh.lazySingleton<_i835.BranchesRepository>(
@@ -1063,6 +1086,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i877.GetSupplierBalanceUseCase>(
       () => _i877.GetSupplierBalanceUseCase(gh<_i686.SuppliersRepository>()),
     );
+    gh.factory<_i877.GetSupplierLedgerUseCase>(
+      () => _i877.GetSupplierLedgerUseCase(gh<_i686.SuppliersRepository>()),
+    );
+    gh.factory<_i877.PaySupplierUseCase>(
+      () => _i877.PaySupplierUseCase(gh<_i686.SuppliersRepository>()),
+    );
+    gh.factory<_i877.ReverseSupplierPaymentUseCase>(
+      () =>
+          _i877.ReverseSupplierPaymentUseCase(gh<_i686.SuppliersRepository>()),
+    );
     gh.factory<_i962.GetUsersUseCase>(
       () => _i962.GetUsersUseCase(gh<_i476.UsersRepository>()),
     );
@@ -1186,6 +1219,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i450.GetCustomerBalanceUseCase>(
       () => _i450.GetCustomerBalanceUseCase(gh<_i875.CustomersRepository>()),
     );
+    gh.factory<_i450.ReverseCustomerPaymentUseCase>(
+      () =>
+          _i450.ReverseCustomerPaymentUseCase(gh<_i875.CustomersRepository>()),
+    );
     gh.factory<_i450.GetCustomerLedgerUseCase>(
       () => _i450.GetCustomerLedgerUseCase(gh<_i875.CustomersRepository>()),
     );
@@ -1294,15 +1331,22 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
-    gh.factory<_i24.DashboardCubit>(
-      () => _i24.DashboardCubit(gh<_i1062.GetDashboardSummaryUseCase>()),
-    );
     gh.factory<_i495.SalesListCubit>(
       () => _i495.SalesListCubit(
         getSalesUseCase: gh<_i873.GetSalesUseCase>(),
         getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
         getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i507.SuppliersListCubit>(
+      () => _i507.SuppliersListCubit(
+        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
+        getSupplierBalanceUseCase: gh<_i877.GetSupplierBalanceUseCase>(),
+        updateSupplierUseCase: gh<_i877.UpdateSupplierUseCase>(),
+        deleteSupplierUseCase: gh<_i877.DeleteSupplierUseCase>(),
+        createSupplierUseCase: gh<_i877.CreateSupplierUseCase>(),
+        khataEvents: gh<_i738.KhataEvents>(),
       ),
     );
     gh.factory<_i1011.UsersListCubit>(
@@ -1322,15 +1366,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i620.RecordHistoryCubit(
         gh<_i313.AuditUseCases>(),
         gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
-    gh.factory<_i1046.CustomerLedgerCubit>(
-      () => _i1046.CustomerLedgerCubit(
-        getCustomerUseCase: gh<_i450.GetCustomerUseCase>(),
-        getCustomerBalanceUseCase: gh<_i450.GetCustomerBalanceUseCase>(),
-        getCustomerLedgerUseCase: gh<_i450.GetCustomerLedgerUseCase>(),
-        recordCustomerPaymentUseCase: gh<_i640.RecordCustomerPaymentUseCase>(),
-        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
       ),
     );
     gh.factory<_i578.KitchenDisplayCubit>(
@@ -1372,6 +1407,18 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
+    gh.factory<_i24.DashboardCubit>(
+      () => _i24.DashboardCubit(
+        gh<_i1062.GetDashboardSummaryUseCase>(),
+        gh<_i738.KhataEvents>(),
+      ),
+    );
+    gh.lazySingleton<_i390.ActiveBranchResolver>(
+      () => _i390.ActiveBranchResolver(
+        gh<_i762.BranchSelectorCubit>(),
+        gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
     gh.factory<_i1066.ExpenseDetailCubit>(
       () => _i1066.ExpenseDetailCubit(
         getExpenseByIdUseCase: gh<_i9.GetExpenseByIdUseCase>(),
@@ -1408,15 +1455,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i944.ReturnDetailCubit(
         getReturnByIdUseCase: gh<_i956.GetReturnByIdUseCase>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
-    gh.factory<_i507.SuppliersListCubit>(
-      () => _i507.SuppliersListCubit(
-        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-        getSupplierBalanceUseCase: gh<_i877.GetSupplierBalanceUseCase>(),
-        updateSupplierUseCase: gh<_i877.UpdateSupplierUseCase>(),
-        deleteSupplierUseCase: gh<_i877.DeleteSupplierUseCase>(),
-        createSupplierUseCase: gh<_i877.CreateSupplierUseCase>(),
       ),
     );
     gh.factory<_i997.CustomersListCubit>(
@@ -1520,6 +1558,15 @@ extension GetItInjectableX on _i174.GetIt {
         createProductionOrderUseCase: gh<_i971.CreateProductionOrderUseCase>(),
       ),
     );
+    gh.factory<_i418.SupplierLedgerCubit>(
+      () => _i418.SupplierLedgerCubit(
+        gh<_i877.GetSupplierUseCase>(),
+        gh<_i877.GetSupplierLedgerUseCase>(),
+        gh<_i877.ReverseSupplierPaymentUseCase>(),
+        gh<_i390.ActiveBranchResolver>(),
+        gh<_i738.KhataEvents>(),
+      ),
+    );
     gh.factory<_i556.ProductionOrdersListCubit>(
       () => _i556.ProductionOrdersListCubit(
         listProductionOrdersUseCase: gh<_i971.ListProductionOrdersUseCase>(),
@@ -1566,6 +1613,15 @@ extension GetItInjectableX on _i174.GetIt {
         localDataLifecycle: gh<_i506.LocalDataLifecycle>(),
       ),
     );
+    gh.factory<_i942.ShiftGuard>(
+      () => _i942.ShiftGuard(
+        gh<_i820.GetMyActiveShiftUseCase>(),
+        gh<_i698.GetRegistersUseCase>(),
+        gh<_i698.CreateRegisterUseCase>(),
+        gh<_i698.OpenShiftUseCase>(),
+        gh<_i390.ActiveBranchResolver>(),
+      ),
+    );
     gh.factory<_i483.PurchaseOrdersListCubit>(
       () => _i483.PurchaseOrdersListCubit(
         getPurchaseOrdersUseCase: gh<_i838.GetPurchaseOrdersUseCase>(),
@@ -1589,6 +1645,17 @@ extension GetItInjectableX on _i174.GetIt {
         getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
       ),
     );
+    gh.factory<_i57.SupplierPaymentCubit>(
+      () => _i57.SupplierPaymentCubit(
+        gh<_i877.GetSupplierBalanceUseCase>(),
+        gh<_i877.GetSupplierUseCase>(),
+        gh<_i877.PaySupplierUseCase>(),
+        gh<_i942.ShiftGuard>(),
+        gh<_i390.ActiveBranchResolver>(),
+        gh<_i782.LastPaymentSourceStore>(),
+        gh<_i738.KhataEvents>(),
+      ),
+    );
     gh.factory<_i242.PurchaseOrderFormCubit>(
       () => _i242.PurchaseOrderFormCubit(
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
@@ -1610,6 +1677,26 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i68.RegisterRepositoryImpl(
         gh<_i787.AuthRepository>(),
         gh<_i674.SettingsRepository>(),
+      ),
+    );
+    gh.factory<_i1046.CustomerLedgerCubit>(
+      () => _i1046.CustomerLedgerCubit(
+        getCustomerUseCase: gh<_i450.GetCustomerUseCase>(),
+        getCustomerBalanceUseCase: gh<_i450.GetCustomerBalanceUseCase>(),
+        getCustomerLedgerUseCase: gh<_i450.GetCustomerLedgerUseCase>(),
+        recordCustomerPaymentUseCase: gh<_i640.RecordCustomerPaymentUseCase>(),
+        reverseCustomerPaymentUseCase:
+            gh<_i450.ReverseCustomerPaymentUseCase>(),
+        shiftGuard: gh<_i942.ShiftGuard>(),
+        branchResolver: gh<_i390.ActiveBranchResolver>(),
+        khataEvents: gh<_i738.KhataEvents>(),
+      ),
+    );
+    gh.factory<_i474.PaidNowCubit>(
+      () => _i474.PaidNowCubit(
+        gh<_i942.ShiftGuard>(),
+        gh<_i782.LastPaymentSourceStore>(),
+        gh<_i738.KhataEvents>(),
       ),
     );
     gh.factory<_i117.AuthCubit>(

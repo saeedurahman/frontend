@@ -28,6 +28,12 @@ class IdempotencyKeyRegistry {
     RegExp(r'^/expenses$'),
     RegExp(r'^/expenses/[^/]+/payments$'),
     RegExp(r'^/customers/[^/]+/payments$'),
+    RegExp(r'^/customers/payments/[^/]+/reverse$'),
+    RegExp(r'^/suppliers/payments$'),
+    RegExp(r'^/suppliers/payments/[^/]+/reverse$'),
+    RegExp(r'^/supplier-ledger/[^/]+/payment$'),
+    RegExp(r'^/purchases/receipts$'),
+    RegExp(r'^/products/quick-add$'),
   ];
 
   static bool tracksPath(String path) {

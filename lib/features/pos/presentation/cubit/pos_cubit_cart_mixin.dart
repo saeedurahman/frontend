@@ -918,9 +918,16 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     await loadHeldOrders();
   }
 
+  /// Completes the sale. Payments must add up to the total on every path.
+  ///
+  /// [allowCreditOverride]: only after the server refused for the customer's
+  /// credit limit and the person holds `customers.credit.override`. The paid
+  /// part is sent without a credit tender and the server puts the remainder on
+  /// the customer's account (and records the override).
   Future<SaleResponseModel> submitSale(
     List<PaymentLineModel> payments, {
     bool confirmExpired = false,
+    bool allowCreditOverride = false,
   }) async {
     // Hard gate for every path (plain, dine-in, resumed order): no open shift,
     // no sale. The UI also blocks this, but the cubit is the authority.
@@ -930,7 +937,10 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
     if (this is PosCubitDineInMixin &&
         (this as PosCubitDineInMixin).isDineIn) {
-      return (this as PosCubitDineInMixin).completeDineInTab(payments);
+      return (this as PosCubitDineInMixin).completeDineInTab(
+        payments,
+        allowCreditOverride: allowCreditOverride,
+      );
     }
 
     if (state.cartItems.isEmpty) {
@@ -941,9 +951,12 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
     if (branchId == null) {
       throw Exception('Branch not configured');
     }
+    final hasCustomer = state.selectedCustomer != null;
     PaymentCoverage.assertCovers(
       payments: payments,
       due: state.displayGrandTotal,
+      hasCustomer: hasCustomer,
+      allowCreditRemainder: allowCreditOverride,
     );
 
     _safeEmit(state.patch(isSubmittingSale: true));
@@ -977,7 +990,9 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         throw Exception('Sale submission cancelled');
       }
       return await result.fold(
-        (failure) => throw Exception(UserErrorMessage.from(failure)),
+        (failure) =>
+            throw SaleFailureMapper.map(failure, hasCustomer: hasCustomer) ??
+                Exception(UserErrorMessage.from(failure)),
         (sale) {
           _saleAttempts.completed();
           clearCart();

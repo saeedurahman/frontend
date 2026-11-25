@@ -30,6 +30,7 @@ sealed class CustomerLedgerState with _$CustomerLedgerState {
     String? paymentError,
     @Default(false) bool isCheckingPaymentShift,
     String? activePaymentShiftId,
+    @Default(false) bool isOpeningPaymentShift,
   }) = CustomerLedgerLoaded;
 
   const factory CustomerLedgerState.error(String message) = CustomerLedgerError;

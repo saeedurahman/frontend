@@ -52,7 +52,9 @@ abstract class ReportsRepository {
     String? branchId,
   });
 
-  Future<Either<Failure, List<CustomerInsightModel>>> getCustomerInsights();
+  Future<Either<Failure, List<CustomerInsightModel>>> getCustomerInsights({
+    String? branchId,
+  });
 
   Future<Either<Failure, ProfitLossModel>> getProfitLoss(DateRangeQuery query);
 

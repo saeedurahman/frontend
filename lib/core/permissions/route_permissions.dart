@@ -46,6 +46,8 @@ abstract final class RoutePermissions {
     _Rule(RouteNames.suppliers, [Perm.suppliersView]),
     _Rule('/suppliers/new', [Perm.suppliersCreate]),
     _Rule('/suppliers/:id/edit', [Perm.suppliersUpdate]),
+    // The supplier account (ledger).
+    _Rule('/suppliers/:id', [Perm.suppliersLedgerView]),
 
     // Finance
     _Rule(RouteNames.expenses, [Perm.expensesView]),

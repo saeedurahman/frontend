@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/domain/repositories/purchases_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -138,6 +139,7 @@ class CreatePurchaseReceiptParams {
     this.supplierInvoiceNo,
     this.notes,
     required this.lines,
+    this.payment,
   });
 
   final String branchId;
@@ -148,6 +150,9 @@ class CreatePurchaseReceiptParams {
   final String? notes;
   final List<CreatePurchaseReceiptLineParams> lines;
 
+  /// "Paid now" part of the receipt; null leaves everything on credit.
+  final ReceiptPaymentInput? payment;
+
   Map<String, dynamic> toJson() => {
         'branch_id': branchId,
         'supplier_id': supplierId,
@@ -156,6 +161,7 @@ class CreatePurchaseReceiptParams {
         if (supplierInvoiceNo != null) 'supplier_invoice_no': supplierInvoiceNo,
         if (notes != null) 'notes': notes,
         'lines': lines.map((line) => line.toJson()).toList(),
+        if (payment != null && !payment!.isEmpty) 'payment': payment!.toJson(),
       };
 }
 

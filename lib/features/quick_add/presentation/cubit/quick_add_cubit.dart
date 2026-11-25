@@ -7,6 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/identity/id_generator.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/paid_now_hook.dart';
+import 'package:frantend/features/khata/presentation/cubit/paid_now_cubit.dart'
+    show receivedMessage;
 import 'package:frantend/features/quick_add/domain/barcode_normalizer.dart';
 import 'package:frantend/features/quick_add/domain/expiry_parser.dart';
 import 'package:frantend/features/quick_add/domain/quick_add_flow.dart';
@@ -694,12 +699,33 @@ class QuickAddCubit extends Cubit<QuickAddState> {
 
   // ── save ──────────────────────────────────────────────────────────────
 
-  QuickAddRequest _request(List<QuickAddRow> rows) => QuickAddRequest(
+  /// The "Paid now" section of the screen. Set by the page; null = no payment
+  /// is ever sent (everything stays on credit).
+  PaidNowHook? paidNow;
+
+  /// The bill total of the list: quantity x cost per row (rows without a cost
+  /// count as zero until the owner types it).
+  Decimal get purchaseTotal {
+    var sum = Decimal.zero;
+    for (final r in state.rows) {
+      final cost = r.cost;
+      if (cost == null || r.qty <= Decimal.zero) continue;
+      sum += r.qty * cost;
+    }
+    return sum.round(scale: 2);
+  }
+
+  QuickAddRequest _request(
+    List<QuickAddRow> rows, {
+    ReceiptPaymentInput? payment,
+  }) =>
+      QuickAddRequest(
         mode: state.mode,
         supplierId: state.supplierId,
         branchId: _repo.branchId,
         // Oldest first, so the server creates products in scan order.
         rows: rows.reversed.toList(),
+        payment: payment,
       );
 
   static String _hash(QuickAddRequest r) =>
@@ -772,7 +798,20 @@ class QuickAddCubit extends Cubit<QuickAddState> {
       return;
     }
 
-    final request = _request(state.rows);
+    final isPurchase = state.mode == QuickAddMode.purchase;
+    final hook = isPurchase ? paidNow : null;
+    final total = purchaseTotal;
+    final blocked = hook?.blockingProblem(total);
+    if (blocked != null) {
+      emit(state.copyWith(
+        banner: blocked,
+        feedback: ScanFeedback(_nextToken, ScanTone.error, 'Check "Paid now"'),
+      ));
+      return;
+    }
+    final payment = hook?.inputFor(total);
+
+    final request = _request(state.rows, payment: payment);
     final hash = _hash(request);
     // Same list as the failed try: same key, so the server can tell it is a
     // retry and never books the stock twice.
@@ -788,14 +827,28 @@ class QuickAddCubit extends Cubit<QuickAddState> {
     if (isClosed) return;
     await result.fold<Future<void>>(
       (failure) async {
+        final code = failure is ServerFailure
+            ? failure.code
+            : failure is ConflictFailure
+                ? failure.code
+                : null;
+        // A clear "no" from the server means nothing was saved: the next try
+        // is a fresh one (for example after the shift was opened).
+        if (code != null) {
+          _attemptKey = null;
+          _attemptHash = null;
+        }
+        final plain = KhataText.forCode(code);
+        final text = plain ?? _failureText(failure);
+        if (plain != null) hook?.explain(code, plain);
         emit(state.copyWith(
           saving: false,
-          banner: _failureText(failure),
+          banner: text,
           feedback: ScanFeedback(_nextToken, ScanTone.error, 'Not saved'),
           online: failure is NetworkFailure ? false : state.online,
         ));
       },
-      (response) => _applyResponse(request, response),
+      (response) => _applyResponse(request, response, hook),
     );
   }
 
@@ -814,7 +867,11 @@ class QuickAddCubit extends Cubit<QuickAddState> {
     return m.isEmpty ? UserErrorMessage.generic : m;
   }
 
-  Future<void> _applyResponse(QuickAddRequest request, QuickAddResponse response) async {
+  Future<void> _applyResponse(
+    QuickAddRequest request,
+    QuickAddResponse response, [
+    PaidNowHook? hook,
+  ]) async {
     final byId = {for (final l in response.lines) l.clientLineId: l};
     final kept = <QuickAddRow>[];
     var created = 0;
@@ -852,6 +909,10 @@ class QuickAddCubit extends Cubit<QuickAddState> {
     }
     if (isClosed) return;
 
+    final paid = response.paymentResult;
+    if (hook != null) await hook.saved(paid: paid != null, result: paid);
+    if (isClosed) return;
+
     _attemptKey = null;
     _attemptHash = null;
     _undo.clear();
@@ -868,6 +929,9 @@ class QuickAddCubit extends Cubit<QuickAddState> {
         updated: updated,
         needAttention: kept.length,
         replayed: response.replayed,
+        paidNote: paid == null
+            ? null
+            : receivedMessage(paid, purchaseTotal),
       ),
       focus: kept.isEmpty
           ? FocusRequest(token: _nextToken)

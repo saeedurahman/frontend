@@ -26,6 +26,8 @@ import 'package:frantend/features/customers/domain/usecases/customer_usecases.da
 import 'package:frantend/features/customers/domain/usecases/record_customer_payment_usecase.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
+import '../helpers/khata_fakes.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
@@ -510,7 +512,10 @@ void main() {
         getCustomerBalanceUseCase: GetCustomerBalanceUseCase(repo),
         getCustomerLedgerUseCase: GetCustomerLedgerUseCase(repo),
         recordCustomerPaymentUseCase: RecordCustomerPaymentUseCase(repo),
-        getMyActiveShiftUseCase: _FakeMyActiveShiftUseCase(),
+        reverseCustomerPaymentUseCase: ReverseCustomerPaymentUseCase(repo),
+        shiftGuard: FakeShiftGuard(shiftId: 'shift-1'),
+        branchResolver: FakeBranchResolver('b-active'),
+        khataEvents: KhataEvents(),
       );
 
       await cubit.load('c1', branchId: 'b1');
@@ -533,7 +538,10 @@ void main() {
         getCustomerBalanceUseCase: GetCustomerBalanceUseCase(repo),
         getCustomerLedgerUseCase: GetCustomerLedgerUseCase(repo),
         recordCustomerPaymentUseCase: RecordCustomerPaymentUseCase(repo),
-        getMyActiveShiftUseCase: _FakeMyActiveShiftUseCase(),
+        reverseCustomerPaymentUseCase: ReverseCustomerPaymentUseCase(repo),
+        shiftGuard: FakeShiftGuard(shiftId: 'shift-1'),
+        branchResolver: FakeBranchResolver('b-active'),
+        khataEvents: KhataEvents(),
       );
 
       await cubit.load('c1', branchId: 'b1');
@@ -554,6 +562,7 @@ void main() {
         updateSupplierUseCase: UpdateSupplierUseCase(repo),
         deleteSupplierUseCase: DeleteSupplierUseCase(repo),
         createSupplierUseCase: CreateSupplierUseCase(repo),
+        khataEvents: KhataEvents(),
       );
 
       await cubit.load();

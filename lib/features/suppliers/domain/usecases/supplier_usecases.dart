@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/repositories/suppliers_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -68,4 +69,55 @@ class GetSupplierBalanceUseCase {
     String? branchId,
   }) =>
       _repository.getSupplierBalance(supplierId, branchId: branchId);
+}
+
+@injectable
+class GetSupplierLedgerUseCase {
+  const GetSupplierLedgerUseCase(this._repository);
+
+  final SuppliersRepository _repository;
+
+  Future<Either<Failure, SupplierLedgerPage>> call(
+    String supplierId, {
+    String? branchId,
+    int skip = 0,
+    int limit = 50,
+  }) =>
+      _repository.getLedger(
+        supplierId,
+        branchId: branchId,
+        skip: skip,
+        limit: limit,
+      );
+}
+
+@injectable
+class PaySupplierUseCase {
+  const PaySupplierUseCase(this._repository);
+
+  final SuppliersRepository _repository;
+
+  Future<Either<Failure, SupplierPaymentResult>> call(
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) =>
+      _repository.paySupplier(body, idempotencyKey: idempotencyKey);
+}
+
+@injectable
+class ReverseSupplierPaymentUseCase {
+  const ReverseSupplierPaymentUseCase(this._repository);
+
+  final SuppliersRepository _repository;
+
+  Future<Either<Failure, PaymentReversalResult>> call(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) =>
+      _repository.reversePayment(
+        paymentId,
+        body,
+        idempotencyKey: idempotencyKey,
+      );
 }

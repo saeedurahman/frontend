@@ -58,6 +58,7 @@ import 'package:frantend/features/cash_register/presentation/pages/shift_history
 import 'package:frantend/features/customers/presentation/pages/customer_form_page.dart';
 import 'package:frantend/features/customers/presentation/pages/customer_ledger_page.dart';
 import 'package:frantend/features/customers/presentation/pages/customers_list_page.dart';
+import 'package:frantend/features/khata/presentation/pages/supplier_ledger_page.dart';
 import 'package:frantend/features/suppliers/presentation/pages/supplier_form_page.dart';
 import 'package:frantend/features/suppliers/presentation/pages/suppliers_list_page.dart';
 import 'package:frantend/features/expenses/presentation/pages/expense_detail_page.dart';
@@ -406,6 +407,12 @@ class AppRouter {
                 path: ':id/edit',
                 builder: (_, state) => SupplierFormPage(
                   supplierId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => SupplierLedgerPage(
+                  supplierId: state.pathParameters['id']!,
                 ),
               ),
             ],

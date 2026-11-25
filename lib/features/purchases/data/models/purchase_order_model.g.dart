@@ -132,6 +132,8 @@ _PurchaseReceiptModel _$PurchaseReceiptModelFromJson(
           )
           .toList() ??
       const [],
+  totalAmount: json['total_amount'] as String?,
+  payment: json['payment'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$PurchaseReceiptModelToJson(
@@ -146,4 +148,6 @@ Map<String, dynamic> _$PurchaseReceiptModelToJson(
   'supplier_invoice_no': instance.supplierInvoiceNo,
   'notes': instance.notes,
   'lines': instance.lines,
+  'total_amount': instance.totalAmount,
+  'payment': instance.payment,
 };

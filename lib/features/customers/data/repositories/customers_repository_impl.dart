@@ -9,6 +9,7 @@ import 'package:frantend/features/customers/data/models/customer_ledger_entry_mo
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
 import 'package:frantend/features/customers/domain/repositories/customers_repository.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: CustomersRepository)
@@ -131,6 +132,25 @@ class CustomersRepositoryImpl implements CustomersRepository {
       }
       final result = await _remote.recordPayment(customerId, body);
       return Right(result);
+    } catch (e) {
+      return Left(_errorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PaymentReversalResult>> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    try {
+      return Right(
+        await _remote.reversePayment(
+          paymentId,
+          body,
+          idempotencyKey: idempotencyKey,
+        ),
+      );
     } catch (e) {
       return Left(_errorHandler.mapExceptionToFailure(e));
     }

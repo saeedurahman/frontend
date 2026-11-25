@@ -8,10 +8,12 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/dashboard/data/models/dashboard_summary_model.dart';
+import 'package:frantend/features/dashboard/data/models/khata_summary_model.dart';
 import 'package:frantend/features/dashboard/data/models/sales_trend_model.dart';
 import 'package:frantend/features/dashboard/domain/entities/dashboard_data.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_state.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -78,7 +80,9 @@ class _DashboardView extends StatelessWidget {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () =>
-                        context.read<DashboardCubit>().loadDashboard(),
+                        context
+                            .read<DashboardCubit>()
+                            .loadDashboard(keepBranch: true),
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
@@ -103,7 +107,7 @@ class _DashboardView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _KpiSection(summary: summary),
+              _KpiSection(summary: summary, khata: data.khata),
               const SizedBox(height: 28),
               _ChartsSection(
                 salesTrend: data.salesTrend,
@@ -112,6 +116,10 @@ class _DashboardView extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               _ThreeColumnSection(data: data),
+              if (data.khata != null && data.khata!.topDebtors.isNotEmpty) ...[
+                const SizedBox(height: 28),
+                _TopDebtorsCard(debtors: data.khata!.topDebtors),
+              ],
             ],
           ),
         );
@@ -197,9 +205,10 @@ class _DashboardLoading extends StatelessWidget {
 }
 
 class _KpiSection extends StatelessWidget {
-  const _KpiSection({required this.summary});
+  const _KpiSection({required this.summary, this.khata});
 
   final DashboardSummaryModel summary;
+  final KhataSummaryModel? khata;
 
   @override
   Widget build(BuildContext context) {
@@ -246,15 +255,17 @@ class _KpiSection extends StatelessWidget {
         _StatCard(
           title: 'Receivables',
           icon: Icons.people,
-          value: formatPKR(summary.pendingCustomerReceivables),
-          subtitle: 'Customer dues',
+          value: formatPKR(
+            khata?.receivable ?? summary.pendingCustomerReceivables,
+          ),
+          subtitle: KhataText.receivableHint,
           borderColor: const Color(0xFF8B5CF6),
         ),
         _StatCard(
           title: 'Payables',
           icon: Icons.local_shipping,
-          value: formatPKR(summary.pendingSupplierPayables),
-          subtitle: 'Supplier dues',
+          value: formatPKR(khata?.payable ?? summary.pendingSupplierPayables),
+          subtitle: KhataText.payableHint,
           borderColor: const Color(0xFFEF4444),
         ),
         _StatCard(
@@ -327,17 +338,17 @@ class _SalesTrendCard extends StatelessWidget {
           _RangeButton(
             label: 'Today',
             selected: selectedDays == 1,
-            onTap: () => cubit.loadDashboard(trendDays: 1),
+            onTap: () => cubit.loadDashboard(trendDays: 1, keepBranch: true),
           ),
           _RangeButton(
             label: '7 Days',
             selected: selectedDays == 7,
-            onTap: () => cubit.loadDashboard(trendDays: 7),
+            onTap: () => cubit.loadDashboard(trendDays: 7, keepBranch: true),
           ),
           _RangeButton(
             label: '30 Days',
             selected: selectedDays == 30,
-            onTap: () => cubit.loadDashboard(trendDays: 30),
+            onTap: () => cubit.loadDashboard(trendDays: 30, keepBranch: true),
           ),
         ],
       ),
@@ -857,6 +868,46 @@ class _StatCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 14, color: subtitleColor),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The customers who owe the most, for the branch picked at the top.
+class _TopDebtorsCard extends StatelessWidget {
+  const _TopDebtorsCard({required this.debtors});
+
+  final List<TopDebtorModel> debtors;
+
+  @override
+  Widget build(BuildContext context) {
+    return _CardContainer(
+      title: 'Top debtors',
+      trailing: const Text(
+        'View all customers',
+        style: TextStyle(color: AppColors.primary),
+      ),
+      onTrailingTap: () => context.go(RouteNames.customers),
+      child: Column(
+        key: const ValueKey('top_debtors'),
+        children: [
+          for (final d in debtors)
+            ListTile(
+              dense: true,
+              title: Text(
+                d.name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: d.phone == null ? null : Text(d.phone!),
+              trailing: Text(
+                formatPKR(d.balanceOwed),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.error,
+                ),
+              ),
+            ),
         ],
       ),
     );

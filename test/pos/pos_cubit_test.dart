@@ -13,7 +13,9 @@ import 'package:frantend/features/customers/domain/usecases/customer_usecases.da
     as customers_uc;
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
+import 'package:frantend/features/customers/data/models/customer_balance_model.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
+import 'package:frantend/features/pos/data/models/customer_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/products/data/models/category_model.dart';
 import 'package:frantend/features/products/data/models/paginated_products_model.dart';
@@ -23,6 +25,7 @@ import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/register_shift_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/domain/repositories/barcode_cache_repository.dart';
 import 'package:frantend/features/pos/domain/repositories/held_orders_repository.dart';
@@ -77,12 +80,14 @@ class _Price extends Fake implements GetProductPriceUseCase {
 class _CreateSale extends Fake implements CreateSaleUseCase {
   final bodies = <Map<String, dynamic>>[];
   bool fail = false;
+  Failure? failWith;
 
   @override
   Future<Either<Failure, SaleResponseModel>> call(
     Map<String, dynamic> body,
   ) async {
     bodies.add(body);
+    if (failWith != null) return Left(failWith!);
     if (fail) return const Left(ServerFailure('boom'));
     return Right(
       SaleResponseModel(
@@ -219,10 +224,20 @@ class _MemoryBarcodeCache implements BarcodeCacheRepository {
   Future<void> remember(String t, String b, ProductModel p) async {}
 }
 
-class _GetCustomer extends Fake implements customers_uc.GetCustomerUseCase {}
+class _GetCustomer extends Fake implements customers_uc.GetCustomerUseCase {
+  @override
+  Future<Either<Failure, CustomerModel>> call(String id) async =>
+      const Left(ServerFailure('offline'));
+}
 
 class _GetBalance extends Fake
-    implements customers_uc.GetCustomerBalanceUseCase {}
+    implements customers_uc.GetCustomerBalanceUseCase {
+  @override
+  Future<Either<Failure, CustomerBalanceModel>> call(
+    String customerId, {
+    String? branchId,
+  }) async => const Left(ServerFailure('offline'));
+}
 
 class _Rig {
   _Rig() {
@@ -394,6 +409,127 @@ void main() {
       expect(
         rig.createSale.bodies[0]['id'],
         isNot(rig.createSale.bodies[1]['id']),
+      );
+    });
+  });
+
+  group('under-paid and credit sales', () {
+    const customer = CustomerModel(
+      id: 'c1',
+      businessId: 'biz',
+      name: 'Ali',
+      creditLimit: '500',
+    );
+
+    PaymentLineModel credit(String v) => PaymentLineModel(
+      paymentMethod: PaymentMethods.credit,
+      amount: Decimal.parse(v),
+    );
+
+    test('no customer: less than the total never reaches the server', () async {
+      await start();
+      await expectLater(
+        rig.cubit.submitSale([_cash('40')]),
+        throwsA(
+          isA<PaymentMismatchException>().having(
+            (e) => e.message,
+            'message',
+            contains('less than'),
+          ),
+        ),
+      );
+      expect(rig.createSale.bodies, isEmpty);
+    });
+
+    test('with a customer: less than the total is still refused up front',
+        () async {
+      await start();
+      await rig.cubit.selectCustomer(customer);
+      await expectLater(
+        rig.cubit.submitSale([_cash('40')]),
+        throwsA(isA<PaymentMismatchException>()),
+      );
+      expect(rig.createSale.bodies, isEmpty);
+    });
+
+    test('the server refusing for the limit becomes a credit-limit exception',
+        () async {
+      await start();
+      await rig.cubit.selectCustomer(customer);
+      rig.createSale.failWith = const ValidationFailure(
+        'Credit limit exceeded: limit 500, owed 450',
+      );
+      await expectLater(
+        rig.cubit.submitSale([_cash('40'), credit('60')]),
+        throwsA(isA<CreditLimitExceededException>()),
+      );
+      expect(rig.createSale.bodies, hasLength(1));
+      expect(rig.cubit.state.isSubmittingSale, isFalse);
+    });
+
+    test('"Allow anyway" sends the paid part without a credit tender',
+        () async {
+      await start();
+      await rig.cubit.selectCustomer(customer);
+      final sale = await rig.cubit.submitSale(
+        [_cash('40')],
+        allowCreditOverride: true,
+      );
+      expect(sale.saleStatus, 'completed');
+      final payments = rig.createSale.bodies.single['payments'] as List;
+      expect(payments, hasLength(1));
+      expect((payments.single as Map)['payment_method'], 'cash');
+    });
+
+    test('"Allow anyway" without a customer is still refused', () async {
+      await start();
+      await expectLater(
+        rig.cubit.submitSale([_cash('40')], allowCreditOverride: true),
+        throwsA(isA<PaymentMismatchException>()),
+      );
+      expect(rig.createSale.bodies, isEmpty);
+    });
+
+    test('the server "payment is less than total" gets plain words', () async {
+      await start();
+      rig.createSale.failWith = const ValidationFailure(
+        'payment is less than total',
+      );
+      await expectLater(
+        rig.cubit.submitSale([_cash('100')]),
+        throwsA(
+          isA<PaymentMismatchException>().having(
+            (e) => e.message,
+            'message',
+            KhataText.underpaidNoCustomer,
+          ),
+        ),
+      );
+    });
+
+    test('credit tender without a customer gets plain words', () async {
+      await start();
+      rig.createSale.failWith = const ValidationFailure(
+        'customer_id is required for credit payments',
+      );
+      await expectLater(
+        rig.cubit.submitSale([_cash('100')]),
+        throwsA(
+          isA<PaymentMismatchException>().having(
+            (e) => e.message,
+            'message',
+            KhataText.underpaidNeedsCustomer,
+          ),
+        ),
+      );
+    });
+
+    test('other server errors keep their own message', () async {
+      await start();
+      rig.createSale.failWith = const ServerFailure('boom');
+      await expectLater(
+        rig.cubit.submitSale([_cash('100')]),
+        throwsA(isNot(isA<CreditLimitExceededException>())),
       );
     });
   });

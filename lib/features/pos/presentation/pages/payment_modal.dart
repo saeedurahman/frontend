@@ -5,7 +5,12 @@ import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/customer_credit_strip.dart';
+import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart' show KhataNotice;
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/data/models/sale_response_model.dart';
@@ -38,6 +43,11 @@ class _PaymentModalState extends State<PaymentModal> {
   final List<_PaymentLineEntry> _lines = [];
   String? _error;
 
+  /// Set when the server refused the sale for the customer's credit limit.
+  _CreditBlock? _creditBlock;
+
+  bool get _canSeeBalance => hasPermission(context, Perm.customersBalanceView);
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +77,7 @@ class _PaymentModalState extends State<PaymentModal> {
         total: state.displayGrandTotal,
         inputs: _lines.map(_input),
         customer: state.selectedCustomer,
+        canSeeBalance: _canSeeBalance,
       );
 
   /// What is still unpaid by every line except [except].
@@ -86,6 +97,7 @@ class _PaymentModalState extends State<PaymentModal> {
       return;
     }
     setState(() {
+      _creditBlock = null;
       final prefill = PaymentPlanner.prefill(_allocation(state));
       _lines.add(_PaymentLineEntry(
         method: option.method,
@@ -111,16 +123,34 @@ class _PaymentModalState extends State<PaymentModal> {
     }
   }
 
-  Future<void> _completeSale(PosState state) async {
-    setState(() => _error = null);
+  /// [overrideCredit]: "Allow anyway" after a credit-limit refusal. The paid
+  /// part goes without the credit tender; the server puts the rest on the
+  /// customer's account and records who allowed it.
+  Future<void> _completeSale(
+    PosState state, {
+    bool overrideCredit = false,
+  }) async {
+    setState(() {
+      _error = null;
+      _creditBlock = null;
+    });
     final allocation = _allocation(state);
     if (!allocation.canComplete) return;
+    final lines = overrideCredit
+        ? [
+            for (final l in allocation.lines)
+              if (l.paymentMethod != PaymentMethods.credit) l,
+          ]
+        : allocation.lines;
 
     try {
       final cubit = context.read<PosCubit>();
       SaleResponseModel sale;
       try {
-        sale = await cubit.submitSale(allocation.lines);
+        sale = await cubit.submitSale(
+          lines,
+          allowCreditOverride: overrideCredit,
+        );
       } on ExpiredStockWarningException catch (warning) {
         if (!mounted) return;
         final sell = await showDialog<bool>(
@@ -143,7 +173,11 @@ class _PaymentModalState extends State<PaymentModal> {
           ),
         );
         if (sell != true) return;
-        sale = await cubit.submitSale(allocation.lines, confirmExpired: true);
+        sale = await cubit.submitSale(
+          lines,
+          confirmExpired: true,
+          allowCreditOverride: overrideCredit,
+        );
       }
       if (!mounted) return;
       Navigator.pop(context);
@@ -156,6 +190,19 @@ class _PaymentModalState extends State<PaymentModal> {
           builder: (_) => ReceiptPreviewPage(sale: sale),
         ),
       );
+    } on CreditLimitExceededException catch (e) {
+      if (!mounted) return;
+      final credit = PaymentPlanner.creditContext(
+        state.selectedCustomer,
+        canSeeBalance: _canSeeBalance,
+      );
+      setState(() {
+        _creditBlock = _CreditBlock(
+          message: e.message,
+          credit: credit,
+          needed: allocation.creditAmount,
+        );
+      });
     } catch (e) {
       if (mounted) {
         setState(() => _error = UserErrorMessage.from(e));
@@ -243,6 +290,10 @@ class _PaymentModalState extends State<PaymentModal> {
                     color: AppColors.textSecondary,
                   ),
                 ),
+              if (state.selectedCustomer != null) ...[
+                const SizedBox(height: 10),
+                CustomerCreditStrip(customer: state.selectedCustomer!),
+              ],
               if (!hasShift) ...[
                 const SizedBox(height: 12),
                 _ShiftRequiredBanner(
@@ -287,10 +338,11 @@ class _PaymentModalState extends State<PaymentModal> {
                   capped: allocation.cappedInputIndexes.contains(i),
                   creditAmount: allocation.creditAmount,
                   onRemove: () => setState(() {
+                    _creditBlock = null;
                     line.dispose();
                     _lines.removeAt(i);
                   }),
-                  onAmountChanged: () => setState(() {}),
+                  onAmountChanged: () => setState(() => _creditBlock = null),
                   onQuickCash: line.method == PaymentMethods.cash
                       ? (amount) => setState(() {
                             line.amountController.text =
@@ -340,6 +392,16 @@ class _PaymentModalState extends State<PaymentModal> {
                     ),
                   ),
               ],
+              if (_creditBlock != null) ...[
+                const SizedBox(height: 8),
+                _CreditBlockedNotice(
+                  block: _creditBlock!,
+                  busy: state.isSubmittingSale,
+                  onAllowAnyway: () =>
+                      _completeSale(state, overrideCredit: true),
+                ),
+                const _CreditNoOverrideHint(),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 8),
                 Text(_error!, style: const TextStyle(color: AppColors.error)),
@@ -376,6 +438,89 @@ class _PaymentModalState extends State<PaymentModal> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The server refused the sale for the customer's credit limit.
+class _CreditBlock {
+  const _CreditBlock({
+    required this.message,
+    required this.credit,
+    required this.needed,
+  });
+
+  final String message;
+  final CreditContext credit;
+
+  /// The part of the sale that was going on credit.
+  final Decimal needed;
+}
+
+/// "Credit limit reached" with the customer's numbers. People who may
+/// override (`customers.credit.override`) get "Allow anyway"; everybody else
+/// is told to ask the owner or take more money now.
+class _CreditBlockedNotice extends StatelessWidget {
+  const _CreditBlockedNotice({
+    required this.block,
+    required this.busy,
+    required this.onAllowAnyway,
+  });
+
+  final _CreditBlock block;
+  final bool busy;
+  final VoidCallback onAllowAnyway;
+
+  @override
+  Widget build(BuildContext context) {
+    final limit = block.credit.creditLimit;
+    final available = block.credit.available;
+    final knowsNumbers = !block.credit.serverChecksLimit &&
+        block.credit.balance != null &&
+        limit != null &&
+        limit > Decimal.zero &&
+        available != null;
+    final body = knowsNumbers
+        ? KhataText.creditBlockedBody(
+            limit: formatPKR(limit),
+            owed: formatPKR(block.credit.alreadyOwed),
+            available: formatPKR(available),
+            needed: formatPKR(block.needed),
+          )
+        : block.message;
+    return KhataNotice(
+      key: const ValueKey('credit-blocked'),
+      icon: Icons.credit_score_outlined,
+      title: KhataText.creditBlockedTitle,
+      body: body,
+      action: PermissionGate(
+        permission: Perm.customersCreditOverride,
+        child: FilledButton(
+          key: const ValueKey('credit-allow-anyway'),
+          onPressed: busy ? null : onAllowAnyway,
+          child: const Text(KhataText.allowAnyway),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown under the notice for people who cannot override.
+class _CreditNoOverrideHint extends StatelessWidget {
+  const _CreditNoOverrideHint();
+
+  @override
+  Widget build(BuildContext context) {
+    if (hasPermission(context, Perm.customersCreditOverride)) {
+      return const SizedBox.shrink();
+    }
+    return const Padding(
+      padding: EdgeInsets.only(top: 6),
+      child: Text(
+        KhataText.creditBlockedNoOverride,
+        key: ValueKey('credit-no-override'),
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
       ),
     );
   }

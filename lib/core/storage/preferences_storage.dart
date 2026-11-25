@@ -15,6 +15,7 @@ class PreferencesStorage {
   static const String _allowBelowStockKey = 'offline_allow_below_stock';
   static const String _showSyncDetailsKey = 'offline_show_sync_details';
   static const String _askQuantityOnTapKey = 'pos_ask_quantity_on_tap';
+  static const String _lastPaymentSourceKey = 'khata_last_payment_source';
 
   /// Default inactivity before the PIN lock appears. 0 disables auto-lock.
   static const int defaultIdleLockMinutes = 10;
@@ -61,6 +62,12 @@ class PreferencesStorage {
 
   Future<bool> setAskQuantityOnTap(bool value) =>
       _prefs.setBool(_askQuantityOnTapKey, value);
+
+  /// The `payment_source` used for the last supplier payment on this device.
+  String? getLastPaymentSource() => _prefs.getString(_lastPaymentSourceKey);
+
+  Future<bool> setLastPaymentSource(String source) =>
+      _prefs.setString(_lastPaymentSourceKey, source);
 
   Future<bool> clear() => _prefs.clear();
 }

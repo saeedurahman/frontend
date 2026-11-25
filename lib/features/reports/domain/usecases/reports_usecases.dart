@@ -69,8 +69,10 @@ class ReportsUseCases {
   }) =>
       _repository.getInventoryInsights(branchId: branchId);
 
-  Future<Either<Failure, List<CustomerInsightModel>>> customerInsights() =>
-      _repository.getCustomerInsights();
+  Future<Either<Failure, List<CustomerInsightModel>>> customerInsights({
+    String? branchId,
+  }) =>
+      _repository.getCustomerInsights(branchId: branchId);
 
   Future<Either<Failure, ProfitLossModel>> profitLoss(DateRangeQuery q) =>
       _repository.getProfitLoss(q);

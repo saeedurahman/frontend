@@ -4,7 +4,11 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
+import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
+import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 
 abstract final class ShiftFormatUtils {
   static String formatDuration(String? openedAt, {String? closedAt}) {
@@ -97,10 +101,14 @@ class ShiftSummaryBreakdown extends StatelessWidget {
     super.key,
     required this.summary,
     this.showExpectedBreakdown = true,
+    this.drawerPayments,
   });
 
   final ShiftSummaryModel summary;
   final bool showExpectedBreakdown;
+
+  /// Supplier payments taken from the drawer; defaults to the app's log.
+  final DrawerPaymentLog? drawerPayments;
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +195,7 @@ class ShiftSummaryBreakdown extends StatelessWidget {
             ],
           ),
         ),
+        SupplierPaymentsFromDrawer(summary: summary, log: drawerPayments),
         if (summary.actualCash != null) ...[
           const SizedBox(height: 12),
           Row(
@@ -217,6 +226,83 @@ class ShiftSummaryBreakdown extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// "Supplier payments from the drawer": what part of Cash Out was money paid
+/// to suppliers. Only drawer payments are listed; bank, wallet, cheque and
+/// owner's-pocket payments never touch the drawer, so they are not here.
+class SupplierPaymentsFromDrawer extends StatelessWidget {
+  const SupplierPaymentsFromDrawer({super.key, required this.summary, this.log});
+
+  final ShiftSummaryModel summary;
+  final DrawerPaymentLog? log;
+
+  DrawerPaymentLog? _log() {
+    if (log != null) return log;
+    return sl.isRegistered<KhataEvents>() ? sl<KhataEvents>().drawerPayments : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shiftId = summary.shiftId;
+    final source = _log();
+    if (shiftId == null || source == null) return const SizedBox.shrink();
+    final payments = source.forShift(shiftId);
+    if (payments.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        key: const ValueKey('supplier-drawer-payments'),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    KhataText.supplierPaymentsFromDrawer,
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                Text(
+                  formatPKR(source.totalForShift(shiftId)),
+                  key: const ValueKey('supplier-drawer-total'),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            for (final p in payments)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        KhataText.supplierPaymentLine(p.supplierName, p.note),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    Text(formatPKR(p.amount), style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 6),
+            const Text(
+              KhataText.drawerPaymentsCounted,
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

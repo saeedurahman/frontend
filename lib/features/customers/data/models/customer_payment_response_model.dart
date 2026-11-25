@@ -11,6 +11,10 @@ abstract class CustomerPaymentResponseModel with _$CustomerPaymentResponseModel 
     @JsonKey(name: 'customer_id') required String customerId,
     required String amount,
     @JsonKey(name: 'new_balance') required String newBalance,
+    @JsonKey(name: 'previous_balance') String? previousBalance,
+    @JsonKey(name: 'payment_source') String? paymentSource,
+    @JsonKey(name: 'register_shift_id') String? registerShiftId,
+    @JsonKey(name: 'register_transaction_id') String? registerTransactionId,
   }) = _CustomerPaymentResponseModel;
 
   factory CustomerPaymentResponseModel.fromJson(Map<String, dynamic> json) =>
@@ -18,7 +22,7 @@ abstract class CustomerPaymentResponseModel with _$CustomerPaymentResponseModel 
 
   static Map<String, dynamic> _normalizeJson(Map<String, dynamic> json) {
     final normalized = Map<String, dynamic>.from(json);
-    for (final key in ['amount', 'new_balance']) {
+    for (final key in ['amount', 'new_balance', 'previous_balance']) {
       if (normalized[key] != null) {
         normalized[key] = ApiJsonUtils.stringValue(normalized[key]);
       }

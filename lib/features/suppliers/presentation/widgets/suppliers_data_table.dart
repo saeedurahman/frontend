@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/utils/supplier_balance_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/pay_supplier_dialog.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_actions.dart';
@@ -37,14 +40,19 @@ class SuppliersDataTable extends StatelessWidget {
       items: items,
       itemId: (row) => row.supplier.id,
       itemLabel: 'suppliers',
-      actionsWidth: 130,
+      actionsWidth: 190,
       sortCompare: _sortCompare,
-      onRowTap: hasPermission(context, Perm.suppliersUpdate)
+      onRowTap: hasPermission(context, Perm.suppliersLedgerView)
           ? (row) => openSupplierForm(
                 context,
-                '${RouteNames.suppliers}/${row.supplier.id}/edit',
+                '${RouteNames.suppliers}/${row.supplier.id}',
               )
-          : null,
+          : (hasPermission(context, Perm.suppliersUpdate)
+              ? (row) => openSupplierForm(
+                    context,
+                    '${RouteNames.suppliers}/${row.supplier.id}/edit',
+                  )
+              : null),
       rowBuilder: (context, row, {required selected, required onSelected}) {
         final supplier = row.supplier;
 
@@ -52,7 +60,7 @@ class SuppliersDataTable extends StatelessWidget {
           columns: _supplierTableColumns,
           selected: selected,
           onSelected: onSelected,
-          actionsWidth: 130,
+          actionsWidth: 190,
           cells: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,14 +103,17 @@ class SuppliersDataTable extends StatelessWidget {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(
-                    row.balance ?? '—',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                : Builder(builder: (_) {
+                    final view = SupplierBalanceText.of(row.balance);
+                    return Text(
+                      view.text,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: view.color,
+                      ),
+                    );
+                  }),
             Switch(
               value: supplier.isActive,
               activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
@@ -113,6 +124,38 @@ class SuppliersDataTable extends StatelessWidget {
           ],
           actions: Row(
             children: [
+              PermissionGate(
+                permission: Perm.suppliersPaymentsCreate,
+                mode: GateMode.disable,
+                mutating: true,
+                child: AppTableActionButton(
+                  icon: Icons.payments_outlined,
+                  iconColor: AppColors.primary,
+                  tooltip: KhataText.paySupplierTitle,
+                  onPressed: () async {
+                    final paid = await PaySupplierDialog.show(
+                      context,
+                      supplierId: supplier.id,
+                      supplierName: supplier.name,
+                      supplierPhone: supplier.phone,
+                    );
+                    if (paid) cubit.refresh();
+                  },
+                ),
+              ),
+              const SizedBox(width: 6),
+              PermissionGate(
+                permission: Perm.suppliersLedgerView,
+                child: AppTableActionButton(
+                  icon: Icons.receipt_long_outlined,
+                  tooltip: KhataText.ledgerTitle,
+                  onPressed: () => openSupplierForm(
+                    context,
+                    '${RouteNames.suppliers}/${supplier.id}',
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               PermissionGate(
                 permission: Perm.suppliersUpdate,
                 mutating: true,

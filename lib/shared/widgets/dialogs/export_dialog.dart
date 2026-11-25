@@ -10,6 +10,8 @@ class ExportDialog extends StatefulWidget {
     this.dateFrom,
     this.dateTo,
     this.branchId,
+    this.filters,
+    this.fileLabel,
   });
 
   final String dataset;
@@ -18,6 +20,12 @@ class ExportDialog extends StatefulWidget {
   final DateTime? dateTo;
   final String? branchId;
 
+  /// Extra export filters such as `customer_id` / `supplier_id`.
+  final Map<String, String>? filters;
+
+  /// When set, the file is named after it (e.g. the customer's name).
+  final String? fileLabel;
+
   static Future<void> show(
     BuildContext context, {
     required String dataset,
@@ -25,6 +33,8 @@ class ExportDialog extends StatefulWidget {
     DateTime? dateFrom,
     DateTime? dateTo,
     String? branchId,
+    Map<String, String>? filters,
+    String? fileLabel,
   }) async {
     debugPrint('[ExportFlow] ExportDialog.show: dataset=$dataset, title=$title');
     final format = await showDialog<String>(
@@ -35,6 +45,8 @@ class ExportDialog extends StatefulWidget {
         dateFrom: dateFrom,
         dateTo: dateTo,
         branchId: branchId,
+        filters: filters,
+        fileLabel: fileLabel,
       ),
     );
     debugPrint('[ExportFlow] ExportDialog.show: format returned=$format, context.mounted=${context.mounted}');
@@ -46,6 +58,10 @@ class ExportDialog extends StatefulWidget {
         dateFrom: dateFrom,
         dateTo: dateTo,
         branchId: branchId,
+        filters: filters,
+        suggestedName: fileLabel == null
+            ? null
+            : ExportService.fileNameFor(fileLabel, dataset, format, on: dateTo),
       );
     }
   }

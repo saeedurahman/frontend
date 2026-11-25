@@ -39,6 +39,15 @@ abstract final class Perm {
   static const suppliersCreate = 'suppliers.create';
   static const suppliersUpdate = 'suppliers.update';
   static const suppliersLedgerPayment = 'suppliers.ledger.payment';
+  static const suppliersLedgerView = 'suppliers.ledger.view';
+  static const customersLedgerView = 'customers.ledger.view';
+
+  // Khata (credit): paying suppliers, undoing payments, credit at the till.
+  static const suppliersPaymentsCreate = 'suppliers.payments.create';
+  static const suppliersPaymentsReverse = 'suppliers.payments.reverse';
+  static const customersPaymentsReverse = 'customers.payments.reverse';
+  static const customersBalanceView = 'customers.balance.view';
+  static const customersCreditOverride = 'customers.credit.override';
 
   // Money
   static const expensesView = 'expenses.view';

@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 
@@ -19,6 +20,19 @@ abstract class GoodsReceiptLineItem with _$GoodsReceiptLineItem {
   }) = _GoodsReceiptLineItem;
 
   double get maxQty => double.tryParse(line.qtyToReceive) ?? 0;
+}
+
+/// The bill total of what is being received now: quantity x cost per line.
+extension GoodsReceiptTotal on GoodsReceiptState {
+  Decimal get total {
+    var sum = Decimal.zero;
+    for (final item in lines) {
+      final qty = Decimal.tryParse(item.qtyReceived.trim()) ?? Decimal.zero;
+      final cost = Decimal.tryParse(item.costPerUnit.trim()) ?? Decimal.zero;
+      if (qty > Decimal.zero && cost > Decimal.zero) sum += qty * cost;
+    }
+    return sum.round(scale: 2);
+  }
 }
 
 @freezed

@@ -1,16 +1,22 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/session/active_branch_resolver.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
-import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/record_customer_payment_usecase.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/shift_guard.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/shared/widgets/tables/client_table_pagination.dart';
 import 'package:injectable/injectable.dart';
@@ -22,12 +28,18 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     required GetCustomerBalanceUseCase getCustomerBalanceUseCase,
     required GetCustomerLedgerUseCase getCustomerLedgerUseCase,
     required RecordCustomerPaymentUseCase recordCustomerPaymentUseCase,
-    required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
+    required ReverseCustomerPaymentUseCase reverseCustomerPaymentUseCase,
+    required ShiftGuard shiftGuard,
+    required ActiveBranchResolver branchResolver,
+    required KhataEvents khataEvents,
   })  : _getCustomer = getCustomerUseCase,
         _getBalance = getCustomerBalanceUseCase,
         _getLedger = getCustomerLedgerUseCase,
         _recordPayment = recordCustomerPaymentUseCase,
-        _getMyActiveShift = getMyActiveShiftUseCase,
+        _reverse = reverseCustomerPaymentUseCase,
+        _shifts = shiftGuard,
+        _branchResolver = branchResolver,
+        _events = khataEvents,
         super(const CustomerLedgerState.initial());
 
   static const _defaultPageSize = 10;
@@ -39,7 +51,15 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   final GetCustomerBalanceUseCase _getBalance;
   final GetCustomerLedgerUseCase _getLedger;
   final RecordCustomerPaymentUseCase _recordPayment;
-  final GetMyActiveShiftUseCase _getMyActiveShift;
+  final ReverseCustomerPaymentUseCase _reverse;
+  final ShiftGuard _shifts;
+  final ActiveBranchResolver _branchResolver;
+  final KhataEvents _events;
+
+  // One key per wrong payment + reason: a retry after a lost answer reuses it
+  // so the payment can never be reversed twice.
+  String? _reverseKey;
+  String? _reverseFingerprint;
 
   String? _customerId;
   String? _branchId;
@@ -130,10 +150,45 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     }
   }
 
-  Future<String?> _resolveActiveShiftId() async {
-    final shiftResult = await _getMyActiveShift();
-    return shiftResult.fold((_) => null, (shift) => shift?.id);
+  Future<String?> _resolveActiveShiftId() => _shifts.currentShiftId();
+
+  /// One-tap "Open shift" from the "Open shift first" notice. Returns true when
+  /// a shift is now open.
+  Future<bool> openShiftForPayment() async {
+    final current = state;
+    if (current is! CustomerLedgerLoaded) return false;
+    emit(current.copyWith(isOpeningPaymentShift: true, paymentError: null));
+    final result = await _shifts.openNow();
+    final updated = state;
+    if (updated is! CustomerLedgerLoaded) return false;
+    return result.fold(
+      (failure) {
+        emit(
+          updated.copyWith(
+            isOpeningPaymentShift: false,
+            paymentError: failure.message,
+          ),
+        );
+        return false;
+      },
+      (id) {
+        emit(
+          updated.copyWith(
+            isOpeningPaymentShift: false,
+            activePaymentShiftId: id,
+            paymentError: null,
+          ),
+        );
+        return true;
+      },
+    );
   }
+
+  /// The branch every payment is recorded in: the one the ledger is showing,
+  /// else the user's active branch. A payment with no branch would be
+  /// business-wide on the server, so none is ever sent without one.
+  Future<String?> _paymentBranch() async =>
+      _branchId ?? await _branchResolver.resolve();
 
   Future<void> load(String customerId, {String? branchId}) async {
     _customerId = customerId;
@@ -219,9 +274,32 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       ),
     );
 
+    final branchId = await _paymentBranch();
+    if (branchId == null) {
+      emit(
+        current.copyWith(
+          isRecordingPayment: false,
+          paymentError: KhataText.branchMissing,
+        ),
+      );
+      return null;
+    }
+
     String? registerShiftId;
     if (paymentMethod == PaymentMethods.cash) {
+      // Cash goes into the drawer, so it needs an open shift. Never record it
+      // silently without one: the till would not balance.
       registerShiftId = await _resolveActiveShiftId();
+      if (registerShiftId == null) {
+        emit(
+          current.copyWith(
+            isRecordingPayment: false,
+            activePaymentShiftId: null,
+            paymentError: KhataText.customerCashNeedsShiftTitle,
+          ),
+        );
+        return null;
+      }
     }
 
     final result = await _recordPayment(
@@ -231,7 +309,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       referenceNo: referenceNo,
       notes: notes,
       registerShiftId: registerShiftId,
-      branchId: _branchId,
+      branchId: branchId,
     );
 
     return await result.fold(
@@ -245,6 +323,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         return null;
       },
       (response) async {
+        _events.notifyChanged();
         // The payment is saved. Re-reading the ledger is a courtesy: when
         // the server cannot be reached the lines on screen stay as they are
         // and no error is shown for a payment that succeeded.
@@ -286,6 +365,70 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         return response;
       },
     );
+  }
+
+  /// Reverses a customer payment. Returns null on success, else plain words for
+  /// the dialog. The branch always travels with it; the server also checks it
+  /// against the payment itself.
+  Future<String?> reversePayment(String paymentId, String reason) async {
+    final branch = await _paymentBranch();
+    final body = <String, dynamic>{
+      'reason': reason,
+      if (branch != null) 'branch_id': branch,
+    };
+    final fingerprint = '$paymentId|$reason';
+    if (fingerprint != _reverseFingerprint || _reverseKey == null) {
+      _reverseFingerprint = fingerprint;
+      _reverseKey = UuidUtils.v4();
+    }
+    final result = await _reverse(paymentId, body, idempotencyKey: _reverseKey);
+    return result.fold(
+      (failure) {
+        final code = switch (failure) {
+          ConflictFailure(:final code) => code,
+          ServerFailure(:final code) => code,
+          _ => null,
+        };
+        // A clear "no" means nothing changed: the next tap is a fresh try.
+        if (failure is! NetworkFailure &&
+            (code != null || failure is! ServerFailure)) {
+          _reverseKey = null;
+          _reverseFingerprint = null;
+        }
+        if (failure is NetworkFailure) return KhataText.offlineReverse;
+        return KhataText.forCode(code) ?? failure.message;
+      },
+      (done) {
+        _reverseKey = null;
+        _reverseFingerprint = null;
+        _events.notifyChanged();
+        unawaited(_refreshQuietly(done.balance.toString()));
+        return null;
+      },
+    );
+  }
+
+  /// Re-reads the rows after a reversal without a spinner: the reversal row and
+  /// the new balance appear in place.
+  Future<void> _refreshQuietly(String balanceAfter) async {
+    final id = _customerId;
+    if (id == null) return;
+    final ledger =
+        await _getLedger(id, branchId: _branchId, skip: 0, limit: _fetchSize);
+    final balance = await _getBalance(id, branchId: _branchId);
+    final current = state;
+    if (current is! CustomerLedgerLoaded || isClosed) return;
+    ledger.fold((_) {}, (page) {
+      _allEntries = page;
+      emit(
+        current.copyWith(
+          balance: balance.fold((_) => balanceAfter, (b) => b.balance),
+          entries: _computeDisplayRows(_allEntries),
+          hasMore: page.length >= _fetchSize,
+          currentPage: 1,
+        ),
+      );
+    });
   }
 
   Future<void> loadMore() async {
@@ -345,13 +488,18 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       return aAt.compareTo(bAt);
     });
 
+    // The server's running balance is the real one for the whole account. Only
+    // when it is missing is it worked out here, from the rows loaded so far.
     var running = Decimal.zero;
     final withRunning = <({CustomerLedgerEntryModel entry, String running})>[];
     for (final entry in sorted) {
       running = running + CustomerBalanceUtils.parseBalance(entry.amount);
+      final server = entry.runningBalance;
       withRunning.add((
         entry: entry,
-        running: DecimalUtils.format(running),
+        running: (server != null && server.isNotEmpty)
+            ? server
+            : DecimalUtils.format(running),
       ));
     }
 

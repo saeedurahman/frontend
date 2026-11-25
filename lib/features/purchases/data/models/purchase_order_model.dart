@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 
 part 'purchase_order_model.freezed.dart';
@@ -109,10 +110,23 @@ abstract class PurchaseReceiptModel with _$PurchaseReceiptModel {
     @JsonKey(name: 'supplier_invoice_no') String? supplierInvoiceNo,
     String? notes,
     @Default([]) List<PurchaseReceiptLineModel> lines,
+
+    /// Full receipt total (posted to the supplier account).
+    @JsonKey(name: 'total_amount') String? totalAmount,
+
+    /// The payment made together with the receipt; null when all on credit.
+    Map<String, dynamic>? payment,
   }) = _PurchaseReceiptModel;
 
   factory PurchaseReceiptModel.fromJson(Map<String, dynamic> json) =>
       _$PurchaseReceiptModelFromJson(json);
+}
+
+extension PurchaseReceiptPaymentX on PurchaseReceiptModel {
+  /// What the backend answered about the "paid now" part, if any.
+  ReceiptPaymentResult? get paymentResult => ReceiptPaymentResult.fromResponse(
+        {'payment': payment, 'total_amount': totalAmount},
+      );
 }
 
 /// Backend PO status values (PurchaseOrderStatusEnum).

@@ -47,6 +47,8 @@ _SupplierBalanceModel _$SupplierBalanceModelFromJson(
 ) => _SupplierBalanceModel(
   supplierId: json['supplier_id'] as String,
   balance: json['balance'] as String,
+  balanceOwed: json['balance_owed'] as String?,
+  isAdvance: json['is_advance'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SupplierBalanceModelToJson(
@@ -54,4 +56,6 @@ Map<String, dynamic> _$SupplierBalanceModelToJson(
 ) => <String, dynamic>{
   'supplier_id': instance.supplierId,
   'balance': instance.balance,
+  'balance_owed': instance.balanceOwed,
+  'is_advance': instance.isAdvance,
 };

@@ -54,6 +54,9 @@ class CustomerLedgerHeader extends StatelessWidget {
                   context,
                   dataset: 'customer_ledger',
                   title: 'Customer Ledger (${customer.name})',
+                  // Only this customer, and the file carries their name.
+                  filters: {'customer_id': customer.id},
+                  fileLabel: customer.name,
                 ),
                 icon: const Icon(Icons.download_outlined, size: 18),
                 label: const Text('Export Ledger'),

@@ -228,19 +228,58 @@ void main() {
       );
     });
 
-    test('under- and over-payment are refused with both figures', () {
-      for (final paid in ['99', '101']) {
+    test('over-payment is refused with both figures', () {
+      expect(
+        () => PaymentCoverage.assertCovers(
+          payments: [cash('101')],
+          due: Decimal.parse('100'),
+        ),
+        throwsA(
+          isA<PaymentMismatchException>()
+              .having((e) => e.message, 'message', contains('100')),
+        ),
+      );
+    });
+
+    test('under-payment is refused in plain words, with or without a customer',
+        () {
+      for (final hasCustomer in [false, true]) {
         expect(
           () => PaymentCoverage.assertCovers(
-            payments: [cash(paid)],
+            payments: [cash('99')],
             due: Decimal.parse('100'),
+            hasCustomer: hasCustomer,
           ),
           throwsA(
-            isA<PaymentMismatchException>()
-                .having((e) => e.message, 'message', contains('100')),
+            isA<PaymentMismatchException>().having(
+              (e) => e.message,
+              'message',
+              contains('less than the bill'),
+            ),
           ),
         );
       }
+    });
+
+    test('a customer may carry the rest only after the server allowed it', () {
+      expect(
+        () => PaymentCoverage.assertCovers(
+          payments: [cash('99')],
+          due: Decimal.parse('100'),
+          hasCustomer: true,
+          allowCreditRemainder: true,
+        ),
+        returnsNormally,
+      );
+      // No customer: never, even when overriding.
+      expect(
+        () => PaymentCoverage.assertCovers(
+          payments: [cash('99')],
+          due: Decimal.parse('100'),
+          allowCreditRemainder: true,
+        ),
+        throwsA(isA<PaymentMismatchException>()),
+      );
     });
   });
 

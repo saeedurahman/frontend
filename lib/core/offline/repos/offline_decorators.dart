@@ -155,6 +155,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
         registerShiftId: registerShiftId,
         referenceNo: referenceNo,
         notes: notes,
+        branchId: branchId,
       );
       return Right(CustomerPaymentResponseModel(
         ledgerEntryId: ledgerId,

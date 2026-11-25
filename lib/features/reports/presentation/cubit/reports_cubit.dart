@@ -181,7 +181,9 @@ class ReportsCubit extends Cubit<ReportsState> {
   Future<void> _loadFinancialTab(ReportsLoaded current) async {
     final q = current.filter.query;
 
-    final customerInsights = await _unwrap(_useCases.customerInsights());
+    final customerInsights = await _unwrap(
+      _useCases.customerInsights(branchId: current.filter.branchId),
+    );
     final profitLoss = await _unwrap(_useCases.profitLoss(q));
     final expenseSummary = await _unwrap(_useCases.expenseSummary(q));
     final taxSummary = await _unwrap(_useCases.taxSummary(q));

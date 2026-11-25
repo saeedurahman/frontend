@@ -308,8 +308,9 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
   }
 
   Future<SaleResponseModel> completeDineInTab(
-    List<PaymentLineModel> payments,
-  ) async {
+    List<PaymentLineModel> payments, {
+    bool allowCreditOverride = false,
+  }) async {
     final dineIn = state.dineIn;
     if (dineIn == null) {
       throw Exception('Not in dine-in mode');
@@ -320,9 +321,12 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
     if (state.cartItems.isEmpty) {
       throw Exception('Cart is empty');
     }
+    final hasCustomer = state.selectedCustomer != null;
     PaymentCoverage.assertCovers(
       payments: payments,
       due: state.displayGrandTotal,
+      hasCustomer: hasCustomer,
+      allowCreditRemainder: allowCreditOverride,
     );
 
     _safeEmit(state.patch(isSubmittingSale: true));
@@ -338,7 +342,9 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
       }
 
       return await result.fold(
-        (failure) => throw Exception(TableServiceErrors.message(failure)),
+        (failure) =>
+            throw SaleFailureMapper.map(failure, hasCustomer: hasCustomer) ??
+                Exception(TableServiceErrors.message(failure)),
         (sale) {
           clearCart();
           _safeEmit(state.patch(

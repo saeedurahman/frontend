@@ -4,6 +4,7 @@ import 'package:frantend/features/customers/data/models/customer_balance_model.d
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/domain/repositories/customers_repository.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -60,6 +61,21 @@ class GetCustomerBalanceUseCase {
     String? branchId,
   }) =>
       _repository.getCustomerBalance(customerId, branchId: branchId);
+}
+
+/// Undoes a wrong customer payment (a new row; the original stays visible).
+@injectable
+class ReverseCustomerPaymentUseCase {
+  const ReverseCustomerPaymentUseCase(this._repository);
+
+  final CustomersRepository _repository;
+
+  Future<Either<Failure, PaymentReversalResult>> call(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) =>
+      _repository.reversePayment(paymentId, body, idempotencyKey: idempotencyKey);
 }
 
 @injectable

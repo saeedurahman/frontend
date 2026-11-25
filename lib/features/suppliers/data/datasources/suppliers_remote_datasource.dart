@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:injectable/injectable.dart';
 
@@ -18,6 +19,26 @@ abstract class SuppliersRemoteDataSource {
   Future<SupplierBalanceModel> getSupplierBalance(
     String supplierId, {
     String? branchId,
+  });
+
+  Future<SupplierLedgerPage> getLedger(
+    String supplierId, {
+    String? branchId,
+    int skip = 0,
+    int limit = 50,
+  });
+
+  /// `POST /suppliers/payments`. [idempotencyKey] is reused on a retry of the
+  /// same payment so a lost answer never pays twice.
+  Future<SupplierPaymentResult> paySupplier(
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  });
+
+  Future<PaymentReversalResult> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
   });
 }
 
@@ -80,6 +101,55 @@ class SuppliersRemoteDataSourceImpl implements SuppliersRemoteDataSource {
     );
     return SupplierBalanceModel.fromJson(response.data ?? const {});
   }
+
+  @override
+  Future<SupplierLedgerPage> getLedger(
+    String supplierId, {
+    String? branchId,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiConstants.supplierLedger(supplierId),
+      queryParameters: {
+        'skip': skip,
+        'limit': limit,
+        if (branchId != null) 'branch_id': branchId,
+      },
+    );
+    return SupplierLedgerPage.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<SupplierPaymentResult> paySupplier(
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.supplierPayments,
+      data: body,
+      options: _keyOptions(idempotencyKey),
+    );
+    return SupplierPaymentResult.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PaymentReversalResult> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.supplierPaymentReverse(paymentId),
+      data: body,
+      options: _keyOptions(idempotencyKey),
+    );
+    return PaymentReversalResult.fromJson(response.data ?? const {});
+  }
+
+  Options? _keyOptions(String? key) => key == null
+      ? null
+      : Options(headers: {'Idempotency-Key': key});
 
   List<T> _toModelList<T>(
     dynamic payload,

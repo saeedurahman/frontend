@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/dashboard/data/models/dashboard_summary_model.dart';
+import 'package:frantend/features/dashboard/data/models/khata_summary_model.dart';
 import 'package:frantend/features/dashboard/data/models/sales_trend_model.dart';
 import 'package:injectable/injectable.dart';
 
@@ -27,6 +28,9 @@ abstract class DashboardRemoteDataSource {
   Future<List<RecentTransactionModel>> getRecentTransactions({int limit = 5});
 
   Future<InventoryInsightsModel> getInventoryInsights();
+
+  /// Receivable, payable and top debtors for [branchId] (all when null).
+  Future<KhataSummaryModel> getKhataSummary({String? branchId, int limit = 5});
 }
 
 @LazySingleton(as: DashboardRemoteDataSource)
@@ -129,6 +133,22 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       options: Options(),
     );
     return InventoryInsightsModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<KhataSummaryModel> getKhataSummary({
+    String? branchId,
+    int limit = 5,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiConstants.analyticsKhataSummary,
+      queryParameters: {
+        'limit': limit,
+        if (branchId != null) 'branch_id': branchId,
+      },
+      options: Options(),
+    );
+    return KhataSummaryModel.fromJson(response.data ?? const {});
   }
 
   List<T> _toModelList<T>(

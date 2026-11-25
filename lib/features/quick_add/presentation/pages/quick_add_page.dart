@@ -8,6 +8,8 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/platform/barcode_scanner_service.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/features/khata/presentation/cubit/paid_now_cubit.dart';
+import 'package:frantend/features/khata/presentation/widgets/paid_now_section.dart';
 import 'package:frantend/features/quick_add/data/feedback_sound.dart';
 import 'package:frantend/features/quick_add/domain/quick_add_flow.dart';
 import 'package:frantend/features/quick_add/presentation/cubit/quick_add_cubit.dart';
@@ -88,12 +90,21 @@ class _QuickAddViewState extends State<_QuickAddView> {
   bool _summaryOpen = false;
   late bool _soundOn = widget.sound.enabled;
 
+  /// The "Paid now" choices (purchase mode). Absent when the app has not
+  /// registered it (for example in small widget tests).
+  PaidNowCubit? _paidNow;
+  QuickAddCubit? _quick;
+
   String? _lastCode;
   DateTime _lastAt = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
     super.initState();
+    if (sl.isRegistered<PaidNowCubit>()) {
+      _paidNow = sl<PaidNowCubit>()..init();
+      _quick = context.read<QuickAddCubit>()..paidNow = _paidNow;
+    }
     final scanner = widget.scanner;
     if (scanner != null) {
       scanner.start();
@@ -111,6 +122,11 @@ class _QuickAddViewState extends State<_QuickAddView> {
 
   @override
   void dispose() {
+    final quick = _quick;
+    if (quick != null && identical(quick.paidNow, _paidNow)) {
+      quick.paidNow = null;
+    }
+    _paidNow?.close();
     _scanSub?.cancel();
     _scanController.dispose();
     _scanNode.dispose();
@@ -312,6 +328,12 @@ class _QuickAddViewState extends State<_QuickAddView> {
                         ),
                       ),
                     ),
+                    if (_paidNow != null &&
+                        hasPermission(context, Perm.suppliersPaymentsCreate))
+                      BlocProvider<PaidNowCubit>.value(
+                        value: _paidNow!,
+                        child: const _PaidNowBar(),
+                      ),
                   ],
                 ),
               ),
@@ -319,6 +341,34 @@ class _QuickAddViewState extends State<_QuickAddView> {
           );
         },
       ),
+    );
+  }
+}
+
+/// "Paid now" under the list, shown while receiving goods from a supplier.
+class _PaidNowBar extends StatelessWidget {
+  const _PaidNowBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<QuickAddCubit, QuickAddState>(
+      buildWhen: (a, b) =>
+          a.rows != b.rows || a.mode != b.mode || a.saving != b.saving,
+      builder: (context, state) {
+        if (state.mode != QuickAddMode.purchase || state.rows.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final total = context.read<QuickAddCubit>().purchaseTotal;
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: SingleChildScrollView(
+              child: PaidNowSection(total: total, enabled: !state.saving),
+            ),
+          ),
+        );
+      },
     );
   }
 }

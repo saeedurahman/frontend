@@ -5,6 +5,10 @@ import 'package:frantend/core/error/user_error_message.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
@@ -134,10 +138,15 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
         ledgerState.isRecordingPayment;
     final isCheckingShift = ledgerState is CustomerLedgerLoaded &&
         ledgerState.isCheckingPaymentShift;
-    final showNoShiftWarning = _paymentMethod == PaymentMethods.cash &&
+    // Cash goes into the drawer, so it needs an open shift (same rule as a
+    // sale). Without one the payment is not recorded; the owner opens a shift
+    // with one tap or picks another method.
+    final needsShift = _paymentMethod == PaymentMethods.cash &&
         ledgerState is CustomerLedgerLoaded &&
         !ledgerState.isCheckingPaymentShift &&
         ledgerState.activePaymentShiftId == null;
+    final isOpeningShift =
+        ledgerState is CustomerLedgerLoaded && ledgerState.isOpeningPaymentShift;
     final excess = _hasOutstanding && _isValidAmount
         ? _amountParsed - _amountOwed
         : Decimal.zero;
@@ -285,26 +294,28 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                   ],
                 ),
               ],
-              if (showNoShiftWarning) ...[
+              if (needsShift) ...[
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.warning.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: const Text(
-                    '⚠ No active shift open — this cash payment '
-                    "won't appear in today's drawer reconciliation",
-                    style: TextStyle(
-                      color: AppColors.warning,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                KhataNotice(
+                  key: const ValueKey('needs_shift_notice'),
+                  icon: Icons.lock_clock_outlined,
+                  title: KhataText.customerCashNeedsShiftTitle,
+                  body: KhataText.customerCashNeedsShiftBody,
+                  action: hasPermission(context, Perm.shiftsOpen)
+                      ? FilledButton(
+                          key: const ValueKey('open_shift_button'),
+                          onPressed: isOpeningShift
+                              ? null
+                              : () => context
+                                  .read<CustomerLedgerCubit>()
+                                  .openShiftForPayment(),
+                          child: Text(
+                            isOpeningShift
+                                ? KhataText.openingShift
+                                : KhataText.openShift,
+                          ),
+                        )
+                      : null,
                 ),
               ],
               if (_showReferenceField) ...[
@@ -347,7 +358,12 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                     child: PrimaryButton(
                       label: 'Record Payment',
                       isLoading: isSubmitting,
-                      onPressed: _isValidAmount && !isSubmitting ? _submit : null,
+                      onPressed: _isValidAmount &&
+                              !isSubmitting &&
+                              !needsShift &&
+                              !isCheckingShift
+                          ? _submit
+                          : null,
                     ),
                   ),
                 ],

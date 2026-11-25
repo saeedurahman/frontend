@@ -97,8 +97,10 @@ class ReportsRepositoryImpl implements ReportsRepository {
       _wrap(_remote.getInventoryInsights(branchId: branchId));
 
   @override
-  Future<Either<Failure, List<CustomerInsightModel>>> getCustomerInsights() =>
-      _wrap(_remote.getCustomerInsights());
+  Future<Either<Failure, List<CustomerInsightModel>>> getCustomerInsights({
+    String? branchId,
+  }) =>
+      _wrap(_remote.getCustomerInsights(branchId: branchId));
 
   @override
   Future<Either<Failure, ProfitLossModel>> getProfitLoss(

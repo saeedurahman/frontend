@@ -7,6 +7,7 @@ import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/data/models/user_model.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/pos/data/models/cart_item_model.dart';
 import 'package:frantend/features/pos/data/models/held_order_model.dart';
@@ -132,17 +133,34 @@ abstract final class LowStockPolicy {
 
 abstract final class PaymentCoverage {
   /// Payment lines must add up to exactly what is due before anything is sent.
+  ///
+  /// Every path that sells (plain sale, resumed held order, dine-in tab) goes
+  /// through this check, so a sale is never sent for less than its total.
+  /// The one exception is [allowCreditRemainder]: after the server refused a
+  /// sale for the credit limit, a person who may override sends the paid part
+  /// only and the server puts the remainder on the customer's account.
   static void assertCovers({
     required List<PaymentLineModel> payments,
     required Decimal due,
+    bool hasCustomer = false,
+    bool allowCreditRemainder = false,
   }) {
     final paid = payments.fold(Decimal.zero, (sum, p) => sum + p.amount);
-    if (paid != due) {
+    if (paid == due) return;
+    if (allowCreditRemainder && hasCustomer && paid < due) return;
+    if (paid < due) {
       throw PaymentMismatchException(
-        'Payments (${DecimalUtils.format(paid)}) do not match the total '
-        '(${DecimalUtils.format(due)}).',
+        hasCustomer
+            ? KhataText.underpaidWithCustomer
+            : KhataText.underpaidNoCustomer,
       );
     }
+    throw PaymentMismatchException(
+      KhataText.paymentsDoNotMatch(
+        DecimalUtils.format(paid),
+        DecimalUtils.format(due),
+      ),
+    );
   }
 }
 

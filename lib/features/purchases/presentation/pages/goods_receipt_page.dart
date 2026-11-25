@@ -5,6 +5,8 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/features/khata/presentation/cubit/paid_now_cubit.dart';
+import 'package:frantend/features/khata/presentation/widgets/paid_now_section.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
@@ -14,6 +16,10 @@ import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 
+/// Paying a supplier while receiving needs the supplier-payment permission.
+bool _canPay(BuildContext context) =>
+    hasPermission(context, Perm.suppliersPaymentsCreate);
+
 class GoodsReceiptPage extends StatelessWidget {
   const GoodsReceiptPage({super.key, required this.purchaseOrderId});
 
@@ -21,8 +27,13 @@ class GoodsReceiptPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<GoodsReceiptCubit>()..load(purchaseOrderId),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<GoodsReceiptCubit>()..load(purchaseOrderId),
+        ),
+        BlocProvider(create: (_) => sl<PaidNowCubit>()..init()),
+      ],
       child: const _GoodsReceiptView(),
     );
   }
@@ -66,6 +77,13 @@ class _GoodsReceiptView extends StatelessWidget {
                   _MetaCard(state: state),
                   const SizedBox(height: AppDimensions.spacingMd),
                   _LinesCard(state: state),
+                  if (_canPay(context)) ...[
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    PaidNowSection(
+                      total: state.total,
+                      enabled: !state.isSubmitting,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -335,12 +353,31 @@ class _BottomBar extends StatelessWidget {
               onPressed: state.isSubmitting
                   ? null
                   : () async {
-                      final err = await cubit.confirmReceipt();
+                      final paid = context.read<PaidNowCubit>();
+                      final total = state.total;
+                      final canPay = _canPay(context);
+                      final block =
+                          canPay ? paid.blockingProblem(total) : null;
+                      if (block != null) {
+                        AppAlerts.showErrorMessage(context, block);
+                        return;
+                      }
+                      final payment = canPay ? paid.inputFor(total) : null;
+                      final err = await cubit.confirmReceipt(payment: payment);
                       if (!context.mounted) return;
                       if (err != null) {
+                        if (payment != null) {
+                          paid.explain(cubit.lastErrorCode, err);
+                        }
                         AppAlerts.showErrorMessage(context, err);
                       } else {
-                        AppAlerts.showSuccessMessage(context, 'Goods received');
+                        final result = cubit.lastPayment;
+                        await paid.saved(paid: result != null, result: result);
+                        if (!context.mounted) return;
+                        AppAlerts.showSuccessMessage(
+                          context,
+                          receivedMessage(result, total),
+                        );
                         context.pop(true);
                       }
                     },

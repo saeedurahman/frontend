@@ -13,6 +13,10 @@ enum LedgerEntryType {
   openingBalance,
   adjustment,
   refund,
+  // A payment that was undone: a new row that references the original.
+  reversal,
+  // An explicit data fix posted by the owner's tools.
+  correction,
 }
 
 @freezed
@@ -21,13 +25,24 @@ abstract class CustomerLedgerEntryModel with _$CustomerLedgerEntryModel {
     required String id,
     @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'customer_id') required String customerId,
-    @JsonKey(name: 'entry_type') required LedgerEntryType entryType,
+    @JsonKey(name: 'entry_type', unknownEnumValue: LedgerEntryType.adjustment)
+    required LedgerEntryType entryType,
     required String amount,
     @JsonKey(name: 'reference_type') String? referenceType,
     @JsonKey(name: 'reference_id') String? referenceId,
     @JsonKey(name: 'entry_at') String? entryAt,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'branch_id') String? branchId,
+    @JsonKey(name: 'payment_source') String? paymentSource,
+    @JsonKey(name: 'reference_no') String? referenceNo,
+    @JsonKey(name: 'register_shift_id') String? registerShiftId,
+    @JsonKey(name: 'reversal_of_id') String? reversalOfId,
+    @JsonKey(name: 'reversed_by_id') String? reversedById,
+    @JsonKey(name: 'reversed_at') String? reversedAt,
+    @JsonKey(name: 'is_reversed') @Default(false) bool isReversed,
+    @JsonKey(name: 'is_reversal') @Default(false) bool isReversal,
+    @JsonKey(name: 'running_balance') String? runningBalance,
   }) = _CustomerLedgerEntryModel;
 
   factory CustomerLedgerEntryModel.fromJson(Map<String, dynamic> json) =>
@@ -35,8 +50,10 @@ abstract class CustomerLedgerEntryModel with _$CustomerLedgerEntryModel {
 
   static Map<String, dynamic> _normalizeJson(Map<String, dynamic> json) {
     final normalized = Map<String, dynamic>.from(json);
-    if (normalized['amount'] != null) {
-      normalized['amount'] = ApiJsonUtils.stringValue(normalized['amount']);
+    for (final key in ['amount', 'running_balance']) {
+      if (normalized[key] != null) {
+        normalized[key] = ApiJsonUtils.stringValue(normalized[key]);
+      }
     }
     return normalized;
   }

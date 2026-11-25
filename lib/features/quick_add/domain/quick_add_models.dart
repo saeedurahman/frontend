@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 
 import 'quick_add_flow.dart';
 import 'quick_add_row.dart';
@@ -151,6 +152,7 @@ class QuickAddRequest {
     required this.rows,
     this.supplierId,
     this.branchId,
+    this.payment,
   });
 
   final QuickAddMode mode;
@@ -158,11 +160,18 @@ class QuickAddRequest {
   final String? branchId;
   final List<QuickAddRow> rows;
 
+  /// "Paid now" (purchase mode only). Null leaves everything on credit.
+  final ReceiptPaymentInput? payment;
+
   Map<String, dynamic> toJson() => {
         'mode': mode.apiValue,
         'supplier_id': mode == QuickAddMode.purchase ? supplierId : null,
         if (branchId != null) 'branch_id': branchId,
         'lines': [for (final r in rows) quickAddLineJson(r)],
+        if (mode == QuickAddMode.purchase &&
+            payment != null &&
+            !payment!.isEmpty)
+          'payment': payment!.toJson(),
       };
 }
 
@@ -219,7 +228,11 @@ class QuickAddResponse {
     this.adjustmentId,
     this.quickAddId,
     this.replayed = false,
+    this.paymentResult,
   });
+
+  /// What the server booked for the "paid now" part (null when none).
+  final ReceiptPaymentResult? paymentResult;
 
   final int created;
   final int updated;
@@ -243,6 +256,8 @@ class QuickAddResponse {
         adjustmentId: j['adjustment_id']?.toString(),
         quickAddId: j['quick_add_id']?.toString(),
         replayed: replayed,
+        paymentResult:
+            ReceiptPaymentResult.fromResponse(j, totalKey: 'receipt_total'),
         lines: [
           for (final l in (j['lines'] as List? ?? const []))
             QuickAddLineResult.fromJson(Map<String, dynamic>.from(l as Map)),

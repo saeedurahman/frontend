@@ -1,6 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/domain/usecases/purchase_usecases.dart';
@@ -149,8 +152,24 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
     return errors.isEmpty;
   }
 
-  Future<String?> confirmReceipt() async {
+  /// What the server said about the "paid now" part of the last saved receipt.
+  ReceiptPaymentResult? lastPayment;
+
+  /// Server code of the last rejected save (for example `no_open_shift`).
+  String? lastErrorCode;
+
+  /// Saves the receipt. [payment] is the optional "paid now" part; leave it
+  /// out to keep everything on credit.
+  Future<String?> confirmReceipt({ReceiptPaymentInput? payment}) async {
+    lastPayment = null;
+    lastErrorCode = null;
     if (!validate()) return 'Validation failed';
+
+    final total = state.total;
+    if (payment != null && payment.amount > total) {
+      lastErrorCode = 'payment_exceeds_receipt_total';
+      return KhataText.paidMoreThanTotal;
+    }
 
     emit(state.copyWith(isSubmitting: true, errors: {}));
 
@@ -181,15 +200,23 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
           : state.supplierInvoiceNo.trim(),
       notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
       lines: receiptLines,
+      payment: payment,
     );
 
     final result = await _createReceipt(params);
     return result.fold(
       (failure) {
+        final code = failure is ServerFailure
+            ? failure.code
+            : failure is ConflictFailure
+                ? failure.code
+                : null;
+        lastErrorCode = code;
         emit(state.copyWith(isSubmitting: false));
-        return failure.message;
+        return KhataText.forCode(code) ?? failure.message;
       },
-      (_) {
+      (receipt) {
+        lastPayment = receipt.paymentResult;
         emit(state.copyWith(isSubmitting: false));
         return null;
       },

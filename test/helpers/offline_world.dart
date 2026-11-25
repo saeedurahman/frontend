@@ -26,6 +26,7 @@ import 'package:frantend/features/customers/domain/usecases/record_customer_paym
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/expenses/data/datasources/expenses_remote_datasource.dart';
 import 'package:frantend/features/inventory/data/datasources/inventory_remote_datasource.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
 import 'package:frantend/features/products/data/datasources/products_local_datasource.dart';
 import 'package:frantend/features/products/data/datasources/products_remote_datasource.dart';
@@ -50,6 +51,7 @@ import 'package:frantend/features/settings/data/repositories/settings_repository
 import 'package:frantend/features/settings/domain/usecases/settings_usecases.dart';
 
 import '../sync/sync_rig.dart';
+import 'khata_fakes.dart';
 
 /// The backend is completely unreachable: every HTTP request ends like a
 /// refused TCP connection, with the exact text Dio produces on Windows.
@@ -341,14 +343,20 @@ class OfflineWorld {
         unsyncedCustomerIds: rig.catalog.unsyncedCustomerIds,
       );
 
-  CustomerLedgerCubit ledgerCubit() => CustomerLedgerCubit(
+  /// [shiftId]: the cashier's open shift (null = no shift open).
+  CustomerLedgerCubit ledgerCubit({String? shiftId = 'local-shift'}) =>
+      CustomerLedgerCubit(
         getCustomerUseCase: customers_uc.GetCustomerUseCase(customers),
         getCustomerBalanceUseCase:
             customers_uc.GetCustomerBalanceUseCase(customers),
         getCustomerLedgerUseCase:
             customers_uc.GetCustomerLedgerUseCase(customers),
         recordCustomerPaymentUseCase: RecordCustomerPaymentUseCase(customers),
-        getMyActiveShiftUseCase: GetMyActiveShiftUseCase(cashRegister),
+        reverseCustomerPaymentUseCase:
+            customers_uc.ReverseCustomerPaymentUseCase(customers),
+        shiftGuard: FakeShiftGuard(shiftId: shiftId),
+        branchResolver: FakeBranchResolver('b1'),
+        khataEvents: KhataEvents(),
       );
 
   /// Lets best-effort background reads finish before the database closes.

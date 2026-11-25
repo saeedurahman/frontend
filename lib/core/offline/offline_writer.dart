@@ -346,6 +346,7 @@ class OfflineWriter {
     String? registerShiftId,
     String? referenceNo,
     String? notes,
+    String? branchId,
   }) async {
     final ledgerId = _ids.newId();
     final payload = <String, dynamic>{
@@ -353,6 +354,9 @@ class OfflineWriter {
       'customer_id': customerId,
       'amount': DecimalUtils.format(amount),
       'payment_method': paymentMethod,
+      // A payment with no branch is business-wide on the server, so the
+      // branch it was taken in always travels with it.
+      if (branchId != null && branchId.isNotEmpty) 'branch_id': branchId,
       if (registerShiftId != null) 'register_shift_id': registerShiftId,
       if (referenceNo != null && referenceNo.isNotEmpty) 'reference_no': referenceNo,
       if (notes != null && notes.isNotEmpty) 'notes': notes,

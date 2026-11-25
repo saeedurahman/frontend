@@ -30,6 +30,16 @@ Future<SummaryChoice?> showQuickAddSummary(BuildContext context, QuickAddSummary
                   textAlign: TextAlign.center,
                 ),
               ),
+            if (summary.paidNote != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  summary.paidNote!,
+                  key: const ValueKey('quick-add-paid-note'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
             if (summary.needAttention > 0)
               const Text(
                 'The items that need attention stay in your list, marked in red. '

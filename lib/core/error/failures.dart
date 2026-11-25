@@ -10,7 +10,13 @@ abstract class Failure extends Equatable {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure([super.message = 'Server error occurred']);
+  const ServerFailure([super.message = 'Server error occurred', this.code]);
+
+  /// Machine code of a `detail: {code, message}` body (e.g. `no_open_shift`).
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, code];
 }
 
 class CacheFailure extends Failure {
@@ -61,7 +67,15 @@ class RateLimitFailure extends Failure {
 
 /// HTTP 409.
 class ConflictFailure extends Failure {
-  const ConflictFailure([super.message = 'This record already exists']);
+  const ConflictFailure(
+    [super.message = 'This record already exists', this.code]
+  );
+
+  /// Machine code of a `detail: {code, message}` body.
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, code];
 }
 
 /// HTTP 404.

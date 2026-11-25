@@ -1,4 +1,5 @@
 import 'package:frantend/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
+import 'package:frantend/features/dashboard/data/models/khata_summary_model.dart';
 import 'package:frantend/features/dashboard/domain/entities/dashboard_data.dart';
 import 'package:frantend/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -25,6 +26,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       _remoteDataSource.getTopProducts(dateFrom: monthStart, dateTo: now),
       _remoteDataSource.getRecentTransactions(limit: 5),
       _remoteDataSource.getInventoryInsights(),
+      _khataOrNull(branchId),
     ]);
 
     return DashboardData(
@@ -34,6 +36,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
       topProducts: results[3],
       recentTransactions: results[4],
       inventoryInsights: results[5],
+      khata: results[6],
     );
+  }
+
+  /// The credit numbers are a bonus: the dashboard still opens without them.
+  Future<KhataSummaryModel?> _khataOrNull(String? branchId) async {
+    try {
+      return await _remoteDataSource.getKhataSummary(branchId: branchId);
+    } catch (_) {
+      return null;
+    }
   }
 }

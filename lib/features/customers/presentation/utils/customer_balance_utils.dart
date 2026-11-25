@@ -58,5 +58,7 @@ abstract final class CustomerBalanceUtils {
         LedgerEntryType.openingBalance => 'Opening Balance',
         LedgerEntryType.adjustment => 'Adjustment',
         LedgerEntryType.refund => 'Refund',
+        LedgerEntryType.reversal => 'Payment Reversed',
+        LedgerEntryType.correction => 'Correction',
       };
 }

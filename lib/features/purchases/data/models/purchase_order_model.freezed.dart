@@ -958,7 +958,9 @@ as String?,
 /// @nodoc
 mixin _$PurchaseReceiptModel {
 
- String get id;@JsonKey(name: 'branch_id') String get branchId;@JsonKey(name: 'supplier_id') String get supplierId;@JsonKey(name: 'purchase_order_id') String? get purchaseOrderId;@JsonKey(name: 'receipt_number') String get receiptNumber;@JsonKey(name: 'received_at') String get receivedAt;@JsonKey(name: 'supplier_invoice_no') String? get supplierInvoiceNo; String? get notes; List<PurchaseReceiptLineModel> get lines;
+ String get id;@JsonKey(name: 'branch_id') String get branchId;@JsonKey(name: 'supplier_id') String get supplierId;@JsonKey(name: 'purchase_order_id') String? get purchaseOrderId;@JsonKey(name: 'receipt_number') String get receiptNumber;@JsonKey(name: 'received_at') String get receivedAt;@JsonKey(name: 'supplier_invoice_no') String? get supplierInvoiceNo; String? get notes; List<PurchaseReceiptLineModel> get lines;/// Full receipt total (posted to the supplier account).
+@JsonKey(name: 'total_amount') String? get totalAmount;/// The payment made together with the receipt; null when all on credit.
+ Map<String, dynamic>? get payment;
 /// Create a copy of PurchaseReceiptModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -972,20 +974,20 @@ $PurchaseReceiptModelCopyWith<PurchaseReceiptModel> get copyWith => _$PurchaseRe
 @override
 bool operator ==(Object other) {
   final _this = this as PurchaseReceiptModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseReceiptModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.branchId, _this.branchId) || other.branchId == _this.branchId)&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.purchaseOrderId, _this.purchaseOrderId) || other.purchaseOrderId == _this.purchaseOrderId)&&(identical(other.receiptNumber, _this.receiptNumber) || other.receiptNumber == _this.receiptNumber)&&(identical(other.receivedAt, _this.receivedAt) || other.receivedAt == _this.receivedAt)&&(identical(other.supplierInvoiceNo, _this.supplierInvoiceNo) || other.supplierInvoiceNo == _this.supplierInvoiceNo)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&const DeepCollectionEquality().equals(other.lines, _this.lines));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PurchaseReceiptModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.branchId, _this.branchId) || other.branchId == _this.branchId)&&(identical(other.supplierId, _this.supplierId) || other.supplierId == _this.supplierId)&&(identical(other.purchaseOrderId, _this.purchaseOrderId) || other.purchaseOrderId == _this.purchaseOrderId)&&(identical(other.receiptNumber, _this.receiptNumber) || other.receiptNumber == _this.receiptNumber)&&(identical(other.receivedAt, _this.receivedAt) || other.receivedAt == _this.receivedAt)&&(identical(other.supplierInvoiceNo, _this.supplierInvoiceNo) || other.supplierInvoiceNo == _this.supplierInvoiceNo)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&const DeepCollectionEquality().equals(other.lines, _this.lines)&&(identical(other.totalAmount, _this.totalAmount) || other.totalAmount == _this.totalAmount)&&const DeepCollectionEquality().equals(other.payment, _this.payment));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PurchaseReceiptModel;
-  return Object.hash(runtimeType,_this.id,_this.branchId,_this.supplierId,_this.purchaseOrderId,_this.receiptNumber,_this.receivedAt,_this.supplierInvoiceNo,_this.notes,const DeepCollectionEquality().hash(_this.lines));
+  return Object.hash(runtimeType,_this.id,_this.branchId,_this.supplierId,_this.purchaseOrderId,_this.receiptNumber,_this.receivedAt,_this.supplierInvoiceNo,_this.notes,const DeepCollectionEquality().hash(_this.lines),_this.totalAmount,const DeepCollectionEquality().hash(_this.payment));
 }
 
 @override
 String toString() {
   final _this = this as PurchaseReceiptModel;
-  return 'PurchaseReceiptModel(id: ${_this.id}, branchId: ${_this.branchId}, supplierId: ${_this.supplierId}, purchaseOrderId: ${_this.purchaseOrderId}, receiptNumber: ${_this.receiptNumber}, receivedAt: ${_this.receivedAt}, supplierInvoiceNo: ${_this.supplierInvoiceNo}, notes: ${_this.notes}, lines: ${_this.lines})';
+  return 'PurchaseReceiptModel(id: ${_this.id}, branchId: ${_this.branchId}, supplierId: ${_this.supplierId}, purchaseOrderId: ${_this.purchaseOrderId}, receiptNumber: ${_this.receiptNumber}, receivedAt: ${_this.receivedAt}, supplierInvoiceNo: ${_this.supplierInvoiceNo}, notes: ${_this.notes}, lines: ${_this.lines}, totalAmount: ${_this.totalAmount}, payment: ${_this.payment})';
 }
 
 
@@ -996,7 +998,7 @@ abstract mixin class $PurchaseReceiptModelCopyWith<$Res>  {
   factory $PurchaseReceiptModelCopyWith(PurchaseReceiptModel value, $Res Function(PurchaseReceiptModel) _then) = _$PurchaseReceiptModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'branch_id') String branchId,@JsonKey(name: 'supplier_id') String supplierId,@JsonKey(name: 'purchase_order_id') String? purchaseOrderId,@JsonKey(name: 'receipt_number') String receiptNumber,@JsonKey(name: 'received_at') String receivedAt,@JsonKey(name: 'supplier_invoice_no') String? supplierInvoiceNo, String? notes, List<PurchaseReceiptLineModel> lines
+ String id,@JsonKey(name: 'branch_id') String branchId,@JsonKey(name: 'supplier_id') String supplierId,@JsonKey(name: 'purchase_order_id') String? purchaseOrderId,@JsonKey(name: 'receipt_number') String receiptNumber,@JsonKey(name: 'received_at') String receivedAt,@JsonKey(name: 'supplier_invoice_no') String? supplierInvoiceNo, String? notes, List<PurchaseReceiptLineModel> lines,@JsonKey(name: 'total_amount') String? totalAmount, Map<String, dynamic>? payment
 });
 
 
@@ -1013,7 +1015,7 @@ class _$PurchaseReceiptModelCopyWithImpl<$Res>
 
 /// Create a copy of PurchaseReceiptModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? branchId = null,Object? supplierId = null,Object? purchaseOrderId = freezed,Object? receiptNumber = null,Object? receivedAt = null,Object? supplierInvoiceNo = freezed,Object? notes = freezed,Object? lines = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? branchId = null,Object? supplierId = null,Object? purchaseOrderId = freezed,Object? receiptNumber = null,Object? receivedAt = null,Object? supplierInvoiceNo = freezed,Object? notes = freezed,Object? lines = null,Object? totalAmount = freezed,Object? payment = freezed,}) {
   return _then(PurchaseReceiptModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,branchId: null == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
@@ -1024,7 +1026,9 @@ as String,receivedAt: null == receivedAt ? _self.receivedAt : receivedAt // igno
 as String,supplierInvoiceNo: freezed == supplierInvoiceNo ? _self.supplierInvoiceNo : supplierInvoiceNo // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,lines: null == lines ? _self.lines : lines // ignore: cast_nullable_to_non_nullable
-as List<PurchaseReceiptLineModel>,
+as List<PurchaseReceiptLineModel>,totalAmount: freezed == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
+as String?,payment: freezed == payment ? _self.payment : payment // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -1109,10 +1113,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines, @JsonKey(name: 'total_amount')  String? totalAmount,  Map<String, dynamic>? payment)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PurchaseReceiptModel() when $default != null:
-return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines);case _:
+return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines,_that.totalAmount,_that.payment);case _:
   return orElse();
 
 }
@@ -1130,10 +1134,10 @@ return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines, @JsonKey(name: 'total_amount')  String? totalAmount,  Map<String, dynamic>? payment)  $default,) {final _that = this;
 switch (_that) {
 case _PurchaseReceiptModel():
-return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines);case _:
+return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines,_that.totalAmount,_that.payment);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1150,10 +1154,10 @@ return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'branch_id')  String branchId, @JsonKey(name: 'supplier_id')  String supplierId, @JsonKey(name: 'purchase_order_id')  String? purchaseOrderId, @JsonKey(name: 'receipt_number')  String receiptNumber, @JsonKey(name: 'received_at')  String receivedAt, @JsonKey(name: 'supplier_invoice_no')  String? supplierInvoiceNo,  String? notes,  List<PurchaseReceiptLineModel> lines, @JsonKey(name: 'total_amount')  String? totalAmount,  Map<String, dynamic>? payment)?  $default,) {final _that = this;
 switch (_that) {
 case _PurchaseReceiptModel() when $default != null:
-return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines);case _:
+return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_that.receiptNumber,_that.receivedAt,_that.supplierInvoiceNo,_that.notes,_that.lines,_that.totalAmount,_that.payment);case _:
   return null;
 
 }
@@ -1165,7 +1169,7 @@ return $default(_that.id,_that.branchId,_that.supplierId,_that.purchaseOrderId,_
 @JsonSerializable()
 
 class _PurchaseReceiptModel implements PurchaseReceiptModel {
-  const _PurchaseReceiptModel({required this.id, @JsonKey(name: 'branch_id') required this.branchId, @JsonKey(name: 'supplier_id') required this.supplierId, @JsonKey(name: 'purchase_order_id') this.purchaseOrderId, @JsonKey(name: 'receipt_number') required this.receiptNumber, @JsonKey(name: 'received_at') required this.receivedAt, @JsonKey(name: 'supplier_invoice_no') this.supplierInvoiceNo, this.notes,  List<PurchaseReceiptLineModel> lines = const []}): _lines = lines;
+  const _PurchaseReceiptModel({required this.id, @JsonKey(name: 'branch_id') required this.branchId, @JsonKey(name: 'supplier_id') required this.supplierId, @JsonKey(name: 'purchase_order_id') this.purchaseOrderId, @JsonKey(name: 'receipt_number') required this.receiptNumber, @JsonKey(name: 'received_at') required this.receivedAt, @JsonKey(name: 'supplier_invoice_no') this.supplierInvoiceNo, this.notes,  List<PurchaseReceiptLineModel> lines = const [], @JsonKey(name: 'total_amount') this.totalAmount,  Map<String, dynamic>? payment}): _lines = lines,_payment = payment;
   factory _PurchaseReceiptModel.fromJson(Map<String, dynamic> json) => _$PurchaseReceiptModelFromJson(json);
 
 @override final  String id;
@@ -1183,6 +1187,19 @@ class _PurchaseReceiptModel implements PurchaseReceiptModel {
   return EqualUnmodifiableListView(_lines);
 }
 
+/// Full receipt total (posted to the supplier account).
+@override@JsonKey(name: 'total_amount') final  String? totalAmount;
+/// The payment made together with the receipt; null when all on credit.
+ final  Map<String, dynamic>? _payment;
+/// The payment made together with the receipt; null when all on credit.
+@override Map<String, dynamic>? get payment {
+  final value = _payment;
+  if (value == null) return null;
+  if (_payment is EqualUnmodifiableMapView) return _payment;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of PurchaseReceiptModel
 /// with the given fields replaced by the non-null parameter values.
@@ -1197,18 +1214,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PurchaseReceiptModel&&(identical(other.id, id) || other.id == id)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.purchaseOrderId, purchaseOrderId) || other.purchaseOrderId == purchaseOrderId)&&(identical(other.receiptNumber, receiptNumber) || other.receiptNumber == receiptNumber)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.supplierInvoiceNo, supplierInvoiceNo) || other.supplierInvoiceNo == supplierInvoiceNo)&&(identical(other.notes, notes) || other.notes == notes)&&const DeepCollectionEquality().equals(other.lines, _lines));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PurchaseReceiptModel&&(identical(other.id, id) || other.id == id)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.purchaseOrderId, purchaseOrderId) || other.purchaseOrderId == purchaseOrderId)&&(identical(other.receiptNumber, receiptNumber) || other.receiptNumber == receiptNumber)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.supplierInvoiceNo, supplierInvoiceNo) || other.supplierInvoiceNo == supplierInvoiceNo)&&(identical(other.notes, notes) || other.notes == notes)&&const DeepCollectionEquality().equals(other.lines, _lines)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&const DeepCollectionEquality().equals(other.payment, _payment));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,branchId,supplierId,purchaseOrderId,receiptNumber,receivedAt,supplierInvoiceNo,notes,const DeepCollectionEquality().hash(_lines));
+    return Object.hash(runtimeType,id,branchId,supplierId,purchaseOrderId,receiptNumber,receivedAt,supplierInvoiceNo,notes,const DeepCollectionEquality().hash(_lines),totalAmount,const DeepCollectionEquality().hash(_payment));
 }
 
 @override
 String toString() {
-    return 'PurchaseReceiptModel(id: $id, branchId: $branchId, supplierId: $supplierId, purchaseOrderId: $purchaseOrderId, receiptNumber: $receiptNumber, receivedAt: $receivedAt, supplierInvoiceNo: $supplierInvoiceNo, notes: $notes, lines: $lines)';
+    return 'PurchaseReceiptModel(id: $id, branchId: $branchId, supplierId: $supplierId, purchaseOrderId: $purchaseOrderId, receiptNumber: $receiptNumber, receivedAt: $receivedAt, supplierInvoiceNo: $supplierInvoiceNo, notes: $notes, lines: $lines, totalAmount: $totalAmount, payment: $payment)';
 }
 
 
@@ -1219,7 +1236,7 @@ abstract mixin class _$PurchaseReceiptModelCopyWith<$Res> implements $PurchaseRe
   factory _$PurchaseReceiptModelCopyWith(_PurchaseReceiptModel value, $Res Function(_PurchaseReceiptModel) _then) = __$PurchaseReceiptModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'branch_id') String branchId,@JsonKey(name: 'supplier_id') String supplierId,@JsonKey(name: 'purchase_order_id') String? purchaseOrderId,@JsonKey(name: 'receipt_number') String receiptNumber,@JsonKey(name: 'received_at') String receivedAt,@JsonKey(name: 'supplier_invoice_no') String? supplierInvoiceNo, String? notes, List<PurchaseReceiptLineModel> lines
+ String id,@JsonKey(name: 'branch_id') String branchId,@JsonKey(name: 'supplier_id') String supplierId,@JsonKey(name: 'purchase_order_id') String? purchaseOrderId,@JsonKey(name: 'receipt_number') String receiptNumber,@JsonKey(name: 'received_at') String receivedAt,@JsonKey(name: 'supplier_invoice_no') String? supplierInvoiceNo, String? notes, List<PurchaseReceiptLineModel> lines,@JsonKey(name: 'total_amount') String? totalAmount, Map<String, dynamic>? payment
 });
 
 
@@ -1236,7 +1253,7 @@ class __$PurchaseReceiptModelCopyWithImpl<$Res>
 
 /// Create a copy of PurchaseReceiptModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? branchId = null,Object? supplierId = null,Object? purchaseOrderId = freezed,Object? receiptNumber = null,Object? receivedAt = null,Object? supplierInvoiceNo = freezed,Object? notes = freezed,Object? lines = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? branchId = null,Object? supplierId = null,Object? purchaseOrderId = freezed,Object? receiptNumber = null,Object? receivedAt = null,Object? supplierInvoiceNo = freezed,Object? notes = freezed,Object? lines = null,Object? totalAmount = freezed,Object? payment = freezed,}) {
   return _then(_PurchaseReceiptModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,branchId: null == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
@@ -1247,7 +1264,9 @@ as String,receivedAt: null == receivedAt ? _self.receivedAt : receivedAt // igno
 as String,supplierInvoiceNo: freezed == supplierInvoiceNo ? _self.supplierInvoiceNo : supplierInvoiceNo // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,lines: null == lines ? _self._lines : lines // ignore: cast_nullable_to_non_nullable
-as List<PurchaseReceiptLineModel>,
+as List<PurchaseReceiptLineModel>,totalAmount: freezed == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
+as String?,payment: freezed == payment ? _self._payment : payment // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 

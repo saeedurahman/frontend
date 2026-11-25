@@ -54,6 +54,7 @@ class QuickAddSummary extends Equatable {
     required this.updated,
     required this.needAttention,
     this.replayed = false,
+    this.paidNote,
   });
 
   final int token;
@@ -61,6 +62,9 @@ class QuickAddSummary extends Equatable {
   final int updated;
   final int needAttention;
   final bool replayed;
+
+  /// "Paid Rs 400 now, Rs 600 on credit" when money was paid with the list.
+  final String? paidNote;
 
   int get saved => created + updated;
 
@@ -75,7 +79,8 @@ class QuickAddSummary extends Equatable {
   }
 
   @override
-  List<Object?> get props => [token, created, updated, needAttention, replayed];
+  List<Object?> get props =>
+      [token, created, updated, needAttention, replayed, paidNote];
 }
 
 class QuickAddState extends Equatable {

@@ -109,6 +109,13 @@ abstract final class ApiConstants {
   static const String suppliers = '/suppliers';
   static String supplierBalance(String supplierId) =>
       '/supplier-ledger/$supplierId/balance';
+  static String supplierLedger(String supplierId) =>
+      '/supplier-ledger/$supplierId';
+  static const String supplierPayments = '/suppliers/payments';
+  static String supplierPaymentReverse(String paymentId) =>
+      '/suppliers/payments/$paymentId/reverse';
+  static String customerPaymentReverse(String paymentId) =>
+      '/customers/payments/$paymentId/reverse';
 
   // Purchases
   static const String purchaseOrders = '/purchases/orders';
@@ -141,7 +148,8 @@ abstract final class ApiConstants {
 
   // Analytics dashboard
   static const String analyticsDashboard = '/analytics/dashboard';
-  static const String analyticsSalesTrend = '/analytics/sales-trend';
+  static const String analyticsKhataSummary = '/analytics/khata-summary';
+  static const String analyticsSalesTrend ='/analytics/sales-trend';
   static const String analyticsPaymentBreakdown = '/analytics/payment-breakdown';
   static const String analyticsTopProducts = '/analytics/top-products';
   static const String analyticsRecentTransactions = '/analytics/recent-transactions';

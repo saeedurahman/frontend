@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/customers/data/models/customer_balance_model.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
@@ -32,6 +33,13 @@ abstract class CustomersRemoteDataSource {
     String customerId,
     Map<String, dynamic> body,
   );
+
+  /// Undoes a customer payment: a new row is added, the original stays.
+  Future<PaymentReversalResult> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  });
 }
 
 @LazySingleton(as: CustomersRemoteDataSource)
@@ -122,6 +130,22 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
       data: body,
     );
     return CustomerPaymentResponseModel.fromJson(response.data ?? const {});
+  }
+
+  @override
+  Future<PaymentReversalResult> reversePayment(
+    String paymentId,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.customerPaymentReverse(paymentId),
+      data: body,
+      options: idempotencyKey == null
+          ? null
+          : Options(headers: {'Idempotency-Key': idempotencyKey}),
+    );
+    return PaymentReversalResult.fromJson(response.data ?? const {});
   }
 
   List<T> _toModelList<T>(
