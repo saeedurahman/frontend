@@ -69,6 +69,26 @@ abstract final class KhataText {
   static const noEntriesInRange = 'Nothing in these dates';
   static const clearDates = 'Clear dates';
   static const runningBalance = 'Balance';
+  static const whatHappened = 'What happened';
+  static const paidFrom = 'Paid from';
+  static const expenseOnCredit = 'Expense on credit';
+
+  // Balance column: words instead of a minus sign.
+  static String balanceWeOwe(String amount) => '$amount we owe';
+  static String balanceTheyOwe(String amount) => '$amount they owe';
+  static String balanceAdvance(String amount) => '$amount advance';
+  static const balanceSettled = 'Settled';
+
+  // Amount column: what the number was.
+  static const amountGoods = 'Goods';
+  static const amountExpense = 'Expense';
+  static const amountSale = 'Sale';
+  static const amountPaid = 'Paid';
+  static const amountReceived = 'Received';
+  static const amountReversed = 'Reversed';
+  static const amountReturned = 'Returned';
+  static const amountAdded = 'Added';
+  static const amountReduced = 'Reduced';
   static const offlineLedger =
       'The account list needs the internet. Connect and try again.';
 
@@ -86,6 +106,10 @@ abstract final class KhataText {
       'Open a shift first, then reverse it.';
   static const alreadyReversed = 'This payment was already reversed.';
   static const notAPayment = 'Only payments can be reversed.';
+
+  // Lines saved on this device and not on the server yet
+  static const waitingToSyncTag = 'Waiting to sync';
+  static const syncNeedsAttentionTag = 'Needs attention';
 
   // Customer cash payment
   static const customerCashNeedsShiftTitle = 'Open shift first';

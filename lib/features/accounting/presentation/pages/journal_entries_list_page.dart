@@ -249,6 +249,7 @@ class _EntriesTable extends StatelessWidget {
       items: entries,
       itemId: (entry) => entry.id,
       itemLabel: 'entries',
+      resetToken: context.read<JournalEntriesListCubit>().newestCreatedId,
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
       onRowTap: (entry) => _openEntry(context, entry.id),

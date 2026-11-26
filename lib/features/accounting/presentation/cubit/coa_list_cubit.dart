@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/accounting/data/models/chart_of_account_model.dart';
 import 'package:frantend/features/accounting/domain/usecases/accounting_usecases.dart';
 import 'package:frantend/features/accounting/domain/utils/coa_tree_utils.dart';
@@ -8,7 +10,8 @@ import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
-class CoaListCubit extends Cubit<CoaListState> {
+class CoaListCubit extends Cubit<CoaListState>
+    with AutoRefresh<CoaListState> {
   CoaListCubit({
     required ListChartOfAccountsUseCase listChartOfAccountsUseCase,
     required DeleteChartOfAccountUseCase deleteChartOfAccountUseCase,
@@ -16,7 +19,9 @@ class CoaListCubit extends Cubit<CoaListState> {
   })  : _listCoa = listChartOfAccountsUseCase,
         _deleteCoa = deleteChartOfAccountUseCase,
         _authLocal = authLocalDataSource,
-        super(const CoaListState.initial());
+        super(const CoaListState.initial()) {
+    watchData({DataTopic.accounting}, _readQuietly);
+  }
 
   final ListChartOfAccountsUseCase _listCoa;
   final DeleteChartOfAccountUseCase _deleteCoa;
@@ -37,8 +42,16 @@ class CoaListCubit extends Cubit<CoaListState> {
     await load();
   }
 
-  Future<void> load() async {
-    emit(const CoaListState.loading());
+  Future<void> load() => _read(quiet: false);
+
+  /// Reads the tree again behind the rows on screen.
+  Future<void> _readQuietly() async {
+    if (state is CoaListLoaded) await _read(quiet: true);
+  }
+
+  Future<void> _read({required bool quiet}) async {
+    final read = beginRead();
+    if (!quiet) emit(const CoaListState.loading());
 
     final user = await _authLocal.getCachedUser();
     final canManage = UserRoleUtils.canManageCoa(
@@ -50,8 +63,11 @@ class CoaListCubit extends Cubit<CoaListState> {
       activeOnly: _activeOnlyFilter,
       tree: true,
     );
+    if (isStale(read)) return;
     result.fold(
-      (failure) => emit(CoaListState.error(failure.message)),
+      (failure) {
+        if (!quiet) emit(CoaListState.error(failure.message));
+      },
       (roots) => emit(
         CoaListState.loaded(
           treeRoots: roots,
@@ -71,18 +87,22 @@ class CoaListCubit extends Cubit<CoaListState> {
 
     return flat.where((node) {
       final account = node.account;
-      return account.accountCode.toLowerCase().contains(query) ||
+      // A new account stays in sight until the search is changed.
+      return isNewlyCreated(account.id) ||
+          account.accountCode.toLowerCase().contains(query) ||
           account.accountName.toLowerCase().contains(query);
     }).toList();
   }
 
   Future<void> setActiveOnlyFilter(bool value) async {
     _activeOnlyFilter = value;
+    forgetCreated();
     await load();
   }
 
   void setSearchQuery(String value) {
     _searchQuery = value;
+    forgetCreated();
     final current = state;
     if (current is CoaListLoaded) {
       emit(
@@ -99,11 +119,12 @@ class CoaListCubit extends Cubit<CoaListState> {
     return result.fold(
       (failure) => failure.message,
       (_) {
-        load();
+        refresh();
         return null;
       },
     );
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() =>
+      state is CoaListLoaded ? _read(quiet: true) : load();
 }

@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/connectivity/connectivity_probe.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/sync/sync_engine.dart';
@@ -103,16 +105,67 @@ class PriceListsState {
 }
 
 @injectable
-class PriceListsCubit extends Cubit<PriceListsState> {
+class PriceListsCubit extends Cubit<PriceListsState>
+    with AutoRefresh<PriceListsState> {
   PriceListsCubit({
     required ProductsRepository productsRepository,
     ConnectivityProbe? connectivityProbe,
   })  : _repository = productsRepository,
         _connectivity = connectivityProbe ?? (sl.isRegistered<ConnectivityProbe>() ? sl<ConnectivityProbe>() : null),
-        super(const PriceListsState());
+        super(const PriceListsState()) {
+    watchData(const {DataTopic.priceLists}, _reload);
+  }
 
   final ProductsRepository _repository;
   final ConnectivityProbe? _connectivity;
+
+  /// Item reads have their own counter: reading the lists does not make an
+  /// item page in flight out of date.
+  int _itemsRead = 0;
+  bool _opened = false;
+
+  /// A quiet re-read after a change: same list, search and page, no spinners,
+  /// and nothing on screen is lost when it fails.
+  Future<void> _reload() async {
+    if (!_opened) return;
+    final read = beginRead();
+    final result = await _repository.getPriceLists();
+    if (isStale(read)) return;
+    final lists = result.fold((_) => null, (l) => l);
+    if (lists == null) return;
+    var selected = state.selectedListId;
+    if (selected == null || !lists.any((l) => l.id == selected)) {
+      selected = lists.isEmpty ? null : lists.first.id;
+    }
+    emit(state.copyWith(
+      isLoadingLists: false,
+      priceLists: lists,
+      selectedListId: selected,
+      clearSelectedList: selected == null,
+      clearListsError: true,
+    ));
+    if (selected == null) return;
+
+    final itemsRead = ++_itemsRead;
+    final items = await _repository.getPriceListItems(
+      selected,
+      search: state.searchQuery,
+      skip: state.skip,
+      limit: state.limit,
+    );
+    if (isClosed || itemsRead != _itemsRead) return;
+    items.fold(
+      (_) => emit(state.copyWith(isLoadingItems: false)),
+      (paged) => emit(state.copyWith(
+        isLoadingItems: false,
+        items: paged.items,
+        totalItems: paged.total,
+        skip: paged.skip,
+        limit: paged.limit,
+        clearItemsError: true,
+      )),
+    );
+  }
 
   Future<bool> _checkOnline() async {
     if (_connectivity != null) {
@@ -149,9 +202,12 @@ class PriceListsCubit extends Cubit<PriceListsState> {
 
   Future<void> loadPriceLists({String? preferredSelectedId}) async {
     emit(state.copyWith(isLoadingLists: true, clearError: true, clearListsError: true));
+    _opened = true;
+    final read = beginRead();
     await _checkOnline();
 
     final result = await _repository.getPriceLists();
+    if (isStale(read)) return;
     result.fold(
       (failure) {
         emit(state.copyWith(
@@ -213,12 +269,14 @@ class PriceListsCubit extends Cubit<PriceListsState> {
       clearItemsError: true,
     ));
 
+    final itemsRead = ++_itemsRead;
     final result = await _repository.getPriceListItems(
       targetId,
       search: s,
       skip: sk,
       limit: lim,
     );
+    if (isClosed || itemsRead != _itemsRead) return;
 
     result.fold(
       (failure) {

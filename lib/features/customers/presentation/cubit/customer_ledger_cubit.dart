@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/session/active_branch_resolver.dart';
@@ -10,6 +12,7 @@ import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
+import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/record_customer_payment_usecase.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
@@ -21,8 +24,12 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/shared/widgets/tables/client_table_pagination.dart';
 import 'package:injectable/injectable.dart';
 
+/// What the last re-read of the ledger found.
+enum _Reread { fresh, offline, failed }
+
 @injectable
-class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
+class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
+    with AutoRefresh<CustomerLedgerState> {
   CustomerLedgerCubit({
     required GetCustomerUseCase getCustomerUseCase,
     required GetCustomerBalanceUseCase getCustomerBalanceUseCase,
@@ -40,7 +47,12 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         _shifts = shiftGuard,
         _branchResolver = branchResolver,
         _events = khataEvents,
-        super(const CustomerLedgerState.initial());
+        super(const CustomerLedgerState.initial()) {
+    watchData(
+      const {DataTopic.customerLedger, DataTopic.customers},
+      _onDataChanged,
+    );
+  }
 
   static const _defaultPageSize = 10;
   static const _fetchSize = 50;
@@ -63,6 +75,9 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
 
   String? _customerId;
   String? _branchId;
+
+  /// The branch whose rows and balance are on screen (null: all branches).
+  String? get branchId => _branchId;
   List<CustomerLedgerEntryModel> _allEntries = [];
 
   /// The ledger lines live on the server only. True while they could not be
@@ -200,15 +215,21 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     _allEntries = [];
     _pageSize = _defaultPageSize;
     ledgerNeedsConnection = false;
+    final read = beginRead();
     emit(const CustomerLedgerState.loading());
 
     final customerResult = await _getCustomer(customerId);
+    if (isStale(read)) return;
     await customerResult.fold(
       (failure) async => emit(CustomerLedgerState.error(failure.message)),
       (customer) async {
         final balanceResult = await _getBalance(customerId, branchId: _branchId);
         final ledgerResult =
             await _getLedger(customerId, branchId: _branchId, skip: 0, limit: _fetchSize);
+        final waiting = ledgerResult.isLeft()
+            ? await _getLedger.pending(customerId, branchId: _branchId)
+            : const <CustomerLedgerEntryModel>[];
+        if (isStale(read)) return;
 
         balanceResult.fold(
           (failure) => emit(CustomerLedgerState.error(failure.message)),
@@ -219,13 +240,15 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
                   emit(CustomerLedgerState.error(failure.message));
                   return;
                 }
-                // Offline: customer and balance are known on this device.
+                // Offline: the customer, the balance and the lines still
+                // waiting to be sent are known on this device.
                 ledgerNeedsConnection = true;
+                _allEntries = _runningUpTo(waiting, balance.balance);
                 emit(
                   CustomerLedgerState.loaded(
                     customer: customer,
                     balance: balance.balance,
-                    entries: const [],
+                    entries: _computeDisplayRows(_allEntries),
                     hasMore: false,
                     currentPage: 1,
                     pageSize: _pageSize,
@@ -238,9 +261,11 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
                 emit(
                   CustomerLedgerState.loaded(
                     customer: customer,
-                    balance: balance.balance,
+                    // The card shows what the newest line says, so the two
+                    // can never disagree.
+                    balance: _newestBalance(page) ?? balance.balance,
                     entries: _computeDisplayRows(_allEntries),
-                    hasMore: page.length >= _fetchSize,
+                    hasMore: _serverLines(page) >= _fetchSize,
                     currentPage: 1,
                     pageSize: _pageSize,
                   ),
@@ -251,6 +276,149 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         );
       },
     );
+  }
+
+  Future<void> _onDataChanged() async {
+    final id = _customerId;
+    if (id == null) return;
+    switch (state) {
+      case CustomerLedgerLoaded():
+        await _reload();
+      case CustomerLedgerLoading() || CustomerLedgerError():
+        await load(id, branchId: _branchId);
+      case CustomerLedgerInitial():
+        break;
+    }
+  }
+
+  /// Re-reads the customer, the lines and the balance together, without a
+  /// spinner. The lines already on screen stay when the server cannot be read.
+  ///
+  /// The balance is the newest line's; [knownBalance] (the answer to a write
+  /// just made) is next, then the balance read, then [backupBalance].
+  Future<_Reread> _reload({String? knownBalance, String? backupBalance}) async {
+    final id = _customerId;
+    if (id == null || state is! CustomerLedgerLoaded) return _Reread.failed;
+    final read = beginRead();
+    final wanted = _serverLines(_allEntries);
+
+    final rows = <CustomerLedgerEntryModel>[];
+    var hasMore = false;
+    Failure? failure;
+    do {
+      final result = await _getLedger(
+        id,
+        branchId: _branchId,
+        skip: _serverLines(rows),
+        limit: _fetchSize,
+      );
+      result.fold(
+        (f) => failure = f,
+        (page) {
+          rows.addAll(page);
+          hasMore = _serverLines(page) >= _fetchSize;
+        },
+      );
+    } while (failure == null && hasMore && _serverLines(rows) < wanted);
+
+    if (failure != null) {
+      if (failure is! NetworkFailure) return _Reread.failed;
+      await _showDeviceLines(id, read, fallback: knownBalance);
+      return _Reread.offline;
+    }
+
+    var balance = _newestBalance(rows) ?? knownBalance;
+    if (balance == null) {
+      final fetched = await _getBalance(id, branchId: _branchId);
+      balance = fetched.fold((_) => backupBalance, (b) => b.balance);
+    }
+    final customer = await _getCustomer(id);
+    final latest = state;
+    if (isStale(read) || latest is! CustomerLedgerLoaded) return _Reread.fresh;
+
+    ledgerNeedsConnection = false;
+    _allEntries = rows;
+    _emitLines(
+      latest.copyWith(
+        customer: customer.fold((_) => latest.customer, (c) => c),
+        balance: balance ?? latest.balance,
+        hasMore: hasMore,
+        isLoadingMore: false,
+      ),
+    );
+    return _Reread.fresh;
+  }
+
+  /// The server cannot be read: keep its lines already loaded and put what
+  /// this device has not sent yet on top of them.
+  Future<void> _showDeviceLines(
+    String id,
+    int read, {
+    String? fallback,
+  }) async {
+    ledgerNeedsConnection = true;
+    final waiting = await _getLedger.pending(id, branchId: _branchId);
+    final server = [
+      for (final e in _allEntries)
+        if (!e.isOnDeviceOnly) e,
+    ];
+    String? balance;
+    final base = _newestBalance(
+      _computeDisplayRows(server).map((r) => r.entry).toList(),
+    );
+    if (base != null) {
+      var total = CustomerBalanceUtils.parseBalance(base);
+      for (final e in waiting) {
+        total += CustomerBalanceUtils.parseBalance(e.amount);
+      }
+      balance = DecimalUtils.format(total);
+    } else {
+      final fetched = await _getBalance(id, branchId: _branchId);
+      balance = fetched.fold((_) => fallback, (b) => b.balance);
+    }
+    final latest = state;
+    if (isStale(read) || latest is! CustomerLedgerLoaded) return;
+    final shown = balance ?? latest.balance;
+    _allEntries = [...server, ..._runningUpTo(waiting, shown)];
+    _emitLines(latest.copyWith(balance: shown, isLoadingMore: false));
+  }
+
+  /// Emits [next] with the lines in [_allEntries]. A new line at the top
+  /// brings the table back to its first page.
+  void _emitLines(CustomerLedgerLoaded next) {
+    final rows = _computeDisplayRows(_allEntries);
+    final newTop = rows.isNotEmpty &&
+        !next.entries.any((r) => r.entry.id == rows.first.entry.id);
+    final shown = next.copyWith(entries: rows);
+    emit(
+      shown.copyWith(
+        currentPage:
+            newTop ? 1 : shown.currentPage.clamp(1, totalPages(shown)),
+      ),
+    );
+  }
+
+  static int _serverLines(List<CustomerLedgerEntryModel> rows) =>
+      rows.where((e) => !e.isOnDeviceOnly).length;
+
+  /// The balance after the newest line (lines arrive newest first).
+  static String? _newestBalance(List<CustomerLedgerEntryModel> rows) {
+    final value = rows.isEmpty ? null : rows.first.runningBalance;
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  /// [lines] (oldest first) with running balances that end at [balance].
+  static List<CustomerLedgerEntryModel> _runningUpTo(
+    List<CustomerLedgerEntryModel> lines,
+    String balance,
+  ) {
+    var running = CustomerBalanceUtils.parseBalance(balance);
+    final result = <CustomerLedgerEntryModel>[];
+    for (final line in lines.reversed) {
+      result.add(line.copyWith(runningBalance: DecimalUtils.format(running)));
+      running -= CustomerBalanceUtils.parseBalance(line.amount);
+    }
+    return result;
   }
 
   Future<void> onBranchChanged(String? branchId) async {
@@ -324,47 +492,50 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
       },
       (response) async {
         _events.notifyChanged();
+        // Saved: the new line and balance show at once, before any server
+        // read.
+        await _showSavedPayment(response);
         // The payment is saved. Re-reading the ledger is a courtesy: when
-        // the server cannot be reached the lines on screen stay as they are
-        // and no error is shown for a payment that succeeded.
-        final ledgerResult =
-            await _getLedger(_customerId!, branchId: _branchId, skip: 0, limit: _fetchSize);
-
-        ledgerResult.fold(
-          (failure) {
-            final offline = failure is NetworkFailure;
-            lastPaymentSavedOffline = offline;
-            if (offline) ledgerNeedsConnection = true;
-            emit(
-              current.copyWith(
-                balance: response.newBalance,
-                isRecordingPayment: false,
-                paymentError: null,
-                activePaymentShiftId: registerShiftId,
-              ),
-            );
-          },
-          (page) {
-            lastPaymentSavedOffline = false;
-            ledgerNeedsConnection = false;
-            _allEntries = page;
-            emit(
-              current.copyWith(
-                balance: response.newBalance,
-                entries: _computeDisplayRows(_allEntries),
-                hasMore: page.length >= _fetchSize,
-                isRecordingPayment: false,
-                paymentError: null,
-                activePaymentShiftId: registerShiftId,
-                currentPage: 1,
-                pageSize: _pageSize,
-              ),
-            );
-          },
+        // the server cannot be reached the lines on screen stay and no error
+        // is shown for a payment that succeeded.
+        final outcome = await _reload(
+          knownBalance: response.newBalance,
         );
-        return response;
+        lastPaymentSavedOffline = outcome == _Reread.offline;
+        final latest = state;
+        if (latest is! CustomerLedgerLoaded) return response;
+        emit(
+          latest.copyWith(
+            isRecordingPayment: false,
+            paymentError: null,
+            activePaymentShiftId: registerShiftId,
+          ),
+        );
+        return response.copyWith(newBalance: latest.balance);
       },
     );
+  }
+
+  /// Puts a payment just saved on this device on top of the ledger, with the
+  /// balance it leads to. Does nothing when the line is already there (or the
+  /// payment went straight to the server).
+  Future<void> _showSavedPayment(CustomerPaymentResponseModel response) async {
+    final waiting =
+        await _getLedger.pending(_customerId!, branchId: _branchId);
+    final latest = state;
+    if (latest is! CustomerLedgerLoaded) return;
+    final id = response.ledgerEntryId;
+    if (_allEntries.any((e) => e.id == id)) return;
+    for (final line in waiting) {
+      if (line.id != id) continue;
+      final balance = DecimalUtils.format(
+        CustomerBalanceUtils.parseBalance(latest.balance) +
+            CustomerBalanceUtils.parseBalance(line.amount),
+      );
+      _allEntries = [..._allEntries, line.copyWith(runningBalance: balance)];
+      _emitLines(latest.copyWith(balance: balance));
+      return;
+    }
   }
 
   /// Reverses a customer payment. Returns null on success, else plain words for
@@ -402,33 +573,11 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         _reverseKey = null;
         _reverseFingerprint = null;
         _events.notifyChanged();
-        unawaited(_refreshQuietly(done.balance.toString()));
+        // The reversal row and the new balance appear in place.
+        unawaited(_reload(backupBalance: done.balance.toString()));
         return null;
       },
     );
-  }
-
-  /// Re-reads the rows after a reversal without a spinner: the reversal row and
-  /// the new balance appear in place.
-  Future<void> _refreshQuietly(String balanceAfter) async {
-    final id = _customerId;
-    if (id == null) return;
-    final ledger =
-        await _getLedger(id, branchId: _branchId, skip: 0, limit: _fetchSize);
-    final balance = await _getBalance(id, branchId: _branchId);
-    final current = state;
-    if (current is! CustomerLedgerLoaded || isClosed) return;
-    ledger.fold((_) {}, (page) {
-      _allEntries = page;
-      emit(
-        current.copyWith(
-          balance: balance.fold((_) => balanceAfter, (b) => b.balance),
-          entries: _computeDisplayRows(_allEntries),
-          hasMore: page.length >= _fetchSize,
-          currentPage: 1,
-        ),
-      );
-    });
   }
 
   Future<void> loadMore() async {
@@ -456,7 +605,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
     final result = await _getLedger(
       _customerId!,
       branchId: _branchId,
-      skip: _allEntries.length,
+      skip: _serverLines(_allEntries),
       limit: _fetchSize,
     );
 
@@ -466,9 +615,16 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
         emit(CustomerLedgerState.error(failure.message));
       },
       (page) {
-        _allEntries = [..._allEntries, ...page];
+        final known = {for (final e in _allEntries) e.id};
+        _allEntries = [
+          ..._allEntries,
+          for (final e in page)
+            if (!known.contains(e.id)) e,
+        ];
+        final latest = state;
+        if (latest is! CustomerLedgerLoaded) return;
         emit(
-          current.copyWith(
+          latest.copyWith(
             entries: _computeDisplayRows(_allEntries),
             isLoadingMore: false,
             hasMore: page.length >= _fetchSize,
@@ -483,6 +639,10 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState> {
   ) {
     final sorted = [...entries];
     sorted.sort((a, b) {
+      // Lines not on the server yet come on top of everything it has.
+      if (a.isOnDeviceOnly != b.isOnDeviceOnly) {
+        return a.isOnDeviceOnly ? 1 : -1;
+      }
       final aAt = a.entryAt ?? a.createdAt ?? '';
       final bAt = b.entryAt ?? b.createdAt ?? '';
       return aAt.compareTo(bAt);

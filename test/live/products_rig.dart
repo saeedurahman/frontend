@@ -96,6 +96,7 @@ class ProductsRig {
       deleteProductUseCase: DeleteProductUseCase(repo),
       updateProductUseCase: UpdateProductUseCase(repo),
       getProductByBarcodeUseCase: GetProductByBarcodeUseCase(repo),
+      getProductByIdUseCase: GetProductByIdUseCase(repo),
     );
   }
 

@@ -562,7 +562,6 @@ void main() {
         updateSupplierUseCase: UpdateSupplierUseCase(repo),
         deleteSupplierUseCase: DeleteSupplierUseCase(repo),
         createSupplierUseCase: CreateSupplierUseCase(repo),
-        khataEvents: KhataEvents(),
       );
 
       await cubit.load();

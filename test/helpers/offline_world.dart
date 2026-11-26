@@ -216,6 +216,7 @@ class OfflineWorld {
       remoteDataSource: ReturnsRemoteDataSourceImpl(client),
       errorHandler: errors,
       writer: this.rig.writer,
+      store: this.rig.store,
     );
     sales = OfflineSalesRepository(
       remoteDataSource: SalesRemoteDataSourceImpl(client),

@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
@@ -7,7 +9,8 @@ import 'package:frantend/features/cash_register/presentation/cubit/shift_history
 import 'package:injectable/injectable.dart';
 
 @injectable
-class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
+class ShiftHistoryCubit extends Cubit<ShiftHistoryState>
+    with AutoRefresh<ShiftHistoryState> {
   ShiftHistoryCubit({
     required GetRegisterShiftsUseCase getShiftsUseCase,
     required GetCashRegistersUseCase getRegistersUseCase,
@@ -15,7 +18,12 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
   })  : _getShifts = getShiftsUseCase,
         _getRegisters = getRegistersUseCase,
         _authLocal = authLocalDataSource,
-        super(const ShiftHistoryState());
+        super(const ShiftHistoryState()) {
+    watchData(const {DataTopic.shifts}, _reload);
+  }
+
+  static const _maxLimit = 200;
+  bool _started = false;
 
   final GetRegisterShiftsUseCase _getShifts;
   final GetCashRegistersUseCase _getRegisters;
@@ -54,6 +62,8 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
   Future<void> load() async {
     if (_branchId == null) return;
 
+    _started = true;
+    final read = beginRead();
     emit(state.copyWith(isLoading: true, error: null, skip: 0));
 
     final result = await _getShifts(
@@ -63,6 +73,7 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
       skip: 0,
       limit: _pageSize,
     );
+    if (isStale(read)) return;
 
     result.fold(
       (failure) => emit(state.copyWith(isLoading: false, error: failure.message)),
@@ -80,9 +91,48 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
     );
   }
 
+  /// A quiet re-read after a shift changed: as many rows as were read before.
+  Future<void> _reload() async {
+    if (!_started) return;
+    if (state.isLoading || state.error != null) return load();
+    final read = beginRead();
+    final wanted = state.skip > _pageSize ? state.skip : _pageSize;
+    final rows = <RegisterShiftModel>[];
+    var hasMore = false;
+    while (rows.length < wanted) {
+      final size = (wanted - rows.length).clamp(1, _maxLimit);
+      final result = await _getShifts(
+        branchId: _branchId,
+        registerId: state.selectedRegisterId,
+        status: 'closed',
+        skip: rows.length,
+        limit: size,
+      );
+      if (isStale(read)) return;
+      final page = result.fold((_) => null, (p) => p);
+      if (page == null) {
+        // This read replaced a "load more" in flight.
+        emit(state.copyWith(isLoadingMore: false));
+        return;
+      }
+      rows.addAll(page);
+      hasMore = page.length >= size;
+      if (!hasMore) break;
+    }
+    emit(
+      state.copyWith(
+        isLoadingMore: false,
+        shifts: _applyDateFilter(rows),
+        hasMore: hasMore,
+        skip: rows.length,
+      ),
+    );
+  }
+
   Future<void> loadMore() async {
     if (_branchId == null || !state.hasMore || state.isLoadingMore) return;
 
+    final read = beginRead();
     emit(state.copyWith(isLoadingMore: true));
 
     final result = await _getShifts(
@@ -92,6 +142,7 @@ class ShiftHistoryCubit extends Cubit<ShiftHistoryState> {
       skip: state.skip,
       limit: _pageSize,
     );
+    if (isStale(read)) return;
 
     result.fold(
       (failure) => emit(state.copyWith(isLoadingMore: false, error: failure.message)),

@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/accounting/domain/usecases/accounting_usecases.dart';
 import 'package:frantend/features/accounting/presentation/cubit/journal_entries_list_state.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
@@ -6,13 +8,16 @@ import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
-class JournalEntriesListCubit extends Cubit<JournalEntriesListState> {
+class JournalEntriesListCubit extends Cubit<JournalEntriesListState>
+    with AutoRefresh<JournalEntriesListState> {
   JournalEntriesListCubit({
     required ListJournalEntriesUseCase listJournalEntriesUseCase,
     required AuthLocalDataSource authLocalDataSource,
   })  : _listEntries = listJournalEntriesUseCase,
         _authLocal = authLocalDataSource,
-        super(const JournalEntriesListState.initial());
+        super(const JournalEntriesListState.initial()) {
+    watchData({DataTopic.accounting}, _readQuietly);
+  }
 
   final ListJournalEntriesUseCase _listEntries;
   final AuthLocalDataSource _authLocal;
@@ -40,8 +45,23 @@ class JournalEntriesListCubit extends Cubit<JournalEntriesListState> {
         '${date.day.toString().padLeft(2, '0')}';
   }
 
-  Future<void> load() async {
-    emit(const JournalEntriesListState.loading());
+  Future<void> load() => _read(quiet: false);
+
+  /// Reads the entries again behind the rows on screen.
+  Future<void> _readQuietly() async {
+    if (state is JournalEntriesListLoaded) await _read(quiet: true);
+  }
+
+  /// The id of a new entry on top of the list, for the table's reset token.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! JournalEntriesListLoaded) return null;
+    return createdOnTop(current.entries, (entry) => entry.id);
+  }
+
+  Future<void> _read({required bool quiet}) async {
+    final read = beginRead();
+    if (!quiet) emit(const JournalEntriesListState.loading());
 
     final user = await _authLocal.getCachedUser();
     final canCreate = UserRoleUtils.canCreateJournal(
@@ -55,15 +75,18 @@ class JournalEntriesListCubit extends Cubit<JournalEntriesListState> {
       dateTo: _formatDate(_dateTo),
       limit: 200,
     );
+    if (isStale(read)) return;
 
     result.fold(
-      (failure) => emit(JournalEntriesListState.error(failure.message)),
+      (failure) {
+        if (!quiet) emit(JournalEntriesListState.error(failure.message));
+      },
       (entries) {
         final sorted = [...entries]
           ..sort((a, b) => b.entryDate.compareTo(a.entryDate));
         emit(
           JournalEntriesListState.loaded(
-            entries: sorted,
+            entries: newestFirst(sorted, (entry) => entry.id),
             statusFilter: _statusFilter,
             dateFrom: _dateFrom,
             dateTo: _dateTo,
@@ -76,14 +99,17 @@ class JournalEntriesListCubit extends Cubit<JournalEntriesListState> {
 
   Future<void> filterByStatus(String? status) async {
     _statusFilter = status;
+    forgetCreated();
     await load();
   }
 
   Future<void> setDateRange({DateTime? from, DateTime? to}) async {
     _dateFrom = from;
     _dateTo = to;
+    forgetCreated();
     await load();
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() =>
+      state is JournalEntriesListLoaded ? _read(quiet: true) : load();
 }

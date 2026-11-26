@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/offline/pending_records.dart';
+import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/features/returns/presentation/cubit/returns_list_cubit.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
@@ -29,8 +33,9 @@ class ReturnsDataTable extends StatelessWidget {
       items: items,
       itemId: (item) => item.id,
       itemLabel: 'returns',
+      resetToken: context.read<ReturnsListCubit>().newestCreatedId,
       sortCompare: _sortCompare,
-      onRowTap: (item) => context.push(RouteNames.returnDetailPath(item.id)),
+      onRowTap: (item) => _open(context, item.id),
       rowBuilder: (context, item, {required selected, required onSelected}) {
         return AppDataTableRowLayout(
           columns: _returnsTableColumns,
@@ -86,12 +91,19 @@ class ReturnsDataTable extends StatelessWidget {
           actions: AppTableActionButton(
             icon: Icons.chevron_right,
             tooltip: 'View',
-            onPressed: () =>
-                context.push(RouteNames.returnDetailPath(item.id)),
+            onPressed: () => _open(context, item.id),
           ),
         );
       },
     );
+  }
+
+  void _open(BuildContext context, String id) {
+    if (PendingRecords.isPendingId(id)) {
+      AppAlerts.showErrorMessage(context, PendingRecords.cannotOpenYet);
+      return;
+    }
+    context.push(RouteNames.returnDetailPath(id));
   }
 
   static int _sortCompare(

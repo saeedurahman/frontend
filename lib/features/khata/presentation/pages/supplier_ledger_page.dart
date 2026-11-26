@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
@@ -186,9 +187,11 @@ class _TopBar extends StatelessWidget {
                 context,
                 dataset: 'supplier_ledger',
                 title: 'Supplier Account (${supplier?.name ?? ''})',
+                // Only this supplier, in the branch and dates on screen.
                 filters: {'supplier_id': supplierId},
                 fileLabel: supplier?.name ?? 'supplier',
-                dateFrom: state.dateFrom,
+                branchId: context.read<SupplierLedgerCubit>().branchId,
+                dateFrom: state.dateFrom ?? ExportService.allDatesFrom,
                 dateTo: state.dateTo,
               ),
               icon: const Icon(Icons.download_outlined, size: 18),

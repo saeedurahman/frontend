@@ -3,6 +3,7 @@ import 'package:frantend/core/constants/api_constants.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_guards.dart';
 import 'package:frantend/core/session/session_signals.dart';
+import 'package:frantend/core/data_changes/data_change_interceptor.dart';
 import 'package:frantend/core/network/interceptors/auth_interceptor.dart';
 import 'package:frantend/core/identity/device_identity.dart';
 import 'package:frantend/core/network/interceptors/device_header_interceptor.dart';
@@ -58,6 +59,8 @@ class DioClient {
       // POS-critical paths are never auto-retried (see RetryInterceptor);
       // other idempotent reads get a single retry.
       RetryInterceptor(dio: _dio, retries: 1),
+      // Tells open screens what a write changed.
+      DataChangeInterceptor(),
       LoggingInterceptor(),
     ]);
   }

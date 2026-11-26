@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/core/services/image_upload_service.dart';
@@ -13,7 +15,8 @@ import 'package:injectable/injectable.dart';
 import 'package:frantend/core/platform/image_picker_service.dart';
 
 @injectable
-class SettingsCubit extends Cubit<SettingsState> {
+class SettingsCubit extends Cubit<SettingsState>
+    with AutoRefresh<SettingsState> {
   SettingsCubit({
     required GetBusinessProfileUseCase getBusinessProfileUseCase,
     required UpdateBusinessProfileUseCase updateBusinessProfileUseCase,
@@ -35,7 +38,24 @@ class SettingsCubit extends Cubit<SettingsState> {
         _updateTaxRate = updateTaxRateUseCase,
         _imageUpload = imageUploadService,
         _imagePicker = imagePickerService ?? const WindowsImagePickerService(),
-        super(const SettingsState.initial());
+        super(const SettingsState.initial()) {
+    watchData(const {DataTopic.taxRates}, _reloadTaxRates);
+  }
+
+  /// Only the tax rate list is read again: unsaved edits on the other tabs
+  /// stay.
+  Future<void> _reloadTaxRates() async {
+    if (state is! SettingsLoaded) return;
+    final result = await _getTaxRates();
+    final now = state;
+    if (now is! SettingsLoaded) return;
+    result.fold(
+      (_) {},
+      (rates) => emit(
+        now.copyWith(taxRates: newestFirst(rates, (r) => r.id)),
+      ),
+    );
+  }
 
   final GetBusinessProfileUseCase _getBusiness;
   final UpdateBusinessProfileUseCase _updateBusiness;
@@ -461,9 +481,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         return false;
       },
       (created) {
+        markCreated(created.id);
         emit(
           current.copyWith(
-            taxRates: [...current.taxRates, created],
+            taxRates: [
+              created,
+              ...current.taxRates.where((r) => r.id != created.id),
+            ],
             isSavingTaxRate: false,
             errorMessage: null,
           ),

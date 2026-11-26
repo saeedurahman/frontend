@@ -42,6 +42,16 @@ class _ShiftHistoryTableState extends State<ShiftHistoryTable> {
 
   ShiftHistoryState get state => widget.state;
 
+  @override
+  void didUpdateWidget(covariant ShiftHistoryTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A shift closed meanwhile arrives on top: show the first page.
+    if (_newest(widget.state) != _newest(oldWidget.state)) _currentPage = 1;
+  }
+
+  static String? _newest(ShiftHistoryState state) =>
+      state.shifts.isEmpty ? null : state.shifts.first.id;
+
   int get _paginationTotal {
     if (state.hasMore) {
       return state.shifts.length + _pageSize;
@@ -92,6 +102,7 @@ class _ShiftHistoryTableState extends State<ShiftHistoryTable> {
     return AppPaginatedDataTable<RegisterShiftModel>(
       columns: _shiftHistoryColumns,
       items: state.shifts,
+      resetToken: _newest(state),
       itemId: (shift) => shift.id,
       itemLabel: 'shifts',
       paginationMode: AppTablePaginationMode.client,

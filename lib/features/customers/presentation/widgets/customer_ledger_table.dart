@@ -1,11 +1,10 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
-import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
@@ -22,10 +21,14 @@ import 'package:intl/intl.dart';
 
 const _ledgerTableColumns = [
   AppDataTableColumn(label: 'Date', flex: 2, sortable: true),
-  AppDataTableColumn(label: 'Type', flex: 3, sortable: true),
-  AppDataTableColumn(label: 'Paid by / details', flex: 2),
+  AppDataTableColumn(label: KhataText.whatHappened, flex: 3, sortable: true),
+  AppDataTableColumn(label: KhataText.paidFrom, flex: 2),
   AppDataTableColumn(label: 'Amount', flex: 2, sortable: true),
-  AppDataTableColumn(label: 'Running Balance', flex: 2, sortable: true),
+  AppDataTableColumn(
+    label: KhataText.runningBalance,
+    flex: 2,
+    sortable: true,
+  ),
 ];
 
 class CustomerLedgerTable extends StatelessWidget {
@@ -38,6 +41,10 @@ class CustomerLedgerTable extends StatelessWidget {
     final cubit = context.read<CustomerLedgerCubit>();
     // Hidden (not just disabled) for people who may not reverse payments.
     final canReverse = hasPermission(context, Perm.customersPaymentsReverse);
+
+    // A new line goes to the top, so the table leaves any column sort and
+    // shows its first page.
+    final newest = state.entries.isEmpty ? null : state.entries.first.entry.id;
 
     if (state.entries.isEmpty && !state.isLoadingMore) {
       return Container(
@@ -63,6 +70,7 @@ class CustomerLedgerTable extends StatelessWidget {
       items: state.entries,
       itemId: (row) => row.entry.id,
       itemLabel: 'entries',
+      resetToken: newest,
       showSelection: false,
       showActions: canReverse,
       actionsHeader: '',
@@ -82,13 +90,12 @@ class CustomerLedgerTable extends StatelessWidget {
       ),
       rowBuilder: (context, row, {required selected, required onSelected}) {
         final entry = row.entry;
-        final amount = CustomerBalanceUtils.parseBalance(entry.amount);
-        final running = CustomerBalanceUtils.parseBalance(row.runningBalance);
-        final amountIsNegative = amount < Decimal.zero;
         final line = LedgerLine.fromCustomer(
           entry,
           runningBalance: row.runningBalance,
         );
+        final amount = line.amountView;
+        final balance = line.balanceView;
         final struck = line.isReversed;
         final strike = struck ? TextDecoration.lineThrough : null;
         final muted = struck ? AppColors.textSecondary : AppColors.textPrimary;
@@ -146,6 +153,17 @@ class CustomerLedgerTable extends StatelessWidget {
                         label: KhataText.reversalTag,
                         color: AppColors.info,
                       ),
+                    if (entry.referenceType == PendingLedgerMarks.waiting)
+                      const _Tag(
+                        label: KhataText.waitingToSyncTag,
+                        color: AppColors.info,
+                      ),
+                    if (entry.referenceType ==
+                        PendingLedgerMarks.needsAttention)
+                      const _Tag(
+                        label: KhataText.syncNeedsAttentionTag,
+                        color: AppColors.error,
+                      ),
                   ],
                 ),
                 if (entry.notes != null && entry.notes!.isNotEmpty)
@@ -165,24 +183,20 @@ class CustomerLedgerTable extends StatelessWidget {
               style: TextStyle(fontSize: 12, color: muted, decoration: strike),
             ),
             Text(
-              DecimalUtils.format(amount),
+              amount.text,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 decoration: strike,
-                color: struck
-                    ? AppColors.textSecondary
-                    : (amountIsNegative ? AppColors.error : AppColors.success),
+                color: struck ? AppColors.textSecondary : amount.color,
               ),
             ),
             Text(
-              CustomerBalanceUtils.formatBalanceDisplay(row.runningBalance).text,
+              balance?.text ?? '—',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: running < Decimal.zero
-                    ? AppColors.error
-                    : AppColors.textPrimary,
+                color: balance?.color ?? AppColors.textPrimary,
               ),
             ),
           ],

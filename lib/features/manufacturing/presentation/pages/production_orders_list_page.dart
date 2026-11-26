@@ -48,7 +48,7 @@ class ProductionOrdersListPage extends StatelessWidget {
             previous.selectedBranchId != current.selectedBranchId &&
             current.isInitialized,
         listener: (context, _) =>
-            context.read<ProductionOrdersListCubit>().refresh(),
+            context.read<ProductionOrdersListCubit>().load(),
         child: const _ProductionOrdersListView(),
       ),
     );
@@ -280,6 +280,7 @@ class _OrdersTable extends StatelessWidget {
       items: orders,
       itemId: (order) => order.id,
       itemLabel: 'orders',
+      resetToken: context.read<ProductionOrdersListCubit>().newestCreatedId,
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
       onRowTap: (order) => _openOrder(context, order.id),

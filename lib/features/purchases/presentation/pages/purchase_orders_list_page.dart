@@ -13,6 +13,7 @@ import 'package:frantend/features/purchases/data/models/purchase_order_model.dar
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_orders_list_state.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
+import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
@@ -133,6 +134,8 @@ class _Toolbar extends StatelessWidget {
                 context,
                 dataset: 'purchases',
                 title: 'Purchases',
+                // The list shows every order, whenever it was made.
+                dateFrom: ExportService.allDatesFrom,
               );
             },
             icon: const Icon(Icons.download_outlined, size: 18),
@@ -323,6 +326,7 @@ class _OrdersTable extends StatelessWidget {
       items: orders,
       itemId: (order) => order.id,
       itemLabel: 'orders',
+      resetToken: context.read<PurchaseOrdersListCubit>().newestCreatedId,
       actionsWidth: 110,
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,

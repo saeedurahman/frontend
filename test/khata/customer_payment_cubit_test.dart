@@ -41,6 +41,13 @@ class _GetLedger extends Fake implements GetCustomerLedgerUseCase {
   final branches = <String?>[];
 
   @override
+  Future<List<CustomerLedgerEntryModel>> pending(
+    String customerId, {
+    String? branchId,
+  }) async =>
+      const [];
+
+  @override
   Future<Either<Failure, List<CustomerLedgerEntryModel>>> call(
     String customerId, {
     String? branchId,

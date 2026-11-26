@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/receipts/data/receipt_layout_api.dart';
 import 'package:frantend/features/receipts/data/receipt_layout_store.dart';
 import 'package:frantend/features/receipts/domain/receipt_layout.dart';
@@ -79,7 +81,8 @@ class ReceiptLayoutsState {
 /// once (works offline) and refreshes from the server when it can be reached.
 /// Every change goes to the server first and then into the local data, so the
 /// next receipt already uses it. Changes need the internet.
-class ReceiptLayoutsCubit extends Cubit<ReceiptLayoutsState> {
+class ReceiptLayoutsCubit extends Cubit<ReceiptLayoutsState>
+    with AutoRefresh<ReceiptLayoutsState> {
   ReceiptLayoutsCubit({
     required ReceiptLayoutStore store,
     required ReceiptLayoutApi api,
@@ -87,7 +90,14 @@ class ReceiptLayoutsCubit extends Cubit<ReceiptLayoutsState> {
   })  : _store = store,
         _api = api,
         _isOnline = isOnline,
-        super(const ReceiptLayoutsState());
+        super(const ReceiptLayoutsState()) {
+    // Saved in the editor, or pulled by sync.
+    watchData(const {DataTopic.receiptLayouts}, () async {
+      if (_opened) await load();
+    });
+  }
+
+  bool _opened = false;
 
   final ReceiptLayoutStore _store;
   final ReceiptLayoutApi _api;
@@ -98,6 +108,8 @@ class ReceiptLayoutsCubit extends Cubit<ReceiptLayoutsState> {
       'Your current layouts keep working.';
 
   Future<void> load() async {
+    _opened = true;
+    final read = beginRead();
     await _readLocal(loading: false);
     if (!_isOnline()) {
       emit(state.copyWith(online: false));
@@ -106,6 +118,8 @@ class ReceiptLayoutsCubit extends Cubit<ReceiptLayoutsState> {
     try {
       final layouts = await _api.list();
       final assignments = await _api.assignments();
+      // An older answer must not remove what a newer one saved.
+      if (isStale(read)) return;
       final keep = {for (final l in layouts) '${l['id']}'};
       for (final l in layouts) {
         await _store.putLayout(l);

@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
@@ -6,13 +8,16 @@ import 'package:frantend/features/inventory/presentation/cubit/stock_movements_s
 import 'package:injectable/injectable.dart';
 
 @injectable
-class StockMovementsCubit extends Cubit<StockMovementsState> {
+class StockMovementsCubit extends Cubit<StockMovementsState>
+    with AutoRefresh<StockMovementsState> {
   StockMovementsCubit({
     required AuthLocalDataSource authLocalDataSource,
     required GetStockMovementsUseCase getStockMovementsUseCase,
   })  : _authLocal = authLocalDataSource,
         _getMovements = getStockMovementsUseCase,
-        super(const StockMovementsState.initial());
+        super(const StockMovementsState.initial()) {
+    watchData(const {DataTopic.stock}, _reload);
+  }
 
   final AuthLocalDataSource _authLocal;
   final GetStockMovementsUseCase _getMovements;
@@ -21,8 +26,58 @@ class StockMovementsCubit extends Cubit<StockMovementsState> {
   String? _productId;
   String? _branchId;
 
+  /// A quiet re-read after stock moved: as many rows as were showing.
+  Future<void> _reload() async {
+    final current = state;
+    final productId = _productId;
+    if (productId == null || current is StockMovementsInitial) return;
+    if (current is! StockMovementsLoaded || _branchId == null) {
+      return load(productId: productId);
+    }
+    final read = beginRead();
+    final wanted =
+        current.rows.length > _pageSize ? current.rows.length : _pageSize;
+    final rows = <StockMovementRow>[];
+    var total = 0;
+    var skip = 0;
+    while (rows.length < wanted) {
+      final result = await _getMovements(
+        branchId: _branchId!,
+        productId: productId,
+        skip: rows.length,
+        limit: _pageSize,
+      );
+      if (isStale(read)) return;
+      final page = result.fold((_) => null, (p) => p);
+      if (page == null) {
+        emit(current.copyWith(isLoadingMore: false));
+        return;
+      }
+      total = page.total;
+      skip = page.skip;
+      rows.addAll(
+        _withRunningBalance(
+          page.items,
+          startBalance: rows.lastOrNull?.runningBalance ?? 0,
+        ),
+      );
+      if (page.items.isEmpty || rows.length >= total) break;
+    }
+    emit(
+      StockMovementsState.loaded(
+        rows: rows,
+        total: total,
+        skip: skip,
+        limit: _pageSize,
+        productId: productId,
+        branchId: _branchId,
+      ),
+    );
+  }
+
   Future<void> load({required String productId, bool reset = true}) async {
     _productId = productId;
+    final read = beginRead();
 
     if (reset) {
       emit(const StockMovementsState.loading());
@@ -52,6 +107,7 @@ class StockMovementsCubit extends Cubit<StockMovementsState> {
       skip: skip,
       limit: _pageSize,
     );
+    if (isStale(read)) return;
 
     result.fold(
       (failure) => emit(StockMovementsState.error(failure.message)),
@@ -113,6 +169,6 @@ class StockMovementsCubit extends Cubit<StockMovementsState> {
   }
 
   Future<void> refresh() async {
-    if (_productId != null) await load(productId: _productId!);
+    await _reload();
   }
 }

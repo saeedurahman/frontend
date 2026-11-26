@@ -7,6 +7,14 @@ import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
 import 'package:frantend/core/offline/local_history.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
+import 'package:frantend/core/offline/pending_records.dart';
+import 'package:frantend/core/sync/outbox_op.dart';
+import 'package:frantend/features/expenses/data/models/expense_list_item_model.dart';
+import 'package:frantend/features/expenses/data/models/expense_payment_response_model.dart';
+import 'package:frantend/features/expenses/data/models/paginated_expenses_model.dart';
+import 'package:frantend/features/expenses/domain/pending_expenses.dart';
+import 'package:frantend/features/returns/data/models/sale_return_payment_model.dart';
+import 'package:frantend/features/returns/domain/pending_returns.dart';
 import 'package:frantend/core/offline/repos/local_sale_mapper.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
@@ -16,6 +24,8 @@ import 'package:frantend/features/cash_register/data/models/register_shift_model
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
 import 'package:frantend/features/cash_register/data/repositories/cash_register_repository_impl.dart';
 import 'package:frantend/features/customers/data/models/customer_balance_model.dart';
+import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
+import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/data/models/customer_payment_response_model.dart';
 import 'package:frantend/features/customers/data/repositories/customers_repository_impl.dart';
@@ -56,7 +66,8 @@ Failure _localWriteFailure(Object error) => CacheFailure(
       ),
     );
 
-class OfflineCustomersRepository extends CustomersRepositoryImpl {
+class OfflineCustomersRepository extends CustomersRepositoryImpl
+    implements PendingLedgerSource {
   OfflineCustomersRepository({
     required super.remoteDataSource,
     required super.errorHandler,
@@ -73,17 +84,39 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
 
   bool get _reachable => _isReachable?.call() ?? true;
 
-  /// Server list when reachable, else the customers on this device (which
-  /// include the ones created here and not synced yet).
+  /// Server list when reachable, else the customers on this device. Either way
+  /// the ones created here and not synced yet are in it.
   @override
   Future<Either<Failure, List<CustomerModel>>> getCustomers({
     String? search,
   }) async {
+    // Read before asking the server: a customer sent in between is then in
+    // the server's answer, so it is never missing from both.
+    final mine = await _catalog.unsyncedCustomers(search: search);
     if (_reachable) {
       final remote = await super.getCustomers(search: search);
-      if (remote.isRight() || !_isNetwork(remote)) return remote;
+      if (remote.isRight() || !_isNetwork(remote)) {
+        return remote.map((list) => _withMine(list, mine));
+      }
     }
-    return Right(await _catalog.customers(search: search));
+    return Right(_withMine(await _catalog.customers(search: search), mine));
+  }
+
+  /// [list] plus the customers in [mine] it lacks, each placed by name.
+  static List<CustomerModel> _withMine(
+    List<CustomerModel> list,
+    List<CustomerModel> mine,
+  ) {
+    final known = {for (final c in list) c.id};
+    final result = [...list];
+    for (final c in mine) {
+      if (known.contains(c.id)) continue;
+      final name = c.name.toLowerCase();
+      final at =
+          result.indexWhere((o) => o.name.toLowerCase().compareTo(name) > 0);
+      result.insert(at < 0 ? result.length : at, c);
+    }
+    return result;
   }
 
   @override
@@ -112,8 +145,13 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
     final localOnly =
         known && (await _catalog.unsyncedCustomerIds()).contains(customerId);
     if (_reachable && !localOnly) {
+      // What the server cannot know about yet (read first, as above).
+      final waiting = _sum(
+          await _catalog.pendingLedger(customerId, branchId: branchId));
       final remote = await super.getCustomerBalance(customerId, branchId: branchId);
-      if (remote.isRight() || !_isNetwork(remote) || !known) return remote;
+      if (remote.isRight() || !_isNetwork(remote) || !known) {
+        return remote.map((b) => _adjusted(b, waiting));
+      }
     }
     if (!known) return const Left(NetworkFailure(UserErrorMessage.offline));
     return Right(CustomerBalanceModel(
@@ -124,6 +162,125 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl {
 
   static bool _isNetwork(Either<Failure, Object?> result) =>
       result.fold((f) => f is NetworkFailure, (_) => false);
+
+  static Decimal _sum(List<CustomerLedgerEntryModel> lines) => lines.fold(
+        Decimal.zero,
+        (total, l) => total + (Decimal.tryParse(l.amount) ?? Decimal.zero),
+      );
+
+  /// The server's balance with [waiting] (negative = owes more) on top.
+  static CustomerBalanceModel _adjusted(
+    CustomerBalanceModel b,
+    Decimal waiting,
+  ) {
+    if (waiting == Decimal.zero) return b;
+    final balance = (Decimal.tryParse(b.balance) ?? Decimal.zero) + waiting;
+    final owed = balance < Decimal.zero ? -balance : Decimal.zero;
+    final limit = Decimal.tryParse(b.creditLimit ?? '');
+    var available = b.creditAvailable;
+    if (available != null && limit != null) {
+      final left = limit - owed;
+      available = DecimalUtils.format(left < Decimal.zero ? Decimal.zero : left);
+    }
+    return b.copyWith(
+      balance: DecimalUtils.format(balance),
+      balanceOwed: b.balanceOwed == null ? null : DecimalUtils.format(owed),
+      creditAvailable: available,
+    );
+  }
+
+  @override
+  Future<List<CustomerLedgerEntryModel>> pendingLedger(
+    String customerId, {
+    String? branchId,
+  }) =>
+      _catalog.pendingLedger(customerId, branchId: branchId);
+
+  /// The server's account lines with this device's unsent ones on top, each
+  /// with its running balance. A customer the server does not have yet is
+  /// answered from the device alone.
+  @override
+  Future<Either<Failure, List<CustomerLedgerEntryModel>>> getCustomerLedger(
+    String customerId, {
+    String? branchId,
+    int? skip,
+    int? limit,
+  }) async {
+    final firstPage = (skip ?? 0) == 0;
+    // Read before asking the server (a line sent in between is then in its
+    // answer, and the duplicate is dropped below).
+    final waiting = firstPage
+        ? await _catalog.pendingLedger(customerId, branchId: branchId)
+        : const <CustomerLedgerEntryModel>[];
+    if ((await _catalog.unsyncedCustomerIds()).contains(customerId)) {
+      return Right(_withRunning(waiting, Decimal.zero));
+    }
+    if (!_reachable) {
+      return const Left(NetworkFailure(UserErrorMessage.offline));
+    }
+    final remote = await super.getCustomerLedger(
+      customerId,
+      branchId: branchId,
+      skip: skip,
+      limit: limit,
+    );
+    return remote.map((page) {
+      if (waiting.isEmpty) return page;
+      final ids = {for (final e in page) e.id};
+      final sales = {
+        for (final e in page)
+          if (e.entryType == LedgerEntryType.sale) e.referenceId,
+      };
+      final missing = [
+        for (final e in waiting)
+          if (!ids.contains(e.id) &&
+              !(e.entryType == LedgerEntryType.sale &&
+                  sales.contains(e.referenceId)))
+            e,
+      ];
+      // The server sends newest first, so the first line carries its balance.
+      final base = page.isEmpty
+          ? Decimal.zero
+          : Decimal.tryParse(page.first.runningBalance ?? '');
+      return [..._withRunning(missing, base), ...page];
+    });
+  }
+
+  /// [lines] (oldest first) on top of [base], returned newest first.
+  static List<CustomerLedgerEntryModel> _withRunning(
+    List<CustomerLedgerEntryModel> lines,
+    Decimal? base,
+  ) {
+    var running = base;
+    final result = <CustomerLedgerEntryModel>[];
+    for (final line in lines) {
+      if (running != null) {
+        running = running + (Decimal.tryParse(line.amount) ?? Decimal.zero);
+      }
+      result.add(line.copyWith(
+        runningBalance: running == null ? null : DecimalUtils.format(running),
+      ));
+    }
+    return result.reversed.toList();
+  }
+
+  /// An accepted change is also written into the device copy, so the POS
+  /// customer picker shows it before the next pull.
+  @override
+  Future<Either<Failure, CustomerModel>> updateCustomer(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final result = await super.updateCustomer(id, body);
+    await result.fold((_) async {}, (customer) async {
+      try {
+        await _catalog.rememberCustomer(customer);
+      } catch (e) {
+        AppLogger.warning('Local catalog write failed (${e.runtimeType})');
+      }
+    });
+    return result;
+  }
 
   @override
   Future<Either<Failure, CustomerModel>> createCustomer(
@@ -226,19 +383,89 @@ class OfflineCashRegisterRepository extends CashRegisterRepositoryImpl {
           : Left(failure),
       (list) async {
         if (skip != 0) return Right(list);
+        // What this device did and has not sent yet wins over the server's
+        // copy (a shift closed here is not "open" any more).
+        final unsent = {
+          for (final row in await _unsentShifts()) '${row['id']}': row,
+        };
+        if (unsent.isEmpty) return Right(list);
+        bool wanted(RegisterShiftModel s) =>
+            (branchId == null || s.branchId == branchId) &&
+            (registerId == null || s.cashRegisterId == registerId) &&
+            (status == null || s.status == status);
         final known = {for (final s in list) s.id};
-        final mine = <RegisterShiftModel>[];
-        for (final row in await _store.shifts()) {
-          if (row['sync_state'] == 'synced' || known.contains('${row['id']}')) continue;
-          final s = await _catalog.shiftModelWithTotals(row);
-          if ((branchId == null || s.branchId == branchId) &&
-              (registerId == null || s.cashRegisterId == registerId) &&
-              (status == null || s.status == status)) {
-            mine.add(s);
+        final result = <RegisterShiftModel>[];
+        if (skip == 0) {
+          for (final row in unsent.values) {
+            if (known.contains('${row['id']}')) continue;
+            final s = await _catalog.shiftModelWithTotals(row);
+            if (wanted(s)) result.add(s);
           }
         }
-        return Right([...mine, ...list]);
+        for (final server in list) {
+          final row = unsent[server.id];
+          if (row == null) {
+            result.add(server);
+            continue;
+          }
+          final s = await _catalog.shiftModelWithTotals(
+            row,
+            register: server.register,
+          );
+          if (wanted(s)) result.add(s);
+        }
+        return Right(result);
       },
+    );
+  }
+
+  Future<List<Map<String, Object?>>> _unsentShifts() async => [
+        for (final row in await _store.shifts())
+          if (row['sync_state'] != 'synced') row,
+      ];
+
+  /// The register's open shift. A shift opened or closed on this device is
+  /// answered from the device until the server has heard about it.
+  @override
+  Future<Either<Failure, RegisterShiftModel?>> getActiveShift(
+    String registerId,
+  ) async {
+    final rows = [
+      for (final row in await _store.shifts())
+        if (row['register_id'] == registerId) row,
+    ];
+    Map<String, Object?>? open;
+    for (final row in rows) {
+      if (row['status'] == 'open') {
+        open = row;
+        break;
+      }
+    }
+    if (open != null && open['sync_state'] != 'synced') {
+      return Right(_catalog.shiftModel(open));
+    }
+    final unsentClosed = {
+      for (final row in rows)
+        if (row['sync_state'] != 'synced' && row['status'] != 'open')
+          '${row['id']}',
+    };
+    Either<Failure, RegisterShiftModel?> fromDevice(Failure failure) {
+      if (open != null) return Right(_catalog.shiftModel(open));
+      if (unsentClosed.isNotEmpty) return const Right(null);
+      return Left(failure);
+    }
+
+    if (_isReachable?.call() == false) {
+      return fromDevice(const NetworkFailure(UserErrorMessage.offline));
+    }
+    final remote = await super.getActiveShift(registerId);
+    return remote.fold(
+      (failure) => failure is NetworkFailure || failure is ServerFailure
+          ? fromDevice(failure)
+          : Left(failure),
+      (shift) => Right(
+        shift == null || unsentClosed.contains(shift.id) ? null : shift,
+      ),
     );
   }
 
@@ -329,7 +556,8 @@ class OfflineCashRegisterRepository extends CashRegisterRepositoryImpl {
   }
 }
 
-class OfflineExpensesRepository extends ExpensesRepositoryImpl {
+class OfflineExpensesRepository extends ExpensesRepositoryImpl
+    implements PendingExpensesSource {
   OfflineExpensesRepository({
     required super.remoteDataSource,
     required super.errorHandler,
@@ -373,15 +601,123 @@ class OfflineExpensesRepository extends ExpensesRepositoryImpl {
   }
 
   @override
+  Future<List<ExpenseListItemModel>> pendingExpenses({
+    String? branchId,
+    String? categoryId,
+    String? supplierId,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  }) async {
+    final store = _store;
+    if (store == null) return const [];
+    final from = dateFrom == null ? null : _day(dateFrom);
+    final to = dateTo == null ? null : _day(dateTo);
+    final result = <ExpenseListItemModel>[];
+    for (final op in await store.ops(statuses: OutboxStatus.unfinished)) {
+      if (op.type != OpTypes.expenseCreate) continue;
+      final p = op.payload;
+      final date = '${p['expense_date']}';
+      if ((branchId != null && p['branch_id'] != branchId) ||
+          (categoryId != null && p['expense_category_id'] != categoryId) ||
+          (supplierId != null && p['supplier_id'] != supplierId) ||
+          (from != null && date.compareTo(from) < 0) ||
+          (to != null && date.compareTo(to) > 0)) {
+        continue;
+      }
+      result.add(ExpenseListItemModel(
+        id: PendingRecords.id(op.opId),
+        branchId: '${p['branch_id']}',
+        expenseCategoryId: '${p['expense_category_id']}',
+        supplierId: p['supplier_id'] as String?,
+        expenseNumber: op.needsAttention
+            ? PendingRecords.needsAttention
+            : PendingRecords.waiting,
+        description: p['description'] as String?,
+        expenseDate: date,
+        amount: '${p['amount']}',
+        taxAmount: '${p['tax_amount'] ?? '0'}',
+        createdAt: op.occurredAt,
+      ));
+    }
+    return result.reversed.toList();
+  }
+
+  static String _day(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  /// The server's page with this device's unsent expenses on top.
+  @override
+  Future<Either<Failure, PaginatedExpensesModel>> getExpenses({
+    String? branchId,
+    String? categoryId,
+    String? supplierId,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final waiting = skip != 0
+        ? const <ExpenseListItemModel>[]
+        : await pendingExpenses(
+            branchId: branchId,
+            categoryId: categoryId,
+            supplierId: supplierId,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+          );
+    final remote = await super.getExpenses(
+      branchId: branchId,
+      categoryId: categoryId,
+      supplierId: supplierId,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      skip: skip,
+      limit: limit,
+    );
+    return remote.map(
+      (page) => waiting.isEmpty
+          ? page
+          : page.copyWith(
+              total: page.total + waiting.length,
+              items: [...waiting, ...page.items],
+            ),
+    );
+  }
+
+  static const _notSentYet = ValidationFailure(PendingRecords.cannotOpenYet);
+
+  @override
+  Future<Either<Failure, ExpenseModel>> getExpenseById(String id) async =>
+      PendingRecords.isPendingId(id)
+          ? const Left(_notSentYet)
+          : await super.getExpenseById(id);
+
+  @override
+  Future<Either<Failure, void>> deleteExpense(String id) async =>
+      PendingRecords.isPendingId(id)
+          ? const Left(_notSentYet)
+          : await super.deleteExpense(id);
+
+  @override
+  Future<Either<Failure, ExpensePaymentResponseModel>> addPayment(
+    String expenseId,
+    Map<String, dynamic> body,
+  ) async =>
+      PendingRecords.isPendingId(expenseId)
+          ? const Left(_notSentYet)
+          : await super.addPayment(expenseId, body);
+
+  @override
   Future<Either<Failure, ExpenseModel>> createExpense(Map<String, dynamic> body) async {
     try {
-      await _writer.createExpense(body);
+      final opId = await _writer.createExpense(body);
       return Right(ExpenseModel(
-        id: 'pending',
+        id: PendingRecords.id(opId),
         branchId: '${body['branch_id']}',
         expenseCategoryId: '${body['expense_category_id']}',
         supplierId: body['supplier_id'] as String?,
-        expenseNumber: 'Pending sync',
+        expenseNumber: PendingRecords.waiting,
         description: body['description'] as String?,
         expenseDate: '${body['expense_date']}',
         amount: '${body['amount']}',
@@ -393,14 +729,79 @@ class OfflineExpensesRepository extends ExpensesRepositoryImpl {
   }
 }
 
-class OfflineReturnsRepository extends ReturnsRepositoryImpl {
+class OfflineReturnsRepository extends ReturnsRepositoryImpl
+    implements PendingReturnsSource {
   OfflineReturnsRepository({
     required super.remoteDataSource,
     required super.errorHandler,
     required OfflineWriter writer,
-  }) : _writer = writer;
+    SyncStore? store,
+  })  : _writer = writer,
+        _store = store;
 
   final OfflineWriter _writer;
+  final SyncStore? _store;
+
+  @override
+  Future<List<SaleReturnResponseModel>> pendingReturns({String? branchId}) async {
+    final store = _store;
+    if (store == null) return const [];
+    final result = <SaleReturnResponseModel>[];
+    for (final op in await store.ops(statuses: OutboxStatus.unfinished)) {
+      if (op.type != OpTypes.returnCreate) continue;
+      final p = op.payload;
+      if (branchId != null && p['branch_id'] != branchId) continue;
+      final id = PendingRecords.id(op.opId);
+      final refunds = p['refund_payments'] as List? ?? const [];
+      result.add(SaleReturnResponseModel(
+        id: id,
+        businessId: '',
+        branchId: '${p['branch_id']}',
+        saleId: p['sale_id'] as String?,
+        customerId: p['customer_id'] as String?,
+        returnNumber: op.needsAttention
+            ? PendingRecords.needsAttention
+            : PendingRecords.waiting,
+        returnedAt: op.occurredAt,
+        reason: p['reason'] as String?,
+        payments: [
+          for (var i = 0; i < refunds.length; i++)
+            SaleReturnPaymentModel(
+              id: '$id:$i',
+              businessId: '',
+              saleReturnId: id,
+              paymentMethod: '${(refunds[i] as Map)['payment_method']}',
+              amount: '${(refunds[i] as Map)['amount']}',
+              status: 'pending',
+            ),
+        ],
+      ));
+    }
+    return result.reversed.toList();
+  }
+
+  /// The server's page with this device's unsent returns on top.
+  @override
+  Future<Either<Failure, List<SaleReturnResponseModel>>> getReturns({
+    String? branchId,
+    int skip = 0,
+    int limit = 50,
+  }) async {
+    final waiting = skip != 0
+        ? const <SaleReturnResponseModel>[]
+        : await pendingReturns(branchId: branchId);
+    final remote =
+        await super.getReturns(branchId: branchId, skip: skip, limit: limit);
+    return remote.map((page) => [...waiting, ...page]);
+  }
+
+  @override
+  Future<Either<Failure, SaleReturnResponseModel>> getReturnById(
+    String id,
+  ) async =>
+      PendingRecords.isPendingId(id)
+          ? const Left(ValidationFailure(PendingRecords.cannotOpenYet))
+          : await super.getReturnById(id);
 
   @override
   Future<Either<Failure, SaleReturnResponseModel>> createReturn(
@@ -453,16 +854,19 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
     int limit = 50,
   }) async {
     Future<Either<Failure, PaginatedSalesModel>> local() async => Right(
-          await _history.sales(
-            branchId: branchId,
-            customerId: customerId,
-            status: status,
-            saleType: saleType,
-            dateFrom: dateFrom,
-            dateTo: dateTo,
-            search: search,
-            skip: skip,
-            limit: limit,
+          await _withVoids(
+            await _history.sales(
+              branchId: branchId,
+              customerId: customerId,
+              status: status,
+              saleType: saleType,
+              dateFrom: dateFrom,
+              dateTo: dateTo,
+              search: search,
+              skip: skip,
+              limit: limit,
+            ),
+            status,
           ),
         );
     if (_isReachable?.call() == false) return local();
@@ -481,8 +885,9 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
       (failure) => failure is NetworkFailure || failure is ServerFailure
           ? local()
           : Left(failure),
-      (page) async {
-        final remoteIds = {for (final i in page.items) i.id};
+      (serverPage) async {
+        final page = await _withVoids(serverPage, status);
+        final remoteIds = {for (final i in serverPage.items) i.id};
         for (final i in page.items) {
           SaleSyncBadges.set(i.id, SaleSyncBadge.none);
         }
@@ -509,12 +914,45 @@ class OfflineSalesRepository extends SalesRepositoryImpl {
   final SyncStore _store;
   final bool Function()? _isReachable;
 
+  /// Sales voided here whose void is still on its way to the server.
+  Future<Set<String>> _voiding() async => {
+        for (final op in await _store.ops(
+          statuses: const [OutboxStatus.pending, OutboxStatus.sending],
+        ))
+          if (op.type == OpTypes.saleVoid) '${op.payload['sale_id']}',
+      };
+
+  Future<PaginatedSalesModel> _withVoids(
+    PaginatedSalesModel page,
+    String? status,
+  ) async {
+    final voiding = await _voiding();
+    if (!page.items.any((s) => voiding.contains(s.id))) return page;
+    return page.copyWith(
+      items: [
+        for (final sale in page.items)
+          if (!voiding.contains(sale.id))
+            sale
+          else if (status == null || status == 'voided')
+            sale.copyWith(status: 'voided'),
+      ],
+    );
+  }
+
+  @override
+  Future<Either<Failure, SaleResponseModel>> getSaleById(String id) async {
+    final voiding = (await _voiding()).contains(id);
+    final result = await _readSale(id);
+    return voiding
+        ? result.map((s) => s.copyWith(saleStatus: 'voided'))
+        : result;
+  }
+
   /// A sale made on this device is shown from the local record until the
   /// server has it (and again if the server cannot be reached; while the
   /// probe says "offline" the server is not even asked, so a reprint opens
   /// at once).
-  @override
-  Future<Either<Failure, SaleResponseModel>> getSaleById(String id) async {
+  Future<Either<Failure, SaleResponseModel>> _readSale(String id) async {
     final local = await _store.sale(id);
     if (local != null &&
         (local['sync_state'] != 'synced' || _isReachable?.call() == false)) {

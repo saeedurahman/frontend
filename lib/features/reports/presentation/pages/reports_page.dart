@@ -8,6 +8,7 @@ import 'package:frantend/features/reports/presentation/cubit/reports_cubit.dart'
 import 'package:frantend/features/reports/presentation/cubit/reports_filter_cubit.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_state.dart';
 import 'package:frantend/features/reports/presentation/cubit/reports_tab_data.dart';
+import 'package:frantend/features/reports/presentation/utils/report_export.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_filter_bar.dart';
 import 'package:frantend/features/reports/presentation/widgets/reports_tab_views.dart';
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
@@ -127,20 +128,8 @@ class _ReportsViewState extends State<_ReportsView>
                 const Spacer(),
                 PermissionGate(
                   permission: Perm.reportsExport,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final filterState = context.read<ReportsFilterCubit>().state;
-                      ExportDialog.show(
-                        context,
-                        dataset: 'sales',
-                        title: 'Reports Data',
-                        dateFrom: filterState.filter.dateFrom,
-                        dateTo: filterState.filter.dateTo,
-                        branchId: filterState.filter.branchId,
-                      );
-                    },
-                    icon: const Icon(Icons.download_outlined, size: 18),
-                    label: const Text('Export'),
+                  child: _ReportExportButton(
+                    tab: loaded?.activeTab ?? ReportsTab.sales,
                   ),
                 ),
               ],
@@ -184,6 +173,49 @@ class _ReportsViewState extends State<_ReportsView>
           ],
         );
       },
+    );
+  }
+}
+
+/// Exports the data of the open tab, in the dates and branch picked above.
+class _ReportExportButton extends StatelessWidget {
+  const _ReportExportButton({required this.tab});
+
+  final ReportsTab tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final export = reportExportFor(tab);
+
+    Widget button(bool enabled) => OutlinedButton.icon(
+          key: const ValueKey('export_report'),
+          onPressed: export == null || !enabled
+              ? null
+              : () {
+                  final filter =
+                      context.read<ReportsFilterCubit>().state.filter;
+                  ExportDialog.show(
+                    context,
+                    dataset: export.dataset,
+                    title: export.title,
+                    dateFrom: filter.dateFrom,
+                    dateTo: filter.dateTo,
+                    branchId: filter.branchId,
+                  );
+                },
+          icon: const Icon(Icons.download_outlined, size: 18),
+          label: const Text('Export'),
+        );
+
+    if (export == null) {
+      return Tooltip(message: noReportExportTooltip, child: button(false));
+    }
+    final permission = export.permission;
+    if (permission == null) return button(true);
+    return PermissionGate(
+      permission: permission,
+      mode: GateMode.disable,
+      builder: (context, enabled) => button(enabled),
     );
   }
 }

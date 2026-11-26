@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/manufacturing/data/models/bom_header_model.dart';
@@ -7,7 +9,8 @@ import 'package:frantend/features/manufacturing/presentation/cubit/boms_list_sta
 import 'package:injectable/injectable.dart';
 
 @injectable
-class BomsListCubit extends Cubit<BomsListState> {
+class BomsListCubit extends Cubit<BomsListState>
+    with AutoRefresh<BomsListState> {
   BomsListCubit({
     required ListBomsUseCase listBomsUseCase,
     required DeleteBomUseCase deleteBomUseCase,
@@ -15,7 +18,9 @@ class BomsListCubit extends Cubit<BomsListState> {
   })  : _listBoms = listBomsUseCase,
         _deleteBom = deleteBomUseCase,
         _authLocal = authLocalDataSource,
-        super(const BomsListState.initial());
+        super(const BomsListState.initial()) {
+    watchData({DataTopic.manufacturing}, _readQuietly);
+  }
 
   final ListBomsUseCase _listBoms;
   final DeleteBomUseCase _deleteBom;
@@ -36,8 +41,23 @@ class BomsListCubit extends Cubit<BomsListState> {
     await load();
   }
 
-  Future<void> load() async {
-    emit(const BomsListState.loading());
+  Future<void> load() => _read(quiet: false);
+
+  /// Reads the recipes again behind the rows on screen.
+  Future<void> _readQuietly() async {
+    if (state is BomsListLoaded) await _read(quiet: true);
+  }
+
+  /// The id of a new recipe on top of the list, for the table's reset token.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! BomsListLoaded) return null;
+    return createdOnTop(current.filteredBoms, (bom) => bom.id);
+  }
+
+  Future<void> _read({required bool quiet}) async {
+    final read = beginRead();
+    if (!quiet) emit(const BomsListState.loading());
 
     final user = await _authLocal.getCachedUser();
     final canManage = UserRoleUtils.canManageBom(
@@ -46,8 +66,11 @@ class BomsListCubit extends Cubit<BomsListState> {
     );
 
     final result = await _listBoms();
+    if (isStale(read)) return;
     result.fold(
-      (failure) => emit(BomsListState.error(failure.message)),
+      (failure) {
+        if (!quiet) emit(BomsListState.error(failure.message));
+      },
       (boms) => emit(
         BomsListState.loaded(
           allBoms: boms,
@@ -62,17 +85,21 @@ class BomsListCubit extends Cubit<BomsListState> {
 
   List<BomHeaderModel> _filter(List<BomHeaderModel> boms) {
     final query = _searchQuery.trim().toLowerCase();
-    return boms.where((bom) {
+    final matching = boms.where((bom) {
+      // A new recipe stays in sight until the filter or search is changed.
+      if (isNewlyCreated(bom.id)) return true;
       if (_activeOnlyFilter && !bom.isActive) return false;
       if (query.isEmpty) return true;
       return bom.name.toLowerCase().contains(query) ||
           bom.productName.toLowerCase().contains(query);
     }).toList()
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return newestFirst(matching, (bom) => bom.id);
   }
 
   void setActiveOnlyFilter(bool value) {
     _activeOnlyFilter = value;
+    forgetCreated();
     final current = state;
     if (current is BomsListLoaded) {
       emit(
@@ -86,6 +113,7 @@ class BomsListCubit extends Cubit<BomsListState> {
 
   void setSearchQuery(String value) {
     _searchQuery = value;
+    forgetCreated();
     final current = state;
     if (current is BomsListLoaded) {
       emit(
@@ -102,11 +130,12 @@ class BomsListCubit extends Cubit<BomsListState> {
     return result.fold(
       (failure) => failure.message,
       (_) {
-        load();
+        refresh();
         return null;
       },
     );
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() =>
+      state is BomsListLoaded ? _read(quiet: true) : load();
 }

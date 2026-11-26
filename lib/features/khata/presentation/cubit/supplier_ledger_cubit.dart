@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/session/active_branch_resolver.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
@@ -98,7 +100,8 @@ const Object _keep = Object();
 /// The supplier account: balance, rows with running balance, a date filter and
 /// "Reverse payment".
 @injectable
-class SupplierLedgerCubit extends Cubit<SupplierLedgerState> {
+class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
+    with AutoRefresh<SupplierLedgerState> {
   SupplierLedgerCubit(
     this._getSupplier,
     this._getLedger,
@@ -106,7 +109,10 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState> {
     this._branch,
     this._events,
   ) : super(const SupplierLedgerState()) {
-    _sub = _events.changes.listen((_) => refresh());
+    watchData(
+      const {DataTopic.supplierLedger, DataTopic.suppliers},
+      () => _read(quiet: true),
+    );
   }
 
   static const pageSize = 50;
@@ -118,17 +124,13 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState> {
   final ActiveBranchResolver _branch;
   final KhataEvents _events;
 
-  StreamSubscription<void>? _sub;
   String? _supplierId;
   String? _branchId;
+
+  /// The branch whose rows and balance are on screen.
+  String? get branchId => _branchId;
   String? _reverseKey;
   String? _reverseFingerprint;
-
-  @override
-  Future<void> close() {
-    _sub?.cancel();
-    return super.close();
-  }
 
   Future<void> load(String supplierId) async {
     _supplierId = supplierId;
@@ -136,32 +138,65 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState> {
     await refresh();
   }
 
-  Future<void> refresh() async {
+  /// Reads the account again. The rows on screen stay while it runs, and as
+  /// many of them are read as were showing.
+  Future<void> refresh() => _read(quiet: false);
+
+  /// [quiet]: after a change elsewhere, a failure leaves the screen as it is.
+  Future<void> _read({required bool quiet}) async {
     final id = _supplierId;
     if (id == null) return;
+    final read = beginRead();
+    final wanted = state.entries.length;
     _branchId = await _branch.resolve();
     final supplier = await _getSupplier(id);
-    if (isClosed) return;
+    if (isStale(read)) return;
     final page = await _getLedger(id, branchId: _branchId, limit: pageSize);
-    if (isClosed) return;
+    if (isStale(read)) return;
 
     SupplierModel? model;
     supplier.fold((_) {}, (s) => model = s);
-    page.fold(
-      (failure) => emit(
-        state.copyWith(
-          loading: false,
-          supplier: model,
-          error: failure is NetworkFailure ? KhataText.offlineLedger : failure.message,
-          offline: failure is NetworkFailure,
-        ),
-      ),
-      (data) {
+    await page.fold(
+      (failure) async {
+        if (quiet && state.balance != null) {
+          emit(state.copyWith(loading: false, supplier: model));
+          return;
+        }
         emit(
           state.copyWith(
             loading: false,
             supplier: model,
-            entries: data.items,
+            error: failure is NetworkFailure
+                ? KhataText.offlineLedger
+                : failure.message,
+            offline: failure is NetworkFailure,
+          ),
+        );
+      },
+      (data) async {
+        // Rows and balance are replaced together, in one state.
+        final entries = [...data.items];
+        while (entries.length < wanted && entries.length < data.total) {
+          final more = await _getLedger(
+            id,
+            branchId: _branchId,
+            skip: entries.length,
+            limit: pageSize,
+          );
+          if (isStale(read)) return;
+          final items = more.fold(
+            (_) => const <SupplierLedgerEntry>[],
+            (p) => p.items,
+          );
+          if (items.isEmpty) break;
+          entries.addAll(items);
+        }
+        emit(
+          state.copyWith(
+            loading: false,
+            loadingMore: false,
+            supplier: model,
+            entries: entries,
             balance: data.balance,
             total: data.total,
             error: null,
@@ -189,7 +224,12 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState> {
       (data) => emit(
         state.copyWith(
           loadingMore: false,
-          entries: [...state.entries, ...data.items],
+          // A line added meanwhile shifts the pages: no row twice.
+          entries: [
+            ...state.entries,
+            for (final e in data.items)
+              if (!state.entries.any((have) => have.id == e.id)) e,
+          ],
           balance: data.balance,
           total: data.total,
         ),

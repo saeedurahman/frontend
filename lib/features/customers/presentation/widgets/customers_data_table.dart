@@ -40,6 +40,7 @@ class CustomersDataTable extends StatelessWidget {
       items: items,
       itemId: (row) => row.customer.id,
       itemLabel: 'customers',
+      resetToken: cubit.newestCreatedId,
       paginationMode: AppTablePaginationMode.client,
       actionsWidth: 160,
       sortCompare: _sortCompare,

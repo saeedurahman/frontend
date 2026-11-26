@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/offline/pending_records.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -115,7 +116,9 @@ class _Toolbar extends StatelessWidget {
               final state = context.read<ExpensesListCubit>().state;
               DateTime? from;
               DateTime? to;
+              String? branchId;
               if (state is ExpensesListLoaded) {
+                branchId = state.branchIdFilter;
                 from = state.dateFrom;
                 to = state.dateTo;
               }
@@ -123,6 +126,7 @@ class _Toolbar extends StatelessWidget {
                 context,
                 dataset: 'expenses',
                 title: 'Expenses',
+                branchId: branchId,
                 dateFrom: from,
                 dateTo: to,
               );
@@ -139,7 +143,7 @@ class _Toolbar extends StatelessWidget {
             onPressed: () async {
               final saved = await context.push<bool>(RouteNames.expenseNew);
               if (saved == true && context.mounted) {
-                await context.read<ExpensesListCubit>().loadExpenses();
+                await context.read<ExpensesListCubit>().refresh();
               }
             },
             style: ElevatedButton.styleFrom(
@@ -292,6 +296,10 @@ class _ExpensesTable extends StatelessWidget {
     BuildContext context,
     ExpenseListItemModel item,
   ) async {
+    if (PendingRecords.isPendingId(item.id)) {
+      AppAlerts.showErrorMessage(context, PendingRecords.cannotOpenYet);
+      return;
+    }
     final ok = await ConfirmDialog.show(
       context,
       title: 'Delete expense?',
@@ -358,7 +366,10 @@ class _ExpensesTable extends StatelessWidget {
                                 flex: 3,
                                 child: Text(
                                   item.description?.isNotEmpty == true
-                                      ? item.description!
+                                      ? PendingRecords.isPendingId(item.id)
+                                          ? '${item.expenseNumber} · '
+                                              '${item.description!}'
+                                          : item.description!
                                       : item.expenseNumber,
                                   style: AppTextStyles.bodyMedium,
                                   maxLines: 1,
@@ -531,7 +542,11 @@ class _ShimmerTable extends StatelessWidget {
 /// The detail screen can change the expense, so the list is read again when it
 /// comes back.
 Future<void> _openExpense(BuildContext context, String id) async {
+  if (PendingRecords.isPendingId(id)) {
+    AppAlerts.showErrorMessage(context, PendingRecords.cannotOpenYet);
+    return;
+  }
   final cubit = context.read<ExpensesListCubit>();
   await context.push<Object?>(RouteNames.expenseDetailPath(id));
-  if (!cubit.isClosed) await cubit.loadExpenses();
+  if (!cubit.isClosed) await cubit.refresh();
 }

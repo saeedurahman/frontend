@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
@@ -12,7 +14,8 @@ import 'package:frantend/features/sales/presentation/utils/sale_product_enrichme
 import 'package:injectable/injectable.dart';
 
 @injectable
-class SaleDetailCubit extends Cubit<SaleDetailState> {
+class SaleDetailCubit extends Cubit<SaleDetailState>
+    with AutoRefresh<SaleDetailState> {
   SaleDetailCubit({
     required GetSaleByIdUseCase getSaleByIdUseCase,
     required CancelSaleUseCase cancelSaleUseCase,
@@ -28,7 +31,35 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
         _getProductById = getProductByIdUseCase,
         _getRegisterShift = getRegisterShiftByIdUseCase,
         _authLocal = authLocalDataSource,
-        super(const SaleDetailState.initial());
+        super(const SaleDetailState.initial()) {
+    watchData(const {DataTopic.sales, DataTopic.returns}, _reload);
+  }
+
+  String? _saleId;
+
+  /// A quiet re-read after a return, void or cancel made elsewhere.
+  Future<void> _reload() async {
+    final id = _saleId;
+    final current = state;
+    if (id == null || current is! SaleDetailLoaded) return;
+    // Cancelling and voiding show their own result.
+    if (current.isCancelling || current.isVoiding) return;
+    final read = beginRead();
+    final result = await _getSale(id);
+    if (isStale(read)) return;
+    await result.fold((_) async {}, (sale) async {
+      final enriched = await SaleProductEnrichment.enrichSale(
+        sale,
+        _getProductById.call,
+      );
+      final shiftOpen = current.registerShiftOpen == null
+          ? null
+          : await _resolveRegisterShiftOpen(enriched);
+      final now = state;
+      if (isStale(read) || now is! SaleDetailLoaded) return;
+      emit(now.copyWith(sale: enriched, registerShiftOpen: shiftOpen));
+    });
+  }
 
   final GetSaleByIdUseCase _getSale;
   final CancelSaleUseCase _cancelSale;
@@ -39,6 +70,8 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
   final AuthLocalDataSource _authLocal;
 
   Future<void> load(String saleId) async {
+    _saleId = saleId;
+    final read = beginRead();
     emit(const SaleDetailState.loading());
 
     final user = await _authLocal.getCachedUser();
@@ -77,6 +110,7 @@ class SaleDetailCubit extends Cubit<SaleDetailState> {
             ? await _resolveRegisterShiftOpen(enrichedSale)
             : null;
 
+        if (isStale(read)) return;
         emit(
           SaleDetailState.loaded(
             sale: enrichedSale,

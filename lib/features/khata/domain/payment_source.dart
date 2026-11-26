@@ -44,7 +44,7 @@ enum PaymentSource {
     if (known != null) {
       return switch (known) {
         drawer => 'Drawer',
-        ownerPocket => 'Owner pocket',
+        ownerPocket => "Owner's pocket",
         _ => known.label,
       };
     }

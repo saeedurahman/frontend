@@ -264,6 +264,7 @@ class _BomsTable extends StatelessWidget {
       items: boms,
       itemId: (bom) => bom.id,
       itemLabel: 'recipes',
+      resetToken: context.read<BomsListCubit>().newestCreatedId,
       paginationMode: AppTablePaginationMode.summary,
       sortCompare: _sortCompare,
       onRowTap: (bom) => _openBom(context, bom),

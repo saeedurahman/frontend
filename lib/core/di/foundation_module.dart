@@ -389,6 +389,7 @@ void registerFoundationServices(GetIt sl) {
       remoteDataSource: sl<ReturnsRemoteDataSource>(),
       errorHandler: sl<ErrorHandler>(),
       writer: sl<OfflineWriter>(),
+      store: sl<SyncStore>(),
     ),
   );
   replace<SalesRepository>(

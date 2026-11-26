@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
 import 'package:injectable/injectable.dart';
 
@@ -17,5 +18,15 @@ class KhataEvents {
 
   void notifyChanged() {
     if (!_controller.isClosed) _controller.add(null);
+    // The same news for every list and ledger that watches its data.
+    DataChangeBus.instance.publish(const {
+      DataTopic.customers,
+      DataTopic.customerLedger,
+      DataTopic.suppliers,
+      DataTopic.supplierLedger,
+      DataTopic.purchases,
+      DataTopic.shifts,
+      DataTopic.cashMovements,
+    });
   }
 }

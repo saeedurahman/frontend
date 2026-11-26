@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
+import 'package:frantend/features/sales/data/models/sale_list_item_model.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
@@ -11,7 +14,8 @@ import 'package:frantend/features/sales/presentation/utils/sale_product_enrichme
 import 'package:injectable/injectable.dart';
 
 @injectable
-class SalesListCubit extends Cubit<SalesListState> {
+class SalesListCubit extends Cubit<SalesListState>
+    with AutoRefresh<SalesListState> {
   SalesListCubit({
     required GetSalesUseCase getSalesUseCase,
     required GetSaleByIdUseCase getSaleByIdUseCase,
@@ -21,8 +25,11 @@ class SalesListCubit extends Cubit<SalesListState> {
         _getSaleById = getSaleByIdUseCase,
         _getProductById = getProductByIdUseCase,
         _authLocal = authLocalDataSource,
-        super(const SalesListState.initial());
+        super(const SalesListState.initial()) {
+    watchData(const {DataTopic.sales, DataTopic.returns}, _reload);
+  }
 
+  static const _maxLimit = 200;
   static const _defaultPageSize = 10;
   int _pageSize = _defaultPageSize;
 
@@ -56,7 +63,62 @@ class SalesListCubit extends Cubit<SalesListState> {
     await loadSales();
   }
 
+  /// A quiet re-read after a change: same dates, filters and page, no spinner,
+  /// and the rows stay when it fails.
+  Future<void> _reload() async {
+    final current = state;
+    if (current is SalesListInitial) return;
+    if (current is! SalesListLoaded) return loadSales();
+    final read = beginRead();
+    final appended = current.items.length > current.limit;
+    final from = appended ? 0 : current.skip;
+    final wanted = appended ? current.items.length : current.limit;
+    final rows = <SaleListItemModel>[];
+    var total = 0;
+    while (rows.length < wanted) {
+      final result = await _getSales(
+        branchId: _branchId,
+        status: _status,
+        dateFrom: _dateFrom,
+        dateTo: _dateTo,
+        search: _search,
+        skip: from + rows.length,
+        limit: (wanted - rows.length).clamp(1, _maxLimit),
+      );
+      if (isStale(read)) return;
+      final page = result.fold((_) => null, (p) => p);
+      if (page == null) {
+        // This read replaced a "load more" in flight.
+        final now = state;
+        if (now is SalesListLoaded) {
+          emit(now.copyWith(isLoadingMore: false));
+        }
+        return;
+      }
+      total = page.total;
+      rows.addAll(page.items);
+      if (page.items.isEmpty || from + rows.length >= total) break;
+    }
+    final now = state;
+    if (now is! SalesListLoaded) return;
+    final names = {for (final s in now.items) s.id: s.productNames};
+    emit(
+      now.copyWith(
+        items: [
+          for (final s in rows)
+            s.productNames.isEmpty && (names[s.id]?.isNotEmpty ?? false)
+                ? s.copyWith(productNames: names[s.id]!)
+                : s,
+        ],
+        total: total,
+        isLoadingMore: false,
+      ),
+    );
+    await _enrichProductNamesAsync();
+  }
+
   Future<void> loadSales({bool reset = true}) async {
+    final read = beginRead();
     if (reset) {
       emit(const SalesListState.loading());
     } else {
@@ -82,6 +144,7 @@ class SalesListCubit extends Cubit<SalesListState> {
       skip: skip,
       limit: _pageSize,
     );
+    if (isStale(read)) return;
 
     result.fold(
       (failure) => emit(SalesListState.error(failure.message)),
@@ -188,6 +251,7 @@ class SalesListCubit extends Cubit<SalesListState> {
     final target = page.clamp(1, totalPages);
     if (target == currentPage(current)) return;
 
+    final read = beginRead();
     emit(const SalesListState.loading());
     final skip = (target - 1) * _pageSize;
     final result = await _getSales(
@@ -199,6 +263,7 @@ class SalesListCubit extends Cubit<SalesListState> {
       skip: skip,
       limit: _pageSize,
     );
+    if (isStale(read)) return;
 
     result.fold(
       (failure) => emit(SalesListState.error(failure.message)),
@@ -257,7 +322,8 @@ class SalesListCubit extends Cubit<SalesListState> {
     await loadSales(reset: false);
   }
 
-  Future<void> refresh() => loadSales();
+  Future<void> refresh() =>
+      state is SalesListLoaded ? _reload() : loadSales();
 
   void clearFilters() {
     _status = null;

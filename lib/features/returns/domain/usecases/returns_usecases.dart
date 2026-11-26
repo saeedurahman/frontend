@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
+import 'package:frantend/features/returns/domain/pending_returns.dart';
 import 'package:frantend/features/returns/domain/repositories/returns_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -28,6 +29,14 @@ class GetReturnsUseCase {
     int limit = 50,
   }) =>
       _repository.getReturns(branchId: branchId, skip: skip, limit: limit);
+
+  /// Returns saved on this device and not sent yet.
+  Future<List<SaleReturnResponseModel>> pending({String? branchId}) async {
+    final Object repository = _repository;
+    return repository is PendingReturnsSource
+        ? await repository.pendingReturns(branchId: branchId)
+        : const [];
+  }
 }
 
 @injectable

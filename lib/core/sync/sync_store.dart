@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:drift/drift.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_models.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
@@ -153,8 +154,14 @@ class IndexedEntity {
 /// through [transaction] together with its [enqueue] call, so a crash can
 /// never leave a saved sale without its outbox row (or the other way round).
 class SyncStore {
-  SyncStore(this.db, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+  SyncStore(this.db, {DateTime Function()? clock, DataChangeBus? bus})
+      : _clock = clock ?? DateTime.now,
+        _bus = bus ?? DataChangeBus.instance;
+
+  /// Where changes to the screens' data are announced.
+  final DataChangeBus _bus;
+  final Set<DataTopic> _topicsInTx = {};
+  final Set<String> _createdInTx = {};
 
   final GeneratedDatabase db;
   final DateTime Function() _clock;
@@ -172,16 +179,29 @@ class SyncStore {
   /// Runs [body] atomically; notifies listeners after the commit.
   Future<T> transaction<T>(Future<T> Function() body) async {
     var queued = false;
-    final result = await db.transaction(() async {
-      final value = await body();
-      queued = _queuedInTx;
-      _queuedInTx = false;
-      return value;
-    });
+    final T result;
+    try {
+      result = await db.transaction(() async {
+        final value = await body();
+        queued = _queuedInTx;
+        _queuedInTx = false;
+        return value;
+      });
+    } catch (_) {
+      // Rolled back: nothing changed, so nothing is announced.
+      _topicsInTx.clear();
+      _createdInTx.clear();
+      rethrow;
+    }
     final prices = _priceEventsInTx.toList();
     _priceEventsInTx.clear();
     final stock = _stockInTx;
     _stockInTx = false;
+    final topics = {..._topicsInTx, if (stock) DataTopic.stock};
+    final created = {..._createdInTx};
+    _topicsInTx.clear();
+    _createdInTx.clear();
+    _bus.publish(topics, createdIds: created);
     if (!_changes.isClosed) _changes.add(null);
     if (!_priceChanges.isClosed) {
       for (final e in prices) {
@@ -373,6 +393,7 @@ class SyncStore {
   }
 
   Future<void> _applyOne(SyncChange c) async {
+    _topicsInTx.addAll(_entityTopics(c.entity));
     if (c.entity == 'stock_level') {
       _stockInTx = true;
       if (c.isDelete || c.data == null) {
@@ -410,6 +431,78 @@ class SyncStore {
       await _dropPriceTwins(c.id, c.data!);
     }
     await putEntity(c.entity, c.id, c.data!, seq: c.seq);
+  }
+
+  /// The screens a pulled row of [entity] belongs to.
+  static Set<DataTopic> _entityTopics(String entity) => switch (entity) {
+        'customer' ||
+        'customer_balance' =>
+          const {DataTopic.customers, DataTopic.customerLedger},
+        'supplier' => const {DataTopic.suppliers},
+        'product' ||
+        'product_variation' ||
+        'barcode' =>
+          const {DataTopic.products},
+        'category' => const {DataTopic.categories},
+        'brand' => const {DataTopic.brands},
+        'unit' => const {DataTopic.units},
+        'price_list' ||
+        'price_list_item' =>
+          const {DataTopic.priceLists},
+        'tax_rate' => const {DataTopic.taxRates},
+        'register_shift' ||
+        'cash_register' ||
+        'shift_summary' =>
+          const {DataTopic.shifts},
+        'sale_summary' => const {DataTopic.sales},
+        'receipt_layout' ||
+        'receipt_layout_assignment' =>
+          const {DataTopic.receiptLayouts},
+        _ => const {},
+      };
+
+  /// The screens a queued action of [type] shows up on (queued, sent, refused
+  /// or discarded).
+  static Set<DataTopic> opTopics(String type) => switch (type) {
+        OpTypes.customerCreate =>
+          const {DataTopic.customers, DataTopic.customerLedger},
+        OpTypes.customerPayment => const {
+            DataTopic.customers,
+            DataTopic.customerLedger,
+            DataTopic.shifts,
+            DataTopic.cashMovements,
+          },
+        OpTypes.shiftOpen ||
+        OpTypes.shiftClose =>
+          const {DataTopic.shifts, DataTopic.cashMovements},
+        OpTypes.saleCreate || OpTypes.saleVoid => const {
+            DataTopic.sales,
+            DataTopic.stock,
+            DataTopic.customers,
+            DataTopic.customerLedger,
+            DataTopic.shifts,
+            DataTopic.cashMovements,
+          },
+        OpTypes.expenseCreate => const {
+            DataTopic.expenses,
+            DataTopic.shifts,
+            DataTopic.cashMovements,
+          },
+        OpTypes.returnCreate => const {
+            DataTopic.returns,
+            DataTopic.sales,
+            DataTopic.stock,
+            DataTopic.customers,
+            DataTopic.customerLedger,
+            DataTopic.shifts,
+            DataTopic.cashMovements,
+          },
+        _ => const {},
+      };
+
+  Future<void> _noteOp(String opId) async {
+    final o = await op(opId);
+    if (o != null) _topicsInTx.addAll(opTopics(o.type));
   }
 
   /// Insert or replace one entity row (used by pulls and by local creates).
@@ -836,6 +929,10 @@ class SyncStore {
       ],
     );
     _queuedInTx = true;
+    _topicsInTx.addAll(opTopics(type));
+    if (type == OpTypes.customerCreate && entityId != null) {
+      _createdInTx.add(entityId);
+    }
     if (type == OpTypes.returnCreate || type == OpTypes.saleVoid) {
       _stockInTx = true;
     }
@@ -940,11 +1037,14 @@ class SyncStore {
     }
   }
 
-  Future<void> markApplied(String opId) => _exec(
-        "UPDATE outbox SET status = 'applied', error_code = NULL, error_message = NULL, "
-        'retryable = 0, next_attempt_at = NULL WHERE op_id = ?',
-        [opId],
-      );
+  Future<void> markApplied(String opId) async {
+    await _noteOp(opId);
+    await _exec(
+      "UPDATE outbox SET status = 'applied', error_code = NULL, error_message = NULL, "
+      'retryable = 0, next_attempt_at = NULL WHERE op_id = ?',
+      [opId],
+    );
+  }
 
   /// Retryable outcome: back to `pending` after a backoff step.
   Future<void> scheduleRetry(
@@ -965,12 +1065,14 @@ class SyncStore {
     required String message,
     String status = OutboxStatus.rejected,
     bool retryable = false,
-  }) =>
-      _exec(
-        'UPDATE outbox SET status = ?, error_code = ?, error_message = ?, '
-        'retryable = ?, next_attempt_at = NULL WHERE op_id = ?',
-        [status, code, message, retryable, opId],
-      );
+  }) async {
+    await _noteOp(opId);
+    await _exec(
+      'UPDATE outbox SET status = ?, error_code = ?, error_message = ?, '
+      'retryable = ?, next_attempt_at = NULL WHERE op_id = ?',
+      [status, code, message, retryable, opId],
+    );
+  }
 
   /// Gives a *finally rejected* op a new op id.
   ///
@@ -1006,6 +1108,7 @@ class SyncStore {
     if (op == null || !op.needsAttention) return opId;
     final id = op.status == OutboxStatus.rejected ? await _reissue(opId) : opId;
     await _resetToPending(id);
+    _topicsInTx.addAll(opTopics(op.type));
 
     final unblocked = {id};
     var changed = true;
@@ -1043,6 +1146,7 @@ class SyncStore {
     final o = await op(opId);
     if (o == null) return;
     await _exec('DELETE FROM outbox WHERE op_id = ?', [opId]);
+    _topicsInTx.addAll(opTopics(o.type));
     if (o.type == OpTypes.saleCreate) {
       await _exec("UPDATE local_sales SET sync_state = 'discarded' WHERE op_id = ?", [opId]);
       _stockInTx = true;

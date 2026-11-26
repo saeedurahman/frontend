@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
@@ -8,7 +10,8 @@ import 'package:frantend/features/manufacturing/presentation/cubit/production_or
 import 'package:injectable/injectable.dart';
 
 @injectable
-class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
+class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState>
+    with AutoRefresh<ProductionOrdersListState> {
   ProductionOrdersListCubit({
     required ListProductionOrdersUseCase listProductionOrdersUseCase,
     required AuthLocalDataSource authLocalDataSource,
@@ -16,7 +19,9 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
   })  : _listOrders = listProductionOrdersUseCase,
         _authLocal = authLocalDataSource,
         _branchSelector = branchSelectorCubit,
-        super(const ProductionOrdersListState.initial());
+        super(const ProductionOrdersListState.initial()) {
+    watchData({DataTopic.manufacturing}, _readQuietly);
+  }
 
   final ListProductionOrdersUseCase _listOrders;
   final AuthLocalDataSource _authLocal;
@@ -38,8 +43,24 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
     await load();
   }
 
-  Future<void> load() async {
-    emit(const ProductionOrdersListState.loading());
+  /// Also for a change of branch: the other branch's rows must not stay up.
+  Future<void> load() => _read(quiet: false);
+
+  /// Reads the orders again behind the rows on screen.
+  Future<void> _readQuietly() async {
+    if (state is ProductionOrdersListLoaded) await _read(quiet: true);
+  }
+
+  /// The id of a new order on top of the list, for the table's reset token.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! ProductionOrdersListLoaded) return null;
+    return createdOnTop(current.filteredOrders, (order) => order.id);
+  }
+
+  Future<void> _read({required bool quiet}) async {
+    final read = beginRead();
+    if (!quiet) emit(const ProductionOrdersListState.loading());
 
     final user = await _authLocal.getCachedUser();
     final canCreate = UserRoleUtils.canCreateProduction(
@@ -53,8 +74,11 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
     };
 
     final result = await _listOrders(branchId: branchId);
+    if (isStale(read)) return;
     result.fold(
-      (failure) => emit(ProductionOrdersListState.error(failure.message)),
+      (failure) {
+        if (!quiet) emit(ProductionOrdersListState.error(failure.message));
+      },
       (orders) => emit(
         ProductionOrdersListState.loaded(
           allOrders: orders,
@@ -70,7 +94,9 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
   }
 
   List<ProductionOrderModel> _filter(List<ProductionOrderModel> orders) {
-    return orders.where((order) {
+    final matching = orders.where((order) {
+      // A new order stays in sight until the filters are changed.
+      if (isNewlyCreated(order.id)) return true;
       if (_statusFilter != null && order.status != _statusFilter) {
         return false;
       }
@@ -100,10 +126,12 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
       return true;
     }).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return newestFirst(matching, (order) => order.id);
   }
 
   void filterByStatus(String? status) {
     _statusFilter = status;
+    forgetCreated();
     final current = state;
     if (current is ProductionOrdersListLoaded) {
       emit(
@@ -118,6 +146,7 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
   void setDateRange({DateTime? from, DateTime? to}) {
     _dateFrom = from;
     _dateTo = to;
+    forgetCreated();
     final current = state;
     if (current is ProductionOrdersListLoaded) {
       emit(
@@ -130,5 +159,6 @@ class ProductionOrdersListCubit extends Cubit<ProductionOrdersListState> {
     }
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() =>
+      state is ProductionOrdersListLoaded ? _read(quiet: true) : load();
 }

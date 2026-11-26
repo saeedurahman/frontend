@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -84,6 +83,9 @@ class _KhataLedgerTableState extends State<KhataLedgerTable> {
   }
 }
 
+const double _amountWidth = 160;
+const double _balanceWidth = 180;
+
 class _HeaderRow extends StatelessWidget {
   const _HeaderRow();
 
@@ -103,14 +105,14 @@ class _HeaderRow extends StatelessWidget {
       child: const Row(
         children: [
           SizedBox(width: 120, child: Text('Date', style: style)),
-          Expanded(flex: 3, child: Text('What happened', style: style)),
-          Expanded(flex: 3, child: Text('Paid from / details', style: style)),
+          Expanded(flex: 3, child: Text(KhataText.whatHappened, style: style)),
+          Expanded(flex: 3, child: Text(KhataText.paidFrom, style: style)),
           SizedBox(
-            width: 120,
+            width: _amountWidth,
             child: Text('Amount', textAlign: TextAlign.right, style: style),
           ),
           SizedBox(
-            width: 130,
+            width: _balanceWidth,
             child: Text(
               KhataText.runningBalance,
               textAlign: TextAlign.right,
@@ -148,10 +150,9 @@ class _LedgerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final struck = line.isReversed;
     final muted = struck ? AppColors.textSecondary : AppColors.textPrimary;
-    final amount = line.amount;
-    final amountColor = struck
-        ? AppColors.textSecondary
-        : (amount < Decimal.zero ? AppColors.error : AppColors.success);
+    final amount = line.amountView;
+    final balance = line.balanceView;
+    final amountColor = struck ? AppColors.textSecondary : amount.color;
     final decoration = struck ? TextDecoration.lineThrough : null;
     final when = line.when;
 
@@ -250,9 +251,9 @@ class _LedgerRow extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 120,
+            width: _amountWidth,
             child: Text(
-              formatSignedMoney(amount),
+              amount.text,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
@@ -262,11 +263,15 @@ class _LedgerRow extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 130,
+            width: _balanceWidth,
             child: Text(
-              line.runningBalance == null ? '—' : formatPKR(line.runningBalance),
+              balance?.text ?? '—',
               textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: balance?.color ?? AppColors.textPrimary,
+              ),
             ),
           ),
           SizedBox(

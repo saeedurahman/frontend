@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/roles/domain/usecases/roles_usecases.dart';
@@ -6,7 +8,8 @@ import 'package:frantend/features/roles/presentation/cubit/roles_list_state.dart
 import 'package:injectable/injectable.dart';
 
 @injectable
-class RolesListCubit extends Cubit<RolesListState> {
+class RolesListCubit extends Cubit<RolesListState>
+    with AutoRefresh<RolesListState> {
   RolesListCubit({
     required GetRolesUseCase getRolesUseCase,
     required DeleteRoleUseCase deleteRoleUseCase,
@@ -14,7 +17,9 @@ class RolesListCubit extends Cubit<RolesListState> {
   })  : _getRoles = getRolesUseCase,
         _deleteRole = deleteRoleUseCase,
         _authLocal = authLocalDataSource,
-        super(const RolesListState.initial());
+        super(const RolesListState.initial()) {
+    watchData(const {DataTopic.roles}, _reload);
+  }
 
   final GetRolesUseCase _getRoles;
   final DeleteRoleUseCase _deleteRole;
@@ -33,15 +38,43 @@ class RolesListCubit extends Cubit<RolesListState> {
   }
 
   Future<void> load() async {
+    final read = beginRead();
     emit(const RolesListState.loading());
     final result = await _getRoles();
+    if (isStale(read)) return;
     result.fold(
       (failure) => emit(RolesListState.error(failure.message)),
-      (roles) => emit(RolesListState.loaded(roles: roles)),
+      (roles) => emit(
+        RolesListState.loaded(roles: newestFirst(roles, (r) => r.id)),
+      ),
     );
   }
 
-  Future<void> refresh() => load();
+  /// Reads the list again without a spinner.
+  Future<void> refresh() =>
+      state is RolesListLoaded ? _reload() : load();
+
+  Future<void> _reload() async {
+    final current = state;
+    if (current is RolesListInitial || current is RolesListAccessDenied) return;
+    if (current is! RolesListLoaded) return load();
+    final read = beginRead();
+    final result = await _getRoles();
+    if (isStale(read)) return;
+    result.fold(
+      (_) {},
+      (roles) => emit(
+        RolesListState.loaded(roles: newestFirst(roles, (r) => r.id)),
+      ),
+    );
+  }
+
+  /// The id of the new role on top of the list, if any.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! RolesListLoaded) return null;
+    return createdOnTop(current.roles, (r) => r.id);
+  }
 
   Future<bool> deleteRole(String id) async {
     final current = state;

@@ -4,6 +4,8 @@ import 'package:frantend/features/expenses/data/models/expense_category_model.da
 import 'package:frantend/features/expenses/data/models/expense_model.dart';
 import 'package:frantend/features/expenses/data/models/expense_payment_response_model.dart';
 import 'package:frantend/features/expenses/data/models/paginated_expenses_model.dart';
+import 'package:frantend/features/expenses/data/models/expense_list_item_model.dart';
+import 'package:frantend/features/expenses/domain/pending_expenses.dart';
 import 'package:frantend/features/expenses/domain/repositories/expenses_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -63,6 +65,27 @@ class GetExpensesUseCase {
         skip: skip,
         limit: limit,
       );
+
+  /// Expenses saved on this device and not sent yet (none when the repository
+  /// keeps nothing).
+  Future<List<ExpenseListItemModel>> pending({
+    String? branchId,
+    String? categoryId,
+    String? supplierId,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  }) async {
+    final Object repository = _repository;
+    return repository is PendingExpensesSource
+        ? await repository.pendingExpenses(
+            branchId: branchId,
+            categoryId: categoryId,
+            supplierId: supplierId,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+          )
+        : const [];
+  }
 }
 
 @injectable

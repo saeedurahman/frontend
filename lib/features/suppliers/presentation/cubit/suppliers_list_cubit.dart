@@ -1,34 +1,32 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
-import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
-class SuppliersListCubit extends Cubit<SuppliersListState> {
+class SuppliersListCubit extends Cubit<SuppliersListState>
+    with AutoRefresh<SuppliersListState> {
   SuppliersListCubit({
     required GetSuppliersUseCase getSuppliersUseCase,
     required GetSupplierBalanceUseCase getSupplierBalanceUseCase,
     required UpdateSupplierUseCase updateSupplierUseCase,
     required DeleteSupplierUseCase deleteSupplierUseCase,
     required CreateSupplierUseCase createSupplierUseCase,
-    required KhataEvents khataEvents,
   })  : _getSuppliers = getSuppliersUseCase,
         _getBalance = getSupplierBalanceUseCase,
         _updateSupplier = updateSupplierUseCase,
         _deleteSupplier = deleteSupplierUseCase,
         _createSupplier = createSupplierUseCase,
         super(const SuppliersListState.initial()) {
-    // A payment or reversal elsewhere changes what is owed.
-    _khataSub = khataEvents.changes.listen((_) {
-      final current = state;
-      if (current is SuppliersListLoaded) _loadBalances(current.allItems);
-    });
+    // A new supplier, or a payment or reversal that changes what is owed.
+    watchData(const {DataTopic.suppliers, DataTopic.supplierLedger}, _reload);
   }
 
   final GetSuppliersUseCase _getSuppliers;
@@ -37,75 +35,137 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
   final DeleteSupplierUseCase _deleteSupplier;
   final CreateSupplierUseCase _createSupplier;
 
-  StreamSubscription<void>? _khataSub;
   Timer? _searchDebounce;
   String? _search;
 
   @override
   Future<void> close() {
     _searchDebounce?.cancel();
-    _khataSub?.cancel();
     return super.close();
   }
 
   Future<void> load() async {
+    final read = beginRead();
     emit(const SuppliersListState.loading());
 
     final result = await _getSuppliers();
+    if (isStale(read)) return;
     await result.fold(
       (failure) async => emit(SuppliersListState.error(failure.message)),
-      (suppliers) async {
-        final rows = suppliers
-            .map((s) => SupplierListRow(supplier: s, balanceLoading: true))
-            .toList();
-        emit(
-          SuppliersListState.loaded(
-            allItems: rows,
-            filteredItems: _filter(rows, _search),
-            searchQuery: _search,
-          ),
-        );
-        await _loadBalances(rows);
-      },
+      (suppliers) => _show(suppliers, read),
     );
   }
 
-  Future<void> _loadBalances(List<SupplierListRow> rows) async {
+  /// Reads the list again without a spinner. The search and the balances on
+  /// screen stay; so do the rows when the read fails.
+  Future<void> refresh() =>
+      state is SuppliersListLoaded ? _reload() : load();
+
+  Future<void> _reload() async {
+    final before = state;
+    if (before is SuppliersListInitial) return;
+    if (before is! SuppliersListLoaded) return load();
+
+    final read = beginRead();
+    final result = await _getSuppliers();
+    if (isStale(read)) return;
+    await result.fold(
+      (_) async {
+        // This read replaced the one that was fetching balances.
+        final current = state;
+        if (current is SuppliersListLoaded) {
+          await _loadBalances(current.allItems, read);
+        }
+      },
+      (suppliers) => _show(suppliers, read),
+    );
+  }
+
+  Future<void> _show(List<SupplierModel> suppliers, int read) async {
+    final current = state;
+    final shown = <String, String?>{
+      if (current is SuppliersListLoaded)
+        for (final r in current.allItems) r.supplier.id: r.balance,
+    };
+    final rows = [
+      for (final s in newestFirst(suppliers, (s) => s.id))
+        SupplierListRow(
+          supplier: s,
+          balance: shown[s.id],
+          balanceLoading: shown[s.id] == null,
+        ),
+    ];
+    emit(
+      SuppliersListState.loaded(
+        allItems: rows,
+        filteredItems: _filter(rows, _search),
+        searchQuery: _search,
+      ),
+    );
+    await _loadBalances(rows, read);
+  }
+
+  /// The id of the new supplier on top of the list, if any.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! SuppliersListLoaded) return null;
+    return createdOnTop(current.filteredItems, (r) => r.supplier.id);
+  }
+
+  Future<void> _loadBalances(List<SupplierListRow> rows, int read) async {
     final branchId = sl.isRegistered<BranchSelectorCubit>()
         ? sl<BranchSelectorCubit>().state.selectedBranchId
         : null;
-    final futures = rows.map((row) async {
-      final result = await _getBalance(row.supplier.id, branchId: branchId);
-      return result.fold(
-        (_) => row.copyWith(balanceLoading: false, balance: '—'),
-        (balance) => row.copyWith(
-          balanceLoading: false,
-          balance: balance.balance,
-        ),
-      );
-    });
-    final updated = await Future.wait(futures);
+    final balances = <String, String?>{};
+    await Future.wait(
+      rows.map((row) async {
+        final result = await _getBalance(row.supplier.id, branchId: branchId);
+        balances[row.supplier.id] = result.fold((_) => null, (b) => b.balance);
+      }),
+    );
+    if (isStale(read)) return;
     final current = state;
-    if (current is SuppliersListLoaded) {
-      emit(
-        current.copyWith(
-          allItems: updated,
-          filteredItems: _filter(updated, _search),
-        ),
-      );
-    }
+    if (current is! SuppliersListLoaded) return;
+    final updated = [
+      for (final row in current.allItems)
+        balances.containsKey(row.supplier.id)
+            ? row.copyWith(
+                balanceLoading: false,
+                balance: balances[row.supplier.id] ?? row.balance ?? '—',
+              )
+            : row,
+    ];
+    emit(
+      current.copyWith(
+        allItems: updated,
+        filteredItems: _filter(updated, _search),
+      ),
+    );
   }
 
   Future<void> onBranchChanged(String? branchId) async {
     final current = state;
     if (current is! SuppliersListLoaded) return;
-    await _loadBalances(current.allItems);
+    // Balances of the other branch must not stay on screen if the read fails.
+    final rows = [
+      for (final r in current.allItems)
+        r.copyWith(balance: null, balanceLoading: true),
+    ];
+    final read = beginRead();
+    emit(
+      current.copyWith(
+        allItems: rows,
+        filteredItems: _filter(rows, _search),
+      ),
+    );
+    await _loadBalances(rows, read);
   }
 
   void search(String query) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 400), () {
       _search = query.isEmpty ? null : query;
+      forgetCreated();
       final current = state;
       if (current is SuppliersListLoaded) {
         emit(
@@ -118,20 +178,21 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
     });
   }
 
+  /// A supplier just created is shown whatever the search says, until the user
+  /// changes it.
   List<SupplierListRow> _filter(List<SupplierListRow> items, String? query) {
     if (query == null || query.isEmpty) return items;
     final q = query.toLowerCase();
     return items
         .where(
           (row) =>
+              isNewlyCreated(row.supplier.id) ||
               row.supplier.name.toLowerCase().contains(q) ||
               (row.supplier.phone?.toLowerCase().contains(q) ?? false) ||
               (row.supplier.email?.toLowerCase().contains(q) ?? false),
         )
         .toList();
   }
-
-  Future<void> refresh() => load();
 
   Future<bool> toggleActive(String id, bool isActive) async {
     final current = state;
@@ -155,11 +216,12 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
     final result = await _updateSupplier(id, {'is_active': isActive});
     return result.fold(
       (failure) {
-        allItems[index] = row;
+        final restored = [...allItems];
+        restored[index] = row;
         emit(
           current.copyWith(
-            allItems: allItems,
-            filteredItems: _filter(allItems, _search),
+            allItems: restored,
+            filteredItems: _filter(restored, _search),
           ),
         );
         emit(SuppliersListState.error(failure.message));
@@ -218,20 +280,25 @@ class SuppliersListCubit extends Cubit<SuppliersListState> {
         return null;
       },
       (supplier) {
+        markCreated(supplier.id);
         final current = state;
         if (current is SuppliersListLoaded) {
           final newRow = SupplierListRow(
             supplier: supplier,
             balanceLoading: true,
           );
-          final allItems = [...current.allItems, newRow];
+          final allItems = [
+            newRow,
+            ...current.allItems.where((r) => r.supplier.id != supplier.id),
+          ];
+          final read = beginRead();
           emit(
             current.copyWith(
               allItems: allItems,
               filteredItems: _filter(allItems, _search),
             ),
           );
-          _loadBalances(allItems);
+          unawaited(_loadBalances(allItems, read));
         }
         return supplier;
       },

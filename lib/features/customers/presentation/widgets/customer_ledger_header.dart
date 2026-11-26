@@ -1,10 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/services/export_service.dart';
+import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/widgets/record_payment_dialog.dart';
@@ -54,9 +57,11 @@ class CustomerLedgerHeader extends StatelessWidget {
                   context,
                   dataset: 'customer_ledger',
                   title: 'Customer Ledger (${customer.name})',
-                  // Only this customer, and the file carries their name.
+                  // Only this customer, in the branch on screen, all dates.
                   filters: {'customer_id': customer.id},
                   fileLabel: customer.name,
+                  branchId: context.read<CustomerLedgerCubit>().branchId,
+                  dateFrom: ExportService.allDatesFrom,
                 ),
                 icon: const Icon(Icons.download_outlined, size: 18),
                 label: const Text('Export Ledger'),

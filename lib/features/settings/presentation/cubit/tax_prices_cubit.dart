@@ -1,5 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/core/tax/tax_settings_store.dart';
 import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
@@ -92,7 +94,8 @@ class TaxPricesState {
       );
 }
 
-class TaxPricesCubit extends Cubit<TaxPricesState> {
+class TaxPricesCubit extends Cubit<TaxPricesState>
+    with AutoRefresh<TaxPricesState> {
   TaxPricesCubit({
     required GetTaxRatesUseCase getTaxRates,
     required BulkUpdateSettingsUseCase bulkUpdate,
@@ -102,7 +105,27 @@ class TaxPricesCubit extends Cubit<TaxPricesState> {
         _bulkUpdate = bulkUpdate,
         _store = store,
         _fetcher = previewFetcher,
-        super(const TaxPricesState());
+        super(const TaxPricesState()) {
+    watchData(const {DataTopic.taxRates}, _reloadRates);
+  }
+
+  bool _opened = false;
+
+  /// A new or changed rate appears in the picker. What the owner is editing is
+  /// left alone.
+  Future<void> _reloadRates() async {
+    if (!_opened) return;
+    final result = await _getTaxRates();
+    if (isClosed) return;
+    await result.fold((_) async {}, (rates) async {
+      emit(state.copyWith(
+        loading: false,
+        rates: rates.where((r) => r.isActive).toList(),
+        justSaved: state.justSaved,
+      ));
+      await _refreshExample();
+    });
+  }
 
   final GetTaxRatesUseCase _getTaxRates;
   final BulkUpdateSettingsUseCase _bulkUpdate;
@@ -114,6 +137,7 @@ class TaxPricesCubit extends Cubit<TaxPricesState> {
   int _previewToken = 0;
 
   Future<void> load() async {
+    _opened = true;
     final current = _store.current;
     emit(state.copyWith(loading: true, saved: current, draft: current));
     final result = await _getTaxRates();

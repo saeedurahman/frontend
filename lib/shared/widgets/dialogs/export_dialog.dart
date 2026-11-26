@@ -23,7 +23,8 @@ class ExportDialog extends StatefulWidget {
   /// Extra export filters such as `customer_id` / `supplier_id`.
   final Map<String, String>? filters;
 
-  /// When set, the file is named after it (e.g. the customer's name).
+  /// When set, this is one person's ledger and the file is named after them:
+  /// "Ali Khan ledger 2026-11-26".
   final String? fileLabel;
 
   static Future<void> show(
@@ -61,7 +62,7 @@ class ExportDialog extends StatefulWidget {
         filters: filters,
         suggestedName: fileLabel == null
             ? null
-            : ExportService.fileNameFor(fileLabel, dataset, format, on: dateTo),
+            : ExportService.fileNameFor(fileLabel, 'ledger', format, on: dateTo),
       );
     }
   }

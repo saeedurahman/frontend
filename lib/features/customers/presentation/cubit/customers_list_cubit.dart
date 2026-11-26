@@ -1,13 +1,19 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
+import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
-class CustomersListCubit extends Cubit<CustomersListState> {
+class CustomersListCubit extends Cubit<CustomersListState>
+    with AutoRefresh<CustomersListState> {
   CustomersListCubit({
     required GetCustomersUseCase getCustomersUseCase,
     required GetCustomerBalanceUseCase getCustomerBalanceUseCase,
@@ -15,7 +21,9 @@ class CustomersListCubit extends Cubit<CustomersListState> {
   })  : _getCustomers = getCustomersUseCase,
         _getBalance = getCustomerBalanceUseCase,
         _updateCustomer = updateCustomerUseCase,
-        super(const CustomersListState.initial());
+        super(const CustomersListState.initial()) {
+    watchData(const {DataTopic.customers, DataTopic.customerLedger}, _reload);
+  }
 
   final GetCustomersUseCase _getCustomers;
   final GetCustomerBalanceUseCase _getBalance;
@@ -33,62 +41,138 @@ class CustomersListCubit extends Cubit<CustomersListState> {
   }
 
   Future<void> load() async {
+    final read = beginRead();
     emit(const CustomersListState.loading());
 
-    final result = await _getCustomers(search: _search);
+    final result = await _fetch();
+    if (isStale(read)) return;
     await result.fold(
       (failure) async => emit(CustomersListState.error(failure.message)),
-      (customers) async {
-        final rows = customers
-            .map((c) => CustomerListRow(customer: c, balanceLoading: true))
-            .toList();
-        emit(
-          CustomersListState.loaded(
-            allItems: rows,
-            filteredItems: _filter(rows),
-            searchQuery: _search,
-            activeFilter: _activeFilter,
-            hasOutstandingOnly: _hasOutstandingOnly,
+      (customers) => _show(customers, read),
+    );
+  }
+
+  /// Reads the list again without a spinner. Search, filters and the balances
+  /// on screen stay; so do the rows when the read fails.
+  Future<void> refresh() =>
+      state is CustomersListLoaded ? _reload() : load();
+
+  Future<void> _reload() async {
+    final before = state;
+    if (before is CustomersListInitial) return;
+    if (before is! CustomersListLoaded) return load();
+
+    final read = beginRead();
+    final result = await _fetch();
+    if (isStale(read)) return;
+    await result.fold(
+      (_) async {
+        // This read replaced the one that was fetching balances.
+        final current = state;
+        if (current is CustomersListLoaded) {
+          await _loadBalances(current.allItems, read);
+        }
+      },
+      (customers) => _show(customers, read),
+    );
+  }
+
+  /// The customers that match the search, plus the ones just created (a search
+  /// typed earlier must not hide them).
+  Future<Either<Failure, List<CustomerModel>>> _fetch() async {
+    final result = await _getCustomers(search: _search);
+    if (_search == null) return result;
+    return result.fold(
+      (failure) async => Left(failure),
+      (found) async {
+        final missing = createdIds.toSet()
+          ..removeAll(found.map((c) => c.id));
+        if (missing.isEmpty) return Right(found);
+        final everyone = await _getCustomers();
+        return Right([
+          ...everyone.fold(
+            (_) => const <CustomerModel>[],
+            (all) => all.where((c) => missing.contains(c.id)),
           ),
-        );
-        await _loadBalances(rows);
+          ...found,
+        ]);
       },
     );
   }
 
-  Future<void> _loadBalances(List<CustomerListRow> rows) async {
-    final futures = rows.map((row) async {
-      final result = await _getBalance(row.customer.id);
-      return result.fold(
-        (_) => row.copyWith(balanceLoading: false, balance: '—'),
-        (balance) => row.copyWith(
-          balanceLoading: false,
-          balance: balance.balance,
-        ),
-      );
-    });
-    final updated = await Future.wait(futures);
+  Future<void> _show(List<CustomerModel> customers, int read) async {
     final current = state;
-    if (current is CustomersListLoaded) {
-      emit(
-        current.copyWith(
-          allItems: updated,
-          filteredItems: _filter(updated),
+    final shown = <String, String?>{
+      if (current is CustomersListLoaded)
+        for (final r in current.allItems) r.customer.id: r.balance,
+    };
+    final rows = [
+      for (final c in newestFirst(customers, (c) => c.id))
+        CustomerListRow(
+          customer: c,
+          balance: shown[c.id],
+          balanceLoading: shown[c.id] == null,
         ),
-      );
-    }
+    ];
+    emit(
+      CustomersListState.loaded(
+        allItems: rows,
+        filteredItems: _filter(rows),
+        searchQuery: _search,
+        activeFilter: _activeFilter,
+        hasOutstandingOnly: _hasOutstandingOnly,
+      ),
+    );
+    await _loadBalances(rows, read);
+  }
+
+  /// The id of the new customer on top of the list, if any.
+  String? get newestCreatedId {
+    final current = state;
+    if (current is! CustomersListLoaded) return null;
+    return createdOnTop(current.filteredItems, (r) => r.customer.id);
+  }
+
+  Future<void> _loadBalances(List<CustomerListRow> rows, int read) async {
+    final balances = <String, String?>{};
+    await Future.wait(
+      rows.map((row) async {
+        final result = await _getBalance(row.customer.id);
+        balances[row.customer.id] = result.fold((_) => null, (b) => b.balance);
+      }),
+    );
+    if (isStale(read)) return;
+    final current = state;
+    if (current is! CustomersListLoaded) return;
+    final updated = [
+      for (final row in current.allItems)
+        balances.containsKey(row.customer.id)
+            ? row.copyWith(
+                balanceLoading: false,
+                balance: balances[row.customer.id] ?? row.balance ?? '—',
+              )
+            : row,
+    ];
+    emit(
+      current.copyWith(
+        allItems: updated,
+        filteredItems: _filter(updated),
+      ),
+    );
   }
 
   void search(String query) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 400), () {
       _search = query.isEmpty ? null : query;
+      forgetCreated();
       load();
     });
   }
 
   void setActiveFilter(CustomerActiveFilter filter) {
     _activeFilter = filter;
+    forgetCreated();
     final current = state;
     if (current is CustomersListLoaded) {
       emit(
@@ -102,6 +186,7 @@ class CustomersListCubit extends Cubit<CustomersListState> {
 
   void setHasOutstandingFilter(bool value) {
     _hasOutstandingOnly = value;
+    forgetCreated();
     final current = state;
     if (current is CustomersListLoaded) {
       emit(
@@ -113,8 +198,11 @@ class CustomersListCubit extends Cubit<CustomersListState> {
     }
   }
 
+  /// A customer just created is shown whatever the filters say, until the user
+  /// changes them.
   List<CustomerListRow> _filter(List<CustomerListRow> items) {
     return items.where((row) {
+      if (isNewlyCreated(row.customer.id)) return true;
       switch (_activeFilter) {
         case CustomerActiveFilter.active:
           if (!row.customer.isActive) return false;
@@ -130,8 +218,6 @@ class CustomersListCubit extends Cubit<CustomersListState> {
       return true;
     }).toList();
   }
-
-  Future<void> refresh() => load();
 
   Future<bool> toggleActive(String id, bool isActive) async {
     final current = state;
@@ -155,11 +241,12 @@ class CustomersListCubit extends Cubit<CustomersListState> {
     final result = await _updateCustomer(id, {'is_active': isActive});
     return result.fold(
       (failure) {
-        allItems[index] = row;
+        final restored = [...allItems];
+        restored[index] = row;
         emit(
           current.copyWith(
-            allItems: allItems,
-            filteredItems: _filter(allItems),
+            allItems: restored,
+            filteredItems: _filter(restored),
           ),
         );
         emit(CustomersListState.error(failure.message));

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/features/users/presentation/cubit/users_list_cubit.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
@@ -46,6 +48,7 @@ class UsersDataTable extends StatelessWidget {
           items: users,
           itemId: (u) => u.id,
           itemLabel: 'staff',
+          resetToken: context.read<UsersListCubit>().newestCreatedId,
           actionsWidth: canUpdate || canDelete ? 100 : 0,
           sortCompare: _sortCompare,
           onRowTap: canUpdate

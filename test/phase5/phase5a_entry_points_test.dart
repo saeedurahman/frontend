@@ -20,6 +20,7 @@ import 'package:frantend/features/products/domain/usecases/delete_product_usecas
 import 'package:frantend/features/products/domain/usecases/get_brands_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_categories_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_barcode_usecase.dart';
+import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/get_products_usecase.dart';
 import 'package:frantend/features/products/domain/usecases/update_product_usecase.dart';
 import 'package:frantend/features/products/presentation/cubit/brands_cubit.dart';
@@ -115,6 +116,7 @@ void main() {
             deleteProductUseCase: DeleteProductUseCase(repo),
             updateProductUseCase: UpdateProductUseCase(repo),
             getProductByBarcodeUseCase: GetProductByBarcodeUseCase(repo),
+            getProductByIdUseCase: GetProductByIdUseCase(repo),
           ));
       sl.registerFactory(() => CategoriesCubit(
             getCategoriesUseCase: GetCategoriesUseCase(repo),

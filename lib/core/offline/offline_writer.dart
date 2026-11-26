@@ -381,15 +381,20 @@ class OfflineWriter {
 
   // ── expenses ─────────────────────────────────────────────────────────
 
-  Future<void> createExpense(Map<String, dynamic> body) =>
-      _store.transaction(() async {
-        await _store.enqueue(
-          opId: _ids.opId(),
-          type: OpTypes.expenseCreate,
-          payload: Map<String, dynamic>.from(body)..remove('id'),
-          occurredAt: _occurredAt(),
-        );
-      });
+  /// Returns the id of the queued op (the only id the expense has until the
+  /// server gives it one).
+  Future<String> createExpense(Map<String, dynamic> body) async {
+    final opId = _ids.opId();
+    await _store.transaction(() async {
+      await _store.enqueue(
+        opId: opId,
+        type: OpTypes.expenseCreate,
+        payload: Map<String, dynamic>.from(body)..remove('id'),
+        occurredAt: _occurredAt(),
+      );
+    });
+    return opId;
+  }
 
   // ── shifts ───────────────────────────────────────────────────────────
 

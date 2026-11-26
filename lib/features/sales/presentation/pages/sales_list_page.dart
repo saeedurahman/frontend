@@ -323,6 +323,8 @@ class _SalesTable extends StatelessWidget {
       items: state.items,
       itemId: (item) => item.id,
       itemLabel: 'sales',
+      // A new sale arrives on top.
+      resetToken: state.items.isEmpty ? null : state.items.first.id,
       paginationMode: AppTablePaginationMode.server,
       sortCompare: _sortCompare,
       skip: state.skip,

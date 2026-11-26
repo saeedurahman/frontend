@@ -15,6 +15,10 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 abstract final class ExportService {
+  /// `date_from` for a screen that shows every row. The server exports only the
+  /// last 30 days when no start date is sent.
+  static final DateTime allDatesFrom = DateTime(2000);
+
   /// Fetches export bytes from backend GET /export/{dataset} and saves them via FileSaverService.
   ///
   /// The user selects the save location up-front so network requests never run if cancelled.
@@ -354,7 +358,7 @@ abstract final class ExportService {
     };
   }
 
-  /// A safe file name: `Ali Khan` + `ledger` -> `Ali_Khan_ledger_20261125.xlsx`.
+  /// A safe file name: `Ali Khan` + `ledger` -> `Ali Khan ledger 2026-11-25.xlsx`.
   static String fileNameFor(
     String name,
     String suffix,
@@ -362,13 +366,12 @@ abstract final class ExportService {
     DateTime? on,
   }) {
     final clean = name
-        .trim()
-        .replaceAll(RegExp(r'[\/:*?"<>|]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
-    final stamp = DateFormat('yyyyMMdd').format(on ?? DateTime.now());
-    final base = clean.isEmpty ? suffix : '${clean}_$suffix';
-    return '${base}_$stamp.$format';
+        .replaceAll(RegExp(r'[\x00-\x1F\/:*?"<>|]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final stamp = DateFormat('yyyy-MM-dd').format(on ?? DateTime.now());
+    final base = clean.isEmpty ? suffix : '$clean $suffix';
+    return '$base $stamp.$format';
   }
 
   static String _formatBytes(int bytes) {

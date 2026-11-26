@@ -1,5 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/expenses/data/models/expense_category_model.dart';
@@ -9,7 +11,8 @@ import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.da
 import 'package:injectable/injectable.dart';
 
 @injectable
-class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
+class ExpenseDetailCubit extends Cubit<ExpenseDetailState>
+    with AutoRefresh<ExpenseDetailState> {
   ExpenseDetailCubit({
     required GetExpenseByIdUseCase getExpenseByIdUseCase,
     required GetExpenseCategoriesUseCase getExpenseCategoriesUseCase,
@@ -23,7 +26,9 @@ class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
         _deleteExpense = deleteExpenseUseCase,
         _addPayment = addExpensePaymentUseCase,
         _getMyActiveShift = getMyActiveShiftUseCase,
-        super(const ExpenseDetailState.initial());
+        super(const ExpenseDetailState.initial()) {
+    watchData(const {DataTopic.expenses}, _reload);
+  }
 
   final GetExpenseByIdUseCase _getExpense;
   final GetExpenseCategoriesUseCase _getCategories;
@@ -41,11 +46,28 @@ class ExpenseDetailCubit extends Cubit<ExpenseDetailState> {
     }
   }
 
+  /// A quiet re-read after the expense was edited or paid elsewhere.
+  Future<void> _reload() async {
+    final id = _expenseId;
+    final current = state;
+    if (id == null) return;
+    if (current is! ExpenseDetailLoaded) return load(id);
+    // Paying and deleting finish their own way.
+    if (current.isRecordingPayment || current.isDeleting) return;
+    final read = beginRead();
+    final result = await _getExpense(id);
+    final now = state;
+    if (isStale(read) || now is! ExpenseDetailLoaded) return;
+    result.fold((_) {}, (expense) => emit(now.copyWith(expense: expense)));
+  }
+
   Future<void> load(String expenseId) async {
     _expenseId = expenseId;
+    final read = beginRead();
     emit(const ExpenseDetailState.loading());
 
     final expenseResult = await _getExpense(expenseId);
+    if (isStale(read)) return;
     await expenseResult.fold(
       (f) async => emit(ExpenseDetailState.error(f.message)),
       (expense) async {

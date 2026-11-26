@@ -80,11 +80,11 @@ void main() {
     test('the file is named after the person, safely', () {
       final on = DateTime(2026, 11, 25);
       expect(ExportService.fileNameFor('Ali Khan', 'ledger', 'xlsx', on: on),
-          'Ali_Khan_ledger_20261125.xlsx');
+          'Ali Khan ledger 2026-11-25.xlsx');
       expect(ExportService.fileNameFor('A/B: C*?', 'ledger', 'pdf', on: on),
           isNot(matches(RegExp(r'[\/:*?"<>|]'))));
       expect(ExportService.fileNameFor('   ', 'ledger', 'csv', on: on),
-          'ledger_20261125.csv');
+          'ledger 2026-11-25.csv');
     });
   });
 

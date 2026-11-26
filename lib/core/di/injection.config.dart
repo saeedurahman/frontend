@@ -1202,6 +1202,7 @@ extension GetItInjectableX on _i174.GetIt {
         deleteProductUseCase: gh<_i913.DeleteProductUseCase>(),
         updateProductUseCase: gh<_i74.UpdateProductUseCase>(),
         getProductByBarcodeUseCase: gh<_i59.GetProductByBarcodeUseCase>(),
+        getProductByIdUseCase: gh<_i341.GetProductByIdUseCase>(),
       ),
     );
     gh.factory<_i450.GetCustomersUseCase>(
@@ -1339,16 +1340,6 @@ extension GetItInjectableX on _i174.GetIt {
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
       ),
     );
-    gh.factory<_i507.SuppliersListCubit>(
-      () => _i507.SuppliersListCubit(
-        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
-        getSupplierBalanceUseCase: gh<_i877.GetSupplierBalanceUseCase>(),
-        updateSupplierUseCase: gh<_i877.UpdateSupplierUseCase>(),
-        deleteSupplierUseCase: gh<_i877.DeleteSupplierUseCase>(),
-        createSupplierUseCase: gh<_i877.CreateSupplierUseCase>(),
-        khataEvents: gh<_i738.KhataEvents>(),
-      ),
-    );
     gh.factory<_i1011.UsersListCubit>(
       () => _i1011.UsersListCubit(
         getUsersUseCase: gh<_i962.GetUsersUseCase>(),
@@ -1455,6 +1446,15 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i944.ReturnDetailCubit(
         getReturnByIdUseCase: gh<_i956.GetReturnByIdUseCase>(),
         authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+      ),
+    );
+    gh.factory<_i507.SuppliersListCubit>(
+      () => _i507.SuppliersListCubit(
+        getSuppliersUseCase: gh<_i877.GetSuppliersUseCase>(),
+        getSupplierBalanceUseCase: gh<_i877.GetSupplierBalanceUseCase>(),
+        updateSupplierUseCase: gh<_i877.UpdateSupplierUseCase>(),
+        deleteSupplierUseCase: gh<_i877.DeleteSupplierUseCase>(),
+        createSupplierUseCase: gh<_i877.CreateSupplierUseCase>(),
       ),
     );
     gh.factory<_i997.CustomersListCubit>(

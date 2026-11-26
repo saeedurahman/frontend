@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/features/roles/presentation/cubit/roles_list_cubit.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
@@ -30,6 +32,7 @@ class RolesDataTable extends StatelessWidget {
       items: roles,
       itemId: (role) => role.id,
       itemLabel: 'roles',
+      resetToken: context.read<RolesListCubit>().newestCreatedId,
       actionsWidth: 100,
       sortCompare: _sortCompare,
       onRowTap: (role) => openRoleForm(

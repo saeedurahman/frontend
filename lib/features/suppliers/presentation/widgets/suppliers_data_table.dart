@@ -40,6 +40,7 @@ class SuppliersDataTable extends StatelessWidget {
       items: items,
       itemId: (row) => row.supplier.id,
       itemLabel: 'suppliers',
+      resetToken: cubit.newestCreatedId,
       actionsWidth: 190,
       sortCompare: _sortCompare,
       onRowTap: hasPermission(context, Perm.suppliersLedgerView)

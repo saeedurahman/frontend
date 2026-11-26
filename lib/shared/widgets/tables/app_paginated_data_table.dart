@@ -34,7 +34,13 @@ class AppPaginatedDataTable<T> extends StatefulWidget {
     this.actionsWidth = 88,
     this.pagination,
     this.embedded = false,
+    this.resetToken,
   });
+
+  /// When this changes, the table drops its column sort and returns to the
+  /// first page, so rows the caller put on top are in sight. Pass something
+  /// that changes only when a new row arrives (its id).
+  final Object? resetToken;
 
   final List<AppDataTableColumn> columns;
   final List<T> items;
@@ -97,6 +103,20 @@ class _AppPaginatedDataTableState<T> extends State<AppPaginatedDataTable<T>> {
     }
     if (widget.limit != null && widget.limit != _pageSize) {
       _pageSize = widget.limit!;
+    }
+    if (widget.resetToken != oldWidget.resetToken &&
+        widget.resetToken != null) {
+      _sortColumn = null;
+      _sortAscending = true;
+      _currentPage = widget.currentPage ?? 1;
+    }
+    // Rows can go away under the page being shown.
+    if (widget.paginationMode == AppTablePaginationMode.client &&
+        widget.currentPage == null) {
+      final last = widget.items.isEmpty
+          ? 1
+          : ((widget.items.length - 1) ~/ _pageSize) + 1;
+      if (_currentPage > last) _currentPage = last;
     }
   }
 

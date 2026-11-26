@@ -62,6 +62,7 @@ abstract final class Perm {
   // Reports / export
   static const reportsView = 'reports.view';
   static const reportsExport = 'reports.export';
+  static const reportsFinancial = 'reports.financial';
   static const reportsFraudAlerts = 'reports.fraud_alerts';
 
   // Settings / staff / roles

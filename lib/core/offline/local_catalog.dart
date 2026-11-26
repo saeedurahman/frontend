@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/cash_register/data/models/cash_register_model.dart';
 import 'package:frantend/features/cash_register/data/models/register_shift_model.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
+import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
+import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/inventory/data/models/stock_model.dart';
 import 'package:frantend/features/pos/data/models/discount_scheme_model.dart';
 import 'package:frantend/features/restaurant/data/models/modifier_group_model.dart';
@@ -977,6 +980,93 @@ class LocalCatalog {
 
   /// Customers created on this device that the server has not accepted yet.
   Future<Set<String>> unsyncedCustomerIds() => _store.unsyncedCustomerIds();
+
+  /// A customer the server just accepted a change to. The balance of the
+  /// stored row is kept (the answer does not carry the ledger's).
+  Future<void> rememberCustomer(CustomerModel c) async {
+    await _store.transaction(() async {
+      final old = await _store.entity('customer', c.id);
+      if (old == null) return;
+      await _store.putEntity('customer', c.id, {...old, ...c.toJson()});
+    });
+  }
+
+  /// Those customers themselves (matching [search] like [customers] does).
+  Future<List<CustomerModel>> unsyncedCustomers({String? search}) async {
+    final q = search?.trim().toLowerCase() ?? '';
+    final found = <CustomerModel>[];
+    for (final id in await _store.unsyncedCustomerIds()) {
+      final c = await customer(id);
+      if (c == null) continue;
+      final text = '${c.name} ${c.phone ?? ''} ${c.email ?? ''}'.toLowerCase();
+      if (q.isEmpty || text.contains(q)) found.add(c);
+    }
+    return found;
+  }
+
+  /// Account lines saved on this device that the server does not have yet:
+  /// payments still in the outbox and credit sales not sent. Oldest first,
+  /// without a running balance (the caller knows what they come on top of).
+  Future<List<CustomerLedgerEntryModel>> pendingLedger(
+    String customerId, {
+    String? branchId,
+  }) async {
+    final businessId =
+        '${(await _store.entity('customer', customerId))?['business_id'] ?? ''}';
+    final lines = <CustomerLedgerEntryModel>[];
+    for (final o in await _store.ops(statuses: OutboxStatus.unfinished)) {
+      final p = o.payload;
+      if (o.type != OpTypes.customerPayment ||
+          '${p['customer_id']}' != customerId) {
+        continue;
+      }
+      final branch = p['branch_id'] as String?;
+      if (branchId != null && branch != null && branch != branchId) continue;
+      lines.add(CustomerLedgerEntryModel(
+        id: '${p['id']}',
+        businessId: businessId,
+        customerId: customerId,
+        entryType: LedgerEntryType.payment,
+        amount: '${p['amount']}',
+        referenceType: o.needsAttention
+            ? PendingLedgerMarks.needsAttention
+            : PendingLedgerMarks.waiting,
+        entryAt: o.occurredAt,
+        createdAt: o.occurredAt,
+        notes: p['notes'] as String?,
+        branchId: branch,
+        paymentSource: p['payment_method'] as String?,
+        referenceNo: p['reference_no'] as String?,
+        registerShiftId: p['register_shift_id'] as String?,
+      ));
+    }
+    for (final row in await _store.sales(syncState: 'pending', limit: 500)) {
+      if (row['customer_id'] != customerId || row['status'] != 'completed') {
+        continue;
+      }
+      final credit =
+          Decimal.tryParse('${row['credit_amount']}') ?? Decimal.zero;
+      if (credit <= Decimal.zero) continue;
+      final branch = row['branch_id'] as String?;
+      if (branchId != null && branch != null && branch != branchId) continue;
+      final id = '${row['id']}';
+      lines.add(CustomerLedgerEntryModel(
+        id: 'pending-sale-$id',
+        businessId: businessId,
+        customerId: customerId,
+        entryType: LedgerEntryType.sale,
+        amount: DecimalUtils.format(-credit),
+        referenceType: PendingLedgerMarks.waiting,
+        referenceId: id,
+        entryAt: row['sold_at'] as String?,
+        createdAt: row['sold_at'] as String?,
+        notes: row['receipt_no'] == null ? null : 'Receipt ${row['receipt_no']}',
+        branchId: branch,
+      ));
+    }
+    lines.sort((a, b) => (a.entryAt ?? '').compareTo(b.entryAt ?? ''));
+    return lines;
+  }
 
   Future<CustomerModel?> customer(String id) async {
     final row = await _store.entity('customer', id);

@@ -567,6 +567,7 @@ class _ProductsTable extends StatelessWidget {
       items: state.items,
       itemId: (product) => product.id,
       itemLabel: 'products',
+      resetToken: cubit.newestCreatedId,
       paginationMode: AppTablePaginationMode.server,
       sortCompare: _sortCompare,
       skip: state.skip,

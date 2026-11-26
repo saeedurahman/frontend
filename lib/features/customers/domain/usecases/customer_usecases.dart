@@ -3,6 +3,7 @@ import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/customers/data/models/customer_balance_model.dart';
 import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
+import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/customers/domain/repositories/customers_repository.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:injectable/injectable.dart';
@@ -96,4 +97,15 @@ class GetCustomerLedgerUseCase {
         skip: skip,
         limit: limit,
       );
+
+  /// Lines saved on this device that the server does not have yet.
+  Future<List<CustomerLedgerEntryModel>> pending(
+    String customerId, {
+    String? branchId,
+  }) async {
+    final Object repository = _repository;
+    return repository is PendingLedgerSource
+        ? await repository.pendingLedger(customerId, branchId: branchId)
+        : const [];
+  }
 }

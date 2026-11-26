@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/data_changes/auto_refresh.dart';
+import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
@@ -15,7 +17,8 @@ import 'package:frantend/features/products/domain/usecases/get_products_usecase.
 import 'package:injectable/injectable.dart';
 
 @injectable
-class InventoryStockCubit extends Cubit<InventoryStockState> {
+class InventoryStockCubit extends Cubit<InventoryStockState>
+    with AutoRefresh<InventoryStockState> {
   InventoryStockCubit({
     required GetProductsUseCase getProductsUseCase,
     required GetProductByIdUseCase getProductByIdUseCase,
@@ -23,7 +26,9 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
   })  : _getProducts = getProductsUseCase,
         _getProductById = getProductByIdUseCase,
         _getBalances = getStockBalancesUseCase,
-        super(const InventoryStockState.initial());
+        super(const InventoryStockState.initial()) {
+    watchData(const {DataTopic.stock, DataTopic.products}, _reload);
+  }
 
   final GetProductsUseCase _getProducts;
   final GetProductByIdUseCase _getProductById;
@@ -43,8 +48,18 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
     return super.close();
   }
 
-  Future<void> load() async {
-    emit(const InventoryStockState.loading());
+  Future<void> load() => _read(quiet: false);
+
+  Future<void> _reload() async {
+    final current = state;
+    if (current is InventoryStockInitial) return;
+    await _read(quiet: current is InventoryStockLoaded);
+  }
+
+  /// [quiet]: no spinner, filters kept, and the rows stay when it fails.
+  Future<void> _read({required bool quiet}) async {
+    final read = beginRead();
+    if (!quiet) emit(const InventoryStockState.loading());
 
     final branchId = sl<BranchSelectorCubit>().state.selectedBranchId;
     if (branchId == null) {
@@ -54,12 +69,17 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
 
     final productsResult = await _fetchAllProducts();
     final balancesResult = await _getBalances(branchId: branchId);
+    if (isStale(read)) return;
+
+    void fail(String message) {
+      if (!quiet) emit(InventoryStockState.error(message));
+    }
 
     await productsResult.fold(
-      (failure) async => emit(InventoryStockState.error(failure.message)),
+      (failure) async => fail(failure.message),
       (products) async {
         await balancesResult.fold(
-          (failure) async => emit(InventoryStockState.error(failure.message)),
+          (failure) async => fail(failure.message),
           (balances) async {
             final productsById = {
               for (final p in products) p.id: p,
@@ -116,6 +136,7 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
               );
             }
 
+            if (isStale(read)) return;
             emit(
               InventoryStockState.loaded(
                 allRows: rows,
@@ -226,5 +247,5 @@ class InventoryStockCubit extends Cubit<InventoryStockState> {
     }).toList();
   }
 
-  Future<void> refresh() => load();
+  Future<void> refresh() => _read(quiet: state is InventoryStockLoaded);
 }
