@@ -15,6 +15,8 @@ import 'package:frantend/features/settings/presentation/pages/printer_settings_p
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+import '../helpers/sample_output.dart';
+
 class _FakePrinterService implements PrinterService {
   PrinterConfig currentConfig = const PrinterConfig();
   bool printPdfCalled = false;
@@ -390,12 +392,8 @@ void main() {
   });
 
   group('Golden Tests & Sample PNG Generation (b)', () {
-    test('renders sample receipt from screenshot and saves PNGs to docs/receipt_samples/', () async {
-
-      final samplesDir = Directory('docs/receipt_samples');
-      if (!samplesDir.existsSync()) {
-        samplesDir.createSync(recursive: true);
-      }
+    test('renders the sample receipt and saves PNG and PDF samples', () async {
+      final dir = sampleOutputDir('receipt_samples').path;
 
       // 1. Render and capture roll80 (width ~226.77 pt = 80mm)
       final pngBytes80 = await renderReceiptToPng(
@@ -403,7 +401,7 @@ void main() {
         urduStyle: UrduReceiptStyle.nastaliq,
         shopName: 'Test Shop 3 / ٹیسٹ پرنٹ',
       );
-      final file80 = File('docs/receipt_samples/receipt_sample_roll80.png');
+      final file80 = File('$dir/receipt_sample_roll80.png');
       file80.writeAsBytesSync(pngBytes80);
       expect(file80.existsSync(), true);
       expect(file80.lengthSync(), greaterThan(1000));
@@ -414,7 +412,7 @@ void main() {
         urduStyle: UrduReceiptStyle.nastaliq,
         shopName: 'Test Shop 3 / ٹیسٹ پرنٹ',
       );
-      final file57 = File('docs/receipt_samples/receipt_sample_roll57.png');
+      final file57 = File('$dir/receipt_sample_roll57.png');
       file57.writeAsBytesSync(pngBytes57);
       expect(file57.existsSync(), true);
       expect(file57.lengthSync(), greaterThan(1000));
@@ -425,7 +423,7 @@ void main() {
         urduStyle: UrduReceiptStyle.naskh,
         shopName: 'Test Shop 3 / ٹیسٹ پرنٹ',
       );
-      final fileNaskh = File('docs/receipt_samples/receipt_sample_roll80_naskh.png');
+      final fileNaskh = File('$dir/receipt_sample_roll80_naskh.png');
       fileNaskh.writeAsBytesSync(pngBytesNaskh);
       expect(fileNaskh.existsSync(), true);
       expect(fileNaskh.lengthSync(), greaterThan(1000));
@@ -433,11 +431,11 @@ void main() {
       // 4. Also save vector PDF builds for inspection
       final doc80Pdf = await SaleReceiptService.buildTestPdf(paperSize: '80mm');
       final pdfBytes80 = await doc80Pdf.save();
-      File('docs/receipt_samples/receipt_sample_roll80.pdf').writeAsBytesSync(pdfBytes80);
+      File('$dir/receipt_sample_roll80.pdf').writeAsBytesSync(pdfBytes80);
 
       final doc58Pdf = await SaleReceiptService.buildTestPdf(paperSize: '58mm');
       final pdfBytes58 = await doc58Pdf.save();
-      File('docs/receipt_samples/receipt_sample_roll57.pdf').writeAsBytesSync(pdfBytes58);
+      File('$dir/receipt_sample_roll57.pdf').writeAsBytesSync(pdfBytes58);
     });
   });
 }

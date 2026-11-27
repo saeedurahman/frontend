@@ -64,17 +64,23 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!isAuthExchangePath(options.path)) {
-      final token = await _secureStorage.getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        options.headers[ApiConstants.authorizationHeader] =
-            '${ApiConstants.bearerPrefix}$token';
+    // A failed read of the key store must not leave the request waiting for
+    // ever: it goes out without the header and the server answers.
+    try {
+      if (!isAuthExchangePath(options.path)) {
+        final token = await _secureStorage.getAccessToken();
+        if (token != null && token.isNotEmpty) {
+          options.headers[ApiConstants.authorizationHeader] =
+              '${ApiConstants.bearerPrefix}$token';
+        }
       }
-    }
 
-    final tenantId = await _secureStorage.getTenantId();
-    if (tenantId != null && tenantId.isNotEmpty) {
-      options.headers[ApiConstants.tenantHeader] = tenantId;
+      final tenantId = await _secureStorage.getTenantId();
+      if (tenantId != null && tenantId.isNotEmpty) {
+        options.headers[ApiConstants.tenantHeader] = tenantId;
+      }
+    } catch (e) {
+      AppLogger.warning('Could not read the saved session: ${e.runtimeType}');
     }
 
     handler.next(options);
@@ -99,7 +105,12 @@ class AuthInterceptor extends Interceptor {
 
     // Another request may already have refreshed while this one was in flight:
     // retry with the newer token instead of refreshing again.
-    final current = await _secureStorage.getAccessToken();
+    final String? current;
+    try {
+      current = await _secureStorage.getAccessToken();
+    } catch (_) {
+      return handler.next(err);
+    }
     final sent = request.headers[ApiConstants.authorizationHeader];
     final alreadyRefreshed = current != null &&
         current.isNotEmpty &&
@@ -118,6 +129,8 @@ class AuthInterceptor extends Interceptor {
           handler.resolve(await dio.fetch<dynamic>(request));
         } on DioException catch (e) {
           handler.next(e);
+        } catch (_) {
+          handler.next(err);
         }
       case RefreshOutcome.rejected:
         // The shared refresh already expired the session (once).

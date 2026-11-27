@@ -82,12 +82,16 @@ class GetSupplierLedgerUseCase {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   }) =>
       _repository.getLedger(
         supplierId,
         branchId: branchId,
         skip: skip,
         limit: limit,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
       );
 }
 

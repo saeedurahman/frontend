@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:intl/intl.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 final NumberFormat _twoDecimals = NumberFormat('#,##0.00', 'en_US');
 
@@ -13,7 +14,7 @@ final RegExp _thousands = RegExp(r'\B(?=(\d{3})+(?!\d))');
 /// When the owner turned on "Hide .00 on whole amounts" (`ui.hide_zero_decimals`)
 /// a whole amount loses its decimals ("6") while 7.02 stays "7.02".
 ///
-/// Returns the number only, e.g. "1,234.50". [formatPKR] adds the "Rs. ".
+/// Returns the number only, e.g. "1,234.50". [formatPKR] adds the label.
 String formatMoneyNumber(dynamic amount, {bool? hideZeroDecimals}) {
   final hide = hideZeroDecimals ?? TaxSettingsHolder.current.hideZeroDecimals;
   final value = _toDecimal(amount);
@@ -31,9 +32,9 @@ String formatMoneyNumber(dynamic amount, {bool? hideZeroDecimals}) {
   return negative && !isZero ? '-$body' : body;
 }
 
-/// "Rs. 7.02". See [formatMoneyNumber].
+/// "Rs. 7.02" with the business's money label. See [formatMoneyNumber].
 String formatPKR(dynamic amount, {bool? hideZeroDecimals}) =>
-    'Rs. ${formatMoneyNumber(amount, hideZeroDecimals: hideZeroDecimals)}';
+    '$currencyLabel ${formatMoneyNumber(amount, hideZeroDecimals: hideZeroDecimals)}';
 
 /// Same as [formatPKR] with an explicit sign, for adjustments such as
 /// "Rounding -1.06" / "+2.00" (no "Rs." prefix).

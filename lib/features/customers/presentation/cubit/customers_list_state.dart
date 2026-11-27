@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
 
 part 'customers_list_state.freezed.dart';
 
@@ -25,7 +26,8 @@ sealed class CustomersListState with _$CustomersListState {
     required List<CustomerListRow> filteredItems,
     String? searchQuery,
     @Default(CustomerActiveFilter.all) CustomerActiveFilter activeFilter,
-    @Default(false) bool hasOutstandingOnly,
+    @Default(BalanceFilter.all) BalanceFilter balanceFilter,
+    @Default(BalanceSort.none) BalanceSort balanceSort,
   }) = CustomersListLoaded;
 
   const factory CustomersListState.error(String message) = CustomersListError;

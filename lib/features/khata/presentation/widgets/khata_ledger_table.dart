@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/text/entry_text.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
 import 'package:intl/intl.dart';
 
@@ -17,7 +18,11 @@ class KhataLedgerTable extends StatefulWidget {
     this.onReverse,
     this.emptyText = KhataText.noEntries,
     this.reverseTooltip,
+    this.onReverseEntry,
   });
+
+  /// Offered on opening balances and manual entries.
+  final void Function(LedgerLine line)? onReverseEntry;
 
   final List<LedgerLine> lines;
   final void Function(LedgerLine line)? onReverse;
@@ -72,18 +77,23 @@ class _KhataLedgerTableState extends State<KhataLedgerTable> {
             key: _key(line.id),
             line: line,
             highlighted: _highlight == line.id,
-            reversalOf: line.reversalOfId == null ? null : byId[line.reversalOfId],
-            reversedBy: line.reversedById == null ? null : byId[line.reversedById],
+            reversalOf: line.reversalOfId == null
+                ? null
+                : byId[line.reversalOfId],
+            reversedBy: line.reversedById == null
+                ? null
+                : byId[line.reversedById],
             onJump: _jumpTo,
             onReverse: widget.onReverse,
             reverseTooltip: widget.reverseTooltip,
+            onReverseEntry: widget.onReverseEntry,
           ),
       ],
     );
   }
 }
 
-const double _amountWidth = 160;
+const double _amountWidth = 210;
 const double _balanceWidth = 180;
 
 class _HeaderRow extends StatelessWidget {
@@ -136,8 +146,10 @@ class _LedgerRow extends StatelessWidget {
     this.reversedBy,
     this.onReverse,
     this.reverseTooltip,
+    this.onReverseEntry,
   });
 
+  final void Function(LedgerLine line)? onReverseEntry;
   final LedgerLine line;
   final bool highlighted;
   final LedgerLine? reversalOf;
@@ -162,7 +174,9 @@ class _LedgerRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlighted
             ? AppColors.accent.withValues(alpha: 0.25)
-            : (line.isReversal ? AppColors.warning.withValues(alpha: 0.05) : null),
+            : (line.isReversal
+                  ? AppColors.warning.withValues(alpha: 0.05)
+                  : null),
         border: const Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
@@ -171,8 +185,14 @@ class _LedgerRow extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              when == null ? '—' : DateFormat('dd MMM yyyy\nh:mm a').format(when),
-              style: TextStyle(fontSize: 12, color: muted, decoration: decoration),
+              when == null
+                  ? '—'
+                  : DateFormat('dd MMM yyyy\nh:mm a').format(when),
+              style: TextStyle(
+                fontSize: 12,
+                color: muted,
+                decoration: decoration,
+              ),
             ),
           ),
           Expanded(
@@ -220,15 +240,19 @@ class _LedgerRow extends StatelessWidget {
                     label: reversedBy != null
                         ? 'Reversed on ${_day(reversedBy!.when)} · see reversal'
                         : 'Reversed · see reversal',
-                    onTap: reversedBy == null ? null : () => onJump(reversedBy!.id),
+                    onTap: reversedBy == null
+                        ? null
+                        : () => onJump(reversedBy!.id),
                   ),
                 if (line.isReversal && line.reversalOfId != null)
                   _Link(
                     key: ValueKey('jump_${line.id}'),
                     label: reversalOf != null
-                        ? 'Undoes the payment of ${formatPKR(reversalOf!.amount.abs())} on ${_day(reversalOf!.when)}'
-                        : 'Undoes an earlier payment',
-                    onTap: reversalOf == null ? null : () => onJump(reversalOf!.id),
+                        ? 'Undoes the ${line.source == null ? 'payment' : 'entry'} of ${formatPKR(reversalOf!.amount.abs())} on ${_day(reversalOf!.when)}'
+                        : 'Undoes an earlier ${line.source == null ? 'payment' : 'entry'}',
+                    onTap: reversalOf == null
+                        ? null
+                        : () => onJump(reversalOf!.id),
                   ),
               ],
             ),
@@ -240,12 +264,19 @@ class _LedgerRow extends StatelessWidget {
               children: [
                 Text(
                   line.detail.isEmpty ? '—' : line.detail,
-                  style: TextStyle(fontSize: 13, color: muted, decoration: decoration),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: muted,
+                    decoration: decoration,
+                  ),
                 ),
                 if (line.shiftId != null)
                   const Text(
                     'In a shift',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
               ],
             ),
@@ -293,6 +324,23 @@ class _LedgerRow extends StatelessWidget {
                       ),
                     ),
                   )
+                : line.canReverseEntry && onReverseEntry != null
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      key: ValueKey('reverse_entry_${line.id}'),
+                      onPressed: () => onReverseEntry!(line),
+                      icon: const Icon(Icons.undo, size: 16),
+                      label: const Text(
+                        EntryText.reverseEntry,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.warning,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  )
                 : const SizedBox.shrink(),
           ),
         ],
@@ -312,16 +360,16 @@ class _Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.14),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+    ),
+  );
 }
 
 class _Link extends StatelessWidget {
@@ -332,17 +380,17 @@ class _Link extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: onTap == null ? AppColors.textSecondary : AppColors.info,
-              decoration: onTap == null ? null : TextDecoration.underline,
-            ),
-          ),
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: onTap == null ? AppColors.textSecondary : AppColors.info,
+          decoration: onTap == null ? null : TextDecoration.underline,
         ),
-      );
+      ),
+    ),
+  );
 }

@@ -36,16 +36,16 @@ void main() {
     test('stub sources report "online, 0 pending"', () {
       final status = const StubSyncStatusSource().current;
       expect(status.kind, SyncStatusKind.online);
-      expect(status.label, 'Online');
+      expect(status.label, 'All synced');
       expect(status.pending, 0);
       expect(status.failed, 0);
     });
 
     test('labels', () {
       expect(const SyncStatus(isOnline: false).label, 'Offline');
-      expect(const SyncStatus(isSyncing: true).label, 'Syncing');
-      expect(const SyncStatus(pending: 3).label, '3 pending');
-      expect(const SyncStatus(failed: 2).label, '2 failed');
+      expect(const SyncStatus(isSyncing: true).label, 'Syncing…');
+      expect(const SyncStatus(pending: 3).label, '3 waiting');
+      expect(const SyncStatus(failed: 2).label, '2 need attention');
     });
 
     test('priority: offline > failed > syncing > pending > online', () {
@@ -86,7 +86,7 @@ void main() {
       await tester.pumpWidget(
         _host(const SyncStatusChip(source: StubSyncStatusSource())),
       );
-      expect(find.text('Online'), findsOneWidget);
+      expect(find.text('All synced'), findsOneWidget);
     });
 
     testWidgets('follows the source', (tester) async {
@@ -99,11 +99,11 @@ void main() {
 
       source.push(const SyncStatus(pending: 5));
       await tester.pump();
-      expect(find.text('5 pending'), findsOneWidget);
+      expect(find.text('5 waiting'), findsOneWidget);
 
       source.push(const SyncStatus(isSyncing: true));
       await tester.pump();
-      expect(find.text('Syncing'), findsOneWidget);
+      expect(find.text('Syncing…'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
@@ -113,12 +113,12 @@ void main() {
       await tester.pumpWidget(
         _host(SyncStatusChip(source: source, onFailedTap: () => taps++)),
       );
-      await tester.tap(find.text('2 failed'));
+      await tester.tap(find.text('2 need attention'));
       expect(taps, 1);
 
       source.push(const SyncStatus(pending: 2));
       await tester.pump();
-      await tester.tap(find.text('2 pending'));
+      await tester.tap(find.text('2 waiting'));
       expect(taps, 1);
     });
   });

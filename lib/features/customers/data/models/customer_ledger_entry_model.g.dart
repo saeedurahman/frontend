@@ -33,6 +33,8 @@ _CustomerLedgerEntryModel _$CustomerLedgerEntryModelFromJson(
   isReversed: json['is_reversed'] as bool? ?? false,
   isReversal: json['is_reversal'] as bool? ?? false,
   runningBalance: json['running_balance'] as String?,
+  source: json['source'] as String?,
+  manualKind: json['manual_kind'] as String?,
 );
 
 Map<String, dynamic> _$CustomerLedgerEntryModelToJson(
@@ -58,6 +60,8 @@ Map<String, dynamic> _$CustomerLedgerEntryModelToJson(
   'is_reversed': instance.isReversed,
   'is_reversal': instance.isReversal,
   'running_balance': instance.runningBalance,
+  'source': instance.source,
+  'manual_kind': instance.manualKind,
 };
 
 const _$LedgerEntryTypeEnumMap = {

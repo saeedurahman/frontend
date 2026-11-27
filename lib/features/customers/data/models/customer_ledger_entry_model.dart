@@ -43,6 +43,9 @@ abstract class CustomerLedgerEntryModel with _$CustomerLedgerEntryModel {
     @JsonKey(name: 'is_reversed') @Default(false) bool isReversed,
     @JsonKey(name: 'is_reversal') @Default(false) bool isReversal,
     @JsonKey(name: 'running_balance') String? runningBalance,
+    // "opening" or "manual" for entries written by hand; null otherwise.
+    String? source,
+    @JsonKey(name: 'manual_kind') String? manualKind,
   }) = _CustomerLedgerEntryModel;
 
   factory CustomerLedgerEntryModel.fromJson(Map<String, dynamic> json) =>

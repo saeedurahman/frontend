@@ -298,7 +298,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl
   Future<Either<Failure, CustomerPaymentResponseModel>> recordPayment(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,
@@ -308,7 +308,7 @@ class OfflineCustomersRepository extends CustomersRepositoryImpl
       final ledgerId = await _writer.recordCustomerPayment(
         customerId: customerId,
         amount: amount,
-        paymentMethod: paymentMethod,
+        paymentSource: paymentSource,
         registerShiftId: registerShiftId,
         referenceNo: referenceNo,
         notes: notes,

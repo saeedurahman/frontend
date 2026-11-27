@@ -12,9 +12,9 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_c
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
-import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 
 import '../helpers/khata_fakes.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 class _GetCustomer extends Fake implements GetCustomerUseCase {
   @override
@@ -72,14 +72,14 @@ class _Record extends Fake implements RecordCustomerPaymentUseCase {
   Future<Either<Failure, CustomerPaymentResponseModel>> call(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,
     String? branchId,
   }) async {
     calls.add((
-      method: paymentMethod,
+      method: paymentSource,
       shift: registerShiftId,
       branch: branchId,
       amount: amount,
@@ -155,7 +155,7 @@ void main() {
       await r.start();
       final result = await r.cubit.recordPayment(
         amount: Decimal.parse('500'),
-        paymentMethod: PaymentMethods.cash,
+        source: PaymentSource.drawer,
       );
       expect(result, isNull);
       expect(r.record.calls, isEmpty, reason: 'nothing may be sent');
@@ -172,7 +172,7 @@ void main() {
       expect(r.shifts.openCalls, 1);
       final result = await r.cubit.recordPayment(
         amount: Decimal.parse('500'),
-        paymentMethod: PaymentMethods.cash,
+        source: PaymentSource.drawer,
       );
       expect(result, isNotNull);
       expect(r.record.calls.single.shift, 'opened-shift');
@@ -192,7 +192,7 @@ void main() {
       await r.start();
       await r.cubit.recordPayment(
         amount: Decimal.parse('100'),
-        paymentMethod: PaymentMethods.cash,
+        source: PaymentSource.drawer,
       );
       expect(r.record.calls.single.shift, 'shift-7');
     });
@@ -202,11 +202,77 @@ void main() {
       await r.start();
       await r.cubit.recordPayment(
         amount: Decimal.parse('100'),
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
       );
       expect(r.record.calls.single.shift, isNull);
       expect(r.shifts.checkCalls, 0);
     });
+  });
+
+  group("customer payment: the server asks for the caller's own shift", () {
+    test('no_open_shift shows the "Open shift first" prompt, then works',
+        () async {
+      // This device thinks a shift is open; the server knows it was closed.
+      final r = _Rig(shiftId: 'stale-shift');
+      await r.start();
+      r.record.result = const Left(
+        ServerFailure('No open shift for this user', 'no_open_shift'),
+      );
+      final refused = await r.cubit.recordPayment(
+        amount: Decimal.parse('100'),
+        source: PaymentSource.drawer,
+      );
+      expect(refused, isNull);
+      var s = r.cubit.state as CustomerLedgerLoaded;
+      expect(s.paymentError, KhataText.customerCashNeedsShiftTitle);
+      expect(s.activePaymentShiftId, isNull);
+      expect(s.isRecordingPayment, isFalse);
+      expect(r.events.notified, 0);
+
+      r.record.result = null;
+      expect(await r.cubit.openShiftForPayment(), isTrue);
+      final accepted = await r.cubit.recordPayment(
+        amount: Decimal.parse('100'),
+        source: PaymentSource.drawer,
+      );
+      expect(accepted, isNotNull);
+      s = r.cubit.state as CustomerLedgerLoaded;
+      expect(s.paymentError, isNull);
+      expect(r.events.notified, 1);
+    });
+
+    test("someone else's shift (403) is said in plain words", () async {
+      final r = _Rig(shiftId: 'their-shift');
+      await r.start();
+      r.record.result = const Left(
+        PermissionDeniedFailure('any words', 'shift_not_yours'),
+      );
+      final result = await r.cubit.recordPayment(
+        amount: Decimal.parse('100'),
+        source: PaymentSource.drawer,
+      );
+      expect(result, isNull);
+      final s = r.cubit.state as CustomerLedgerLoaded;
+      expect(s.paymentError, KhataText.shiftNotYours);
+      expect(s.activePaymentShiftId, isNull,
+          reason: 'the "Open shift first" notice shows');
+    });
+
+    for (final source in PaymentSource.customerSources
+        .where((s) => s != PaymentSource.drawer)) {
+      test('${source.apiValue} is sent without looking for a shift', () async {
+        final r = _Rig();
+        await r.start();
+        final result = await r.cubit.recordPayment(
+          amount: Decimal.parse('100'),
+          source: source,
+        );
+        expect(result, isNotNull);
+        expect(r.record.calls.single.method, source.apiValue);
+        expect(r.record.calls.single.shift, isNull);
+        expect(r.shifts.checkCalls, 0);
+      });
+    }
   });
 
   group('every payment and reversal carries the active branch', () {
@@ -215,7 +281,7 @@ void main() {
       await r.start(branchId: 'branch-A');
       await r.cubit.recordPayment(
         amount: Decimal.one,
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
       );
       expect(r.record.calls.single.branch, 'branch-A');
     });
@@ -226,7 +292,7 @@ void main() {
       await r.start(branchId: null);
       await r.cubit.recordPayment(
         amount: Decimal.one,
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
       );
       expect(r.record.calls.single.branch, 'branch-active');
     });
@@ -237,7 +303,7 @@ void main() {
       await r.start(branchId: null);
       final result = await r.cubit.recordPayment(
         amount: Decimal.one,
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
       );
       expect(result, isNull);
       expect(r.record.calls, isEmpty);

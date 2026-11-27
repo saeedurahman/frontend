@@ -15,10 +15,6 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 abstract final class ExportService {
-  /// `date_from` for a screen that shows every row. The server exports only the
-  /// last 30 days when no start date is sent.
-  static final DateTime allDatesFrom = DateTime(2000);
-
   /// Fetches export bytes from backend GET /export/{dataset} and saves them via FileSaverService.
   ///
   /// The user selects the save location up-front so network requests never run if cancelled.
@@ -199,26 +195,7 @@ abstract final class ExportService {
       if (CancelToken.isCancel(e) || e.type == DioExceptionType.cancel) {
         wasCancelled = true;
       } else if (e.response?.statusCode == 413) {
-        String? detail;
-        final rawData = e.response?.data;
-        if (rawData is List<int>) {
-          try {
-            final parsed = jsonDecode(utf8.decode(rawData));
-            if (parsed is Map) detail = parsed['detail']?.toString();
-          } catch (_) {}
-        } else if (rawData is Map) {
-          detail = rawData['detail']?.toString();
-        }
-
-        if (detail != null && detail.isNotEmpty) {
-          errorMsg = detail;
-        } else if (normalizedFormat == 'pdf') {
-          errorMsg =
-              'PDF export row limit reached. Please narrow the date range or choose Excel / CSV format.';
-        } else {
-          errorMsg =
-              'Export too large: more than 50,000 rows. Narrow the date range or select a branch and try again.';
-        }
+        errorMsg = tooLargeMessage(normalizedFormat);
       } else if (e.response?.statusCode == 403) {
         errorMsg = 'You do not have permission to export this report (reports.export required).';
       } else if (e.type == DioExceptionType.receiveTimeout ||
@@ -336,6 +313,14 @@ abstract final class ExportService {
 
     return true;
   }
+
+  /// Said when the server refuses a file with too many rows (413). A list
+  /// with no dates chosen is exported whole, so the way out is a date range.
+  static String tooLargeMessage(String format) => format == 'pdf'
+      ? 'This is too much for one PDF. Choose a shorter date range, or '
+          'export as Excel or CSV.'
+      : 'This is too much for one file. Choose a shorter date range, or one '
+          'branch, and export again.';
 
   /// Query string of `GET /export/{dataset}`. [filters] scope the file to one
   /// record (`customer_id`, `supplier_id`); empty values are left out.

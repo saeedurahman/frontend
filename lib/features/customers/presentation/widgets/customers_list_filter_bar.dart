@@ -4,24 +4,32 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_state.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/widgets/balance_filter_bar.dart';
 
 class CustomersListFilterBar extends StatelessWidget {
   const CustomersListFilterBar({
     super.key,
     required this.searchController,
     required this.activeFilter,
-    required this.hasOutstandingOnly,
+    required this.balanceFilter,
+    required this.balanceSort,
   });
 
   final TextEditingController searchController;
   final CustomerActiveFilter activeFilter;
-  final bool hasOutstandingOnly;
+  final BalanceFilter balanceFilter;
+  final BalanceSort balanceSort;
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<CustomersListCubit>();
 
-    return Row(
+    return Wrap(
+      spacing: AppDimensions.spacingSm,
+      runSpacing: AppDimensions.spacingSm,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         SizedBox(
           width: 320,
@@ -40,31 +48,27 @@ class CustomersListFilterBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: AppDimensions.spacingMd),
         _ActiveFilterChip(
           label: 'All',
           selected: activeFilter == CustomerActiveFilter.all,
           onSelected: () => cubit.setActiveFilter(CustomerActiveFilter.all),
         ),
-        const SizedBox(width: 8),
         _ActiveFilterChip(
           label: 'Active',
           selected: activeFilter == CustomerActiveFilter.active,
           onSelected: () => cubit.setActiveFilter(CustomerActiveFilter.active),
         ),
-        const SizedBox(width: 8),
         _ActiveFilterChip(
           label: 'Inactive',
           selected: activeFilter == CustomerActiveFilter.inactive,
           onSelected: () => cubit.setActiveFilter(CustomerActiveFilter.inactive),
         ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('Outstanding'),
-          selected: hasOutstandingOnly,
-          onSelected: cubit.setHasOutstandingFilter,
-          selectedColor: AppColors.primary.withValues(alpha: 0.15),
-          checkmarkColor: AppColors.primary,
+        BalanceFilterBar(
+          type: PartyType.customer,
+          filter: balanceFilter,
+          sort: balanceSort,
+          onFilter: cubit.setBalanceFilter,
+          onSort: cubit.setBalanceSort,
         ),
       ],
     );

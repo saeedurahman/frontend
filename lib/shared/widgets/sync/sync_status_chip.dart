@@ -3,8 +3,9 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/sync/sync_status.dart';
 
-/// Compact connection / sync indicator: Online, Offline, Syncing, N pending,
-/// N failed. Tapping a "failed" chip opens the failed-items page via
+/// Compact connection / sync indicator: All synced (green dot), Syncing…
+/// (spinner, only while work is running), Offline, N waiting, N need
+/// attention. Tapping a "need attention" chip opens that page via
 /// [onFailedTap].
 class SyncStatusChip extends StatelessWidget {
   const SyncStatusChip({super.key, this.source, this.onFailedTap, this.onTap});
@@ -51,7 +52,7 @@ class SyncStatusChipView extends StatelessWidget {
       };
 
   static IconData iconFor(SyncStatusKind kind) => switch (kind) {
-        SyncStatusKind.online => Icons.cloud_done_outlined,
+        SyncStatusKind.online => Icons.circle,
         SyncStatusKind.offline => Icons.cloud_off,
         SyncStatusKind.failed => Icons.error_outline,
         SyncStatusKind.pending => Icons.cloud_upload_outlined,
@@ -80,7 +81,12 @@ class SyncStatusChipView extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
           else
-            Icon(iconFor(kind), size: 14, color: color),
+            Icon(
+              iconFor(kind),
+              // "All synced" is a plain dot.
+              size: kind == SyncStatusKind.online ? 9 : 14,
+              color: color,
+            ),
           const SizedBox(width: 6),
           Text(
             status.label,

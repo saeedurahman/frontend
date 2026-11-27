@@ -2,7 +2,6 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
-import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/last_payment_source_store.dart';
@@ -241,7 +240,9 @@ class PaidNowCubit extends Cubit<PaidNowState> implements PaidNowHook {
   String? explain(String? code, String fallback) {
     final text = KhataText.forCode(code) ?? fallback;
     emit(state.copyWith(error: text));
-    if (code == 'no_open_shift') emit(state.copyWith(shiftId: null));
+    if (KhataText.needsOwnShift(code)) {
+      emit(state.copyWith(shiftId: null));
+    }
     return text;
   }
 
@@ -251,18 +252,6 @@ class PaidNowCubit extends Cubit<PaidNowState> implements PaidNowHook {
   Future<void> saved({required bool paid, ReceiptPaymentResult? result}) async {
     if (paid) {
       await _lastSource.write(state.source);
-      final payment = result?.payment;
-      final shift = payment?.registerShiftId;
-      if (payment != null &&
-          shift != null &&
-          payment.paymentSource == PaymentSource.drawer) {
-        _events.drawerPayments.add(DrawerPayment(
-          id: payment.id,
-          shiftId: shift,
-          amount: payment.amount,
-          note: payment.note,
-        ));
-      }
       _events.notifyChanged();
     }
     if (isClosed) return;

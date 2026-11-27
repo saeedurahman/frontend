@@ -85,6 +85,24 @@ abstract final class SettingsCatalog {
         route: RouteNames.settingsPrinter,
       ),
     ]),
+    SettingsGroup('khata', 'Khata (Credit)', [
+      SettingsEntry(
+        id: 'payment-details',
+        title: 'Payment details',
+        subtitle: 'Bank, Easypaisa, JazzCash and cheque details your customers pay to.',
+        icon: Icons.account_balance_outlined,
+        route: RouteNames.settingsPaymentDetails,
+        permission: Perm.settingsManage,
+      ),
+      SettingsEntry(
+        id: 'khata-messages',
+        title: 'Khata messages',
+        subtitle: 'Reminder and statement wording, and how statements look.',
+        icon: Icons.chat_outlined,
+        route: RouteNames.settingsKhataMessages,
+        permission: Perm.settingsManage,
+      ),
+    ]),
     SettingsGroup('people', 'People & Security', [
       SettingsEntry(
         id: 'roles',

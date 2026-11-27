@@ -17,6 +17,7 @@ import 'package:frantend/features/products/presentation/cubit/price_lists_cubit.
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 // ── 1. Create / Edit Price List Dialog ───────────────────────────────────────
 
@@ -649,12 +650,12 @@ class _PriceListAdjustDialogState extends State<PriceListAdjustDialog> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        'Rs ${s.oldPrice}',
+                                        '$currencyLabel ${s.oldPrice}',
                                         style: const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey),
                                       ),
                                       const Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
                                       Text(
-                                        ' Rs ${s.newPrice}',
+                                        ' $currencyLabel ${s.newPrice}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success),
                                       ),
                                     ],
@@ -1185,7 +1186,7 @@ class _PriceItemFormDialogState extends State<PriceItemFormDialog> {
                       child: TextFormField(
                         controller: _priceController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Unit Price *', prefixText: 'Rs '),
+                        decoration: InputDecoration(labelText: 'Unit Price *', prefixText: '$currencyLabel '),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
                           final d = Decimal.tryParse(v.trim());

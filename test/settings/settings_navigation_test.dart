@@ -50,10 +50,12 @@ void main() {
       final groups = SettingsCatalog.visible(can: (_) => true, multiBranch: true);
       expect([for (final g in groups) g.title], [
         'Business & Receipts',
+        'Khata (Credit)',
         'People & Security',
         'Point of Sale & Offline',
         'Account & Branches',
       ]);
+      expect(titles(groups, 'khata'), ['Payment details', 'Khata messages']);
       expect(titles(groups, 'people'), ['Roles & Permissions', 'Security']);
       expect(titles(groups, 'pos'), ['POS Settings', 'Offline & Sync', 'Devices']);
       expect(titles(groups, 'account'), ['Subscription', 'Branch Overrides']);
@@ -75,6 +77,8 @@ void main() {
       );
       final all = [for (final g in groups) for (final e in g.entries) e.title];
       expect(all, isNot(contains('Receipt Layouts')));
+      expect(all, isNot(contains('Payment details')));
+      expect(all, isNot(contains('Khata messages')));
       expect(all, isNot(contains('Devices')));
       expect(all, isNot(contains('Roles & Permissions')));
       // Open entries stay.

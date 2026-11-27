@@ -12,7 +12,16 @@ class ReversePaymentDialog extends StatefulWidget {
     super.key,
     required this.summary,
     required this.onSubmit,
+    this.title = KhataText.reverseTitle,
+    this.explain = KhataText.reverseExplain,
+    this.keepLabel = 'Keep payment',
+    this.confirmLabel = KhataText.reverseConfirm,
   });
+
+  final String title;
+  final String explain;
+  final String keepLabel;
+  final String confirmLabel;
 
   /// "Rs. 500.00 paid to Al Shifa on 25 Nov".
   final String summary;
@@ -22,11 +31,22 @@ class ReversePaymentDialog extends StatefulWidget {
     BuildContext context, {
     required String summary,
     required Future<String?> Function(String reason) onSubmit,
+    String title = KhataText.reverseTitle,
+    String explain = KhataText.reverseExplain,
+    String keepLabel = 'Keep payment',
+    String confirmLabel = KhataText.reverseConfirm,
   }) async {
     final done = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => ReversePaymentDialog(summary: summary, onSubmit: onSubmit),
+      builder: (_) => ReversePaymentDialog(
+        summary: summary,
+        onSubmit: onSubmit,
+        title: title,
+        explain: explain,
+        keepLabel: keepLabel,
+        confirmLabel: confirmLabel,
+      ),
     );
     return done ?? false;
   }
@@ -72,11 +92,11 @@ class _ReversePaymentDialogState extends State<ReversePaymentDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.undo, color: AppColors.warning),
-          SizedBox(width: 10),
-          Text(KhataText.reverseTitle),
+          const Icon(Icons.undo, color: AppColors.warning),
+          const SizedBox(width: 10),
+          Flexible(child: Text(widget.title)),
         ],
       ),
       content: SizedBox(
@@ -90,10 +110,13 @@ class _ReversePaymentDialogState extends State<ReversePaymentDialog> {
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 8),
-            const Text(
-              KhataText.reverseExplain,
-              key: ValueKey('reverse_explain'),
-              style: TextStyle(color: AppColors.textSecondary, height: 1.35),
+            Text(
+              widget.explain,
+              key: const ValueKey('reverse_explain'),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -126,7 +149,7 @@ class _ReversePaymentDialogState extends State<ReversePaymentDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Keep payment'),
+          child: Text(widget.keepLabel),
         ),
         FilledButton(
           key: const ValueKey('reverse_confirm'),
@@ -138,7 +161,7 @@ class _ReversePaymentDialogState extends State<ReversePaymentDialog> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
-              : const Text(KhataText.reverseConfirm),
+              : Text(widget.confirmLabel),
         ),
       ],
     );

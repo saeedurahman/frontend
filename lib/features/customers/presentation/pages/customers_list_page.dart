@@ -12,6 +12,10 @@ import 'package:frantend/features/customers/presentation/widgets/customers_list_
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
+import 'package:frantend/features/khata/domain/text/khata_ui_text.dart';
+import 'package:frantend/features/khata/domain/text/list_filter_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/khata_ui.dart';
 
 class CustomersListPage extends StatelessWidget {
   const CustomersListPage({super.key});
@@ -60,9 +64,14 @@ class _CustomersListViewState extends State<_CustomersListView> {
           _ => CustomerActiveFilter.all,
         };
 
-        final hasOutstandingOnly = switch (state) {
-          CustomersListLoaded(:final hasOutstandingOnly) => hasOutstandingOnly,
-          _ => false,
+        final balanceFilter = switch (state) {
+          CustomersListLoaded(:final balanceFilter) => balanceFilter,
+          _ => BalanceFilter.all,
+        };
+
+        final balanceSort = switch (state) {
+          CustomersListLoaded(:final balanceSort) => balanceSort,
+          _ => BalanceSort.none,
         };
 
         return Column(
@@ -73,7 +82,8 @@ class _CustomersListViewState extends State<_CustomersListView> {
             CustomersListFilterBar(
               searchController: _searchController,
               activeFilter: activeFilter,
-              hasOutstandingOnly: hasOutstandingOnly,
+              balanceFilter: balanceFilter,
+              balanceSort: balanceSort,
             ),
             const SizedBox(height: AppDimensions.spacingMd),
             Expanded(
@@ -83,6 +93,17 @@ class _CustomersListViewState extends State<_CustomersListView> {
                     baseColor: Colors.grey.shade200,
                     highlightColor: Colors.grey.shade100,
                     child: const AppDataTableShimmer(),
+                  ),
+                CustomersListLoaded(:final filteredItems)
+                    when filteredItems.isEmpty &&
+                        balanceFilter != BalanceFilter.all =>
+                  KhataEmptyState(
+                    icon: Icons.filter_alt_off_outlined,
+                    title: ListFilterText.nobodyMatches,
+                    actionLabel: HubText.clearFilters,
+                    onAction: () => context
+                        .read<CustomersListCubit>()
+                        .setBalanceFilter(BalanceFilter.all),
                   ),
                 CustomersListLoaded(:final filteredItems)
                     when filteredItems.isEmpty =>

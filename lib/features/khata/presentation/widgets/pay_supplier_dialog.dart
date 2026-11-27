@@ -15,6 +15,7 @@ import 'package:frantend/features/khata/presentation/widgets/money_keypad.dart';
 import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:intl/intl.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// "Pay supplier": opened from the supplier list, the supplier account and the
 /// purchases list. Resolves with true when a payment was recorded.
@@ -189,11 +190,11 @@ class _PaySupplierContentState extends State<PaySupplierContent> {
             FilteringTextInputFormatter.allow(RegExp(r'[0-9.+\-×÷]')),
           ],
           decoration: InputDecoration(
-            prefixText: 'Rs. ',
+            prefixText: '$currencyLabel ',
             hintText: '0',
             errorText: problem,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-            helperText: typedSum != null ? '= Rs. $typedSum' : null,
+            helperText: typedSum != null ? '= $currencyLabel $typedSum' : null,
           ),
           onChanged: _onAmountChanged,
           onSubmitted: (_) => _equals(),

@@ -114,6 +114,14 @@ mixin PosCubitShiftMixin on PosCubitBase {
   /// Retry button for the shift summary banner.
   Future<void> retryShiftSummary() => refreshShiftSummary();
 
+  /// The server refused a sale because the shift on screen is not an open
+  /// shift of this user. It is dropped, so "Open shift first" shows. When it
+  /// was somebody else's, the user's own shift is looked up.
+  Future<void> _dropRefusedShift(String? code) async {
+    _safeEmit(state.patch(activeShift: null, shiftSummary: null));
+    if (code == KhataText.shiftNotYoursCode) await checkActiveShift();
+  }
+
   /// Opens a shift. On failure [PosState.openShiftError] carries the real
   /// reason (server message, missing permission, no register selected).
   Future<bool> openShift(Decimal openingFloat, String? notes) async {

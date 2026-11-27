@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:frantend/core/tax/tax_settings_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ import 'package:frantend/features/branches/presentation/cubit/branch_selector_cu
 import 'package:frantend/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:frantend/features/restaurant/domain/usecases/load_business_session_usecase.dart';
 import 'package:frantend/features/subscription/presentation/cubit/subscription_cubit.dart';
+import 'package:frantend/core/utils/currency_label_store.dart';
+import 'package:frantend/core/offline/local_catalog.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,6 +130,19 @@ Future<void> _startup() async {
   await step('Loading tax settings', () async {
     // Offline safe: reads the pulled settings from this device.
     await sl<TaxSettingsStore>().start();
+  });
+  await step('Loading currency label', () async {
+    // Remembered label first (offline safe); the server is asked behind it,
+    // and again on sign-in, when it comes back and now and then.
+    final label = sl<CurrencyLabelStore>();
+    await label.start();
+    label.follow(
+      online: sl<ConnectivityProbe>()
+          .status
+          .where((s) => s == ReachabilityStatus.online),
+      localChanges: sl<LocalCatalog>().changes,
+    );
+    sl<AuthGuard>().addListener(() => unawaited(label.start()));
   });
   await step('Starting reachability probe', () async {
     sl<ConnectivityProbe>().start();

@@ -10,6 +10,7 @@ import 'package:frantend/features/inventory/presentation/widgets/batch_chip.dart
 import 'package:frantend/features/receipts/data/receipt_layout_api.dart' show ReceiptApiException;
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// Stock that has expired or is about to, with its value, and an export.
 class ExpiryReportPage extends StatefulWidget {
@@ -93,6 +94,8 @@ class _ExpiryReportPageState extends State<ExpiryReportPage> {
                   dataset: 'expiry',
                   title: 'Expiry report',
                   branchId: _branchId,
+                  // The file holds the same window the screen shows.
+                  filters: {'within_days': '$_days'},
                 ),
                 icon: const Icon(Icons.download_outlined, size: 18),
                 label: const Text('Export'),
@@ -194,7 +197,7 @@ class _Totals extends StatelessWidget {
               children: [
                 Text(title, style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
-                Text('Rs $value', style: AppTextStyles.titleMedium.copyWith(color: colors.fg)),
+                Text('$currencyLabel $value', style: AppTextStyles.titleMedium.copyWith(color: colors.fg)),
                 Text('$qty units', style: TextStyle(color: colors.fg)),
               ],
             ),
@@ -236,13 +239,13 @@ class _Section extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Product')),
-                  DataColumn(label: Text('Batch')),
-                  DataColumn(label: Text('Expiry')),
-                  DataColumn(label: Text('Days')),
-                  DataColumn(label: Text('Qty'), numeric: true),
-                  DataColumn(label: Text('Value (Rs)'), numeric: true),
+                columns: [
+                  const DataColumn(label: Text('Product')),
+                  const DataColumn(label: Text('Batch')),
+                  const DataColumn(label: Text('Expiry')),
+                  const DataColumn(label: Text('Days')),
+                  const DataColumn(label: Text('Qty'), numeric: true),
+                  DataColumn(label: Text('Value ($currencyLabel)'), numeric: true),
                 ],
                 rows: [
                   for (final r in rows)

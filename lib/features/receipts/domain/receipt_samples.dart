@@ -1,5 +1,6 @@
 import 'package:frantend/features/receipts/domain/receipt_context.dart';
 import 'package:frantend/features/sales/data/models/sale_response_model.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// The sample sale the layout editor previews: Urdu names, a batch with
 /// expiry, tax, a discount and cash change.
@@ -113,8 +114,8 @@ abstract final class ReceiptSamples {
         branchName: 'Main branch',
         registerName: 'Counter 1',
         customerPhone: '03001234567',
-        previousBalance: 'Rs. 500.00',
-        balanceAfter: 'Rs. 500.00',
+        previousBalance: '$currencyLabel 500.00',
+        balanceAfter: '$currencyLabel 500.00',
         products: const {
           'p1': ReceiptProductInfo(sku: 'PAN-01', unitSymbol: 'pc'),
           'p2': ReceiptProductInfo(sku: 'RICE-5', unitSymbol: 'kg', allowsDecimal: true),

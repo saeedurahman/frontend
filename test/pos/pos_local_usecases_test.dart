@@ -260,27 +260,6 @@ void main() {
         );
       }
     });
-
-    test('a customer may carry the rest only after the server allowed it', () {
-      expect(
-        () => PaymentCoverage.assertCovers(
-          payments: [cash('99')],
-          due: Decimal.parse('100'),
-          hasCustomer: true,
-          allowCreditRemainder: true,
-        ),
-        returnsNormally,
-      );
-      // No customer: never, even when overriding.
-      expect(
-        () => PaymentCoverage.assertCovers(
-          payments: [cash('99')],
-          due: Decimal.parse('100'),
-          allowCreditRemainder: true,
-        ),
-        throwsA(isA<PaymentMismatchException>()),
-      );
-    });
   });
 
   group('SaleAttemptTracker', () {
@@ -294,6 +273,12 @@ void main() {
     test('a retry of the same sale reuses the sale id', () {
       final t = SaleAttemptTracker(_Counter());
       expect(t.stamp(body)['id'], t.stamp(body)['id']);
+    });
+
+    test('"Allow anyway" is the same sale, so it keeps the id', () {
+      final t = SaleAttemptTracker(_Counter());
+      final first = t.stamp(body)['id'];
+      expect(t.stamp({...body, 'credit_override': true})['id'], first);
     });
 
     test('a changed cart is a new sale with a new id', () {

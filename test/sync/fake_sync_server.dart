@@ -148,6 +148,9 @@ class FakeSyncServer implements SyncApi {
     return PushResponse(batchId: batchId, results: results);
   }
 
+  /// Flags the server puts on applied customer payments.
+  List<String> paymentFlags = const [];
+
   OpResult _process(Map<String, dynamic> op, Set<String> batchApplied) {
     final opId = '${op['op_id']}';
     final type = '${op['type']}';
@@ -240,7 +243,20 @@ class FakeSyncServer implements SyncApi {
           'balance': newBal,
           'balance_owed': (-double.parse(newBal)).toStringAsFixed(2),
         });
-        result = OpResult(opId: opId, status: 'applied', serverId: '${payload['id'] ?? opId}');
+        result = OpResult(
+          opId: opId,
+          status: 'applied',
+          serverId: '${payload['id'] ?? opId}',
+          flags: paymentFlags,
+        );
+      case 'followup.create':
+        final id = '${payload['id']}';
+        knownIds.add(id);
+        put('party_followup', id, {
+          ...payload,
+          'created_at': op['occurred_at'],
+        });
+        result = OpResult(opId: opId, status: 'applied', serverId: id);
       case 'expense.create':
         result = OpResult(opId: opId, status: 'applied', serverId: opId, officialNumber: 'EXP-1');
       case 'return.create':

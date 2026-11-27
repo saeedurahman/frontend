@@ -8,6 +8,8 @@ import 'package:frantend/features/customers/presentation/cubit/customers_list_st
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_actions.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_list_navigation.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
@@ -42,7 +44,7 @@ class CustomersDataTable extends StatelessWidget {
       itemLabel: 'customers',
       resetToken: cubit.newestCreatedId,
       paginationMode: AppTablePaginationMode.client,
-      actionsWidth: 160,
+      actionsWidth: 200,
       sortCompare: _sortCompare,
       onRowTap: (row) =>
           openCustomerDetail(context, RouteNames.customerDetail(row.customer.id)),
@@ -55,7 +57,7 @@ class CustomersDataTable extends StatelessWidget {
           columns: _customerTableColumns,
           selected: selected,
           onSelected: onSelected,
-          actionsWidth: 160,
+          actionsWidth: 200,
           cells: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,6 +135,10 @@ class CustomersDataTable extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
+              StatementRowButton(
+                type: PartyType.customer,
+                partyId: customer.id,
+              ),
               PermissionGate(
                 permission: Perm.customersUpdate,
                 mutating: true,

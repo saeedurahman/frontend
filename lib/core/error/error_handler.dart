@@ -70,6 +70,7 @@ class ErrorHandler {
         final msg = ApiErrorParser.message(data, fallback: '');
         return PermissionDeniedFailure(
           msg.isNotEmpty ? msg : "You don't have permission to do this.",
+          ApiErrorParser.code(data),
         );
       case 404:
         return NotFoundFailure(
@@ -83,13 +84,17 @@ class ErrorHandler {
         final fields = data is Map
             ? ApiErrorParser.fieldErrors(data['detail'])
             : const <String, String>{};
-        return ValidationFailure(message, fields);
+        return ValidationFailure(message, fields, ApiErrorParser.code(data));
       case 429:
         return RateLimitFailure(
           retryAfterSeconds: parseRetryAfter(headers?.value('retry-after')),
         );
       default:
-        return ServerFailure(message, ApiErrorParser.code(data));
+        return ServerFailure(
+          message,
+          ApiErrorParser.code(data),
+          ApiErrorParser.creditNumbers(data),
+        );
     }
   }
 

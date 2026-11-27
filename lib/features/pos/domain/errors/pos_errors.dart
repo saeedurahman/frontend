@@ -1,12 +1,19 @@
+import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 
-/// Thrown when a sale is attempted without an open register shift.
+/// A sale cannot go through without the signed-in user's own open shift:
+/// stopped here before sending, or refused by the server (`no_open_shift`,
+/// `shift_not_yours`). The payment screen answers with "Open shift first".
 class ShiftRequiredException implements Exception {
-  const ShiftRequiredException();
+  const ShiftRequiredException([this.message = needsShift]);
 
-  static const message = 'Open a shift first: sales need an open register '
+  static const needsShift = 'Open shift first. Sales need an open register '
       'shift.';
+  static const notYours = 'That shift belongs to someone else. Complete the '
+      'sale again in your own shift.';
+
+  final String message;
 
   @override
   String toString() => message;
@@ -28,9 +35,14 @@ class PaymentMismatchException implements Exception {
 class CreditLimitExceededException implements Exception {
   const CreditLimitExceededException([
     this.message = KhataText.creditBlockedNoNumbers,
+    this.numbers,
   ]);
 
   final String message;
+
+  /// Limit, balance and what the balance would become, when the server sent
+  /// them.
+  final CreditNumbers? numbers;
 
   @override
   String toString() => message;
@@ -57,19 +69,16 @@ class ExpiredStockWarningException implements Exception {
   String toString() => message;
 }
 
-/// Turns the server's plain-string sale errors into plain words.
+/// Turns the server's sale refusals into plain words.
 ///
-/// Backend contract (README "Under-paid sales"): `400 payment is less than
-/// total` (no customer), `400 Credit limit exceeded ...`, and
-/// `400 customer_id is required for credit payments`.
+/// Backend contract (README "Error codes"): everything is decided by the code,
+/// except two refusals the server sends as plain text with no code:
+/// `payment is less than total` and
+/// `customer_id is required for credit payments`.
 abstract final class SaleFailureMapper {
   static String _text(Failure f) => f.message.toLowerCase();
 
-  static bool isCreditLimit(Failure f) {
-    final code = f is ServerFailure ? f.code : null;
-    return code == 'credit_limit_exceeded' ||
-        _text(f).contains('credit limit exceeded');
-  }
+  static bool isCreditLimit(Failure f) => f.code == KhataText.creditLimitCode;
 
   static bool isUnderpaid(Failure f) =>
       _text(f).contains('payment is less than total');
@@ -78,9 +87,25 @@ abstract final class SaleFailureMapper {
       _text(f).contains('customer_id is required for credit');
 
   /// The exception to throw for a refused sale, or null when [failure] is not
-  /// one of the credit / under-paid rules (the caller keeps its own text).
+  /// one of the shift / credit / under-paid rules (the caller keeps its own
+  /// text).
   static Exception? map(Failure failure, {required bool hasCustomer}) {
-    if (isCreditLimit(failure)) return const CreditLimitExceededException();
+    if (KhataText.needsOwnShift(failure.code)) {
+      return ShiftRequiredException(
+        failure.code == KhataText.shiftNotYoursCode
+            ? ShiftRequiredException.notYours
+            : ShiftRequiredException.needsShift,
+      );
+    }
+    if (isCreditLimit(failure)) {
+      return CreditLimitExceededException(
+        KhataText.creditBlockedNoNumbers,
+        failure is ServerFailure ? failure.credit : null,
+      );
+    }
+    if (failure.code == 'credit_override_forbidden') {
+      return const PaymentMismatchException(KhataText.creditOverrideForbidden);
+    }
     if (isUnderpaid(failure)) {
       return PaymentMismatchException(
         hasCustomer

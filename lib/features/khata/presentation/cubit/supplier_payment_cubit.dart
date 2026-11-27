@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/session/active_branch_resolver.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
-import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/last_payment_source_store.dart';
@@ -209,11 +208,7 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
     final result = await _pay(body, idempotencyKey: _attemptKey);
     return result.fold(
       (failure) {
-        final code = failure is ServerFailure
-            ? failure.code
-            : failure is ConflictFailure
-                ? failure.code
-                : null;
+        final code = failure.code;
         final offline = failure is NetworkFailure;
         // A clear "no" from the server means nothing was paid: the next tap is
         // a fresh attempt. Network trouble / 5xx are unclear: keep the key.
@@ -226,11 +221,11 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
           state.copyWith(
             submitting: false,
             offline: offline,
-            error: offline ? null : (KhataText.forCode(code, failure.message) ?? failure.message),
-            errorCode: code,
-            shiftId: KhataText.forCode(code, failure.message) == KhataText.needsShiftBody
+            error: offline
                 ? null
-                : state.shiftId,
+                : KhataText.forCode(code) ?? failure.message,
+            errorCode: code,
+            shiftId: KhataText.needsOwnShift(code) ? null : state.shiftId,
           ),
         );
         return false;
@@ -239,16 +234,6 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
         _attemptKey = null;
         _attemptFingerprint = null;
         _lastSource.write(state.source);
-        final shift = payment.registerShiftId;
-        if (payment.paymentSource == PaymentSource.drawer && shift != null) {
-          _events.drawerPayments.add(DrawerPayment(
-            id: payment.id,
-            shiftId: shift,
-            amount: payment.amount,
-            supplierName: state.supplierName,
-            note: payment.note,
-          ));
-        }
         emit(state.copyWith(submitting: false, result: payment));
         _events.notifyChanged();
         return true;

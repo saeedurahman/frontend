@@ -6,6 +6,12 @@ import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/domain/text/khata_ui_text.dart';
+import 'package:frantend/features/khata/domain/text/list_filter_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/balance_filter_bar.dart';
+import 'package:frantend/features/khata/presentation/widgets/khata_ui.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
 import 'package:frantend/features/suppliers/presentation/widgets/suppliers_data_table.dart';
@@ -72,22 +78,45 @@ class _SuppliersListViewState extends State<_SuppliersListView> {
           children: [
             SuppliersListToolbar(total: count),
             const SizedBox(height: AppDimensions.spacingMd),
-            SizedBox(
-              width: 320,
-              child: TextField(
-                controller: _searchController,
-                onChanged: context.read<SuppliersListCubit>().search,
-                decoration: InputDecoration(
-                  hintText: 'Search suppliers',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(color: AppColors.border),
+            Wrap(
+              spacing: AppDimensions.spacingMd,
+              runSpacing: AppDimensions.spacingSm,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 320,
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: context.read<SuppliersListCubit>().search,
+                    decoration: InputDecoration(
+                      hintText: 'Search suppliers',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide:
+                            const BorderSide(color: AppColors.border),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                BalanceFilterBar(
+                  type: PartyType.supplier,
+                  filter: switch (state) {
+                    SuppliersListLoaded(:final balanceFilter) =>
+                      balanceFilter,
+                    _ => BalanceFilter.all,
+                  },
+                  sort: switch (state) {
+                    SuppliersListLoaded(:final balanceSort) => balanceSort,
+                    _ => BalanceSort.none,
+                  },
+                  onFilter:
+                      context.read<SuppliersListCubit>().setBalanceFilter,
+                  onSort: context.read<SuppliersListCubit>().setBalanceSort,
+                ),
+              ],
             ),
             const SizedBox(height: AppDimensions.spacingMd),
             Expanded(
@@ -97,6 +126,20 @@ class _SuppliersListViewState extends State<_SuppliersListView> {
                     baseColor: Colors.grey.shade200,
                     highlightColor: Colors.grey.shade100,
                     child: const AppDataTableShimmer(),
+                  ),
+                SuppliersListLoaded(
+                  :final filteredItems,
+                  :final balanceFilter,
+                )
+                    when filteredItems.isEmpty &&
+                        balanceFilter != BalanceFilter.all =>
+                  KhataEmptyState(
+                    icon: Icons.filter_alt_off_outlined,
+                    title: ListFilterText.nobodyMatches,
+                    actionLabel: HubText.clearFilters,
+                    onAction: () => context
+                        .read<SuppliersListCubit>()
+                        .setBalanceFilter(BalanceFilter.all),
                   ),
                 SuppliersListLoaded(:final filteredItems)
                     when filteredItems.isEmpty =>

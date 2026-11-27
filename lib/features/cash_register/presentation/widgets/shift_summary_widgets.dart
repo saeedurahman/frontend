@@ -4,10 +4,8 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
-import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/cash_register/data/models/shift_cash_movement.dart';
 import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
-import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
-import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 
 abstract final class ShiftFormatUtils {
@@ -101,14 +99,10 @@ class ShiftSummaryBreakdown extends StatelessWidget {
     super.key,
     required this.summary,
     this.showExpectedBreakdown = true,
-    this.drawerPayments,
   });
 
   final ShiftSummaryModel summary;
   final bool showExpectedBreakdown;
-
-  /// Supplier payments taken from the drawer; defaults to the app's log.
-  final DrawerPaymentLog? drawerPayments;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +124,10 @@ class ShiftSummaryBreakdown extends StatelessWidget {
             _KpiCard(
               title: 'Wallet Sales',
               value: ShiftFormatUtils.formatMoney(summary.totalWalletSales),
+            ),
+            _KpiCard(
+              title: 'Credit Sales',
+              value: ShiftFormatUtils.formatMoney(summary.creditSales),
             ),
             _KpiCard(
               title: 'Other Sales',
@@ -195,7 +193,10 @@ class ShiftSummaryBreakdown extends StatelessWidget {
             ],
           ),
         ),
-        SupplierPaymentsFromDrawer(summary: summary, log: drawerPayments),
+        if (summary.cashMovements.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ShiftCashMovements(movements: summary.cashMovements),
+        ],
         if (summary.actualCash != null) ...[
           const SizedBox(height: 12),
           Row(
@@ -230,81 +231,105 @@ class ShiftSummaryBreakdown extends StatelessWidget {
   }
 }
 
-/// "Supplier payments from the drawer": what part of Cash Out was money paid
-/// to suppliers. Only drawer payments are listed; bank, wallet, cheque and
-/// owner's-pocket payments never touch the drawer, so they are not here.
-class SupplierPaymentsFromDrawer extends StatelessWidget {
-  const SupplierPaymentsFromDrawer({super.key, required this.summary, this.log});
+/// "Cash in and out of the drawer": supplier and customer payments, expenses
+/// and manual movements, as the server recorded them. Money paid or received by
+/// bank, wallet, cheque or card never touches the drawer, so it is not here. A
+/// payment that was reversed stays, struck through, with its reversal as a line
+/// of its own.
+class ShiftCashMovements extends StatelessWidget {
+  const ShiftCashMovements({super.key, required this.movements});
 
-  final ShiftSummaryModel summary;
-  final DrawerPaymentLog? log;
-
-  DrawerPaymentLog? _log() {
-    if (log != null) return log;
-    return sl.isRegistered<KhataEvents>() ? sl<KhataEvents>().drawerPayments : null;
-  }
+  final List<ShiftCashMovement> movements;
 
   @override
   Widget build(BuildContext context) {
-    final shiftId = summary.shiftId;
-    final source = _log();
-    if (shiftId == null || source == null) return const SizedBox.shrink();
-    final payments = source.forShift(shiftId);
-    if (payments.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Container(
-        key: const ValueKey('supplier-drawer-payments'),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.warning.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    KhataText.supplierPaymentsFromDrawer,
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                Text(
-                  formatPKR(source.totalForShift(shiftId)),
-                  key: const ValueKey('supplier-drawer-total'),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            for (final p in payments)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        KhataText.supplierPaymentLine(p.supplierName, p.note),
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    Text(formatPKR(p.amount), style: const TextStyle(fontSize: 13)),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 6),
-            const Text(
-              KhataText.drawerPaymentsCounted,
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ],
-        ),
+    return Container(
+      key: const ValueKey('shift-cash-movements'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            KhataText.drawerMovements,
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          for (final m in movements) _MovementRow(m),
+          const SizedBox(height: 6),
+          const Text(
+            KhataText.drawerMovementsCounted,
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _MovementRow extends StatelessWidget {
+  const _MovementRow(this.movement);
+
+  final ShiftCashMovement movement;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = movement;
+    final struck = m.reversed
+        ? const TextStyle(
+            fontSize: 13,
+            decoration: TextDecoration.lineThrough,
+            color: AppColors.textSecondary,
+          )
+        : const TextStyle(fontSize: 13);
+    final details = [
+      if (m.time != null) ShiftFormatUtils.formatDateTime(_localTime(m.time!)),
+      ?m.reference,
+      // A payment's note repeats who it was for; a manual one explains it.
+      if (m.partyType == null) ?m.notes,
+      if (m.reversed) KhataText.reversedTag,
+    ].join(' · ');
+    return Padding(
+      key: ValueKey('cash-movement-${m.id}'),
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  KhataText.movementLine(m.source, m.type, m.partyName),
+                  style: struck,
+                ),
+                if (details.isNotEmpty)
+                  Text(
+                    details,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Text(
+            '${m.intoDrawer ? '+' : '−'} '
+            '${ShiftFormatUtils.formatMoney(m.amount)}',
+            style: struck.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _localTime(String value) =>
+      DateTime.tryParse(value)?.toLocal().toIso8601String() ?? value;
 }
 
 class _KpiCard extends StatelessWidget {

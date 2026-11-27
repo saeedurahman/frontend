@@ -19,8 +19,8 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_s
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 import 'package:frantend/features/khata/domain/shift_guard.dart';
-import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/shared/widgets/tables/client_table_pagination.dart';
 import 'package:injectable/injectable.dart';
 
@@ -428,7 +428,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
 
   Future<CustomerPaymentResponseModel?> recordPayment({
     required Decimal amount,
-    required String paymentMethod,
+    required PaymentSource source,
     String? referenceNo,
     String? notes,
   }) async {
@@ -454,7 +454,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     }
 
     String? registerShiftId;
-    if (paymentMethod == PaymentMethods.cash) {
+    if (source.touchesDrawer) {
       // Cash goes into the drawer, so it needs an open shift. Never record it
       // silently without one: the till would not balance.
       registerShiftId = await _resolveActiveShiftId();
@@ -473,7 +473,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     final result = await _recordPayment(
       _customerId!,
       amount: amount,
-      paymentMethod: paymentMethod,
+      paymentSource: source.apiValue,
       referenceNo: referenceNo,
       notes: notes,
       registerShiftId: registerShiftId,
@@ -482,10 +482,15 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
 
     return await result.fold(
       (failure) async {
+        // The server wants the caller's own open shift for cash.
+        final needsShift = KhataText.needsOwnShift(failure.code);
         emit(
           current.copyWith(
             isRecordingPayment: false,
-            paymentError: failure.message,
+            activePaymentShiftId: needsShift ? null : registerShiftId,
+            paymentError: failure.code == KhataText.noOpenShiftCode
+                ? KhataText.customerCashNeedsShiftTitle
+                : KhataText.forCode(failure.code) ?? failure.message,
           ),
         );
         return null;
@@ -555,11 +560,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     final result = await _reverse(paymentId, body, idempotencyKey: _reverseKey);
     return result.fold(
       (failure) {
-        final code = switch (failure) {
-          ConflictFailure(:final code) => code,
-          ServerFailure(:final code) => code,
-          _ => null,
-        };
+        final code = failure.code;
         // A clear "no" means nothing changed: the next tap is a fresh try.
         if (failure is! NetworkFailure &&
             (code != null || failure is! ServerFailure)) {

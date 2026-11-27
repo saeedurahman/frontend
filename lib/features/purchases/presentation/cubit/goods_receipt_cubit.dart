@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
-import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
@@ -206,14 +205,10 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
     final result = await _createReceipt(params);
     return result.fold(
       (failure) {
-        final code = failure is ServerFailure
-            ? failure.code
-            : failure is ConflictFailure
-                ? failure.code
-                : null;
-        lastErrorCode = code;
+        lastErrorCode = failure.code;
         emit(state.copyWith(isSubmitting: false));
-        return KhataText.forCode(code) ?? failure.message;
+        return KhataText.forCode(failure.code) ??
+            failure.message;
       },
       (receipt) {
         lastPayment = receipt.paymentResult;

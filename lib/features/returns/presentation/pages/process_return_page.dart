@@ -10,6 +10,8 @@ import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/utils/date_formatter.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/returns/data/models/refund_line_model.dart';
 import 'package:frantend/features/returns/presentation/cubit/process_return_cubit.dart';
@@ -458,10 +460,7 @@ class _RefundMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProcessReturnCubit>();
-    final showNoShiftWarning =
-        state.hasCashRefund &&
-        !state.isCheckingShift &&
-        state.activeShiftId == null;
+    final needsShift = state.shiftMissing && !state.isCheckingShift;
 
     return _Card(
       title: 'Refund Method',
@@ -490,18 +489,25 @@ class _RefundMethodCard extends StatelessWidget {
               );
             }).toList(),
           ),
-          if (showNoShiftWarning) ...[
+          if (needsShift) ...[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                '⚠ No active shift — this cash refund won\'t appear in drawer reconciliation',
-                style: TextStyle(color: AppColors.warning),
-              ),
+            KhataNotice(
+              key: const ValueKey('needs_shift_notice'),
+              icon: Icons.lock_clock_outlined,
+              title: KhataText.customerCashNeedsShiftTitle,
+              body: KhataText.returnNeedsShiftBody,
+              action: hasPermission(context, Perm.shiftsOpen)
+                  ? FilledButton(
+                      key: const ValueKey('open_shift_button'),
+                      onPressed:
+                          state.isOpeningShift ? null : cubit.openShift,
+                      child: Text(
+                        state.isOpeningShift
+                            ? KhataText.openingShift
+                            : KhataText.openShift,
+                      ),
+                    )
+                  : null,
             ),
           ],
           const SizedBox(height: 16),

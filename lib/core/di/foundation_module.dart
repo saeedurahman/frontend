@@ -23,6 +23,7 @@ import 'package:frantend/core/offline/repos/offline_pos_repository.dart';
 import 'package:frantend/core/platform/app_window_service.dart';
 import 'package:frantend/core/platform/barcode_scanner_service.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
+import 'package:frantend/core/platform/file_share_service.dart';
 import 'package:frantend/core/platform/image_picker_service.dart';
 import 'package:frantend/core/platform/printer_service.dart';
 import 'package:frantend/core/platform/secure_key_store.dart';
@@ -57,6 +58,7 @@ import 'package:frantend/features/expenses/data/datasources/expenses_remote_data
 import 'package:frantend/features/expenses/domain/repositories/expenses_repository.dart';
 import 'package:frantend/features/inventory/domain/usecases/inventory_usecases.dart';
 import 'package:frantend/features/pos/data/datasources/pos_remote_datasource.dart';
+import 'package:frantend/features/purchases/presentation/services/purchase_order_pdf_service.dart';
 import 'package:frantend/features/receipts/data/receipt_context_loader.dart';
 import 'package:frantend/features/receipts/data/receipt_layout_api.dart';
 import 'package:frantend/features/inventory/data/batch_stock_source.dart';
@@ -108,6 +110,11 @@ import 'package:frantend/features/suppliers/domain/repositories/suppliers_reposi
 import 'package:frantend/core/network/dio_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_it/get_it.dart';
+import 'package:frantend/core/utils/currency_label_store.dart';
+import 'package:frantend/features/khata/data/khata_remote_datasource.dart';
+import 'package:frantend/features/khata/data/khata_repository.dart';
+import 'package:frantend/features/khata/domain/khata_events.dart';
+import 'package:frantend/features/settings/data/datasources/settings_remote_datasource.dart';
 
 /// Hand-registered services: platform adapters, identity, reachability,
 /// offline credentials, the offline data layer and the sync engine.
@@ -138,6 +145,9 @@ void registerFoundationServices(GetIt sl) {
   once<SecureKeyStore>(() => const FlutterSecureKeyStore());
   once<PrinterService>(() => const WindowsPrinterService());
   once<FileSaverService>(() => const WindowsFileSaverService());
+  once<FileShareService>(
+    () => DesktopFileShareService(sl<FileSaverService>()),
+  );
   once<AppWindowService>(() => WindowsAppWindowService());
   once<BarcodeScannerService>(() => KeyboardWedgeBarcodeScanner());
   once<UrlLauncherService>(() => const WindowsUrlLauncherService());
@@ -180,6 +190,13 @@ void registerFoundationServices(GetIt sl) {
   once<SyncStore>(() => SyncStore(sl<AppDatabase>()));
   once<LocalCatalog>(() => LocalCatalog(sl<SyncStore>(), businessId: businessId));
   once<TaxSettingsStore>(() => TaxSettingsStore(sl<LocalCatalog>()));
+  once<CurrencyLabelStore>(
+    () => CurrencyLabelStore(
+      fetch: () => sl<SettingsRemoteDataSource>().getSettings(),
+      businessId: businessId,
+      preferences: sl<PreferencesStorage>(),
+    ),
+  );
   once<OfflinePolicy>(
     () => OfflinePolicy(sl<PreferencesStorage>(), sl<LocalCatalog>()),
   );
@@ -319,6 +336,7 @@ void registerFoundationServices(GetIt sl) {
   );
 
   // ── Receipts: layouts, context, one pipeline ─────────────────────────
+  once<ReceiptLogoSource>(() => ReceiptLogoSource(dio: sl<Dio>()));
   once<BatchStockSource>(() => BatchStockSource(sl<SyncStore>()));
   once<ExpiryReportApi>(() => ExpiryReportApi(sl<Dio>()));
   once<ReceiptLayoutStore>(() => ReceiptLayoutStore(sl<SyncStore>()));
@@ -330,7 +348,25 @@ void registerFoundationServices(GetIt sl) {
       branding: sl<ReceiptBrandingSource>(),
       catalog: sl<LocalCatalog>(),
       links: ReceiptLinkSource(store: sl<SyncStore>(), dio: sl<Dio>()),
-      logos: ReceiptLogoSource(dio: sl<Dio>()),
+      logos: sl<ReceiptLogoSource>(),
+    ),
+  );
+  // Purchase order paper: header and logo from the copies on the device.
+  once<PurchaseOrderPdfService>(
+    () => PurchaseOrderPdfService(
+      business: () => sl<ReceiptBrandingSource>().businessProfile(),
+      logo: () async {
+        final settings = await sl<LocalCatalog>().settings();
+        final url = settings?['logo_url']?.toString().trim();
+        return sl<ReceiptLogoSource>().bytes(
+          url != null && url.isNotEmpty
+              ? url
+              : (await sl<ReceiptBrandingSource>().businessProfile())?.logoUrl,
+        );
+      },
+      files: sl<FileSaverService>(),
+      printer: sl<PrinterService>(),
+      launcher: sl<UrlLauncherService>(),
     ),
   );
   once<ReceiptService>(
@@ -342,6 +378,23 @@ void registerFoundationServices(GetIt sl) {
         final d = await sl<ReceiptBrandingSource>().displaySettings(branchId: branchId);
         return d.footerText == ReceiptBrandingSource.defaults.footerText ? null : d.footerText;
       },
+    ),
+  );
+
+  // ── Khata hub, follow-ups and statements ─────────────────────────────
+  once<KhataRemoteDataSource>(() => KhataRemoteDataSource(sl<Dio>()));
+  once<KhataRepository>(
+    () => KhataRepository(
+      remote: sl<KhataRemoteDataSource>(),
+      store: sl<SyncStore>(),
+      writer: sl<OfflineWriter>(),
+      catalog: sl<LocalCatalog>(),
+      settingsRemote: sl<SettingsRemoteDataSource>(),
+      errorHandler: sl<ErrorHandler>(),
+      isReachable: reachable,
+      events: sl<KhataEvents>(),
+      // A money entry changes balances the till reads from its local copy.
+      refreshLocal: () async => sl<SyncEngine>().requestSync(),
     ),
   );
 

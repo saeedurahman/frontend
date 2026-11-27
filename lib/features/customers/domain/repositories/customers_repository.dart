@@ -36,7 +36,7 @@ abstract class CustomersRepository {
   Future<Either<Failure, CustomerPaymentResponseModel>> recordPayment(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,

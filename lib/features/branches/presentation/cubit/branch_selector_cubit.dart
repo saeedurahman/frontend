@@ -30,7 +30,6 @@ class BranchSelectorCubit extends Cubit<BranchSelectorState> {
   }
 
   /// Keeps only branches the user is limited to (all when unrestricted).
-  @visibleForTesting
   static List<BranchModel> allowedBranches(
     List<BranchModel> all,
     List<String> branchIds,

@@ -56,6 +56,13 @@ abstract final class KhataText {
   static String goodsReceivedPaidFull(String paid) =>
       'Goods received. Paid $paid now. Nothing left on credit.';
 
+  static const noPaymentMade =
+      'No payment made: none of the items was saved with stock. Nothing was '
+      'paid to the supplier.';
+  static String paymentCapped(String entered, String paid) =>
+      'You entered $entered. Only $paid was paid, the total of the items that '
+      'were saved.';
+
   // Ledger
   static const ledgerTitle = 'Supplier account';
   static const reversedTag = 'Reversed';
@@ -68,6 +75,8 @@ abstract final class KhataText {
   static const noEntries = 'No entries yet';
   static const noEntriesInRange = 'Nothing in these dates';
   static const clearDates = 'Clear dates';
+  static const openingBalance = 'Balance at the start';
+  static const closingBalance = 'Balance at the end';
   static const runningBalance = 'Balance';
   static const whatHappened = 'What happened';
   static const paidFrom = 'Paid from';
@@ -80,9 +89,9 @@ abstract final class KhataText {
   static const balanceSettled = 'Settled';
 
   // Amount column: what the number was.
-  static const amountGoods = 'Goods';
+  static const amountGoods = 'Goods received';
   static const amountExpense = 'Expense';
-  static const amountSale = 'Sale';
+  static const amountSale = 'Credit sale';
   static const amountPaid = 'Paid';
   static const amountReceived = 'Received';
   static const amountReversed = 'Reversed';
@@ -116,6 +125,18 @@ abstract final class KhataText {
   static const customerCashNeedsShiftBody =
       'Cash you receive goes into the drawer. Open a shift first so it is '
       'counted, or take this payment by another method.';
+  static const shiftNotYours =
+      'That shift belongs to someone else. Open your own shift, or choose '
+      'another payment method.';
+
+  // Returns
+  static const returnNeedsShiftBody =
+      'A return is recorded in your open shift. Open a shift, then confirm '
+      'the return.';
+  static const returnShiftNotYours =
+      'That shift belongs to someone else. Check your own shift, then confirm '
+      'the return again.';
+  static const moneyComesAs = 'How is the money coming in?';
 
   static const branchMissing =
       'Your branch is not set. Please sign in again.';
@@ -127,12 +148,14 @@ abstract final class KhataText {
   static const creditBlockedTitle = 'Credit limit reached';
   static String creditBlockedBody({
     required String limit,
-    required String owed,
-    required String available,
-    required String needed,
+    required String balance,
+    required String wouldBe,
   }) =>
-      'This customer can owe up to $limit. They owe $owed now, so only '
-      '$available is left, but this sale needs $needed on credit.';
+      'Credit limit: $limit\nBalance now: $balance\n'
+      'After this sale: $wouldBe';
+  static const creditOverrideForbidden =
+      'You are not allowed to sell over the credit limit. Ask the owner or a '
+      'manager.';
   static const creditBlockedNoNumbers =
       'This sale is over the customer\'s credit limit.';
   static const allowAnyway = 'Allow anyway';
@@ -165,31 +188,47 @@ abstract final class KhataText {
   static const payableHint = 'You owe suppliers';
 
   // Shift
-  static const supplierPaymentsFromDrawer = 'Supplier payments from the drawer';
-  static const drawerPaymentsCounted =
-      'Already counted in Cash Out and Expected Cash above. Payments from the '
-      'bank, wallets or your pocket do not touch the drawer.';
-  static String supplierPaymentLine(String? supplier, String? note) {
-    final who = (supplier == null || supplier.isEmpty) ? 'Supplier' : supplier;
-    final tail = (note == null || note.isEmpty) ? '' : ' · $note';
-    return 'Paid to $who$tail';
+  static const drawerMovements = 'Cash in and out of the drawer';
+  static const drawerMovementsCounted =
+      'Already counted in Cash In, Cash Out, Expenses and Expected Cash above. '
+      'Money moved by bank, wallet, cheque, card or your pocket does not touch '
+      'the drawer.';
+
+  /// What one drawer movement was, from the server's `source` and `type`.
+  static String movementLine(String source, String type, String? name) {
+    final named = name != null && name.isNotEmpty;
+    final supplier = named ? name : 'supplier';
+    final customer = named ? name : 'customer';
+    return switch (source) {
+      'supplier_payment' => 'Paid to $supplier',
+      'supplier_payment_reversal' => 'Reversal: payment to $supplier',
+      'customer_payment' => 'Received from $customer',
+      'customer_payment_reversal' => 'Reversal: payment from $customer',
+      'expense' => named ? 'Expense · $name' : 'Expense',
+      _ => switch (type) {
+          'cash_in' => 'Cash added',
+          'expense' => 'Expense',
+          _ => 'Cash taken out',
+        },
+    };
   }
 
-  /// Plain words for backend error codes on payments / reversals.
-  ///
-  /// The supplier-payment endpoint answers "no open shift" with a plain text
-  /// `detail` and no code, so the message is checked too.
-  static String? forCode(String? code, [String? message]) {
-    final byCode = _byCode(code);
-    if (byCode != null) return byCode;
-    if (message != null && message.toLowerCase().contains('no open shift')) {
-      return needsShiftBody;
-    }
-    return null;
-  }
+  static const noOpenShiftCode = 'no_open_shift';
+  static const shiftNotYoursCode = 'shift_not_yours';
+  static const creditLimitCode = 'credit_limit_exceeded';
 
-  static String? _byCode(String? code) => switch (code) {
-        'no_open_shift' => needsShiftBody,
+  /// True for the two refusals that mean "this needs your own open shift".
+  /// Every screen answers them with the "Open shift first" prompt.
+  static bool needsOwnShift(String? code) =>
+      code == noOpenShiftCode || code == shiftNotYoursCode;
+
+  /// Plain words for a backend refusal on payments, sales and reversals.
+  /// Decided by the code alone; the server's sentence may change.
+  static String? forCode(String? code) => switch (code) {
+        noOpenShiftCode => needsShiftBody,
+        creditLimitCode => creditBlockedNoNumbers,
+        'credit_override_forbidden' => creditOverrideForbidden,
+        shiftNotYoursCode => shiftNotYours,
         'open_shift_required_to_reverse' => needsShiftToReverse,
         'payment_already_reversed' => alreadyReversed,
         'not_a_reversible_payment' => notAPayment,

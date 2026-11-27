@@ -90,7 +90,13 @@ class DataChangeInterceptor extends Interceptor {
           : customerMoney,
       'suppliers' => second == 'payments'
           ? {...supplierMoney, ...money}
-          : const {DataTopic.suppliers},
+          // Opening balances, manual entries and their reversal move what we
+          // owe; everything else only edits the supplier.
+          : second == 'entries' ||
+                  last == 'opening-balance' ||
+                  last == 'manual-entry'
+              ? supplierMoney
+              : const {DataTopic.suppliers},
       'purchases' => second == 'receipts'
           ? {...supplierMoney, ...money, DataTopic.stock, DataTopic.products}
           : const {DataTopic.purchases},
@@ -129,6 +135,7 @@ class DataChangeInterceptor extends Interceptor {
       'users' => const {DataTopic.users},
       'roles' => const {DataTopic.roles, DataTopic.users},
       'tax-rates' => const {DataTopic.taxRates},
+      'khata' => const {DataTopic.followups},
       'settings' => const {DataTopic.taxRates},
       'receipt-layouts' => const {DataTopic.receiptLayouts},
       'adjustments' || 'stock' => const {DataTopic.stock},

@@ -11,6 +11,7 @@ import 'package:frantend/core/utils/date_formatter.dart';
 import 'package:frantend/features/purchases/data/models/purchase_order_model.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_order_detail_cubit.dart';
 import 'package:frantend/features/purchases/presentation/cubit/purchase_order_detail_state.dart';
+import 'package:frantend/features/purchases/presentation/widgets/purchase_order_pdf_actions.dart';
 import 'package:frantend/features/purchases/presentation/widgets/purchase_status_chip.dart';
 import 'package:frantend/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
@@ -183,10 +184,7 @@ class _TopBar extends StatelessWidget {
         _OutlinedToolbarButton(
           icon: Icons.print_outlined,
           label: 'Print',
-          onPressed: () => AppAlerts.showInfoMessage(
-            context,
-            'Print coming soon',
-          ),
+          onPressed: () => PurchaseOrderPdfActions.print(context, order),
         ),
         const SizedBox(width: 8),
         if (hasMoreActions)
@@ -739,18 +737,7 @@ class _ItemsTableCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () => AppAlerts.showInfoMessage(
-                    context,
-                    'Download coming soon',
-                  ),
-                  icon: const Icon(Icons.download_outlined, size: 18),
-                  label: const Text('Download'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
-                  ),
-                ),
+                PurchaseOrderDownloadButton(order: order),
               ],
             ),
           ),

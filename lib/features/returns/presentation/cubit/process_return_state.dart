@@ -83,6 +83,9 @@ abstract class ProcessReturnState with _$ProcessReturnState {
     String? activeShiftId,
     @Default(false) bool isLoading,
     @Default(false) bool isCheckingShift,
+    // No open shift of this user: the "Open shift first" prompt shows.
+    @Default(false) bool shiftMissing,
+    @Default(false) bool isOpeningShift,
     @Default(false) bool isSubmitting,
     @Default(false) bool accessDenied,
     String? error,

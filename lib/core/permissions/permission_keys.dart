@@ -49,6 +49,13 @@ abstract final class Perm {
   static const customersBalanceView = 'customers.balance.view';
   static const customersCreditOverride = 'customers.credit.override';
 
+  // Khata hub, statements, follow-ups and hand-made account entries.
+  static const khataView = 'khata.view';
+  static const khataStatementCreate = 'khata.statement.create';
+  static const khataFollowupsCreate = 'khata.followups.create';
+  static const customersLedgerManage = 'customers.ledger.manage';
+  static const suppliersLedgerManage = 'suppliers.ledger.manage';
+
   // Money
   static const expensesView = 'expenses.view';
   static const expensesCreate = 'expenses.create';

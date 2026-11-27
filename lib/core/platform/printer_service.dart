@@ -27,8 +27,12 @@ class PrinterConfig {
   bool get isNastaliq => urduStyle == 'nastaliq';
   bool get isNaskh => urduStyle == 'naskh';
 
-  PdfPageFormat get pageFormat =>
-      is58mm ? PdfPageFormat.roll57 : PdfPageFormat.roll80;
+  /// `a4` is for full-page documents such as statements.
+  PdfPageFormat get pageFormat => paperSize == 'a4'
+      ? PdfPageFormat.a4
+      : is58mm
+          ? PdfPageFormat.roll57
+          : PdfPageFormat.roll80;
 
   PrinterConfig copyWith({
     String? printerName,

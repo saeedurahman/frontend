@@ -58,6 +58,11 @@ import 'package:frantend/features/cash_register/presentation/pages/shift_history
 import 'package:frantend/features/customers/presentation/pages/customer_form_page.dart';
 import 'package:frantend/features/customers/presentation/pages/customer_ledger_page.dart';
 import 'package:frantend/features/customers/presentation/pages/customers_list_page.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/pages/khata_hub_page.dart';
+import 'package:frantend/features/khata/presentation/pages/khata_messages_page.dart';
+import 'package:frantend/features/khata/presentation/pages/khata_statement_page.dart';
+import 'package:frantend/features/khata/presentation/pages/payment_details_page.dart';
 import 'package:frantend/features/khata/presentation/pages/supplier_ledger_page.dart';
 import 'package:frantend/features/suppliers/presentation/pages/supplier_form_page.dart';
 import 'package:frantend/features/suppliers/presentation/pages/suppliers_list_page.dart';
@@ -418,6 +423,23 @@ class AppRouter {
             ],
           ),
           GoRoute(
+            path: RouteNames.khata,
+            builder: (_, state) {
+              final tab = PartyType.parse(
+                state.uri.queryParameters['tab'] ?? '',
+              );
+              // A new key, so a link to the other tab opens on it.
+              return KhataHubPage(key: ValueKey(tab), initialTab: tab);
+            },
+          ),
+          GoRoute(
+            path: RouteNames.khataStatement,
+            builder: (_, state) => KhataStatementPage(
+              partyType: PartyType.parse(state.pathParameters['partyType']!),
+              partyId: state.pathParameters['partyId']!,
+            ),
+          ),
+          GoRoute(
             path: RouteNames.expenses,
             builder: (_, __) => const ExpensesListPage(),
             routes: [
@@ -559,6 +581,24 @@ class AppRouter {
               GoRoute(
                 path: 'tax',
                 builder: (_, __) => const SettingsSectionPage(SettingsSection.taxRates),
+              ),
+              GoRoute(
+                path: 'payment-details',
+                builder: (_, __) => const Scaffold(
+                  body: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: PaymentDetailsPage(),
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: 'khata-messages',
+                builder: (_, __) => const Scaffold(
+                  body: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: KhataMessagesPage(),
+                  ),
+                ),
               ),
               GoRoute(
                 path: 'tax-prices',
@@ -703,6 +743,10 @@ class AppRouter {
     return ('Kitchen', 'Kitchen Display');
   }
   if (path.startsWith(RouteNames.customers)) return ('Customers', 'Home / Sales / Customers');
+  if (path.startsWith('${RouteNames.khata}/statement')) {
+    return ('Statement', 'Home / Finance / Khata / Statement');
+  }
+  if (path.startsWith(RouteNames.khata)) return ('Khata', 'Home / Finance / Khata');
   if (path.startsWith(RouteNames.expenses)) return ('Expenses', 'Home / Finance / Expenses');
   if (path.startsWith(RouteNames.accounting)) {
     if (path.endsWith('/new') && !path.contains('/coa')) {

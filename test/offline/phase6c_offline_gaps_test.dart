@@ -394,7 +394,7 @@ void main() {
       final paid = await world.customers.recordPayment(
         'c1',
         amount: Decimal.parse('400'),
-        paymentMethod: 'cash',
+        paymentSource: 'cash',
       );
       expect(paid.isRight(), isTrue);
 

@@ -39,6 +39,7 @@ abstract final class OpTypes {
   static const customerPayment = 'customer.payment';
   static const expenseCreate = 'expense.create';
   static const returnCreate = 'return.create';
+  static const followupCreate = 'followup.create';
 }
 
 class OutboxOp {

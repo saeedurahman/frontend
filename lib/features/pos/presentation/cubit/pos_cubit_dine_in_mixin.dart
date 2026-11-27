@@ -309,7 +309,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
 
   Future<SaleResponseModel> completeDineInTab(
     List<PaymentLineModel> payments, {
-    bool allowCreditOverride = false,
+    bool creditOverride = false,
   }) async {
     final dineIn = state.dineIn;
     if (dineIn == null) {
@@ -326,7 +326,6 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
       payments: payments,
       due: state.displayGrandTotal,
       hasCustomer: hasCustomer,
-      allowCreditRemainder: allowCreditOverride,
     );
 
     _safeEmit(state.patch(isSubmittingSale: true));
@@ -334,6 +333,7 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
       final request = CompleteTabRequest(
         registerShiftId: state.activeShift?.id,
         payments: PosSaleRequestBuilder.paymentsJson(payments),
+        creditOverride: creditOverride,
       );
 
       final result = await _completeTabUseCase(dineIn.saleId, request);
@@ -342,9 +342,14 @@ mixin PosCubitDineInMixin on PosCubitBase, PosCubitCartMixin {
       }
 
       return await result.fold(
-        (failure) =>
-            throw SaleFailureMapper.map(failure, hasCustomer: hasCustomer) ??
-                Exception(TableServiceErrors.message(failure)),
+        (failure) async {
+          final refusal =
+              SaleFailureMapper.map(failure, hasCustomer: hasCustomer);
+          if (refusal is ShiftRequiredException) {
+            await _dropRefusedShift(failure.code);
+          }
+          throw refusal ?? Exception(TableServiceErrors.message(failure));
+        },
         (sale) {
           clearCart();
           _safeEmit(state.patch(

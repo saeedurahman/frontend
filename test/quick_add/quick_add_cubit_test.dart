@@ -1,6 +1,12 @@
 import 'package:dartz/dartz.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/utils/currency_formatter.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/paid_now_hook.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 import 'package:frantend/features/quick_add/data/shared_prefs_draft_store.dart';
 import 'package:frantend/features/quick_add/domain/barcode_normalizer.dart';
 import 'package:frantend/features/quick_add/domain/quick_add_flow.dart';
@@ -26,6 +32,29 @@ class _Suggest implements ProductSuggestionProvider {
 }
 
 Future<void> settle() => pumpEventQueue();
+
+/// A "Paid now" section that always sends [amount] from the bank.
+class _Paid implements PaidNowHook {
+  _Paid(this.amount);
+
+  final Decimal amount;
+  bool? savedWithPayment;
+
+  @override
+  ReceiptPaymentInput? inputFor(Decimal total) =>
+      ReceiptPaymentInput(amount: amount, source: PaymentSource.bank);
+
+  @override
+  String? blockingProblem(Decimal total) => null;
+
+  @override
+  String? explain(String? code, String fallback) => fallback;
+
+  @override
+  Future<void> saved({required bool paid, ReceiptPaymentResult? result}) async {
+    savedWithPayment = paid;
+  }
+}
 
 void main() {
   late FakeQuickAddRepository repo;
@@ -524,6 +553,101 @@ void main() {
 
     test('a damaged draft never blocks the screen', () async {
       expect(QuickAddDraft.fromJson({'mode': 'purchase', 'rows': 'nonsense'}), isNull);
+    });
+  });
+
+  group('a payment sent with the list', () {
+    Future<void> fillPurchase() async {
+      cubit.setMode(QuickAddMode.purchase);
+      cubit.setSupplier('s-1', 'Ali Traders');
+      for (var n = 1; n <= 2; n++) {
+        await cubit.scan(barcodeN(n));
+        final id = cubit.state.rows.first.id;
+        cubit.setText(id, QuickAddField.name, 'Item $n');
+        cubit.setText(id, QuickAddField.cost, '100');
+      }
+    }
+
+    /// The server saves the lines named in [ok] and paid [paid] (null: none).
+    void answer(Set<String> ok, {String? paid}) {
+      final rows = cubit.state.rows;
+      repo.script.add(Right(QuickAddResponse(
+        created: ok.length,
+        updated: 0,
+        failed: rows.length - ok.length,
+        lines: [
+          for (final r in rows)
+            ok.contains(r.name)
+                ? QuickAddLineResult(
+                    clientLineId: r.id,
+                    outcome: LineOutcome.created,
+                    productId: 'p-${r.id}',
+                    variationId: 'v-${r.id}',
+                  )
+                : QuickAddLineResult(
+                    clientLineId: r.id,
+                    outcome: LineOutcome.failed,
+                    errorCode: 'duplicate_barcode',
+                    errorMessage: 'Barcode already used',
+                  ),
+        ],
+        paymentResult: paid == null
+            ? null
+            : ReceiptPaymentResult.fromResponse({
+                'total_amount': '100.00',
+                'payment': {'id': 'pay-1', 'amount': paid, 'balance': '0.00'},
+              }),
+      )));
+    }
+
+    _Paid hook(String amount) => cubit.paidNow = _Paid(dec(amount));
+
+    test('is capped at the lines that saved, and says so', () async {
+      await fillPurchase();
+      final paid = hook('200');
+      answer({'Item 1'}, paid: '100.00');
+      await cubit.save();
+
+      expect(repo.requests.single.toJson()['payment']['amount'], '200.00');
+      final summary = cubit.state.summary!;
+      expect(
+        summary.paidNote,
+        contains(KhataText.paymentCapped(
+          formatPKR(dec('200')),
+          formatPKR(dec('100')),
+        )),
+      );
+      expect(paid.savedWithPayment, isTrue);
+      // Every line says what happened to it, problems first.
+      expect(summary.lines.map((l) => (l.name, l.ok)),
+          [('Item 2', false), ('Item 1', true)]);
+      expect(summary.lines.last.text, 'Added');
+    });
+
+    test('paid in full shows no "only part was paid" words', () async {
+      await fillPurchase();
+      hook('100');
+      answer({'Item 1', 'Item 2'}, paid: '100.00');
+      await cubit.save();
+      expect(cubit.state.summary!.paidNote, isNot(contains('You entered')));
+    });
+
+    test('says "no payment made" when no line saved', () async {
+      await fillPurchase();
+      final paid = hook('200');
+      answer({});
+      await cubit.save();
+
+      expect(cubit.state.summary!.paidNote, KhataText.noPaymentMade);
+      expect(paid.savedWithPayment, isFalse);
+      expect(cubit.state.rows, hasLength(2));
+    });
+
+    test('without a payment there is no note', () async {
+      await fillPurchase();
+      answer({'Item 1', 'Item 2'});
+      await cubit.save();
+      expect(cubit.state.summary!.paidNote, isNull);
     });
   });
 

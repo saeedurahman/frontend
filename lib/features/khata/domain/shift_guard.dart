@@ -35,16 +35,19 @@ class ShiftGuard {
     return result.fold((_) => null, (shift) => shift?.id);
   }
 
-  /// Opens a shift with an empty drawer. Returns its id, or the reason it
-  /// could not be done.
-  Future<Either<Failure, String>> openNow({Decimal? openingFloat}) async {
-    final branchId = await _branch.resolve();
-    if (branchId == null) {
+  /// Opens a shift with an empty drawer, in [branchId] or else the active
+  /// branch. Returns its id, or the reason it could not be done.
+  Future<Either<Failure, String>> openNow({
+    Decimal? openingFloat,
+    String? branchId,
+  }) async {
+    final branch = branchId ?? await _branch.resolve();
+    if (branch == null) {
       return const Left(
         ValidationFailure('Branch not configured for your account. Please sign in again.'),
       );
     }
-    final registers = await _registers(branchId: branchId);
+    final registers = await _registers(branchId: branch);
     final list = registers.fold((_) => null, (r) => r);
     if (list == null) {
       return Left(registers.fold((f) => f, (_) => const ServerFailure()));
@@ -53,7 +56,7 @@ class ShiftGuard {
     if (registerId == null) {
       final created = await _createRegister({
         'name': 'Main Counter',
-        'branch_id': branchId,
+        'branch_id': branch,
       });
       final register = created.fold((_) => null, (r) => r);
       if (register == null) {

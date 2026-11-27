@@ -349,6 +349,45 @@ void main() {
       expect(rig.createSale.bodies.single['register_shift_id'], 's1');
     });
 
+    test('no_open_shift from the server drops the stale shift', () async {
+      await start();
+      // The device still shows a shift; the server knows it was closed.
+      rig.createSale.failWith = const ServerFailure('words', 'no_open_shift');
+      await expectLater(
+        rig.cubit.submitSale([_cash('100')]),
+        throwsA(isA<ShiftRequiredException>().having(
+          (e) => e.message,
+          'message',
+          ShiftRequiredException.needsShift,
+        )),
+      );
+      expect(rig.cubit.state.activeShift, isNull);
+      expect(rig.cubit.state.isSubmittingSale, isFalse);
+      expect(rig.cubit.state.cartItems, hasLength(1), reason: 'cart kept');
+    });
+
+    test("shift_not_yours looks up the user's own shift", () async {
+      await start();
+      rig.createSale.failWith =
+          const PermissionDeniedFailure('words', 'shift_not_yours');
+      rig.myShift.shift =
+          const RegisterShiftModel(id: 'mine', cashRegisterId: 'r1');
+      await expectLater(
+        rig.cubit.submitSale([_cash('100')]),
+        throwsA(isA<ShiftRequiredException>().having(
+          (e) => e.message,
+          'message',
+          ShiftRequiredException.notYours,
+        )),
+      );
+      expect(rig.cubit.state.activeShift?.id, 'mine');
+      expect(rig.cubit.state.isSubmittingSale, isFalse);
+
+      rig.createSale.failWith = null;
+      await rig.cubit.submitSale([_cash('100')]);
+      expect(rig.createSale.bodies.last['register_shift_id'], 'mine');
+    });
+
     test('openShift surfaces the real server failure', () async {
       await start(withShift: false);
       final ok = await rig.cubit.openShift(Decimal.zero, null);
@@ -456,8 +495,9 @@ void main() {
         () async {
       await start();
       await rig.cubit.selectCustomer(customer);
-      rig.createSale.failWith = const ValidationFailure(
-        'Credit limit exceeded: limit 500, owed 450',
+      rig.createSale.failWith = const ServerFailure(
+        'words',
+        'credit_limit_exceeded',
       );
       await expectLater(
         rig.cubit.submitSale([_cash('40'), credit('60')]),
@@ -467,27 +507,66 @@ void main() {
       expect(rig.cubit.state.isSubmittingSale, isFalse);
     });
 
-    test('"Allow anyway" sends the paid part without a credit tender',
-        () async {
+    test('"Allow anyway" resends the SAME sale with credit_override', () async {
       await start();
       await rig.cubit.selectCustomer(customer);
-      final sale = await rig.cubit.submitSale(
-        [_cash('40')],
-        allowCreditOverride: true,
+      rig.createSale.failWith = const ServerFailure(
+        'Credit limit exceeded',
+        'credit_limit_exceeded',
       );
+      final payments = [_cash('40'), credit('60')];
+      await expectLater(
+        rig.cubit.submitSale(payments),
+        throwsA(isA<CreditLimitExceededException>()),
+      );
+
+      rig.createSale.failWith = null;
+      final sale = await rig.cubit.submitSale(payments, creditOverride: true);
       expect(sale.saleStatus, 'completed');
-      final payments = rig.createSale.bodies.single['payments'] as List;
-      expect(payments, hasLength(1));
-      expect((payments.single as Map)['payment_method'], 'cash');
+
+      final first = rig.createSale.bodies.first;
+      final second = rig.createSale.bodies.last;
+      expect(first.containsKey('credit_override'), isFalse);
+      expect(second['credit_override'], isTrue);
+      expect(second['id'], first['id']);
+      expect(
+        {...second}..remove('credit_override'),
+        first,
+        reason: 'nothing else changes: the credit part is sent again',
+      );
+      expect(second['payments'], hasLength(2));
     });
 
-    test('"Allow anyway" without a customer is still refused', () async {
+    test('an under-paid sale is refused even with the override', () async {
       await start();
+      await rig.cubit.selectCustomer(customer);
       await expectLater(
-        rig.cubit.submitSale([_cash('40')], allowCreditOverride: true),
+        rig.cubit.submitSale([_cash('40')], creditOverride: true),
         throwsA(isA<PaymentMismatchException>()),
       );
       expect(rig.createSale.bodies, isEmpty);
+    });
+
+    test('the server refusing the override says so in plain words', () async {
+      await start();
+      await rig.cubit.selectCustomer(customer);
+      rig.createSale.failWith = const PermissionDeniedFailure(
+        'raw',
+        'credit_override_forbidden',
+      );
+      await expectLater(
+        rig.cubit.submitSale(
+          [_cash('40'), credit('60')],
+          creditOverride: true,
+        ),
+        throwsA(
+          isA<PaymentMismatchException>().having(
+            (e) => e.message,
+            'message',
+            KhataText.creditOverrideForbidden,
+          ),
+        ),
+      );
     });
 
     test('the server "payment is less than total" gets plain words', () async {

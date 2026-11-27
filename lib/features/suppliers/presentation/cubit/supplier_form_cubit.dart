@@ -59,7 +59,8 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
   void updatePaymentTermsDays(String value) =>
       emit(state.copyWith(paymentTermsDays: value));
 
-  Map<String, dynamic> _toBody() {
+  /// The request body of the form.
+  Map<String, dynamic> createBody() {
     final terms = int.tryParse(state.paymentTermsDays.trim());
     return {
       'name': state.name.trim(),
@@ -88,7 +89,7 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
     if (!validate()) return 'Validation failed';
 
     emit(state.copyWith(isSubmitting: true, errors: {}));
-    final body = _toBody();
+    final body = createBody();
 
     if (state.mode == 'create') {
       final result = await _createSupplier(body);

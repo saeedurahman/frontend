@@ -93,16 +93,21 @@ class CompleteTabRequest {
     this.registerShiftId,
     this.payments = const [],
     this.soldAt,
+    this.creditOverride = false,
   });
 
   final String? registerShiftId;
   final List<Map<String, dynamic>> payments;
   final String? soldAt;
 
+  /// "Allow anyway": sell past the customer's credit limit.
+  final bool creditOverride;
+
   Map<String, dynamic> toJson() => {
         if (registerShiftId != null) 'register_shift_id': registerShiftId,
         'payments': payments,
         if (soldAt != null) 'sold_at': soldAt,
+        if (creditOverride) 'credit_override': true,
       };
 }
 

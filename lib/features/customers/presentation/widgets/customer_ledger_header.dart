@@ -6,11 +6,13 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
-import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/widgets/record_payment_dialog.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:go_router/go_router.dart';
@@ -35,10 +37,17 @@ class CustomerLedgerHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: AppDimensions.spacingSm,
+          runSpacing: AppDimensions.spacingSm,
           children: [
             TextButton.icon(
-              onPressed: () => context.pop(),
+              // Opened from a link or the khata, there may be nothing to pop.
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go(RouteNames.customers),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -49,35 +58,52 @@ class CustomerLedgerHeader extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
             ),
-            const Spacer(),
-            PermissionGate(
-              permission: Perm.reportsExport,
-              child: OutlinedButton.icon(
-                onPressed: () => ExportDialog.show(
-                  context,
-                  dataset: 'customer_ledger',
-                  title: 'Customer Ledger (${customer.name})',
-                  // Only this customer, in the branch on screen, all dates.
-                  filters: {'customer_id': customer.id},
-                  fileLabel: customer.name,
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppDimensions.spacingSm,
+              runSpacing: AppDimensions.spacingSm,
+              children: [
+                PartyKhataActions(
+                  type: PartyType.customer,
+                  partyId: customer.id,
+                  name: customer.name,
+                  phone: customer.phone,
                   branchId: context.read<CustomerLedgerCubit>().branchId,
-                  dateFrom: ExportService.allDatesFrom,
+                  balanceOwed:
+                      balanceParsed < Decimal.zero ? -balanceParsed : null,
+                  hasOpening: hasOpeningBalance(
+                    state.entries
+                        .map((r) => LedgerLine.fromCustomer(r.entry)),
+                  ),
                 ),
-                icon: const Icon(Icons.download_outlined, size: 18),
-                label: const Text('Export Ledger'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: () => context.push(
-                '${RouteNames.customers}/${customer.id}/edit',
-              ),
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text('Edit Customer'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.border),
-              ),
+                PermissionGate(
+                  permission: Perm.reportsExport,
+                  child: OutlinedButton.icon(
+                    onPressed: () => ExportDialog.show(
+                      context,
+                      dataset: 'customer_ledger',
+                      title: 'Customer Ledger (${customer.name})',
+                      // Only this customer, in the branch on screen, all dates.
+                      filters: {'customer_id': customer.id},
+                      fileLabel: customer.name,
+                      branchId: context.read<CustomerLedgerCubit>().branchId,
+                    ),
+                    icon: const Icon(Icons.download_outlined, size: 18),
+                    label: const Text('Export Ledger'),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(
+                    '${RouteNames.customers}/${customer.id}/edit',
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit Customer'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

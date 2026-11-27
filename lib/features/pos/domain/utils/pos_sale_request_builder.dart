@@ -38,6 +38,7 @@ abstract final class PosSaleRequestBuilder {
     String? notes,
     String? saleId,
     List<Map<String, dynamic>>? payments,
+    bool creditOverride = false,
   }) {
     final lines = PosCalculations.buildSaleLines(
       items: items,
@@ -55,6 +56,7 @@ abstract final class PosSaleRequestBuilder {
       if (discountSchemeId != null) 'discount_scheme_id': discountSchemeId,
       'lines': lines,
       if (payments != null) 'payments': payments,
+      if (creditOverride) 'credit_override': true,
     };
   }
 }

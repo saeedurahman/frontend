@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 
 part 'suppliers_list_state.freezed.dart';
@@ -22,6 +23,8 @@ sealed class SuppliersListState with _$SuppliersListState {
     required List<SupplierListRow> allItems,
     required List<SupplierListRow> filteredItems,
     String? searchQuery,
+    @Default(BalanceFilter.all) BalanceFilter balanceFilter,
+    @Default(BalanceSort.none) BalanceSort balanceSort,
   }) = SuppliersListLoaded;
 
   const factory SuppliersListState.error(String message) = SuppliersListError;

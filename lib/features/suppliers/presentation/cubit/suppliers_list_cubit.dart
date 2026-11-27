@@ -5,6 +5,7 @@ import 'package:frantend/core/data_changes/auto_refresh.dart';
 import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
@@ -37,6 +38,8 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
 
   Timer? _searchDebounce;
   String? _search;
+  BalanceFilter _balanceFilter = BalanceFilter.all;
+  BalanceSort _balanceSort = BalanceSort.none;
 
   @override
   Future<void> close() {
@@ -100,6 +103,8 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
         allItems: rows,
         filteredItems: _filter(rows, _search),
         searchQuery: _search,
+        balanceFilter: _balanceFilter,
+        balanceSort: _balanceSort,
       ),
     );
     await _loadBalances(rows, read);
@@ -178,20 +183,52 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
     });
   }
 
-  /// A supplier just created is shown whatever the search says, until the user
-  /// changes it.
+  void setBalanceFilter(BalanceFilter filter) {
+    _balanceFilter = filter;
+    _applyBalanceChoice();
+  }
+
+  void setBalanceSort(BalanceSort sort) {
+    _balanceSort = sort;
+    _applyBalanceChoice();
+  }
+
+  void _applyBalanceChoice() {
+    forgetCreated();
+    final current = state;
+    if (current is SuppliersListLoaded) {
+      emit(
+        current.copyWith(
+          balanceFilter: _balanceFilter,
+          balanceSort: _balanceSort,
+          filteredItems: _filter(current.allItems, _search),
+        ),
+      );
+    }
+  }
+
+  /// A supplier just created is shown whatever the search and filters say,
+  /// until the user changes them.
   List<SupplierListRow> _filter(List<SupplierListRow> items, String? query) {
-    if (query == null || query.isEmpty) return items;
-    final q = query.toLowerCase();
-    return items
+    final q = (query ?? '').toLowerCase();
+    final matching = items
         .where(
           (row) =>
               isNewlyCreated(row.supplier.id) ||
-              row.supplier.name.toLowerCase().contains(q) ||
-              (row.supplier.phone?.toLowerCase().contains(q) ?? false) ||
-              (row.supplier.email?.toLowerCase().contains(q) ?? false),
+              ((q.isEmpty ||
+                      row.supplier.name.toLowerCase().contains(q) ||
+                      (row.supplier.phone?.toLowerCase().contains(q) ??
+                          false) ||
+                      (row.supplier.email?.toLowerCase().contains(q) ??
+                          false)) &&
+                  _balanceFilter.matches(listBalance(row.balance))),
         )
         .toList();
+    return _balanceSort.apply(
+      matching,
+      (row) => listBalance(row.balance),
+      _balanceFilter,
+    );
   }
 
   Future<bool> toggleActive(String id, bool isActive) async {

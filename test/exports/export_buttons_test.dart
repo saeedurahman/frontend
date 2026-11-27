@@ -16,6 +16,7 @@ import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/platform/file_saver_service.dart';
 import 'package:frantend/core/router/route_names.dart';
+import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/features/auth/domain/entities/user.dart';
 import 'package:frantend/features/customers/data/datasources/customers_remote_datasource.dart';
@@ -87,6 +88,7 @@ import 'package:intl/intl.dart';
 import '../helpers/fake_rest.dart';
 import '../helpers/khata_fakes.dart';
 import '../phase5/export_service_test.dart' show FakeFileSaverService;
+import '../helpers/fake_http.dart' show jsonResponse;
 import '../refresh/refresh_fixtures.dart';
 import '../sync/sync_rig.dart';
 
@@ -388,7 +390,6 @@ void main() {
           'format': ext,
           'supplier_id': 's2',
           'branch_id': kBranch,
-          'date_from': '2000-01-01',
         });
         expect(
           files.lastSavedName,
@@ -417,6 +418,83 @@ void main() {
         'date_to': '2026-11-26',
       });
       expect(files.lastSavedName, 'Test Supplier ledger 2026-11-26.csv');
+    });
+
+    for (final (label, ext) in const [(_csv, 'csv'), (_pdf, 'pdf')]) {
+      testWidgets('too large for one $ext file (413): a date range is suggested',
+          (tester) async {
+        twoSuppliers();
+        suppliersScreens();
+        server.on('GET', '/export/{dataset}', (call) {
+          exports.add(call);
+          return jsonResponse(
+            {'detail': 'Too many rows (61000) for one export'},
+            status: 413,
+          );
+        });
+        await open(tester, const SupplierLedgerPage(supplierId: 's1'));
+
+        final call = await export(tester, find.byKey(button), format: label);
+
+        // No dates chosen means the whole account; no made-up start date.
+        expect(call.query, isNot(contains('date_from')));
+        final message = ExportService.tooLargeMessage(ext);
+        expect(message, contains('date range'));
+        expect(find.textContaining(message), findsOneWidget);
+        expect(find.textContaining('61000'), findsNothing);
+        await tester.pump(const Duration(seconds: 15));
+      });
+    }
+
+    testWidgets('chosen dates ask the server, which gives start and end balance',
+        (tester) async {
+      twoSuppliers();
+      suppliersScreens();
+      final asked = <Map<String, dynamic>>[];
+      server.on('GET', '/supplier-ledger/{id}', (c) {
+        asked.add({...c.query});
+        final dated = c.query.containsKey('date_from');
+        return {
+          'items': [
+            {
+              'id': 'e1',
+              'supplier_id': 's1',
+              'entry_type': 'sale',
+              'amount': '-250',
+              'running_balance': '-850',
+              'entry_at': '2026-11-10T10:00:00Z',
+              'branch_id': kBranch,
+            },
+          ],
+          'total': 1,
+          'skip': 0,
+          'limit': 50,
+          'balance': '-900',
+          if (dated) 'opening_balance': '-600',
+          if (dated) 'closing_balance': '-850',
+        };
+      });
+      await open(tester, const SupplierLedgerPage(supplierId: 's1'));
+      expect(asked.single, isNot(contains('date_from')));
+      expect(
+        find.byKey(const ValueKey('ledger_opening_balance')),
+        findsNothing,
+      );
+
+      tester
+          .element(find.byType(SupplierLedgerView))
+          .read<SupplierLedgerCubit>()
+          .setDates(DateTime(2026, 11, 1), DateTime(2026, 11, 15));
+      await frames(tester);
+
+      expect(asked.last['date_from'], '2026-11-01');
+      expect(asked.last['date_to'], '2026-11-15');
+      String shown(String key) =>
+          tester.widget<Text>(find.byKey(ValueKey(key))).data!;
+      expect(shown('ledger_opening_balance'), contains('600'));
+      expect(shown('ledger_closing_balance'), contains('850'));
+      // The row carries the server's running balance, not one added up here.
+      expect(find.textContaining('850'), findsWidgets);
     });
 
     testWidgets('the list button is still the list of suppliers',
@@ -472,7 +550,6 @@ void main() {
       'format': 'csv',
       'customer_id': 'c7',
       'branch_id': kBranch,
-      'date_from': '2000-01-01',
     });
     expect(
       files.lastSavedName,
@@ -571,7 +648,11 @@ void main() {
 
     final call = await export(tester, find.byKey(const Key('expiry-export')));
 
-    expectRequest(call, 'expiry', {'format': 'csv', 'branch_id': 'br-2'});
+    expectRequest(call, 'expiry', {
+      'format': 'csv',
+      'branch_id': 'br-2',
+      'within_days': '30',
+    });
   });
 
   testWidgets('products "Export": the products dataset, no filters',
@@ -624,7 +705,6 @@ void main() {
 
     expectRequest(call, 'purchases', {
       'format': 'csv',
-      'date_from': '2000-01-01',
     });
   });
 

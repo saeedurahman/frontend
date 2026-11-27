@@ -414,12 +414,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery,  BalanceFilter balanceFilter,  BalanceSort balanceSort)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case SuppliersListInitial() when initial != null:
 return initial();case SuppliersListLoading() when loading != null:
 return loading();case SuppliersListLoaded() when loaded != null:
-return loaded(_that.allItems,_that.filteredItems,_that.searchQuery);case SuppliersListError() when error != null:
+return loaded(_that.allItems,_that.filteredItems,_that.searchQuery,_that.balanceFilter,_that.balanceSort);case SuppliersListError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -438,12 +438,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery,  BalanceFilter balanceFilter,  BalanceSort balanceSort)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case SuppliersListInitial():
 return initial();case SuppliersListLoading():
 return loading();case SuppliersListLoaded():
-return loaded(_that.allItems,_that.filteredItems,_that.searchQuery);case SuppliersListError():
+return loaded(_that.allItems,_that.filteredItems,_that.searchQuery,_that.balanceFilter,_that.balanceSort);case SuppliersListError():
 return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -458,12 +458,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<SupplierListRow> allItems,  List<SupplierListRow> filteredItems,  String? searchQuery,  BalanceFilter balanceFilter,  BalanceSort balanceSort)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case SuppliersListInitial() when initial != null:
 return initial();case SuppliersListLoading() when loading != null:
 return loading();case SuppliersListLoaded() when loaded != null:
-return loaded(_that.allItems,_that.filteredItems,_that.searchQuery);case SuppliersListError() when error != null:
+return loaded(_that.allItems,_that.filteredItems,_that.searchQuery,_that.balanceFilter,_that.balanceSort);case SuppliersListError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -540,7 +540,7 @@ String toString() {
 
 
 class SuppliersListLoaded implements SuppliersListState {
-  const SuppliersListLoaded({required  List<SupplierListRow> allItems, required  List<SupplierListRow> filteredItems, this.searchQuery}): _allItems = allItems,_filteredItems = filteredItems;
+  const SuppliersListLoaded({required  List<SupplierListRow> allItems, required  List<SupplierListRow> filteredItems, this.searchQuery, this.balanceFilter = BalanceFilter.all, this.balanceSort = BalanceSort.none}): _allItems = allItems,_filteredItems = filteredItems;
   
 
  final  List<SupplierListRow> _allItems;
@@ -558,6 +558,8 @@ class SuppliersListLoaded implements SuppliersListState {
 }
 
  final  String? searchQuery;
+@JsonKey() final  BalanceFilter balanceFilter;
+@JsonKey() final  BalanceSort balanceSort;
 
 /// Create a copy of SuppliersListState
 /// with the given fields replaced by the non-null parameter values.
@@ -569,18 +571,18 @@ $SuppliersListLoadedCopyWith<SuppliersListLoaded> get copyWith => _$SuppliersLis
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is SuppliersListLoaded&&const DeepCollectionEquality().equals(other.allItems, _allItems)&&const DeepCollectionEquality().equals(other.filteredItems, _filteredItems)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is SuppliersListLoaded&&const DeepCollectionEquality().equals(other.allItems, _allItems)&&const DeepCollectionEquality().equals(other.filteredItems, _filteredItems)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.balanceFilter, balanceFilter) || other.balanceFilter == balanceFilter)&&(identical(other.balanceSort, balanceSort) || other.balanceSort == balanceSort));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_allItems),const DeepCollectionEquality().hash(_filteredItems),searchQuery);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_allItems),const DeepCollectionEquality().hash(_filteredItems),searchQuery,balanceFilter,balanceSort);
 }
 
 @override
 String toString() {
-    return 'SuppliersListState.loaded(allItems: $allItems, filteredItems: $filteredItems, searchQuery: $searchQuery)';
+    return 'SuppliersListState.loaded(allItems: $allItems, filteredItems: $filteredItems, searchQuery: $searchQuery, balanceFilter: $balanceFilter, balanceSort: $balanceSort)';
 }
 
 
@@ -591,7 +593,7 @@ abstract mixin class $SuppliersListLoadedCopyWith<$Res> implements $SuppliersLis
   factory $SuppliersListLoadedCopyWith(SuppliersListLoaded value, $Res Function(SuppliersListLoaded) _then) = _$SuppliersListLoadedCopyWithImpl;
 @useResult
 $Res call({
- List<SupplierListRow> allItems, List<SupplierListRow> filteredItems, String? searchQuery
+ List<SupplierListRow> allItems, List<SupplierListRow> filteredItems, String? searchQuery, BalanceFilter balanceFilter, BalanceSort balanceSort
 });
 
 
@@ -608,12 +610,14 @@ class _$SuppliersListLoadedCopyWithImpl<$Res>
 
 /// Create a copy of SuppliersListState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? allItems = null,Object? filteredItems = null,Object? searchQuery = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? allItems = null,Object? filteredItems = null,Object? searchQuery = freezed,Object? balanceFilter = null,Object? balanceSort = null,}) {
   return _then(SuppliersListLoaded(
 allItems: null == allItems ? _self._allItems : allItems // ignore: cast_nullable_to_non_nullable
 as List<SupplierListRow>,filteredItems: null == filteredItems ? _self._filteredItems : filteredItems // ignore: cast_nullable_to_non_nullable
 as List<SupplierListRow>,searchQuery: freezed == searchQuery ? _self.searchQuery : searchQuery // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,balanceFilter: null == balanceFilter ? _self.balanceFilter : balanceFilter // ignore: cast_nullable_to_non_nullable
+as BalanceFilter,balanceSort: null == balanceSort ? _self.balanceSort : balanceSort // ignore: cast_nullable_to_non_nullable
+as BalanceSort,
   ));
 }
 

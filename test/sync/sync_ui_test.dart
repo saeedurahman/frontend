@@ -202,10 +202,10 @@ void main() {
   });
 
   group('status chip with the real source', () {
-    testWidgets('Online -> N pending -> Offline', (tester) async {
+    testWidgets('All synced -> N waiting -> Offline', (tester) async {
       final source = EngineSyncStatusSource(rig.engine, rig.probe);
       await tester.pumpWidget(_host(SyncStatusChip(source: source)));
-      expect(find.text('Online'), findsOneWidget);
+      expect(find.text('All synced'), findsOneWidget);
 
       await tester.runAsync(() async {
         rig.server.offline = true;
@@ -215,7 +215,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 20));
       });
       await tester.pump();
-      expect(find.text('2 pending'), findsOneWidget);
+      expect(find.text('2 waiting'), findsOneWidget);
 
       rig.probe.set(ReachabilityStatus.offline);
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
@@ -224,12 +224,12 @@ void main() {
       unawaited(source.dispose());
     });
 
-    testWidgets('failed items show as "N failed"', (tester) async {
+    testWidgets('failed items show as needing attention', (tester) async {
       await rejectedSale(tester);
       final source = EngineSyncStatusSource(rig.engine, rig.probe);
       expect(source.current.failed, 1);
       await tester.pumpWidget(_host(SyncStatusChip(source: source)));
-      expect(find.text('1 failed'), findsOneWidget);
+      expect(find.text('1 needs attention'), findsOneWidget);
       unawaited(source.dispose());
     });
   });

@@ -50,6 +50,7 @@ abstract final class RoutePermissions {
     _Rule('/suppliers/:id', [Perm.suppliersLedgerView]),
 
     // Finance
+    _Rule(RouteNames.khata, [Perm.khataView]),
     _Rule(RouteNames.expenses, [Perm.expensesView]),
     _Rule('/expenses/new', [Perm.expensesCreate]),
     _Rule('/expenses/:id/edit', [Perm.expensesUpdate]),
@@ -67,6 +68,8 @@ abstract final class RoutePermissions {
     // System
     _Rule(RouteNames.staff, [Perm.usersView]),
     _Rule('/staff/new', [Perm.usersCreate]),
+    _Rule(RouteNames.settingsPaymentDetails, [Perm.settingsManage]),
+    _Rule(RouteNames.settingsKhataMessages, [Perm.settingsManage]),
     _Rule(RouteNames.settingsRoles, [Perm.rolesManage]),
     _Rule(RouteNames.notifications, [Perm.notificationsView]),
     _Rule(RouteNames.auditLogs, [Perm.auditView]),

@@ -37,6 +37,7 @@ import 'package:frantend/shared/widgets/sync/not_synced_badge.dart';
 
 import '../helpers/offline_world.dart';
 import '../sync/sync_rig.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 Decimal d(String v) => Decimal.parse(v);
 
@@ -661,7 +662,7 @@ void main() {
 
       final response = await ledger.recordPayment(
         amount: d('400'),
-        paymentMethod: 'cash',
+        source: PaymentSource.drawer,
       );
 
       expect(response, isNotNull);

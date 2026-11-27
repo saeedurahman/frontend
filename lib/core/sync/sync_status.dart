@@ -41,13 +41,15 @@ class SyncStatus extends Equatable {
     return SyncStatusKind.online;
   }
 
-  /// Chip text: Online / Offline / Syncing / N pending / N failed.
+  /// Chip text: All synced / Syncing… / Offline / N waiting / N need
+  /// attention.
   String get label => switch (kind) {
         SyncStatusKind.offline => 'Offline',
-        SyncStatusKind.failed => '$failed failed',
-        SyncStatusKind.syncing => 'Syncing',
-        SyncStatusKind.pending => '$pending pending',
-        SyncStatusKind.online => 'Online',
+        SyncStatusKind.failed =>
+          failed == 1 ? '1 needs attention' : '$failed need attention',
+        SyncStatusKind.syncing => 'Syncing…',
+        SyncStatusKind.pending => '$pending waiting',
+        SyncStatusKind.online => 'All synced',
       };
 
   SyncStatus copyWith({

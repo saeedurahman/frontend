@@ -247,6 +247,7 @@ class OfflineWriter {
       'total_amount': DecimalUtils.format(totals.totalAmount),
       'lines': lines,
       'payments': payments,
+      if (body['credit_override'] == true) 'credit_override': true,
     };
 
     return _store.transaction(() async {
@@ -342,7 +343,7 @@ class OfflineWriter {
   Future<String> recordCustomerPayment({
     required String customerId,
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? registerShiftId,
     String? referenceNo,
     String? notes,
@@ -353,7 +354,7 @@ class OfflineWriter {
       'id': ledgerId,
       'customer_id': customerId,
       'amount': DecimalUtils.format(amount),
-      'payment_method': paymentMethod,
+      'payment_source': paymentSource,
       // A payment with no branch is business-wide on the server, so the
       // branch it was taken in always travels with it.
       if (branchId != null && branchId.isNotEmpty) 'branch_id': branchId,
@@ -377,6 +378,43 @@ class OfflineWriter {
       );
     });
     return ledgerId;
+  }
+
+  // ── khata follow-ups ─────────────────────────────────────────────────
+
+  /// Saves a promise, reminder or note locally and queues `followup.create`.
+  /// [body] is the `POST /khata/followups` body; the row is returned as it is
+  /// shown until the server has it.
+  Future<Map<String, dynamic>> createFollowup(Map<String, dynamic> body) async {
+    final user = await _user();
+    final id = _ids.newId();
+    final payload = <String, dynamic>{...body, 'id': id};
+    final partyType = '${body['party_type']}';
+    final partyId = '${body['party_id']}';
+    final occurredAt = _occurredAt();
+    final row = <String, dynamic>{
+      ...payload,
+      'created_at': occurredAt,
+      'created_by': user.id,
+    };
+    await _store.transaction(() async {
+      // A customer made offline must reach the server first.
+      final deps = <String>[
+        if (partyType == 'customer')
+          ?await _pendingCreator(OpTypes.customerCreate, 'customer', partyId),
+      ];
+      await _store.putEntity('party_followup', id, row);
+      await _store.enqueue(
+        opId: _ids.opId(),
+        type: OpTypes.followupCreate,
+        payload: payload,
+        occurredAt: occurredAt,
+        dependsOn: deps,
+        entity: 'party_followup',
+        entityId: id,
+      );
+    });
+    return row;
   }
 
   // ── expenses ─────────────────────────────────────────────────────────

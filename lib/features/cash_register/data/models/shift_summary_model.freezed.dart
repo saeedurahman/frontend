@@ -16,7 +16,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ShiftSummaryModel {
 
-@JsonKey(name: 'shift_id') String? get shiftId; String? get status;@JsonKey(name: 'opening_float') String get openingFloat;@JsonKey(name: 'total_cash_sales') String get totalCashSales;@JsonKey(name: 'total_card_sales') String get totalCardSales;@JsonKey(name: 'total_wallet_sales') String get totalWalletSales;@JsonKey(name: 'total_other_sales') String get totalOtherSales;@JsonKey(name: 'total_returns') String get totalReturns;@JsonKey(name: 'total_cash_in') String get totalCashIn;@JsonKey(name: 'total_cash_out') String get totalCashOut;@JsonKey(name: 'total_expenses') String get totalExpenses;@JsonKey(name: 'expected_cash') String get expectedCash;@JsonKey(name: 'actual_cash') String? get actualCash;@JsonKey(name: 'cash_difference') String? get cashDifference;
+@JsonKey(name: 'shift_id') String? get shiftId; String? get status;@JsonKey(name: 'opening_float') String get openingFloat;@JsonKey(name: 'total_cash_sales') String get totalCashSales;@JsonKey(name: 'total_card_sales') String get totalCardSales;@JsonKey(name: 'total_wallet_sales') String get totalWalletSales;/// Put on the customer's account (udhaar): no money came in.
+@JsonKey(name: 'credit_sales') String get creditSales;/// Bank transfer, cheque and "other" only.
+@JsonKey(name: 'total_other_sales') String get totalOtherSales;@JsonKey(name: 'total_returns') String get totalReturns;@JsonKey(name: 'total_cash_in') String get totalCashIn;@JsonKey(name: 'total_cash_out') String get totalCashOut;@JsonKey(name: 'total_expenses') String get totalExpenses;@JsonKey(name: 'expected_cash') String get expectedCash;@JsonKey(name: 'actual_cash') String? get actualCash;@JsonKey(name: 'cash_difference') String? get cashDifference;/// Server only: a summary worked out on this device has none.
+@JsonKey(name: 'cash_movements') List<ShiftCashMovement> get cashMovements;
 /// Create a copy of ShiftSummaryModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +33,20 @@ $ShiftSummaryModelCopyWith<ShiftSummaryModel> get copyWith => _$ShiftSummaryMode
 @override
 bool operator ==(Object other) {
   final _this = this as ShiftSummaryModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShiftSummaryModel&&(identical(other.shiftId, _this.shiftId) || other.shiftId == _this.shiftId)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.openingFloat, _this.openingFloat) || other.openingFloat == _this.openingFloat)&&(identical(other.totalCashSales, _this.totalCashSales) || other.totalCashSales == _this.totalCashSales)&&(identical(other.totalCardSales, _this.totalCardSales) || other.totalCardSales == _this.totalCardSales)&&(identical(other.totalWalletSales, _this.totalWalletSales) || other.totalWalletSales == _this.totalWalletSales)&&(identical(other.totalOtherSales, _this.totalOtherSales) || other.totalOtherSales == _this.totalOtherSales)&&(identical(other.totalReturns, _this.totalReturns) || other.totalReturns == _this.totalReturns)&&(identical(other.totalCashIn, _this.totalCashIn) || other.totalCashIn == _this.totalCashIn)&&(identical(other.totalCashOut, _this.totalCashOut) || other.totalCashOut == _this.totalCashOut)&&(identical(other.totalExpenses, _this.totalExpenses) || other.totalExpenses == _this.totalExpenses)&&(identical(other.expectedCash, _this.expectedCash) || other.expectedCash == _this.expectedCash)&&(identical(other.actualCash, _this.actualCash) || other.actualCash == _this.actualCash)&&(identical(other.cashDifference, _this.cashDifference) || other.cashDifference == _this.cashDifference));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShiftSummaryModel&&(identical(other.shiftId, _this.shiftId) || other.shiftId == _this.shiftId)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.openingFloat, _this.openingFloat) || other.openingFloat == _this.openingFloat)&&(identical(other.totalCashSales, _this.totalCashSales) || other.totalCashSales == _this.totalCashSales)&&(identical(other.totalCardSales, _this.totalCardSales) || other.totalCardSales == _this.totalCardSales)&&(identical(other.totalWalletSales, _this.totalWalletSales) || other.totalWalletSales == _this.totalWalletSales)&&(identical(other.creditSales, _this.creditSales) || other.creditSales == _this.creditSales)&&(identical(other.totalOtherSales, _this.totalOtherSales) || other.totalOtherSales == _this.totalOtherSales)&&(identical(other.totalReturns, _this.totalReturns) || other.totalReturns == _this.totalReturns)&&(identical(other.totalCashIn, _this.totalCashIn) || other.totalCashIn == _this.totalCashIn)&&(identical(other.totalCashOut, _this.totalCashOut) || other.totalCashOut == _this.totalCashOut)&&(identical(other.totalExpenses, _this.totalExpenses) || other.totalExpenses == _this.totalExpenses)&&(identical(other.expectedCash, _this.expectedCash) || other.expectedCash == _this.expectedCash)&&(identical(other.actualCash, _this.actualCash) || other.actualCash == _this.actualCash)&&(identical(other.cashDifference, _this.cashDifference) || other.cashDifference == _this.cashDifference)&&const DeepCollectionEquality().equals(other.cashMovements, _this.cashMovements));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ShiftSummaryModel;
-  return Object.hash(runtimeType,_this.shiftId,_this.status,_this.openingFloat,_this.totalCashSales,_this.totalCardSales,_this.totalWalletSales,_this.totalOtherSales,_this.totalReturns,_this.totalCashIn,_this.totalCashOut,_this.totalExpenses,_this.expectedCash,_this.actualCash,_this.cashDifference);
+  return Object.hash(runtimeType,_this.shiftId,_this.status,_this.openingFloat,_this.totalCashSales,_this.totalCardSales,_this.totalWalletSales,_this.creditSales,_this.totalOtherSales,_this.totalReturns,_this.totalCashIn,_this.totalCashOut,_this.totalExpenses,_this.expectedCash,_this.actualCash,_this.cashDifference,const DeepCollectionEquality().hash(_this.cashMovements));
 }
 
 @override
 String toString() {
   final _this = this as ShiftSummaryModel;
-  return 'ShiftSummaryModel(shiftId: ${_this.shiftId}, status: ${_this.status}, openingFloat: ${_this.openingFloat}, totalCashSales: ${_this.totalCashSales}, totalCardSales: ${_this.totalCardSales}, totalWalletSales: ${_this.totalWalletSales}, totalOtherSales: ${_this.totalOtherSales}, totalReturns: ${_this.totalReturns}, totalCashIn: ${_this.totalCashIn}, totalCashOut: ${_this.totalCashOut}, totalExpenses: ${_this.totalExpenses}, expectedCash: ${_this.expectedCash}, actualCash: ${_this.actualCash}, cashDifference: ${_this.cashDifference})';
+  return 'ShiftSummaryModel(shiftId: ${_this.shiftId}, status: ${_this.status}, openingFloat: ${_this.openingFloat}, totalCashSales: ${_this.totalCashSales}, totalCardSales: ${_this.totalCardSales}, totalWalletSales: ${_this.totalWalletSales}, creditSales: ${_this.creditSales}, totalOtherSales: ${_this.totalOtherSales}, totalReturns: ${_this.totalReturns}, totalCashIn: ${_this.totalCashIn}, totalCashOut: ${_this.totalCashOut}, totalExpenses: ${_this.totalExpenses}, expectedCash: ${_this.expectedCash}, actualCash: ${_this.actualCash}, cashDifference: ${_this.cashDifference}, cashMovements: ${_this.cashMovements})';
 }
 
 
@@ -54,7 +57,7 @@ abstract mixin class $ShiftSummaryModelCopyWith<$Res>  {
   factory $ShiftSummaryModelCopyWith(ShiftSummaryModel value, $Res Function(ShiftSummaryModel) _then) = _$ShiftSummaryModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'shift_id') String? shiftId, String? status,@JsonKey(name: 'opening_float') String openingFloat,@JsonKey(name: 'total_cash_sales') String totalCashSales,@JsonKey(name: 'total_card_sales') String totalCardSales,@JsonKey(name: 'total_wallet_sales') String totalWalletSales,@JsonKey(name: 'total_other_sales') String totalOtherSales,@JsonKey(name: 'total_returns') String totalReturns,@JsonKey(name: 'total_cash_in') String totalCashIn,@JsonKey(name: 'total_cash_out') String totalCashOut,@JsonKey(name: 'total_expenses') String totalExpenses,@JsonKey(name: 'expected_cash') String expectedCash,@JsonKey(name: 'actual_cash') String? actualCash,@JsonKey(name: 'cash_difference') String? cashDifference
+@JsonKey(name: 'shift_id') String? shiftId, String? status,@JsonKey(name: 'opening_float') String openingFloat,@JsonKey(name: 'total_cash_sales') String totalCashSales,@JsonKey(name: 'total_card_sales') String totalCardSales,@JsonKey(name: 'total_wallet_sales') String totalWalletSales,@JsonKey(name: 'credit_sales') String creditSales,@JsonKey(name: 'total_other_sales') String totalOtherSales,@JsonKey(name: 'total_returns') String totalReturns,@JsonKey(name: 'total_cash_in') String totalCashIn,@JsonKey(name: 'total_cash_out') String totalCashOut,@JsonKey(name: 'total_expenses') String totalExpenses,@JsonKey(name: 'expected_cash') String expectedCash,@JsonKey(name: 'actual_cash') String? actualCash,@JsonKey(name: 'cash_difference') String? cashDifference,@JsonKey(name: 'cash_movements') List<ShiftCashMovement> cashMovements
 });
 
 
@@ -71,7 +74,7 @@ class _$ShiftSummaryModelCopyWithImpl<$Res>
 
 /// Create a copy of ShiftSummaryModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? shiftId = freezed,Object? status = freezed,Object? openingFloat = null,Object? totalCashSales = null,Object? totalCardSales = null,Object? totalWalletSales = null,Object? totalOtherSales = null,Object? totalReturns = null,Object? totalCashIn = null,Object? totalCashOut = null,Object? totalExpenses = null,Object? expectedCash = null,Object? actualCash = freezed,Object? cashDifference = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? shiftId = freezed,Object? status = freezed,Object? openingFloat = null,Object? totalCashSales = null,Object? totalCardSales = null,Object? totalWalletSales = null,Object? creditSales = null,Object? totalOtherSales = null,Object? totalReturns = null,Object? totalCashIn = null,Object? totalCashOut = null,Object? totalExpenses = null,Object? expectedCash = null,Object? actualCash = freezed,Object? cashDifference = freezed,Object? cashMovements = null,}) {
   return _then(ShiftSummaryModel(
 shiftId: freezed == shiftId ? _self.shiftId : shiftId // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -79,6 +82,7 @@ as String?,openingFloat: null == openingFloat ? _self.openingFloat : openingFloa
 as String,totalCashSales: null == totalCashSales ? _self.totalCashSales : totalCashSales // ignore: cast_nullable_to_non_nullable
 as String,totalCardSales: null == totalCardSales ? _self.totalCardSales : totalCardSales // ignore: cast_nullable_to_non_nullable
 as String,totalWalletSales: null == totalWalletSales ? _self.totalWalletSales : totalWalletSales // ignore: cast_nullable_to_non_nullable
+as String,creditSales: null == creditSales ? _self.creditSales : creditSales // ignore: cast_nullable_to_non_nullable
 as String,totalOtherSales: null == totalOtherSales ? _self.totalOtherSales : totalOtherSales // ignore: cast_nullable_to_non_nullable
 as String,totalReturns: null == totalReturns ? _self.totalReturns : totalReturns // ignore: cast_nullable_to_non_nullable
 as String,totalCashIn: null == totalCashIn ? _self.totalCashIn : totalCashIn // ignore: cast_nullable_to_non_nullable
@@ -87,7 +91,8 @@ as String,totalExpenses: null == totalExpenses ? _self.totalExpenses : totalExpe
 as String,expectedCash: null == expectedCash ? _self.expectedCash : expectedCash // ignore: cast_nullable_to_non_nullable
 as String,actualCash: freezed == actualCash ? _self.actualCash : actualCash // ignore: cast_nullable_to_non_nullable
 as String?,cashDifference: freezed == cashDifference ? _self.cashDifference : cashDifference // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,cashMovements: null == cashMovements ? _self.cashMovements : cashMovements // ignore: cast_nullable_to_non_nullable
+as List<ShiftCashMovement>,
   ));
 }
 
@@ -172,10 +177,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'credit_sales')  String creditSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference, @JsonKey(name: 'cash_movements')  List<ShiftCashMovement> cashMovements)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ShiftSummaryModel() when $default != null:
-return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference);case _:
+return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.creditSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference,_that.cashMovements);case _:
   return orElse();
 
 }
@@ -193,10 +198,10 @@ return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSal
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'credit_sales')  String creditSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference, @JsonKey(name: 'cash_movements')  List<ShiftCashMovement> cashMovements)  $default,) {final _that = this;
 switch (_that) {
 case _ShiftSummaryModel():
-return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference);case _:
+return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.creditSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference,_that.cashMovements);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +218,10 @@ return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSal
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'shift_id')  String? shiftId,  String? status, @JsonKey(name: 'opening_float')  String openingFloat, @JsonKey(name: 'total_cash_sales')  String totalCashSales, @JsonKey(name: 'total_card_sales')  String totalCardSales, @JsonKey(name: 'total_wallet_sales')  String totalWalletSales, @JsonKey(name: 'credit_sales')  String creditSales, @JsonKey(name: 'total_other_sales')  String totalOtherSales, @JsonKey(name: 'total_returns')  String totalReturns, @JsonKey(name: 'total_cash_in')  String totalCashIn, @JsonKey(name: 'total_cash_out')  String totalCashOut, @JsonKey(name: 'total_expenses')  String totalExpenses, @JsonKey(name: 'expected_cash')  String expectedCash, @JsonKey(name: 'actual_cash')  String? actualCash, @JsonKey(name: 'cash_difference')  String? cashDifference, @JsonKey(name: 'cash_movements')  List<ShiftCashMovement> cashMovements)?  $default,) {final _that = this;
 switch (_that) {
 case _ShiftSummaryModel() when $default != null:
-return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference);case _:
+return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSales,_that.totalCardSales,_that.totalWalletSales,_that.creditSales,_that.totalOtherSales,_that.totalReturns,_that.totalCashIn,_that.totalCashOut,_that.totalExpenses,_that.expectedCash,_that.actualCash,_that.cashDifference,_that.cashMovements);case _:
   return null;
 
 }
@@ -228,7 +233,7 @@ return $default(_that.shiftId,_that.status,_that.openingFloat,_that.totalCashSal
 @JsonSerializable()
 
 class _ShiftSummaryModel extends ShiftSummaryModel {
-  const _ShiftSummaryModel({@JsonKey(name: 'shift_id') this.shiftId, this.status, @JsonKey(name: 'opening_float') this.openingFloat = '0', @JsonKey(name: 'total_cash_sales') this.totalCashSales = '0', @JsonKey(name: 'total_card_sales') this.totalCardSales = '0', @JsonKey(name: 'total_wallet_sales') this.totalWalletSales = '0', @JsonKey(name: 'total_other_sales') this.totalOtherSales = '0', @JsonKey(name: 'total_returns') this.totalReturns = '0', @JsonKey(name: 'total_cash_in') this.totalCashIn = '0', @JsonKey(name: 'total_cash_out') this.totalCashOut = '0', @JsonKey(name: 'total_expenses') this.totalExpenses = '0', @JsonKey(name: 'expected_cash') this.expectedCash = '0', @JsonKey(name: 'actual_cash') this.actualCash, @JsonKey(name: 'cash_difference') this.cashDifference}): super._();
+  const _ShiftSummaryModel({@JsonKey(name: 'shift_id') this.shiftId, this.status, @JsonKey(name: 'opening_float') this.openingFloat = '0', @JsonKey(name: 'total_cash_sales') this.totalCashSales = '0', @JsonKey(name: 'total_card_sales') this.totalCardSales = '0', @JsonKey(name: 'total_wallet_sales') this.totalWalletSales = '0', @JsonKey(name: 'credit_sales') this.creditSales = '0', @JsonKey(name: 'total_other_sales') this.totalOtherSales = '0', @JsonKey(name: 'total_returns') this.totalReturns = '0', @JsonKey(name: 'total_cash_in') this.totalCashIn = '0', @JsonKey(name: 'total_cash_out') this.totalCashOut = '0', @JsonKey(name: 'total_expenses') this.totalExpenses = '0', @JsonKey(name: 'expected_cash') this.expectedCash = '0', @JsonKey(name: 'actual_cash') this.actualCash, @JsonKey(name: 'cash_difference') this.cashDifference, @JsonKey(name: 'cash_movements')  List<ShiftCashMovement> cashMovements = const []}): _cashMovements = cashMovements,super._();
   factory _ShiftSummaryModel.fromJson(Map<String, dynamic> json) => _$ShiftSummaryModelFromJson(json);
 
 @override@JsonKey(name: 'shift_id') final  String? shiftId;
@@ -237,6 +242,9 @@ class _ShiftSummaryModel extends ShiftSummaryModel {
 @override@JsonKey(name: 'total_cash_sales') final  String totalCashSales;
 @override@JsonKey(name: 'total_card_sales') final  String totalCardSales;
 @override@JsonKey(name: 'total_wallet_sales') final  String totalWalletSales;
+/// Put on the customer's account (udhaar): no money came in.
+@override@JsonKey(name: 'credit_sales') final  String creditSales;
+/// Bank transfer, cheque and "other" only.
 @override@JsonKey(name: 'total_other_sales') final  String totalOtherSales;
 @override@JsonKey(name: 'total_returns') final  String totalReturns;
 @override@JsonKey(name: 'total_cash_in') final  String totalCashIn;
@@ -245,6 +253,15 @@ class _ShiftSummaryModel extends ShiftSummaryModel {
 @override@JsonKey(name: 'expected_cash') final  String expectedCash;
 @override@JsonKey(name: 'actual_cash') final  String? actualCash;
 @override@JsonKey(name: 'cash_difference') final  String? cashDifference;
+/// Server only: a summary worked out on this device has none.
+ final  List<ShiftCashMovement> _cashMovements;
+/// Server only: a summary worked out on this device has none.
+@override@JsonKey(name: 'cash_movements') List<ShiftCashMovement> get cashMovements {
+  if (_cashMovements is EqualUnmodifiableListView) return _cashMovements;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_cashMovements);
+}
+
 
 /// Create a copy of ShiftSummaryModel
 /// with the given fields replaced by the non-null parameter values.
@@ -259,18 +276,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShiftSummaryModel&&(identical(other.shiftId, shiftId) || other.shiftId == shiftId)&&(identical(other.status, status) || other.status == status)&&(identical(other.openingFloat, openingFloat) || other.openingFloat == openingFloat)&&(identical(other.totalCashSales, totalCashSales) || other.totalCashSales == totalCashSales)&&(identical(other.totalCardSales, totalCardSales) || other.totalCardSales == totalCardSales)&&(identical(other.totalWalletSales, totalWalletSales) || other.totalWalletSales == totalWalletSales)&&(identical(other.totalOtherSales, totalOtherSales) || other.totalOtherSales == totalOtherSales)&&(identical(other.totalReturns, totalReturns) || other.totalReturns == totalReturns)&&(identical(other.totalCashIn, totalCashIn) || other.totalCashIn == totalCashIn)&&(identical(other.totalCashOut, totalCashOut) || other.totalCashOut == totalCashOut)&&(identical(other.totalExpenses, totalExpenses) || other.totalExpenses == totalExpenses)&&(identical(other.expectedCash, expectedCash) || other.expectedCash == expectedCash)&&(identical(other.actualCash, actualCash) || other.actualCash == actualCash)&&(identical(other.cashDifference, cashDifference) || other.cashDifference == cashDifference));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShiftSummaryModel&&(identical(other.shiftId, shiftId) || other.shiftId == shiftId)&&(identical(other.status, status) || other.status == status)&&(identical(other.openingFloat, openingFloat) || other.openingFloat == openingFloat)&&(identical(other.totalCashSales, totalCashSales) || other.totalCashSales == totalCashSales)&&(identical(other.totalCardSales, totalCardSales) || other.totalCardSales == totalCardSales)&&(identical(other.totalWalletSales, totalWalletSales) || other.totalWalletSales == totalWalletSales)&&(identical(other.creditSales, creditSales) || other.creditSales == creditSales)&&(identical(other.totalOtherSales, totalOtherSales) || other.totalOtherSales == totalOtherSales)&&(identical(other.totalReturns, totalReturns) || other.totalReturns == totalReturns)&&(identical(other.totalCashIn, totalCashIn) || other.totalCashIn == totalCashIn)&&(identical(other.totalCashOut, totalCashOut) || other.totalCashOut == totalCashOut)&&(identical(other.totalExpenses, totalExpenses) || other.totalExpenses == totalExpenses)&&(identical(other.expectedCash, expectedCash) || other.expectedCash == expectedCash)&&(identical(other.actualCash, actualCash) || other.actualCash == actualCash)&&(identical(other.cashDifference, cashDifference) || other.cashDifference == cashDifference)&&const DeepCollectionEquality().equals(other.cashMovements, _cashMovements));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,shiftId,status,openingFloat,totalCashSales,totalCardSales,totalWalletSales,totalOtherSales,totalReturns,totalCashIn,totalCashOut,totalExpenses,expectedCash,actualCash,cashDifference);
+    return Object.hash(runtimeType,shiftId,status,openingFloat,totalCashSales,totalCardSales,totalWalletSales,creditSales,totalOtherSales,totalReturns,totalCashIn,totalCashOut,totalExpenses,expectedCash,actualCash,cashDifference,const DeepCollectionEquality().hash(_cashMovements));
 }
 
 @override
 String toString() {
-    return 'ShiftSummaryModel(shiftId: $shiftId, status: $status, openingFloat: $openingFloat, totalCashSales: $totalCashSales, totalCardSales: $totalCardSales, totalWalletSales: $totalWalletSales, totalOtherSales: $totalOtherSales, totalReturns: $totalReturns, totalCashIn: $totalCashIn, totalCashOut: $totalCashOut, totalExpenses: $totalExpenses, expectedCash: $expectedCash, actualCash: $actualCash, cashDifference: $cashDifference)';
+    return 'ShiftSummaryModel(shiftId: $shiftId, status: $status, openingFloat: $openingFloat, totalCashSales: $totalCashSales, totalCardSales: $totalCardSales, totalWalletSales: $totalWalletSales, creditSales: $creditSales, totalOtherSales: $totalOtherSales, totalReturns: $totalReturns, totalCashIn: $totalCashIn, totalCashOut: $totalCashOut, totalExpenses: $totalExpenses, expectedCash: $expectedCash, actualCash: $actualCash, cashDifference: $cashDifference, cashMovements: $cashMovements)';
 }
 
 
@@ -281,7 +298,7 @@ abstract mixin class _$ShiftSummaryModelCopyWith<$Res> implements $ShiftSummaryM
   factory _$ShiftSummaryModelCopyWith(_ShiftSummaryModel value, $Res Function(_ShiftSummaryModel) _then) = __$ShiftSummaryModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'shift_id') String? shiftId, String? status,@JsonKey(name: 'opening_float') String openingFloat,@JsonKey(name: 'total_cash_sales') String totalCashSales,@JsonKey(name: 'total_card_sales') String totalCardSales,@JsonKey(name: 'total_wallet_sales') String totalWalletSales,@JsonKey(name: 'total_other_sales') String totalOtherSales,@JsonKey(name: 'total_returns') String totalReturns,@JsonKey(name: 'total_cash_in') String totalCashIn,@JsonKey(name: 'total_cash_out') String totalCashOut,@JsonKey(name: 'total_expenses') String totalExpenses,@JsonKey(name: 'expected_cash') String expectedCash,@JsonKey(name: 'actual_cash') String? actualCash,@JsonKey(name: 'cash_difference') String? cashDifference
+@JsonKey(name: 'shift_id') String? shiftId, String? status,@JsonKey(name: 'opening_float') String openingFloat,@JsonKey(name: 'total_cash_sales') String totalCashSales,@JsonKey(name: 'total_card_sales') String totalCardSales,@JsonKey(name: 'total_wallet_sales') String totalWalletSales,@JsonKey(name: 'credit_sales') String creditSales,@JsonKey(name: 'total_other_sales') String totalOtherSales,@JsonKey(name: 'total_returns') String totalReturns,@JsonKey(name: 'total_cash_in') String totalCashIn,@JsonKey(name: 'total_cash_out') String totalCashOut,@JsonKey(name: 'total_expenses') String totalExpenses,@JsonKey(name: 'expected_cash') String expectedCash,@JsonKey(name: 'actual_cash') String? actualCash,@JsonKey(name: 'cash_difference') String? cashDifference,@JsonKey(name: 'cash_movements') List<ShiftCashMovement> cashMovements
 });
 
 
@@ -298,7 +315,7 @@ class __$ShiftSummaryModelCopyWithImpl<$Res>
 
 /// Create a copy of ShiftSummaryModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? shiftId = freezed,Object? status = freezed,Object? openingFloat = null,Object? totalCashSales = null,Object? totalCardSales = null,Object? totalWalletSales = null,Object? totalOtherSales = null,Object? totalReturns = null,Object? totalCashIn = null,Object? totalCashOut = null,Object? totalExpenses = null,Object? expectedCash = null,Object? actualCash = freezed,Object? cashDifference = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? shiftId = freezed,Object? status = freezed,Object? openingFloat = null,Object? totalCashSales = null,Object? totalCardSales = null,Object? totalWalletSales = null,Object? creditSales = null,Object? totalOtherSales = null,Object? totalReturns = null,Object? totalCashIn = null,Object? totalCashOut = null,Object? totalExpenses = null,Object? expectedCash = null,Object? actualCash = freezed,Object? cashDifference = freezed,Object? cashMovements = null,}) {
   return _then(_ShiftSummaryModel(
 shiftId: freezed == shiftId ? _self.shiftId : shiftId // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -306,6 +323,7 @@ as String?,openingFloat: null == openingFloat ? _self.openingFloat : openingFloa
 as String,totalCashSales: null == totalCashSales ? _self.totalCashSales : totalCashSales // ignore: cast_nullable_to_non_nullable
 as String,totalCardSales: null == totalCardSales ? _self.totalCardSales : totalCardSales // ignore: cast_nullable_to_non_nullable
 as String,totalWalletSales: null == totalWalletSales ? _self.totalWalletSales : totalWalletSales // ignore: cast_nullable_to_non_nullable
+as String,creditSales: null == creditSales ? _self.creditSales : creditSales // ignore: cast_nullable_to_non_nullable
 as String,totalOtherSales: null == totalOtherSales ? _self.totalOtherSales : totalOtherSales // ignore: cast_nullable_to_non_nullable
 as String,totalReturns: null == totalReturns ? _self.totalReturns : totalReturns // ignore: cast_nullable_to_non_nullable
 as String,totalCashIn: null == totalCashIn ? _self.totalCashIn : totalCashIn // ignore: cast_nullable_to_non_nullable
@@ -314,7 +332,8 @@ as String,totalExpenses: null == totalExpenses ? _self.totalExpenses : totalExpe
 as String,expectedCash: null == expectedCash ? _self.expectedCash : expectedCash // ignore: cast_nullable_to_non_nullable
 as String,actualCash: freezed == actualCash ? _self.actualCash : actualCash // ignore: cast_nullable_to_non_nullable
 as String?,cashDifference: freezed == cashDifference ? _self.cashDifference : cashDifference // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,cashMovements: null == cashMovements ? _self._cashMovements : cashMovements // ignore: cast_nullable_to_non_nullable
+as List<ShiftCashMovement>,
   ));
 }
 

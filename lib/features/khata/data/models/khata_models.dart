@@ -36,6 +36,8 @@ class SupplierLedgerEntry {
     this.reversedById,
     this.reversedAt,
     this.runningBalance,
+    this.source,
+    this.manualKind,
   });
 
   factory SupplierLedgerEntry.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,8 @@ class SupplierLedgerEntry {
       reversedById: _text(json['reversed_by_id']),
       reversedAt: _date(json['reversed_at']),
       runningBalance: _decimalOrNull(json['running_balance']),
+      source: _text(json['source']),
+      manualKind: _text(json['manual_kind']),
     );
   }
 
@@ -78,12 +82,19 @@ class SupplierLedgerEntry {
   final DateTime? reversedAt;
   final Decimal? runningBalance;
 
+  /// "opening" or "manual" for entries written by hand; null otherwise.
+  final String? source;
+  final String? manualKind;
+
   bool get isReversed => reversedAt != null || reversedById != null;
   bool get isReversal => reversalOfId != null || entryType == 'reversal';
   bool get isPayment => entryType == 'payment';
 
   /// A real payment that has not been undone yet.
   bool get canReverse => isPayment && !isReversed && !isReversal;
+
+  /// An opening balance or manual entry that has not been undone yet.
+  bool get canReverseEntry => source != null && !isReversed && !isReversal;
 }
 
 class SupplierLedgerPage {
@@ -93,6 +104,8 @@ class SupplierLedgerPage {
     required this.balance,
     this.skip = 0,
     this.limit = 50,
+    this.openingBalance,
+    this.closingBalance,
   });
 
   factory SupplierLedgerPage.fromJson(Map<String, dynamic> json) {
@@ -109,8 +122,15 @@ class SupplierLedgerPage {
       skip: int.tryParse('${json['skip']}') ?? 0,
       limit: int.tryParse('${json['limit']}') ?? 50,
       balance: khataDecimal(json['balance']),
+      openingBalance: _decimalOrNull(json['opening_balance']),
+      closingBalance: _decimalOrNull(json['closing_balance']),
     );
   }
+
+  /// The balance before the first day and after the last day of the dates
+  /// asked for (ledger sign).
+  final Decimal? openingBalance;
+  final Decimal? closingBalance;
 
   final List<SupplierLedgerEntry> items;
   final int total;

@@ -2,10 +2,8 @@ import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/error/failures.dart';
-import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/payment_source.dart';
-import 'package:frantend/features/khata/presentation/cubit/supplier_payment_cubit.dart';
 
 
 import '../helpers/supplier_payment_rig.dart';
@@ -231,38 +229,11 @@ void main() {
     });
   });
 
-  group('drawer payments are remembered for the shift screens', () {
-    test('a drawer payment is logged against its shift', () async {
-      final r = PayRig(shiftId: 'shift-1');
-      await r.start(name: 'Haji Traders');
-      r.cubit.setAmount('300');
-      await r.cubit.submit();
-      final log = r.events.drawerPayments;
-      expect(log.forShift('shift-1'), hasLength(1));
-      expect(log.forShift('shift-1').single.supplierName, 'Haji Traders');
-      expect(log.totalForShift('shift-1'), Decimal.parse('300'));
-    });
-
-    test('bank / wallet payments are never logged as drawer cash', () async {
-      final r = PayRig(shiftId: 'shift-1');
-      await r.start();
-      r.cubit.setSource(PaymentSource.bank);
-      r.cubit.setAmount('300');
-      await r.cubit.submit();
-      expect(r.events.drawerPayments.forShift('shift-1'), isEmpty);
-      expect(r.events.drawerPayments.totalForShift('shift-1'), Decimal.zero);
-    });
-  });
-
   group('KhataText.forCode', () {
-    test('knows the no-shift answer with or without a code', () {
+    test('knows the no-shift code', () {
       expect(KhataText.forCode('no_open_shift'), KhataText.needsShiftBody);
-      expect(
-        KhataText.forCode(null,
-            'Cannot pay a supplier from the drawer — no open shift. Open a shift first'),
-        KhataText.needsShiftBody,
-      );
-      expect(KhataText.forCode(null, 'Something else'), isNull);
+      expect(KhataText.forCode('something_else'), isNull);
+      expect(KhataText.forCode(null), isNull);
     });
   });
 }

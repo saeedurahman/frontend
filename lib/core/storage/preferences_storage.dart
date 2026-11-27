@@ -51,6 +51,13 @@ class PreferencesStorage {
   Future<bool> setAllowBelowStock(bool value) =>
       _prefs.setBool(_allowBelowStockKey, value);
 
+  /// The money label last read for a business (it is not in the sync feed).
+  String? getCurrencyLabel(String businessId) =>
+      _prefs.getString('currency_label_$businessId');
+
+  Future<bool> setCurrencyLabel(String businessId, String label) =>
+      _prefs.setString('currency_label_$businessId', label);
+
   bool getShowSyncDetails() => _prefs.getBool(_showSyncDetailsKey) ?? false;
 
   Future<bool> setShowSyncDetails(bool value) =>

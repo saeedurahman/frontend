@@ -11,6 +11,7 @@ import 'package:frantend/features/products/presentation/cubit/price_lists_cubit.
 import 'package:frantend/features/products/presentation/pages/price_list_dialogs.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class PriceListsPage extends StatelessWidget {
   const PriceListsPage({super.key});
@@ -662,7 +663,7 @@ class _PriceListDetailPanel extends StatelessWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        'Rs ${item.unitPrice}',
+                                        '$currencyLabel ${item.unitPrice}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary),
                                       ),
                                     ),
@@ -748,7 +749,7 @@ class _PriceListDetailPanel extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Price?'),
         content: Text(
-          'Remove price tier of Rs ${item.unitPrice} for "${item.productName}"? It will fall back to the default price.',
+          'Remove price tier of $currencyLabel ${item.unitPrice} for "${item.productName}"? It will fall back to the default price.',
         ),
         actions: [
           TextButton(

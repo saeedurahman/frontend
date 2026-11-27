@@ -8,6 +8,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/offline/repos/local_repositories.dart';
@@ -57,6 +58,7 @@ import '../helpers/khata_fakes.dart';
 import '../helpers/refresh_contract.dart';
 import '../sync/sync_rig.dart';
 import 'refresh_fixtures.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 const _errors = ErrorHandler();
 
@@ -237,7 +239,7 @@ void main() {
         open: () async {
           await list.load();
           await settle(list);
-          list.setHasOutstandingFilter(true);
+          list.setBalanceFilter(BalanceFilter.owing);
           list.setActiveFilter(CustomerActiveFilter.active);
         },
         create: () => createThroughForm('Zubair Medicos'),
@@ -295,7 +297,7 @@ void main() {
           pay: () async {
             final result = await ledger.recordPayment(
               amount: Decimal.fromInt(50),
-              paymentMethod: method,
+              source: method == 'cash' ? PaymentSource.drawer : PaymentSource.bank,
               referenceNo: method == 'cash' ? null : 'TRX-1',
             );
             expect(result, isNotNull, reason: '${ledger.state}');
@@ -382,7 +384,7 @@ void main() {
           final paid = await RecordCustomerPaymentUseCase(world.customers)(
             'c1',
             amount: Decimal.fromInt(50),
-            paymentMethod: 'cash',
+            paymentSource: 'cash',
             registerShiftId: 'shift-1',
             branchId: kBranch,
           );
@@ -506,6 +508,7 @@ void main() {
       createSaleReturnUseCase: CreateSaleReturnUseCase(world.returns),
       getMyActiveShiftUseCase: GetMyActiveShiftUseCase(world.cashRegister),
       authLocalDataSource: OwnerAuth(),
+      shiftGuard: FakeShiftGuard(),
     ));
 
     await expectCreatedShowsInList(

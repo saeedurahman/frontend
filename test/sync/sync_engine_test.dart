@@ -244,7 +244,7 @@ void main() {
       await rig.writer.recordCustomerPayment(
         customerId: customer.entityId!,
         amount: Decimal.parse('50'),
-        paymentMethod: 'cash',
+        paymentSource: 'cash',
       );
       await rig.writer.closeShift(
         shiftId: shift['id'] as String,
@@ -732,7 +732,7 @@ void main() {
       await rig.writer.recordCustomerPayment(
         customerId: 'c1',
         amount: Decimal.parse('200'),
-        paymentMethod: 'cash',
+        paymentSource: 'cash',
       );
       expect(await rig.catalog.customerBalance('c1'), Decimal.parse('-1010'));
       final customer = (await rig.catalog.customer('c1'))!;

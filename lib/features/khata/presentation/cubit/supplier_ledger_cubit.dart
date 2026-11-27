@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/data_changes/auto_refresh.dart';
@@ -20,6 +18,8 @@ class SupplierLedgerState {
     this.supplier,
     this.entries = const [],
     this.balance,
+    this.openingBalance,
+    this.closingBalance,
     this.total = 0,
     this.loadingMore = false,
     this.dateFrom,
@@ -31,8 +31,12 @@ class SupplierLedgerState {
   final bool loading;
   final SupplierModel? supplier;
 
-  /// Newest first, as the server sends them.
+  /// Newest first, as the server sends them (only the chosen dates).
   final List<SupplierLedgerEntry> entries;
+
+  /// Before the first and after the last chosen day (ledger sign).
+  final Decimal? openingBalance;
+  final Decimal? closingBalance;
 
   /// Whole-ledger balance (negative = you owe the supplier).
   final Decimal? balance;
@@ -54,26 +58,13 @@ class SupplierLedgerState {
       ? balance!
       : Decimal.zero;
 
-  /// The rows inside the chosen dates (the balance column stays the real one).
-  List<SupplierLedgerEntry> get visible {
-    if (!hasDateFilter) return entries;
-    return entries.where((e) {
-      final at = e.entryAt;
-      if (at == null) return true;
-      final day = DateTime(at.year, at.month, at.day);
-      if (dateFrom != null && day.isBefore(_dayOf(dateFrom!))) return false;
-      if (dateTo != null && day.isAfter(_dayOf(dateTo!))) return false;
-      return true;
-    }).toList();
-  }
-
-  static DateTime _dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
-
   SupplierLedgerState copyWith({
     bool? loading,
     SupplierModel? supplier,
     List<SupplierLedgerEntry>? entries,
     Decimal? balance,
+    Object? openingBalance = _keep,
+    Object? closingBalance = _keep,
     int? total,
     bool? loadingMore,
     Object? dateFrom = _keep,
@@ -86,6 +77,12 @@ class SupplierLedgerState {
         supplier: supplier ?? this.supplier,
         entries: entries ?? this.entries,
         balance: balance ?? this.balance,
+        openingBalance: identical(openingBalance, _keep)
+            ? this.openingBalance
+            : openingBalance as Decimal?,
+        closingBalance: identical(closingBalance, _keep)
+            ? this.closingBalance
+            : closingBalance as Decimal?,
         total: total ?? this.total,
         loadingMore: loadingMore ?? this.loadingMore,
         dateFrom: identical(dateFrom, _keep) ? this.dateFrom : dateFrom as DateTime?,
@@ -116,7 +113,6 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
   }
 
   static const pageSize = 50;
-  static const _maxRows = 2000;
 
   final GetSupplierUseCase _getSupplier;
   final GetSupplierLedgerUseCase _getLedger;
@@ -151,7 +147,15 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
     _branchId = await _branch.resolve();
     final supplier = await _getSupplier(id);
     if (isStale(read)) return;
-    final page = await _getLedger(id, branchId: _branchId, limit: pageSize);
+    final from = state.dateFrom;
+    final to = state.dateTo;
+    final page = await _getLedger(
+      id,
+      branchId: _branchId,
+      limit: pageSize,
+      dateFrom: from,
+      dateTo: to,
+    );
     if (isStale(read)) return;
 
     SupplierModel? model;
@@ -165,6 +169,7 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
         emit(
           state.copyWith(
             loading: false,
+            loadingMore: false,
             supplier: model,
             error: failure is NetworkFailure
                 ? KhataText.offlineLedger
@@ -182,6 +187,8 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
             branchId: _branchId,
             skip: entries.length,
             limit: pageSize,
+            dateFrom: from,
+            dateTo: to,
           );
           if (isStale(read)) return;
           final items = more.fold(
@@ -198,12 +205,13 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
             supplier: model,
             entries: entries,
             balance: data.balance,
+            openingBalance: data.openingBalance,
+            closingBalance: data.closingBalance,
             total: data.total,
             error: null,
             offline: false,
           ),
         );
-        if (state.hasDateFilter) unawaited(_loadAll());
       },
     );
   }
@@ -212,13 +220,18 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
     final id = _supplierId;
     if (id == null || state.loadingMore || !state.hasMore) return;
     emit(state.copyWith(loadingMore: true));
+    final from = state.dateFrom;
+    final to = state.dateTo;
     final page = await _getLedger(
       id,
       branchId: _branchId,
       skip: state.entries.length,
       limit: pageSize,
+      dateFrom: from,
+      dateTo: to,
     );
-    if (isClosed) return;
+    // The dates changed meanwhile: these rows belong to the old ones.
+    if (isClosed || state.dateFrom != from || state.dateTo != to) return;
     page.fold(
       (failure) => emit(state.copyWith(loadingMore: false, error: failure.message)),
       (data) => emit(
@@ -231,23 +244,30 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
               if (!state.entries.any((have) => have.id == e.id)) e,
           ],
           balance: data.balance,
+          openingBalance: data.openingBalance,
+          closingBalance: data.closingBalance,
           total: data.total,
         ),
       ),
     );
   }
 
-  Future<void> _loadAll() async {
-    while (state.hasMore && state.entries.length < _maxRows && !isClosed) {
-      final before = state.entries.length;
-      await loadMore();
-      if (state.entries.length == before) break;
-    }
-  }
-
+  /// Reads the account for these days (both included). The old rows go at
+  /// once: they are never shown under the new dates.
   Future<void> setDates(DateTime? from, DateTime? to) async {
-    emit(state.copyWith(dateFrom: from, dateTo: to));
-    if (from != null || to != null) await _loadAll();
+    emit(
+      state.copyWith(
+        dateFrom: from,
+        dateTo: to,
+        entries: const [],
+        total: 0,
+        openingBalance: null,
+        closingBalance: null,
+        error: null,
+        loadingMore: true,
+      ),
+    );
+    await refresh();
   }
 
   Future<void> clearDates() => setDates(null, null);
@@ -268,22 +288,17 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
     final result = await _reverse(paymentId, body, idempotencyKey: _reverseKey);
     return result.fold(
       (failure) {
-        final code = switch (failure) {
-          ConflictFailure(:final code) => code,
-          ServerFailure(:final code) => code,
-          _ => null,
-        };
+        final code = failure.code;
         if (failure is! NetworkFailure && (code != null || failure is! ServerFailure)) {
           _reverseKey = null;
           _reverseFingerprint = null;
         }
         if (failure is NetworkFailure) return KhataText.offlineBody;
-        return KhataText.forCode(code, failure.message) ?? failure.message;
+        return KhataText.forCode(code) ?? failure.message;
       },
       (_) {
         _reverseKey = null;
         _reverseFingerprint = null;
-        _events.drawerPayments.remove(paymentId);
         _events.notifyChanged();
         return null;
       },

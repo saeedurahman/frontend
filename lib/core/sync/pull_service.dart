@@ -66,7 +66,12 @@ class PullService {
 
   static const _inProgress = 'snapshot_in_progress';
 
-  Future<PullOutcome> pullAll({bool forceSnapshot = false}) async {
+  /// [onWork] is called when there is something to receive: a download of the
+  /// whole copy, or a page that carries changes.
+  Future<PullOutcome> pullAll({
+    bool forceSnapshot = false,
+    void Function()? onWork,
+  }) async {
     final outcome = PullOutcome();
     try {
       // Sales the server accepted before this pull started: the balances this
@@ -75,6 +80,7 @@ class PullService {
       final awaitingPayments = await _store.unconfirmedPaymentOps();
       if (forceSnapshot) await _beginSnapshot();
       if (!await _store.hasSnapshot || await _snapshotInProgress()) {
+        onWork?.call();
         await _snapshot(outcome);
       }
       var resyncs = 0;
@@ -85,6 +91,7 @@ class PullService {
           page = await _api.pull(since: cursor, limit: _config.pageLimit);
         } on InvalidCursorException {
           if (resyncs++ >= 1) rethrow;
+          onWork?.call();
           await _beginSnapshot();
           await _snapshot(outcome);
           continue;
@@ -94,11 +101,13 @@ class PullService {
           if (resyncs++ >= 1) {
             throw const SyncServerException('Server keeps asking for a full resync');
           }
+          onWork?.call();
           await _beginSnapshot();
           await _snapshot(outcome);
           continue;
         }
 
+        if (page.changes.isNotEmpty) onWork?.call();
         await _store.transaction(() async {
           await _store.applyChanges(page.changes);
           await _store.rememberNumbering(
@@ -123,6 +132,10 @@ class PullService {
         await _refreshAccess(page.permissionsVersion, outcome.touched);
 
         if (!page.hasMore) break;
+        // "More to come" from the same place in the feed would never end.
+        if (page.nextCursor == null || page.nextCursor == cursor) {
+          throw const SyncServerException('The server keeps sending the same changes');
+        }
       }
       await _store.setMeta(SyncStore.lastPullAtKey, _store.now().toUtc().toIso8601String());
     } on DeviceRevokedException catch (e) {
@@ -155,10 +168,23 @@ class PullService {
 
     var pages = 0;
     var rows = 0;
+    var restarted = false;
     onProgress?.call(const SnapshotProgress());
     while (true) {
       final token = await _store.meta(SyncStore.snapshotTokenKey);
-      final page = await _api.snapshot(pageToken: token, limit: _config.pageLimit);
+      final SnapshotPage page;
+      try {
+        page = await _api.snapshot(pageToken: token, limit: _config.pageLimit);
+      } on InvalidCursorException {
+        // The saved place no longer counts (the permissions changed halfway,
+        // for example): start the download again, once.
+        if (token == null || restarted) rethrow;
+        restarted = true;
+        await _beginSnapshot();
+        pages = 0;
+        rows = 0;
+        continue;
+      }
       await _store.transaction(() async {
         await _store.applyChanges(page.changes);
         await _store.rememberNumbering(

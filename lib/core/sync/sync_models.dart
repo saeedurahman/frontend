@@ -199,6 +199,44 @@ class PushResponse {
   final String? deviceShortCode;
 }
 
+/// A customer payment taken on this device that the server accepted but
+/// flagged. `GET /sync/flags` lists sales only, so these are remembered from
+/// the push result.
+class FlaggedPayment extends Equatable {
+  const FlaggedPayment({
+    required this.opId,
+    required this.amount,
+    required this.flags,
+    this.customerName,
+    this.takenAt,
+  });
+
+  factory FlaggedPayment.fromJson(Map<String, dynamic> json) => FlaggedPayment(
+        opId: '${json['op_id']}',
+        amount: '${json['amount'] ?? '0'}',
+        flags: [for (final f in (json['flags'] as List? ?? const [])) '$f'],
+        customerName: json['customer_name'] as String?,
+        takenAt: DateTime.tryParse('${json['taken_at']}'),
+      );
+
+  final String opId;
+  final String amount;
+  final List<String> flags;
+  final String? customerName;
+  final DateTime? takenAt;
+
+  Map<String, dynamic> toJson() => {
+        'op_id': opId,
+        'amount': amount,
+        'flags': flags,
+        'customer_name': customerName,
+        'taken_at': takenAt?.toUtc().toIso8601String(),
+      };
+
+  @override
+  List<Object?> get props => [opId, amount, flags];
+}
+
 class FlaggedSale extends Equatable {
   const FlaggedSale({
     required this.id,

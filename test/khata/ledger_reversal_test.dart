@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
-import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/presentation/cubit/supplier_ledger_cubit.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
@@ -25,7 +24,10 @@ class _GetSupplier extends Fake implements GetSupplierUseCase {
 class _GetLedger extends Fake implements GetSupplierLedgerUseCase {
   List<SupplierLedgerEntry> all = [];
   Decimal balance = Decimal.zero;
-  final calls = <({int skip, int limit, String? branch})>[];
+  Decimal? opening;
+  Decimal? closing;
+  final calls =
+      <({int skip, int limit, String? branch, DateTime? from, DateTime? to})>[];
 
   @override
   Future<Either<Failure, SupplierLedgerPage>> call(
@@ -33,13 +35,23 @@ class _GetLedger extends Fake implements GetSupplierLedgerUseCase {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   }) async {
-    calls.add((skip: skip, limit: limit, branch: branchId));
+    calls.add((
+      skip: skip,
+      limit: limit,
+      branch: branchId,
+      from: dateFrom,
+      to: dateTo,
+    ));
     final end = (skip + limit).clamp(0, all.length);
     return Right(SupplierLedgerPage(
       items: all.sublist(skip.clamp(0, all.length), end),
       total: all.length,
       balance: balance,
+      openingBalance: opening,
+      closingBalance: closing,
     ));
   }
 }
@@ -138,20 +150,51 @@ void main() {
       expect(cubit.state.advance, Decimal.parse('250'));
     });
 
-    test('the date filter is applied on this device and loads every row',
+    test('the chosen dates are sent to the server; its balances are shown',
         () async {
       ledger.all = [
         for (var i = 0; i < 120; i++)
-          _entry('e$i', 'purchase', '-10', at: DateTime(2026, 3, 1 + i % 28)),
+          _entry('e$i', 'purchase', '-10', running: '-${1200 - i * 10}'),
       ];
       await cubit.load('s1');
       expect(cubit.state.entries, hasLength(SupplierLedgerCubit.pageSize));
-      await cubit.setDates(DateTime(2026, 3, 5), DateTime(2026, 3, 6));
-      expect(cubit.state.entries, hasLength(120), reason: 'all pages fetched');
-      final days = cubit.state.visible.map((e) => e.entryAt!.day).toSet();
-      expect(days, {5, 6});
+      expect(ledger.calls.single.from, isNull);
+
+      ledger.all = [_entry('d1', 'purchase', '-10', running: '-510')];
+      ledger.opening = Decimal.parse('-500');
+      ledger.closing = Decimal.parse('-510');
+      final from = DateTime(2026, 3, 5);
+      final to = DateTime(2026, 3, 6);
+      await cubit.setDates(from, to);
+      expect(ledger.calls.last.from, from);
+      expect(ledger.calls.last.to, to);
+      expect(ledger.calls.last.skip, 0);
+      expect(cubit.state.entries.single.id, 'd1');
+      expect(cubit.state.openingBalance, Decimal.parse('-500'));
+      expect(cubit.state.closingBalance, Decimal.parse('-510'));
+      expect(cubit.state.entries.single.runningBalance, Decimal.parse('-510'));
+      expect(ledger.calls, hasLength(2), reason: 'one page, not every row');
+
+      ledger.opening = null;
+      ledger.closing = null;
       await cubit.clearDates();
-      expect(cubit.state.visible, hasLength(120));
+      expect(ledger.calls.last.from, isNull);
+      expect(ledger.calls.last.to, isNull);
+      expect(cubit.state.openingBalance, isNull);
+    });
+
+    test('older rows of a date range ask for the same dates', () async {
+      ledger.all = [
+        for (var i = 0; i < 70; i++) _entry('e$i', 'purchase', '-10'),
+      ];
+      await cubit.load('s1');
+      final from = DateTime(2026, 3, 1);
+      await cubit.setDates(from, null);
+      await cubit.loadMore();
+      expect(ledger.calls.last.skip, SupplierLedgerCubit.pageSize);
+      expect(ledger.calls.last.from, from);
+      expect(cubit.state.entries, hasLength(70));
+      expect(cubit.state.hasMore, isFalse);
     });
 
     group('reversing a payment', () {
@@ -199,19 +242,6 @@ void main() {
           expect(msg, isNot(contains('_')));
         });
       }
-
-      test('a reversed drawer payment leaves the shift list', () async {
-        await cubit.load('s1');
-        events.drawerPayments.add(DrawerPayment(
-          id: 'p1',
-          shiftId: 'shift-1',
-          amount: Decimal.parse('300'),
-        ));
-        expect(events.drawerPayments.totalForShift('shift-1'),
-            Decimal.parse('300'));
-        await cubit.reversePayment('p1', 'Typed twice');
-        expect(events.drawerPayments.forShift('shift-1'), isEmpty);
-      });
     });
   });
 

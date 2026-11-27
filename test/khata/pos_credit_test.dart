@@ -162,7 +162,8 @@ void main() {
           const ValidationFailure('Credit limit exceeded: limit 5'),
           hasCustomer: true,
         ),
-        isA<CreditLimitExceededException>(),
+        isNull,
+        reason: 'the code decides, not the sentence',
       );
       expect(
         SaleFailureMapper.map(

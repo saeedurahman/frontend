@@ -14,6 +14,7 @@ _ShiftSummaryModel _$ShiftSummaryModelFromJson(Map<String, dynamic> json) =>
       totalCashSales: json['total_cash_sales'] as String? ?? '0',
       totalCardSales: json['total_card_sales'] as String? ?? '0',
       totalWalletSales: json['total_wallet_sales'] as String? ?? '0',
+      creditSales: json['credit_sales'] as String? ?? '0',
       totalOtherSales: json['total_other_sales'] as String? ?? '0',
       totalReturns: json['total_returns'] as String? ?? '0',
       totalCashIn: json['total_cash_in'] as String? ?? '0',
@@ -22,6 +23,13 @@ _ShiftSummaryModel _$ShiftSummaryModelFromJson(Map<String, dynamic> json) =>
       expectedCash: json['expected_cash'] as String? ?? '0',
       actualCash: json['actual_cash'] as String?,
       cashDifference: json['cash_difference'] as String?,
+      cashMovements:
+          (json['cash_movements'] as List<dynamic>?)
+              ?.map(
+                (e) => ShiftCashMovement.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$ShiftSummaryModelToJson(_ShiftSummaryModel instance) =>
@@ -32,6 +40,7 @@ Map<String, dynamic> _$ShiftSummaryModelToJson(_ShiftSummaryModel instance) =>
       'total_cash_sales': instance.totalCashSales,
       'total_card_sales': instance.totalCardSales,
       'total_wallet_sales': instance.totalWalletSales,
+      'credit_sales': instance.creditSales,
       'total_other_sales': instance.totalOtherSales,
       'total_returns': instance.totalReturns,
       'total_cash_in': instance.totalCashIn,
@@ -40,4 +49,5 @@ Map<String, dynamic> _$ShiftSummaryModelToJson(_ShiftSummaryModel instance) =>
       'expected_cash': instance.expectedCash,
       'actual_cash': instance.actualCash,
       'cash_difference': instance.cashDifference,
+      'cash_movements': instance.cashMovements,
     };

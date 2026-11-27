@@ -41,12 +41,14 @@ class PushService {
   final SyncConfig _config;
   int _batchMax;
 
-  Future<PushOutcome> pushAll() async {
+  /// [onWork] is called when there is something to send.
+  Future<PushOutcome> pushAll({void Function()? onWork}) async {
     final outcome = PushOutcome();
     // Each round may unlock dependants; stop when nothing is eligible.
     for (var round = 0; round < 1000; round++) {
       final batch = await _store.nextBatch(_batchMax);
       if (batch.isEmpty) break;
+      onWork?.call();
       await _store.transaction(() => _store.markSending(batch.map((o) => o.opId)));
       outcome.sent += batch.length;
 
@@ -93,9 +95,9 @@ class PushService {
         return outcome;
       }
 
+      final unanswered = <String>[];
       await _store.transaction(() async {
         final byId = {for (final r in response.results) r.opId: r};
-        final unanswered = <String>[];
         for (final op in batch) {
           final result = byId[op.opId];
           if (result == null) {
@@ -109,6 +111,9 @@ class PushService {
         await _store.setMeta(SyncStore.lastPushAtKey, _store.now().toUtc().toIso8601String());
       });
       _batchMax = _config.maxOps;
+      // Nothing was answered: the same items would be sent again at once, over
+      // and over. They stay pending for the next cycle.
+      if (unanswered.length == batch.length) break;
     }
     return outcome;
   }
@@ -173,6 +178,9 @@ class PushService {
         await _store.updateShift('${op.payload['shift_id']}', {'sync_state': 'synced'});
       case OpTypes.customerPayment:
         await _store.noteBalanceUnconfirmed(op.opId);
+        if (result.flags.isNotEmpty) {
+          await _store.noteFlaggedPayment(op, result.flags);
+        }
       case OpTypes.saleVoid:
         await _store.setSaleStatus('${op.payload['sale_id']}', 'voided');
         await _store.setSaleState('${op.payload['sale_id']}', 'synced');

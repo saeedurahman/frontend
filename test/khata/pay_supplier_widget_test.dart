@@ -7,9 +7,6 @@ import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/session/access_cubit.dart';
 import 'package:frantend/features/auth/domain/entities/user.dart';
-import 'package:frantend/features/cash_register/data/models/shift_summary_model.dart';
-import 'package:frantend/features/cash_register/presentation/widgets/shift_summary_widgets.dart';
-import 'package:frantend/features/khata/domain/drawer_payment_log.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/payment_receipt_service.dart';
 import 'package:frantend/features/khata/domain/payment_source.dart';
@@ -78,13 +75,20 @@ void main() {
         (tester) async {
       await _open(tester, shiftId: 'shift-1');
       expect(find.byKey(const ValueKey('payable_now')), findsOneWidget);
+      // The six sources a supplier can be paid from, and only those.
       for (final s in PaymentSource.values) {
-        expect(find.byKey(ValueKey('source_${s.apiValue}')), findsOneWidget,
-            reason: s.label);
+        expect(
+          find.byKey(ValueKey('source_${s.apiValue}')),
+          PaymentSource.supplierSources.contains(s)
+              ? findsOneWidget
+              : findsNothing,
+          reason: s.label,
+        );
       }
-      // The six sources the owner expects.
-      expect(PaymentSource.values.map((s) => s.apiValue).toSet(),
-          containsAll(['drawer', 'owner_pocket', 'bank', 'easypaisa', 'jazzcash', 'cheque']));
+      expect(
+        PaymentSource.supplierSources.map((s) => s.apiValue),
+        ['drawer', 'owner_pocket', 'bank', 'easypaisa', 'jazzcash', 'cheque'],
+      );
     });
 
     testWidgets('the cash drawer is preselected when a shift is open',
@@ -211,77 +215,6 @@ void main() {
         tester.widget<FilledButton>(find.byKey(const ValueKey('pay_submit'))).onPressed,
         isNull,
       );
-    });
-  });
-
-  group('shift screens: supplier payments from the drawer (item 9)', () {
-    ShiftSummaryModel summary() => const ShiftSummaryModel(
-          shiftId: 'shift-1',
-          openingFloat: '1000',
-          totalCashSales: '5000',
-          totalCashOut: '700',
-          expectedCash: '5300',
-        );
-
-    Widget host(DrawerPaymentLog log) => MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: ShiftSummaryBreakdown(
-                summary: summary(),
-                drawerPayments: log,
-              ),
-            ),
-          ),
-        );
-
-    testWidgets('lists drawer payments of this shift with the total',
-        (tester) async {
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(1300, 1500);
-      addTearDown(tester.view.reset);
-      final log = DrawerPaymentLog()
-        ..add(DrawerPayment(
-          id: 'a',
-          shiftId: 'shift-1',
-          amount: Decimal.parse('500'),
-          supplierName: 'Haji Traders',
-          note: 'March bill',
-        ))
-        ..add(DrawerPayment(
-          id: 'b',
-          shiftId: 'shift-1',
-          amount: Decimal.parse('200'),
-        ))
-        ..add(DrawerPayment(
-          id: 'other',
-          shiftId: 'shift-2',
-          amount: Decimal.parse('999'),
-        ));
-      await tester.pumpWidget(host(log));
-      expect(find.byKey(const ValueKey('supplier-drawer-payments')),
-          findsOneWidget);
-      expect(find.text(KhataText.supplierPaymentsFromDrawer), findsOneWidget);
-      expect(find.text('Paid to Haji Traders · March bill'), findsOneWidget);
-      expect(find.text('Paid to Supplier'), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.byKey(const ValueKey('supplier-drawer-total'))).data,
-        contains('700'),
-      );
-      expect(find.textContaining('999'), findsNothing,
-          reason: 'another shift is not listed');
-    });
-
-    testWidgets('nothing is shown when no supplier was paid from the drawer',
-        (tester) async {
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(1300, 1500);
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(host(DrawerPaymentLog()));
-      expect(find.byKey(const ValueKey('supplier-drawer-payments')),
-          findsNothing);
-      // The totals the server computed are still there.
-      expect(find.text('Cash Out'), findsOneWidget);
-      expect(find.text('Expected Cash in Drawer'), findsOneWidget);
     });
   });
 }

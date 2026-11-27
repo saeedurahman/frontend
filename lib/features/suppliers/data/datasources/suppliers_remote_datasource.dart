@@ -4,6 +4,7 @@ import 'package:frantend/core/network/dio_client.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:injectable/injectable.dart';
+import 'package:intl/intl.dart';
 
 abstract class SuppliersRemoteDataSource {
   Future<List<SupplierModel>> getSuppliers();
@@ -26,6 +27,8 @@ abstract class SuppliersRemoteDataSource {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   });
 
   /// `POST /suppliers/payments`. [idempotencyKey] is reused on a retry of the
@@ -108,13 +111,18 @@ class SuppliersRemoteDataSourceImpl implements SuppliersRemoteDataSource {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   }) async {
+    final day = DateFormat('yyyy-MM-dd', 'en_US');
     final response = await _dio.get<Map<String, dynamic>>(
       ApiConstants.supplierLedger(supplierId),
       queryParameters: {
         'skip': skip,
         'limit': limit,
         if (branchId != null) 'branch_id': branchId,
+        if (dateFrom != null) 'date_from': day.format(dateFrom),
+        if (dateTo != null) 'date_to': day.format(dateTo),
       },
     );
     return SupplierLedgerPage.fromJson(response.data ?? const {});

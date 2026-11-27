@@ -7,16 +7,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_cubit.dart';
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
-import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class RecordPaymentDialog extends StatefulWidget {
   const RecordPaymentDialog({
@@ -54,7 +55,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
   final _referenceController = TextEditingController();
   final _notesController = TextEditingController();
 
-  String _paymentMethod = PaymentMethods.cash;
+  PaymentSource _source = PaymentSource.drawer;
   String? _localError;
 
   Decimal get _balanceParsed =>
@@ -65,7 +66,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
 
   bool get _isValidAmount => _amountParsed > Decimal.zero;
 
-  bool get _showReferenceField => _paymentMethod != PaymentMethods.cash;
+  bool get _showReferenceField => _source.needsReference;
 
   bool get _hasOutstanding => _balanceParsed < Decimal.zero;
 
@@ -96,7 +97,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
 
     final response = await context.read<CustomerLedgerCubit>().recordPayment(
           amount: _amountParsed,
-          paymentMethod: _paymentMethod,
+          source: _source,
           referenceNo: _referenceController.text.trim().isEmpty
               ? null
               : _referenceController.text.trim(),
@@ -116,9 +117,9 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
       AppAlerts.showSuccessMessage(
         context,
         savedOffline
-            ? 'Payment of Rs. ${DecimalUtils.format(_amountParsed)}: '
+            ? 'Payment of $currencyLabel ${DecimalUtils.format(_amountParsed)}: '
                 '${UserErrorMessage.savedOffline}. New balance: $newBalanceText'
-            : 'Payment of Rs. ${DecimalUtils.format(_amountParsed)} recorded. '
+            : 'Payment of $currencyLabel ${DecimalUtils.format(_amountParsed)} recorded. '
                 'New balance: $newBalanceText',
       );
       return;
@@ -141,7 +142,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
     // Cash goes into the drawer, so it needs an open shift (same rule as a
     // sale). Without one the payment is not recorded; the owner opens a shift
     // with one tap or picks another method.
-    final needsShift = _paymentMethod == PaymentMethods.cash &&
+    final needsShift = _source.touchesDrawer &&
         ledgerState is CustomerLedgerLoaded &&
         !ledgerState.isCheckingPaymentShift &&
         ledgerState.activePaymentShiftId == null;
@@ -181,7 +182,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                 ),
                 child: Text(
                   _hasOutstanding
-                      ? 'Current Outstanding: Rs. ${DecimalUtils.format(_amountOwed)}'
+                      ? 'Current Outstanding: $currencyLabel ${DecimalUtils.format(_amountOwed)}'
                       : 'No outstanding balance',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
@@ -212,7 +213,7 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                   alignment: Alignment.centerLeft,
                   child: ActionChip(
                     label: Text(
-                      'Pay Full Amount (Rs. ${DecimalUtils.format(_amountOwed)})',
+                      'Pay Full Amount ($currencyLabel ${DecimalUtils.format(_amountOwed)})',
                     ),
                     onPressed: () {
                       _amountController.text =
@@ -235,46 +236,23 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
               ],
               const SizedBox(height: 16),
               const Text(
-                'Payment Method *',
+                KhataText.moneyComesAs,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _methodOptions.map((option) {
-                  final selected = _paymentMethod == option.method;
-                  return SizedBox(
-                    width: 140,
-                    child: OutlinedButton(
-                      onPressed: () => setState(() {
-                        _paymentMethod = option.method;
-                        if (option.method == PaymentMethods.cash) {
-                          _referenceController.clear();
-                        }
-                      }),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: selected
-                            ? AppColors.primary.withValues(alpha: 0.08)
-                            : null,
-                        side: BorderSide(
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.border,
-                          width: selected ? 2 : 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(option.icon, style: const TextStyle(fontSize: 20)),
-                          Text(option.label, textAlign: TextAlign.center),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+              PaymentSourceCards(
+                sources: PaymentSource.customerSources,
+                incoming: true,
+                selected: _source,
+                cardWidth: 145,
+                enabled: !isSubmitting,
+                onSelected: (source) => setState(() {
+                  _source = source;
+                  _localError = null;
+                  if (!source.needsReference) _referenceController.clear();
+                }),
               ),
-              if (_paymentMethod == PaymentMethods.cash && isCheckingShift) ...[
+              if (_source.touchesDrawer && isCheckingShift) ...[
                 const SizedBox(height: 8),
                 const Row(
                   children: [
@@ -322,9 +300,9 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _referenceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Reference No',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: _source.referenceLabel,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -375,32 +353,3 @@ class _RecordPaymentDialogState extends State<RecordPaymentDialog> {
     );
   }
 }
-
-class _PaymentMethodOption {
-  const _PaymentMethodOption({
-    required this.method,
-    required this.label,
-    required this.icon,
-  });
-
-  final String method;
-  final String label;
-  final String icon;
-}
-
-const _methodOptions = [
-  _PaymentMethodOption(method: PaymentMethods.cash, label: 'Cash', icon: '💵'),
-  _PaymentMethodOption(method: PaymentMethods.card, label: 'Card', icon: '💳'),
-  _PaymentMethodOption(method: PaymentMethods.wallet, label: 'Wallet', icon: '📱'),
-  _PaymentMethodOption(
-    method: PaymentMethods.bankTransfer,
-    label: 'Bank Transfer',
-    icon: '🏦',
-  ),
-  _PaymentMethodOption(
-    method: PaymentMethods.cheque,
-    label: 'Cheque',
-    icon: '📝',
-  ),
-  _PaymentMethodOption(method: PaymentMethods.other, label: 'Other', icon: '•••'),
-];

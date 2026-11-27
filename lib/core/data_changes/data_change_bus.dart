@@ -26,6 +26,7 @@ enum DataTopic {
   accounting,
   manufacturing,
   restaurant,
+  followups,
 }
 
 class DataChange {

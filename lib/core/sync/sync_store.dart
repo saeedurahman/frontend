@@ -81,6 +81,9 @@ class IndexedEntity {
         return IndexedEntity(parentId: s('product_id'), barcode: s('barcode'));
       case 'price_list_item':
         return IndexedEntity(parentId: s('product_id'));
+      case 'party_followup':
+        // Looked up per customer / supplier.
+        return IndexedEntity(branchId: s('branch_id'), parentId: s('party_id'));
       case 'customer':
         return IndexedEntity(
           searchText: search([s('name'), s('phone'), s('email')]),
@@ -439,6 +442,7 @@ class SyncStore {
         'customer_balance' =>
           const {DataTopic.customers, DataTopic.customerLedger},
         'supplier' => const {DataTopic.suppliers},
+        'party_followup' => const {DataTopic.followups},
         'product' ||
         'product_variation' ||
         'barcode' =>
@@ -466,6 +470,7 @@ class SyncStore {
   static Set<DataTopic> opTopics(String type) => switch (type) {
         OpTypes.customerCreate =>
           const {DataTopic.customers, DataTopic.customerLedger},
+        OpTypes.followupCreate => const {DataTopic.followups},
         OpTypes.customerPayment => const {
             DataTopic.customers,
             DataTopic.customerLedger,
@@ -1160,6 +1165,9 @@ class SyncStore {
     if (o.type == OpTypes.customerCreate && o.entityId != null) {
       await _exec("DELETE FROM entities WHERE entity = 'customer' AND id = ?", [o.entityId]);
     }
+    if (o.type == OpTypes.followupCreate && o.entityId != null) {
+      await _exec("DELETE FROM entities WHERE entity = 'party_followup' AND id = ?", [o.entityId]);
+    }
     final log = (await metaJson(discardLogKey)) ?? {'entries': <dynamic>[]};
     final entries = List<dynamic>.from(log['entries'] as List)
       ..add({
@@ -1294,6 +1302,42 @@ class SyncStore {
   }
 
   static const balanceUnconfirmedKey = 'balance_unconfirmed_payments';
+
+  /// Customer payments the server flagged when this device sent them.
+  static const flaggedPaymentsKey = 'flagged_payments';
+
+  Future<void> noteFlaggedPayment(OutboxOp op, List<String> flags) async {
+    final customerId = op.payload['customer_id']?.toString();
+    final customer =
+        customerId == null ? null : await entity('customer', customerId);
+    final entry = FlaggedPayment(
+      opId: op.opId,
+      amount: '${op.payload['amount'] ?? '0'}',
+      flags: flags,
+      customerName: customer?['name']?.toString(),
+      takenAt: DateTime.tryParse(op.occurredAt),
+    );
+    final all = [
+      for (final p in await flaggedPayments())
+        if (p.opId != op.opId) p,
+      entry,
+    ];
+    await setMetaJson(flaggedPaymentsKey, {
+      'entries': [
+        for (final p in all.skip(all.length > 100 ? all.length - 100 : 0))
+          p.toJson(),
+      ],
+    });
+  }
+
+  /// Oldest first.
+  Future<List<FlaggedPayment>> flaggedPayments() async {
+    final log = await metaJson(flaggedPaymentsKey);
+    return [
+      for (final e in (log?['entries'] as List? ?? const []))
+        FlaggedPayment.fromJson(Map<String, dynamic>.from(e as Map)),
+    ];
+  }
 
   /// Ids of `customer.payment` ops the server accepted whose effect on the
   /// customer balance has not been pulled yet.

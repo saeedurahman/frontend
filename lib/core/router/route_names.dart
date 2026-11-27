@@ -63,6 +63,10 @@ abstract final class RouteNames {
   static const String suppliers = '/suppliers';
   static const String supplierNew = '/suppliers/new';
   static const String supplierEdit = '/suppliers/:id/edit';
+  static const String khata = '/khata';
+  static const String khataStatement = '/khata/statement/:partyType/:partyId';
+  static String statement(String partyType, String partyId) =>
+      '/khata/statement/$partyType/$partyId';
   static const String expenses = '/expenses';
   static const String expenseNew = '/expenses/new';
   static const String expenseDetail = '/expenses/:id';
@@ -105,6 +109,8 @@ abstract final class RouteNames {
   static const String settingsTaxPrices = '/settings/tax-prices';
   static const String settingsQuickAdd = '/settings/quick-add';
   static const String settingsSubscription = '/settings/subscription';
+  static const String settingsPaymentDetails = '/settings/payment-details';
+  static const String settingsKhataMessages = '/settings/khata-messages';
   static const String settingsRoles = '/settings/roles';
   static const String settingsRoleNew = '/settings/roles/new';
   static String settingsRoleEditPath(String id) => '/settings/roles/$id/edit';

@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
@@ -827,11 +828,7 @@ class QuickAddCubit extends Cubit<QuickAddState> {
     if (isClosed) return;
     await result.fold<Future<void>>(
       (failure) async {
-        final code = failure is ServerFailure
-            ? failure.code
-            : failure is ConflictFailure
-                ? failure.code
-                : null;
+        final code = failure.code;
         // A clear "no" from the server means nothing was saved: the next try
         // is a fresh one (for example after the shift was opened).
         if (code != null) {
@@ -840,7 +837,7 @@ class QuickAddCubit extends Cubit<QuickAddState> {
         }
         final plain = KhataText.forCode(code);
         final text = plain ?? _failureText(failure);
-        if (plain != null) hook?.explain(code, plain);
+        if (plain != null) hook?.explain(code, failure.message);
         emit(state.copyWith(
           saving: false,
           banner: text,
@@ -874,32 +871,37 @@ class QuickAddCubit extends Cubit<QuickAddState> {
   ]) async {
     final byId = {for (final l in response.lines) l.clientLineId: l};
     final kept = <QuickAddRow>[];
+    final results = <QuickAddLineNote>[];
     var created = 0;
     var updated = 0;
     for (final r in state.rows) {
       final line = byId[r.id];
-      if (line == null) {
-        // The server said nothing about this line: keep it, never guess.
-        kept.add(r.copyWith(
-          error: const RowError(
-            message: 'The server did not answer for this item. Check Products, then save again.',
-          ),
-        ));
-      } else if (line.ok) {
-        if (line.outcome == LineOutcome.created) {
+      if (line != null && line.ok) {
+        final added = line.outcome == LineOutcome.created;
+        if (added) {
           created++;
         } else {
           updated++;
         }
-      } else {
-        kept.add(r.copyWith(
-          error: RowError(
-            code: line.errorCode,
-            message: QuickAddMessages.forCode(line.errorCode, fallback: line.errorMessage),
-            field: QuickAddMessages.fieldFor(line.errorCode),
-          ),
+        results.add(QuickAddLineNote(
+          name: r.name,
+          ok: true,
+          text: added ? 'Added' : 'Updated',
         ));
+        continue;
       }
+      final error = line == null
+          // The server said nothing about this line: keep it, never guess.
+          ? const RowError(
+              message: 'The server did not answer for this item. Check Products, then save again.',
+            )
+          : RowError(
+              code: line.errorCode,
+              message: QuickAddMessages.forCode(line.errorCode, fallback: line.errorMessage),
+              field: QuickAddMessages.fieldFor(line.errorCode),
+            );
+      kept.add(r.copyWith(error: error));
+      results.add(QuickAddLineNote(name: r.name, ok: false, text: error.message));
     }
 
     try {
@@ -929,9 +931,12 @@ class QuickAddCubit extends Cubit<QuickAddState> {
         updated: updated,
         needAttention: kept.length,
         replayed: response.replayed,
-        paidNote: paid == null
-            ? null
-            : receivedMessage(paid, purchaseTotal),
+        paidNote: _paidNote(request.payment, paid),
+        // Problems first: they are what needs the owner's eyes.
+        lines: [
+          ...results.where((l) => !l.ok),
+          ...results.where((l) => l.ok),
+        ],
       ),
       focus: kept.isEmpty
           ? FocusRequest(token: _nextToken)
@@ -947,6 +952,19 @@ class QuickAddCubit extends Cubit<QuickAddState> {
     } else {
       await _saveDraftNow();
     }
+  }
+
+  /// What happened to the money sent with the list. The server pays at most
+  /// the total of the lines it saved, and nothing when it saved none.
+  String? _paidNote(ReceiptPaymentInput? sent, ReceiptPaymentResult? paid) {
+    if (paid == null) {
+      return sent == null || sent.isEmpty ? null : KhataText.noPaymentMade;
+    }
+    final text = receivedMessage(paid, purchaseTotal);
+    final applied = paid.payment.amount;
+    if (sent == null || applied >= sent.amount) return text;
+    return '$text\n'
+        '${KhataText.paymentCapped(formatPKR(sent.amount), formatPKR(applied))}';
   }
 
   void dismissSummary() => emit(state.copyWith(clearSummary: true, focus: FocusRequest(token: _nextToken)));

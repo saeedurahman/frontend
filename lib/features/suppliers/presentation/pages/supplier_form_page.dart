@@ -5,6 +5,13 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/supplier_form_cubit.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/domain/text/entry_text.dart';
+import 'package:frantend/features/khata/presentation/cubit/opening_balance_cubit.dart';
+import 'package:frantend/features/khata/presentation/widgets/opening_balance_section.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/supplier_form_state.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
@@ -21,16 +28,26 @@ class SupplierFormPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final cubit = sl<SupplierFormCubit>();
-        if (supplierId != null) {
-          cubit.loadForEdit(supplierId!);
-        } else {
-          cubit.initCreate();
-        }
-        return cubit;
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) {
+            final cubit = sl<SupplierFormCubit>();
+            if (supplierId != null) {
+              cubit.loadForEdit(supplierId!);
+            } else {
+              cubit.initCreate();
+            }
+            return cubit;
+          },
+        ),
+        BlocProvider(
+          create: (_) => OpeningBalanceCubit(
+            khataRepositoryIfAny(),
+            type: PartyType.supplier,
+          ),
+        ),
+      ],
       child: _SupplierFormView(isEdit: isEdit),
     );
   }
@@ -73,6 +90,20 @@ class _SupplierFormView extends StatelessWidget {
                         title: 'Supplier Details',
                         child: _SupplierFields(state: state),
                       ),
+                      if (!isEdit &&
+                          context.read<OpeningBalanceCubit>().available)
+                        const PermissionGate(
+                          permission: Perm.suppliersLedgerManage,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              top: AppDimensions.spacingMd,
+                            ),
+                            child: _FormCard(
+                              title: EntryText.openingOptional,
+                              child: OpeningBalanceSection(),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -231,6 +262,8 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<SupplierFormCubit>();
+    final opening = context.watch<OpeningBalanceCubit>();
+    final busy = state.isSubmitting || opening.state.submitting;
 
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
@@ -250,17 +283,22 @@ class _BottomBar extends StatelessWidget {
         children: [
           SecondaryButton(
             label: 'Cancel',
-            onPressed: state.isSubmitting ? null : () => context.pop(),
+            onPressed: busy ? null : () => context.pop(),
           ),
           const SizedBox(width: 12),
           PrimaryButton(
             label: isEdit ? 'Save Changes' : 'Create Supplier',
-            isLoading: state.isSubmitting,
+            isLoading: busy,
             fullWidth: false,
-            onPressed: state.isSubmitting
+            onPressed: busy
                 ? null
                 : () async {
-                    final err = await cubit.submit();
+                    // With an opening balance, both are created together.
+                    final err = !isEdit && opening.isFilled
+                        ? cubit.validate()
+                            ? await opening.create(cubit.createBody())
+                            : 'Validation failed'
+                        : await cubit.submit();
                     if (!context.mounted) return;
                     if (err != null) {
                       AppAlerts.showErrorMessage(context, err);

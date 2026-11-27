@@ -312,7 +312,7 @@ as bool,
 /// @nodoc
 mixin _$ProcessReturnState {
 
- SaleResponseModel? get originalSale; CustomerModel? get customer; List<ReturnLineFormItem> get returnLines; List<RefundLineModel> get refundLines; String? get reason; String? get notes; String? get activeShiftId; bool get isLoading; bool get isCheckingShift; bool get isSubmitting; bool get accessDenied; String? get error; String? get submitError;
+ SaleResponseModel? get originalSale; CustomerModel? get customer; List<ReturnLineFormItem> get returnLines; List<RefundLineModel> get refundLines; String? get reason; String? get notes; String? get activeShiftId; bool get isLoading; bool get isCheckingShift; bool get shiftMissing; bool get isOpeningShift; bool get isSubmitting; bool get accessDenied; String? get error; String? get submitError;
 /// Create a copy of ProcessReturnState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -324,20 +324,20 @@ $ProcessReturnStateCopyWith<ProcessReturnState> get copyWith => _$ProcessReturnS
 @override
 bool operator ==(Object other) {
   final _this = this as ProcessReturnState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessReturnState&&(identical(other.originalSale, _this.originalSale) || other.originalSale == _this.originalSale)&&(identical(other.customer, _this.customer) || other.customer == _this.customer)&&const DeepCollectionEquality().equals(other.returnLines, _this.returnLines)&&const DeepCollectionEquality().equals(other.refundLines, _this.refundLines)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&(identical(other.activeShiftId, _this.activeShiftId) || other.activeShiftId == _this.activeShiftId)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isCheckingShift, _this.isCheckingShift) || other.isCheckingShift == _this.isCheckingShift)&&(identical(other.isSubmitting, _this.isSubmitting) || other.isSubmitting == _this.isSubmitting)&&(identical(other.accessDenied, _this.accessDenied) || other.accessDenied == _this.accessDenied)&&(identical(other.error, _this.error) || other.error == _this.error)&&(identical(other.submitError, _this.submitError) || other.submitError == _this.submitError));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessReturnState&&(identical(other.originalSale, _this.originalSale) || other.originalSale == _this.originalSale)&&(identical(other.customer, _this.customer) || other.customer == _this.customer)&&const DeepCollectionEquality().equals(other.returnLines, _this.returnLines)&&const DeepCollectionEquality().equals(other.refundLines, _this.refundLines)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&(identical(other.activeShiftId, _this.activeShiftId) || other.activeShiftId == _this.activeShiftId)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isCheckingShift, _this.isCheckingShift) || other.isCheckingShift == _this.isCheckingShift)&&(identical(other.shiftMissing, _this.shiftMissing) || other.shiftMissing == _this.shiftMissing)&&(identical(other.isOpeningShift, _this.isOpeningShift) || other.isOpeningShift == _this.isOpeningShift)&&(identical(other.isSubmitting, _this.isSubmitting) || other.isSubmitting == _this.isSubmitting)&&(identical(other.accessDenied, _this.accessDenied) || other.accessDenied == _this.accessDenied)&&(identical(other.error, _this.error) || other.error == _this.error)&&(identical(other.submitError, _this.submitError) || other.submitError == _this.submitError));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ProcessReturnState;
-  return Object.hash(runtimeType,_this.originalSale,_this.customer,const DeepCollectionEquality().hash(_this.returnLines),const DeepCollectionEquality().hash(_this.refundLines),_this.reason,_this.notes,_this.activeShiftId,_this.isLoading,_this.isCheckingShift,_this.isSubmitting,_this.accessDenied,_this.error,_this.submitError);
+  return Object.hash(runtimeType,_this.originalSale,_this.customer,const DeepCollectionEquality().hash(_this.returnLines),const DeepCollectionEquality().hash(_this.refundLines),_this.reason,_this.notes,_this.activeShiftId,_this.isLoading,_this.isCheckingShift,_this.shiftMissing,_this.isOpeningShift,_this.isSubmitting,_this.accessDenied,_this.error,_this.submitError);
 }
 
 @override
 String toString() {
   final _this = this as ProcessReturnState;
-  return 'ProcessReturnState(originalSale: ${_this.originalSale}, customer: ${_this.customer}, returnLines: ${_this.returnLines}, refundLines: ${_this.refundLines}, reason: ${_this.reason}, notes: ${_this.notes}, activeShiftId: ${_this.activeShiftId}, isLoading: ${_this.isLoading}, isCheckingShift: ${_this.isCheckingShift}, isSubmitting: ${_this.isSubmitting}, accessDenied: ${_this.accessDenied}, error: ${_this.error}, submitError: ${_this.submitError})';
+  return 'ProcessReturnState(originalSale: ${_this.originalSale}, customer: ${_this.customer}, returnLines: ${_this.returnLines}, refundLines: ${_this.refundLines}, reason: ${_this.reason}, notes: ${_this.notes}, activeShiftId: ${_this.activeShiftId}, isLoading: ${_this.isLoading}, isCheckingShift: ${_this.isCheckingShift}, shiftMissing: ${_this.shiftMissing}, isOpeningShift: ${_this.isOpeningShift}, isSubmitting: ${_this.isSubmitting}, accessDenied: ${_this.accessDenied}, error: ${_this.error}, submitError: ${_this.submitError})';
 }
 
 
@@ -348,7 +348,7 @@ abstract mixin class $ProcessReturnStateCopyWith<$Res>  {
   factory $ProcessReturnStateCopyWith(ProcessReturnState value, $Res Function(ProcessReturnState) _then) = _$ProcessReturnStateCopyWithImpl;
 @useResult
 $Res call({
- SaleResponseModel? originalSale, CustomerModel? customer, List<ReturnLineFormItem> returnLines, List<RefundLineModel> refundLines, String? reason, String? notes, String? activeShiftId, bool isLoading, bool isCheckingShift, bool isSubmitting, bool accessDenied, String? error, String? submitError
+ SaleResponseModel? originalSale, CustomerModel? customer, List<ReturnLineFormItem> returnLines, List<RefundLineModel> refundLines, String? reason, String? notes, String? activeShiftId, bool isLoading, bool isCheckingShift, bool shiftMissing, bool isOpeningShift, bool isSubmitting, bool accessDenied, String? error, String? submitError
 });
 
 
@@ -365,7 +365,7 @@ class _$ProcessReturnStateCopyWithImpl<$Res>
 
 /// Create a copy of ProcessReturnState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? originalSale = freezed,Object? customer = freezed,Object? returnLines = null,Object? refundLines = null,Object? reason = freezed,Object? notes = freezed,Object? activeShiftId = freezed,Object? isLoading = null,Object? isCheckingShift = null,Object? isSubmitting = null,Object? accessDenied = null,Object? error = freezed,Object? submitError = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? originalSale = freezed,Object? customer = freezed,Object? returnLines = null,Object? refundLines = null,Object? reason = freezed,Object? notes = freezed,Object? activeShiftId = freezed,Object? isLoading = null,Object? isCheckingShift = null,Object? shiftMissing = null,Object? isOpeningShift = null,Object? isSubmitting = null,Object? accessDenied = null,Object? error = freezed,Object? submitError = freezed,}) {
   return _then(ProcessReturnState(
 originalSale: freezed == originalSale ? _self.originalSale : originalSale // ignore: cast_nullable_to_non_nullable
 as SaleResponseModel?,customer: freezed == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
@@ -376,6 +376,8 @@ as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullabl
 as String?,activeShiftId: freezed == activeShiftId ? _self.activeShiftId : activeShiftId // ignore: cast_nullable_to_non_nullable
 as String?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isCheckingShift: null == isCheckingShift ? _self.isCheckingShift : isCheckingShift // ignore: cast_nullable_to_non_nullable
+as bool,shiftMissing: null == shiftMissing ? _self.shiftMissing : shiftMissing // ignore: cast_nullable_to_non_nullable
+as bool,isOpeningShift: null == isOpeningShift ? _self.isOpeningShift : isOpeningShift // ignore: cast_nullable_to_non_nullable
 as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,accessDenied: null == accessDenied ? _self.accessDenied : accessDenied // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
@@ -489,10 +491,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool shiftMissing,  bool isOpeningShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProcessReturnState() when $default != null:
-return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
+return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.shiftMissing,_that.isOpeningShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
   return orElse();
 
 }
@@ -510,10 +512,10 @@ return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refund
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool shiftMissing,  bool isOpeningShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)  $default,) {final _that = this;
 switch (_that) {
 case _ProcessReturnState():
-return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
+return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.shiftMissing,_that.isOpeningShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -530,10 +532,10 @@ return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refund
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SaleResponseModel? originalSale,  CustomerModel? customer,  List<ReturnLineFormItem> returnLines,  List<RefundLineModel> refundLines,  String? reason,  String? notes,  String? activeShiftId,  bool isLoading,  bool isCheckingShift,  bool shiftMissing,  bool isOpeningShift,  bool isSubmitting,  bool accessDenied,  String? error,  String? submitError)?  $default,) {final _that = this;
 switch (_that) {
 case _ProcessReturnState() when $default != null:
-return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
+return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refundLines,_that.reason,_that.notes,_that.activeShiftId,_that.isLoading,_that.isCheckingShift,_that.shiftMissing,_that.isOpeningShift,_that.isSubmitting,_that.accessDenied,_that.error,_that.submitError);case _:
   return null;
 
 }
@@ -545,7 +547,7 @@ return $default(_that.originalSale,_that.customer,_that.returnLines,_that.refund
 
 
 class _ProcessReturnState extends ProcessReturnState {
-  const _ProcessReturnState({this.originalSale, this.customer,  List<ReturnLineFormItem> returnLines = const [],  List<RefundLineModel> refundLines = const [], this.reason, this.notes, this.activeShiftId, this.isLoading = false, this.isCheckingShift = false, this.isSubmitting = false, this.accessDenied = false, this.error, this.submitError}): _returnLines = returnLines,_refundLines = refundLines,super._();
+  const _ProcessReturnState({this.originalSale, this.customer,  List<ReturnLineFormItem> returnLines = const [],  List<RefundLineModel> refundLines = const [], this.reason, this.notes, this.activeShiftId, this.isLoading = false, this.isCheckingShift = false, this.shiftMissing = false, this.isOpeningShift = false, this.isSubmitting = false, this.accessDenied = false, this.error, this.submitError}): _returnLines = returnLines,_refundLines = refundLines,super._();
   
 
 @override final  SaleResponseModel? originalSale;
@@ -569,6 +571,8 @@ class _ProcessReturnState extends ProcessReturnState {
 @override final  String? activeShiftId;
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool isCheckingShift;
+@override@JsonKey() final  bool shiftMissing;
+@override@JsonKey() final  bool isOpeningShift;
 @override@JsonKey() final  bool isSubmitting;
 @override@JsonKey() final  bool accessDenied;
 @override final  String? error;
@@ -584,18 +588,18 @@ _$ProcessReturnStateCopyWith<_ProcessReturnState> get copyWith => __$ProcessRetu
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessReturnState&&(identical(other.originalSale, originalSale) || other.originalSale == originalSale)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other.returnLines, _returnLines)&&const DeepCollectionEquality().equals(other.refundLines, _refundLines)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.activeShiftId, activeShiftId) || other.activeShiftId == activeShiftId)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isCheckingShift, isCheckingShift) || other.isCheckingShift == isCheckingShift)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.accessDenied, accessDenied) || other.accessDenied == accessDenied)&&(identical(other.error, error) || other.error == error)&&(identical(other.submitError, submitError) || other.submitError == submitError));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessReturnState&&(identical(other.originalSale, originalSale) || other.originalSale == originalSale)&&(identical(other.customer, customer) || other.customer == customer)&&const DeepCollectionEquality().equals(other.returnLines, _returnLines)&&const DeepCollectionEquality().equals(other.refundLines, _refundLines)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.activeShiftId, activeShiftId) || other.activeShiftId == activeShiftId)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isCheckingShift, isCheckingShift) || other.isCheckingShift == isCheckingShift)&&(identical(other.shiftMissing, shiftMissing) || other.shiftMissing == shiftMissing)&&(identical(other.isOpeningShift, isOpeningShift) || other.isOpeningShift == isOpeningShift)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.accessDenied, accessDenied) || other.accessDenied == accessDenied)&&(identical(other.error, error) || other.error == error)&&(identical(other.submitError, submitError) || other.submitError == submitError));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,originalSale,customer,const DeepCollectionEquality().hash(_returnLines),const DeepCollectionEquality().hash(_refundLines),reason,notes,activeShiftId,isLoading,isCheckingShift,isSubmitting,accessDenied,error,submitError);
+    return Object.hash(runtimeType,originalSale,customer,const DeepCollectionEquality().hash(_returnLines),const DeepCollectionEquality().hash(_refundLines),reason,notes,activeShiftId,isLoading,isCheckingShift,shiftMissing,isOpeningShift,isSubmitting,accessDenied,error,submitError);
 }
 
 @override
 String toString() {
-    return 'ProcessReturnState(originalSale: $originalSale, customer: $customer, returnLines: $returnLines, refundLines: $refundLines, reason: $reason, notes: $notes, activeShiftId: $activeShiftId, isLoading: $isLoading, isCheckingShift: $isCheckingShift, isSubmitting: $isSubmitting, accessDenied: $accessDenied, error: $error, submitError: $submitError)';
+    return 'ProcessReturnState(originalSale: $originalSale, customer: $customer, returnLines: $returnLines, refundLines: $refundLines, reason: $reason, notes: $notes, activeShiftId: $activeShiftId, isLoading: $isLoading, isCheckingShift: $isCheckingShift, shiftMissing: $shiftMissing, isOpeningShift: $isOpeningShift, isSubmitting: $isSubmitting, accessDenied: $accessDenied, error: $error, submitError: $submitError)';
 }
 
 
@@ -606,7 +610,7 @@ abstract mixin class _$ProcessReturnStateCopyWith<$Res> implements $ProcessRetur
   factory _$ProcessReturnStateCopyWith(_ProcessReturnState value, $Res Function(_ProcessReturnState) _then) = __$ProcessReturnStateCopyWithImpl;
 @override @useResult
 $Res call({
- SaleResponseModel? originalSale, CustomerModel? customer, List<ReturnLineFormItem> returnLines, List<RefundLineModel> refundLines, String? reason, String? notes, String? activeShiftId, bool isLoading, bool isCheckingShift, bool isSubmitting, bool accessDenied, String? error, String? submitError
+ SaleResponseModel? originalSale, CustomerModel? customer, List<ReturnLineFormItem> returnLines, List<RefundLineModel> refundLines, String? reason, String? notes, String? activeShiftId, bool isLoading, bool isCheckingShift, bool shiftMissing, bool isOpeningShift, bool isSubmitting, bool accessDenied, String? error, String? submitError
 });
 
 
@@ -623,7 +627,7 @@ class __$ProcessReturnStateCopyWithImpl<$Res>
 
 /// Create a copy of ProcessReturnState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? originalSale = freezed,Object? customer = freezed,Object? returnLines = null,Object? refundLines = null,Object? reason = freezed,Object? notes = freezed,Object? activeShiftId = freezed,Object? isLoading = null,Object? isCheckingShift = null,Object? isSubmitting = null,Object? accessDenied = null,Object? error = freezed,Object? submitError = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? originalSale = freezed,Object? customer = freezed,Object? returnLines = null,Object? refundLines = null,Object? reason = freezed,Object? notes = freezed,Object? activeShiftId = freezed,Object? isLoading = null,Object? isCheckingShift = null,Object? shiftMissing = null,Object? isOpeningShift = null,Object? isSubmitting = null,Object? accessDenied = null,Object? error = freezed,Object? submitError = freezed,}) {
   return _then(_ProcessReturnState(
 originalSale: freezed == originalSale ? _self.originalSale : originalSale // ignore: cast_nullable_to_non_nullable
 as SaleResponseModel?,customer: freezed == customer ? _self.customer : customer // ignore: cast_nullable_to_non_nullable
@@ -634,6 +638,8 @@ as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullabl
 as String?,activeShiftId: freezed == activeShiftId ? _self.activeShiftId : activeShiftId // ignore: cast_nullable_to_non_nullable
 as String?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isCheckingShift: null == isCheckingShift ? _self.isCheckingShift : isCheckingShift // ignore: cast_nullable_to_non_nullable
+as bool,shiftMissing: null == shiftMissing ? _self.shiftMissing : shiftMissing // ignore: cast_nullable_to_non_nullable
+as bool,isOpeningShift: null == isOpeningShift ? _self.isOpeningShift : isOpeningShift // ignore: cast_nullable_to_non_nullable
 as bool,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,accessDenied: null == accessDenied ? _self.accessDenied : accessDenied // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable

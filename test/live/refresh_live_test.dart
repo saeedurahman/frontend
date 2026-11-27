@@ -61,6 +61,7 @@ import 'package:frantend/features/products/domain/usecases/get_product_by_id_use
 import '../helpers/khata_fakes.dart';
 import '../helpers/refresh_contract.dart';
 import 'live_backend.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 const _errors = ErrorHandler();
 
@@ -380,7 +381,7 @@ void main() {
         pay: () async {
           final paid = await ledger.recordPayment(
             amount: Decimal.fromInt(50),
-            paymentMethod: PaymentMethods.cash,
+            source: PaymentSource.drawer,
           );
           expect(paid, isNotNull,
               reason: '${(ledger.state as CustomerLedgerLoaded).paymentError}');

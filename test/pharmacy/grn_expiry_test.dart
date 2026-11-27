@@ -276,8 +276,8 @@ void main() {
       expect(find.byKey(const Key('expiry-near')), findsOneWidget);
       expect(find.text('Panadol (500 mg)'), findsOneWidget);
       expect(find.text('Brufen'), findsOneWidget);
-      expect(find.text('Rs 50'), findsOneWidget);
-      expect(find.text('Rs 100'), findsOneWidget);
+      expect(find.text('Rs. 50'), findsOneWidget);
+      expect(find.text('Rs. 100'), findsOneWidget);
       expect(find.text('47 ago'), findsOneWidget);
       expect(find.text('14'), findsOneWidget);
     });

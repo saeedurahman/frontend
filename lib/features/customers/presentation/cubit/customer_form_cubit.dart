@@ -97,7 +97,8 @@ class CustomerFormCubit extends Cubit<CustomerFormState> {
     }
   }
 
-  Map<String, dynamic> _toCreateBody() {
+  /// The request body of a new customer.
+  Map<String, dynamic> createBody() {
     final creditLimit = Decimal.tryParse(state.creditLimit.trim()) ??
         Decimal.zero;
     return {
@@ -141,7 +142,7 @@ class CustomerFormCubit extends Cubit<CustomerFormState> {
     emit(state.copyWith(isSubmitting: true, errors: {}));
 
     if (state.mode == 'create') {
-      final result = await _createCustomer(_toCreateBody());
+      final result = await _createCustomer(createBody());
       return result.fold(
         (failure) {
           emit(state.copyWith(isSubmitting: false));

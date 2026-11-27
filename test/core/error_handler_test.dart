@@ -114,6 +114,21 @@ void main() {
   });
 
   group('422 validation', () {
+    // The khata screens act on these codes (bad dates, a bad template).
+    test('keeps the code of a {code, message} detail', () {
+      final failure = handler.mapExceptionToFailure(
+        _bad(422, {
+          'detail': {
+            'code': 'invalid_date_range',
+            'message': 'The start date is after the end date.',
+          },
+        }),
+      );
+      expect(failure, isA<ValidationFailure>());
+      expect(failure.code, 'invalid_date_range');
+      expect(failure.message, 'The start date is after the end date.');
+    });
+
     final body = {
       'detail': [
         {

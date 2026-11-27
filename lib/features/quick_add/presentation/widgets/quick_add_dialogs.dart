@@ -40,6 +40,19 @@ Future<SummaryChoice?> showQuickAddSummary(BuildContext context, QuickAddSummary
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
+            if (summary.lines.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: SingleChildScrollView(
+                    key: const ValueKey('quick-add-line-results'),
+                    child: Column(
+                      children: [for (final l in summary.lines) _LineResult(l)],
+                    ),
+                  ),
+                ),
+              ),
             if (summary.needAttention > 0)
               const Text(
                 'The items that need attention stay in your list, marked in red. '
@@ -67,6 +80,37 @@ Future<SummaryChoice?> showQuickAddSummary(BuildContext context, QuickAddSummary
       ],
     ),
   );
+}
+
+class _LineResult extends StatelessWidget {
+  const _LineResult(this.line);
+
+  final QuickAddLineNote line;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = line.ok ? AppColors.success : AppColors.warning;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            line.ok ? Icons.check : Icons.error_outline,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${line.name}: ${line.text}',
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// "Resume your Quick Add draft (37 items)". True = resume, false = start fresh.

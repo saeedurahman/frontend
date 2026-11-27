@@ -136,18 +136,13 @@ abstract final class PaymentCoverage {
   ///
   /// Every path that sells (plain sale, resumed held order, dine-in tab) goes
   /// through this check, so a sale is never sent for less than its total.
-  /// The one exception is [allowCreditRemainder]: after the server refused a
-  /// sale for the credit limit, a person who may override sends the paid part
-  /// only and the server puts the remainder on the customer's account.
   static void assertCovers({
     required List<PaymentLineModel> payments,
     required Decimal due,
     bool hasCustomer = false,
-    bool allowCreditRemainder = false,
   }) {
     final paid = payments.fold(Decimal.zero, (sum, p) => sum + p.amount);
     if (paid == due) return;
-    if (allowCreditRemainder && hasCustomer && paid < due) return;
     if (paid < due) {
       throw PaymentMismatchException(
         hasCustomer
@@ -180,7 +175,8 @@ class SaleAttemptTracker {
   String? _saleId;
 
   String idFor(Map<String, dynamic> body) {
-    final fingerprint = jsonEncode(body);
+    // "Allow anyway" sends the same sale again, so it keeps the same id.
+    final fingerprint = jsonEncode({...body}..remove('credit_override'));
     if (_fingerprint != fingerprint || _saleId == null) {
       _fingerprint = fingerprint;
       _saleId = _ids.saleId();

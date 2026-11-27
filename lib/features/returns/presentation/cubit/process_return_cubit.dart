@@ -6,6 +6,8 @@ import 'package:frantend/features/auth/data/datasources/auth_local_datasource.da
 import 'package:frantend/features/auth/domain/utils/user_role_utils.dart';
 import 'package:frantend/features/cash_register/domain/usecases/cash_register_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/shift_guard.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/returns/data/models/refund_line_model.dart';
 import 'package:frantend/features/returns/data/models/sale_return_response_model.dart';
@@ -24,7 +26,9 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
     required CreateSaleReturnUseCase createSaleReturnUseCase,
     required GetMyActiveShiftUseCase getMyActiveShiftUseCase,
     required AuthLocalDataSource authLocalDataSource,
-  })  : _getSale = getSaleByIdUseCase,
+    required ShiftGuard shiftGuard,
+  })  : _shifts = shiftGuard,
+        _getSale = getSaleByIdUseCase,
         _getCustomer = getCustomerUseCase,
         _createReturn = createSaleReturnUseCase,
         _getMyActiveShift = getMyActiveShiftUseCase,
@@ -36,6 +40,7 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
   final CreateSaleReturnUseCase _createReturn;
   final GetMyActiveShiftUseCase _getMyActiveShift;
   final AuthLocalDataSource _authLocal;
+  final ShiftGuard _shifts;
 
   Future<void> load(String saleId) async {
     final user = await _authLocal.getCachedUser();
@@ -165,8 +170,42 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
   Future<void> checkActiveShift() async {
     emit(state.copyWith(isCheckingShift: true, activeShiftId: null));
 
-    final shiftId = await _resolveActiveShiftId();
-    emit(state.copyWith(isCheckingShift: false, activeShiftId: shiftId));
+    final result = await _getMyActiveShift();
+    if (isClosed) return;
+    result.fold(
+      // Could not look: say nothing, the server decides when it is sent.
+      (_) => emit(state.copyWith(isCheckingShift: false, shiftMissing: false)),
+      (shift) => emit(state.copyWith(
+        isCheckingShift: false,
+        activeShiftId: shift?.id,
+        shiftMissing: shift == null,
+      )),
+    );
+  }
+
+  /// One-tap "Open shift" from the prompt, in the branch of the sale.
+  Future<bool> openShift() async {
+    emit(state.copyWith(isOpeningShift: true, submitError: null));
+    final result =
+        await _shifts.openNow(branchId: state.originalSale?.branchId);
+    if (isClosed) return false;
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(
+          isOpeningShift: false,
+          submitError: failure.message,
+        ));
+        return false;
+      },
+      (id) {
+        emit(state.copyWith(
+          isOpeningShift: false,
+          activeShiftId: id,
+          shiftMissing: false,
+        ));
+        return true;
+      },
+    );
   }
 
   Future<String?> _resolveActiveShiftId() async {
@@ -268,21 +307,29 @@ class ProcessReturnCubit extends Cubit<ProcessReturnState> {
     }
 
     final result = await _createReturn(_buildRequestBody());
+    if (isClosed) return null;
 
-    return result.fold(
-      (failure) {
-        emit(
-          state.copyWith(
-            isSubmitting: false,
-            submitError: failure.message,
-          ),
-        );
-        return null;
-      },
-      (response) {
-        emit(state.copyWith(isSubmitting: false, submitError: null));
-        return response;
-      },
+    final failure = result.fold((f) => f, (_) => null);
+    if (failure == null) {
+      emit(state.copyWith(isSubmitting: false, submitError: null));
+      return result.fold((_) => null, (response) => response);
+    }
+    final needsShift = KhataText.needsOwnShift(failure.code);
+    emit(
+      state.copyWith(
+        isSubmitting: false,
+        activeShiftId: needsShift ? null : state.activeShiftId,
+        shiftMissing: needsShift || state.shiftMissing,
+        // For "no open shift" the prompt says it all.
+        submitError: switch (failure.code) {
+          KhataText.noOpenShiftCode => null,
+          KhataText.shiftNotYoursCode => KhataText.returnShiftNotYours,
+          _ => failure.message,
+        },
+      ),
     );
+    // Somebody else's shift: this user may have one of their own.
+    if (failure.code == KhataText.shiftNotYoursCode) await checkActiveShift();
+    return null;
   }
 }

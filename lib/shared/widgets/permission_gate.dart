@@ -18,25 +18,37 @@ const kReadOnlyTooltip =
 String requiresPermissionTooltip(Iterable<String> permissions) =>
     'Requires permission ${permissions.join(' or ')}';
 
-AccessState? _watchAccess(BuildContext context) {
+/// The state of [C], rebuilding on change when asked from a `build`. Asked
+/// from a callback (where listening is not allowed) it is read once, so the
+/// answer is the same. Null when there is no [C] above this widget.
+S? _scopeState<C extends StateStreamable<S>, S>(BuildContext context) {
   try {
-    return context.watch<AccessCubit>().state;
+    return context.watch<C>().state;
   } catch (_) {
-    return null; // no access scope above this widget: nothing to enforce
+    try {
+      return context.read<C>().state;
+    } catch (_) {
+      return null;
+    }
   }
 }
 
-SubscriptionState? _watchSubscription(BuildContext context) {
-  try {
-    return context.watch<SubscriptionCubit>().state;
-  } catch (_) {
-    return null;
-  }
-}
+// Without an access scope above this widget there is nothing to enforce.
+AccessState? _watchAccess(BuildContext context) =>
+    _scopeState<AccessCubit, AccessState>(context);
+
+SubscriptionState? _watchSubscription(BuildContext context) =>
+    _scopeState<SubscriptionCubit, SubscriptionState>(context);
 
 /// True when the signed-in user holds [permission] (rebuilds on change).
 bool hasPermission(BuildContext context, String permission) =>
     _watchAccess(context)?.can(permission) ?? true;
+
+/// True only when the permission key itself was granted: no role (not even
+/// "owner") stands in for it, and unknown access means no. For actions the
+/// server refuses without the key, such as passing a credit limit.
+bool holdsPermissionKey(BuildContext context, String permission) =>
+    _watchAccess(context)?.access.permissionKeys.contains(permission) ?? false;
 
 /// True while the subscription is in its read-only grace period.
 bool isReadOnlyMode(BuildContext context) =>

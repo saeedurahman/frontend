@@ -7,6 +7,7 @@ import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/presentation/cubit/paid_now_cubit.dart';
 import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// "Paid now" while receiving goods: None (credit) / Half / Full or a typed
 /// amount, where the money came from, and what stays on credit.
@@ -239,9 +240,9 @@ class _AmountFieldState extends State<_AmountField> {
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.+]')),
       ],
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         isDense: true,
-        prefixText: 'Rs. ',
+        prefixText: '$currencyLabel ',
         hintText: KhataText.otherAmountHint,
       ),
       onChanged: widget.onChanged,

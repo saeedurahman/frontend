@@ -40,7 +40,6 @@ class SettingsPage extends StatelessWidget {
 bool _multiBranch(SettingsState state) {
   if (state is! SettingsLoaded) return false;
   final branchIds = sl<AccessCubit>().state.branchIds;
-  // ignore: invalid_use_of_visible_for_testing_member
   final allowed = BranchSelectorCubit.allowedBranches(state.business.branches, branchIds);
   if (branchIds.isNotEmpty) return allowed.isNotEmpty;
   return state.business.branches.length > 1;

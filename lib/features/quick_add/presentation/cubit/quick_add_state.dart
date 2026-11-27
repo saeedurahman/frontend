@@ -46,6 +46,24 @@ class UndoToast extends Equatable {
   List<Object?> get props => [token, message];
 }
 
+/// What the server did with one line of the list.
+class QuickAddLineNote extends Equatable {
+  const QuickAddLineNote({
+    required this.name,
+    required this.ok,
+    required this.text,
+  });
+
+  final String name;
+  final bool ok;
+
+  /// "Added", "Updated", or why the line was not saved.
+  final String text;
+
+  @override
+  List<Object?> get props => [name, ok, text];
+}
+
 /// Shown in the dialog after a save.
 class QuickAddSummary extends Equatable {
   const QuickAddSummary({
@@ -55,7 +73,10 @@ class QuickAddSummary extends Equatable {
     required this.needAttention,
     this.replayed = false,
     this.paidNote,
+    this.lines = const [],
   });
+
+  final List<QuickAddLineNote> lines;
 
   final int token;
   final int created;
@@ -80,7 +101,7 @@ class QuickAddSummary extends Equatable {
 
   @override
   List<Object?> get props =>
-      [token, created, updated, needAttention, replayed, paidNote];
+      [token, created, updated, needAttention, replayed, paidNote, lines];
 }
 
 class QuickAddState extends Equatable {

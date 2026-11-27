@@ -42,6 +42,7 @@ void main() {
     'Sales',
     'Returns',
     'Customers',
+    'Khata',
     'Expenses',
     'Suppliers',
     'Cash Register',

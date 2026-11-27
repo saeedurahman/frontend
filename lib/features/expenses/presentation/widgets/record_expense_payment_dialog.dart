@@ -11,6 +11,7 @@ import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class RecordExpensePaymentDialog extends StatefulWidget {
   const RecordExpensePaymentDialog({
@@ -105,8 +106,8 @@ class _RecordExpensePaymentDialogState extends State<RecordExpensePaymentDialog>
       Navigator.of(context).pop(true);
       AppAlerts.showSuccessMessage(
         context,
-        'Payment of Rs. ${DecimalUtils.format(_amountParsed)} recorded. '
-        'Remaining: Rs. $remaining',
+        'Payment of $currencyLabel ${DecimalUtils.format(_amountParsed)} recorded. '
+        'Remaining: $currencyLabel $remaining',
       );
       return;
     }
@@ -157,7 +158,7 @@ class _RecordExpensePaymentDialogState extends State<RecordExpensePaymentDialog>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Remaining Balance: Rs. ${DecimalUtils.format(_remainingParsed)}',
+                  'Remaining Balance: $currencyLabel ${DecimalUtils.format(_remainingParsed)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     color: AppColors.error,
@@ -177,7 +178,7 @@ class _RecordExpensePaymentDialogState extends State<RecordExpensePaymentDialog>
                   labelText: 'Amount *',
                   border: const OutlineInputBorder(),
                   errorText: _exceedsRemaining
-                      ? 'Cannot exceed remaining balance of Rs. '
+                      ? 'Cannot exceed remaining balance of $currencyLabel '
                           '${DecimalUtils.format(_remainingParsed)}'
                       : null,
                 ),
@@ -189,7 +190,7 @@ class _RecordExpensePaymentDialogState extends State<RecordExpensePaymentDialog>
                   alignment: Alignment.centerLeft,
                   child: ActionChip(
                     label: Text(
-                      'Pay Full Amount (Rs. ${DecimalUtils.format(_remainingParsed)})',
+                      'Pay Full Amount ($currencyLabel ${DecimalUtils.format(_remainingParsed)})',
                     ),
                     onPressed: () {
                       _amountController.text =

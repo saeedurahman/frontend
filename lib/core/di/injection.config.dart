@@ -1230,15 +1230,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i640.RecordCustomerPaymentUseCase>(
       () => _i640.RecordCustomerPaymentUseCase(gh<_i875.CustomersRepository>()),
     );
-    gh.factory<_i125.ProcessReturnCubit>(
-      () => _i125.ProcessReturnCubit(
-        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
-        getCustomerUseCase: gh<_i450.GetCustomerUseCase>(),
-        createSaleReturnUseCase: gh<_i956.CreateSaleReturnUseCase>(),
-        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
-        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
-      ),
-    );
     gh.factory<_i626.ExpenseFormCubit>(
       () => _i626.ExpenseFormCubit(
         getExpenseCategoriesUseCase: gh<_i9.GetExpenseCategoriesUseCase>(),
@@ -1654,6 +1645,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i390.ActiveBranchResolver>(),
         gh<_i782.LastPaymentSourceStore>(),
         gh<_i738.KhataEvents>(),
+      ),
+    );
+    gh.factory<_i125.ProcessReturnCubit>(
+      () => _i125.ProcessReturnCubit(
+        getSaleByIdUseCase: gh<_i873.GetSaleByIdUseCase>(),
+        getCustomerUseCase: gh<_i450.GetCustomerUseCase>(),
+        createSaleReturnUseCase: gh<_i956.CreateSaleReturnUseCase>(),
+        getMyActiveShiftUseCase: gh<_i820.GetMyActiveShiftUseCase>(),
+        authLocalDataSource: gh<_i992.AuthLocalDataSource>(),
+        shiftGuard: gh<_i942.ShiftGuard>(),
       ),
     );
     gh.factory<_i242.PurchaseOrderFormCubit>(

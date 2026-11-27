@@ -1,3 +1,4 @@
+import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,8 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/credit_blocked_notice.dart';
 import 'package:frantend/features/khata/presentation/widgets/customer_credit_strip.dart';
-import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart' show KhataNotice;
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
@@ -20,6 +21,7 @@ import 'package:frantend/features/pos/domain/utils/payment_planner.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_cubit.dart';
 import 'package:frantend/features/pos/presentation/cubit/pos_state.dart';
 import 'package:frantend/features/pos/presentation/pages/receipt_preview_page.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class PaymentModal extends StatefulWidget {
   const PaymentModal({super.key});
@@ -117,31 +119,28 @@ class _PaymentModalState extends State<PaymentModal> {
   Future<void> _openShift() async {
     final cubit = context.read<PosCubit>();
     final ok = await cubit.openShift(Decimal.zero, null);
-    if (!ok && mounted) {
-      setState(() => _error = cubit.state.openShiftError ??
-          'Could not open a shift');
-    }
+    if (!mounted) return;
+    setState(() => _error =
+        ok ? null : cubit.state.openShiftError ?? 'Could not open a shift');
   }
 
-  /// [overrideCredit]: "Allow anyway" after a credit-limit refusal. The paid
-  /// part goes without the credit tender; the server puts the rest on the
-  /// customer's account and records who allowed it.
+  /// [creditOverride]: "Allow anyway" after the credit limit stopped the sale.
+  /// The same sale goes again with `credit_override: true`; the server records
+  /// who allowed it.
   Future<void> _completeSale(
     PosState state, {
-    bool overrideCredit = false,
+    bool creditOverride = false,
   }) async {
     setState(() {
       _error = null;
       _creditBlock = null;
     });
     final allocation = _allocation(state);
-    if (!allocation.canComplete) return;
-    final lines = overrideCredit
-        ? [
-            for (final l in allocation.lines)
-              if (l.paymentMethod != PaymentMethods.credit) l,
-          ]
-        : allocation.lines;
+    if (!allocation.canComplete &&
+        !(creditOverride && allocation.canOverride)) {
+      return;
+    }
+    final lines = allocation.lines;
 
     try {
       final cubit = context.read<PosCubit>();
@@ -149,7 +148,7 @@ class _PaymentModalState extends State<PaymentModal> {
       try {
         sale = await cubit.submitSale(
           lines,
-          allowCreditOverride: overrideCredit,
+          creditOverride: creditOverride,
         );
       } on ExpiredStockWarningException catch (warning) {
         if (!mounted) return;
@@ -176,7 +175,7 @@ class _PaymentModalState extends State<PaymentModal> {
         sale = await cubit.submitSale(
           lines,
           confirmExpired: true,
-          allowCreditOverride: overrideCredit,
+          creditOverride: creditOverride,
         );
       }
       if (!mounted) return;
@@ -199,10 +198,17 @@ class _PaymentModalState extends State<PaymentModal> {
       setState(() {
         _creditBlock = _CreditBlock(
           message: e.message,
-          credit: credit,
-          needed: allocation.creditAmount,
+          numbers: e.numbers ??
+              (_canSeeBalance
+                  ? credit.numbersAfter(allocation.creditAmount)
+                  : null),
         );
       });
+    } on ShiftRequiredException catch (e) {
+      if (!mounted) return;
+      // With no shift left the "Open shift first" banner says it.
+      setState(() => _error =
+          e.message == ShiftRequiredException.needsShift ? null : e.message);
     } catch (e) {
       if (mounted) {
         setState(() => _error = UserErrorMessage.from(e));
@@ -240,10 +246,21 @@ class _PaymentModalState extends State<PaymentModal> {
     final allocation = _allocation(state);
     final hasCustomer = state.selectedCustomer != null;
     final hasShift = state.activeShift != null;
-    final canComplete = hasShift &&
+    final ready = hasShift &&
         state.canProceedToPayment &&
-        !state.isSubmittingSale &&
-        allocation.canComplete;
+        !state.isSubmittingSale;
+    final canComplete = ready && allocation.canComplete;
+    // Refused by the server, or already over the limit on this device.
+    final creditBlock = _creditBlock ??
+        (allocation.overLimit
+            ? _CreditBlock(
+                message: KhataText.creditBlockedNoNumbers,
+                numbers: PaymentPlanner.creditContext(
+                  state.selectedCustomer,
+                  canSeeBalance: _canSeeBalance,
+                ).numbersAfter(allocation.creditAmount),
+              )
+            : null);
 
     return Dialog(
       insetPadding: const EdgeInsets.all(40),
@@ -375,7 +392,7 @@ class _PaymentModalState extends State<PaymentModal> {
                 const SizedBox(height: 8),
                 _ChangeBanner(change: allocation.change),
               ],
-              if (allocation.error != null) ...[
+              if (allocation.error != null && !allocation.overLimit) ...[
                 const SizedBox(height: 8),
                 Text(
                   allocation.error!,
@@ -392,15 +409,15 @@ class _PaymentModalState extends State<PaymentModal> {
                     ),
                   ),
               ],
-              if (_creditBlock != null) ...[
+              if (creditBlock != null) ...[
                 const SizedBox(height: 8),
-                _CreditBlockedNotice(
-                  block: _creditBlock!,
-                  busy: state.isSubmittingSale,
-                  onAllowAnyway: () =>
-                      _completeSale(state, overrideCredit: true),
+                CreditBlockedNotice(
+                  message: creditBlock.message,
+                  numbers: creditBlock.numbers,
+                  onAllowAnyway: ready
+                      ? () => _completeSale(state, creditOverride: true)
+                      : null,
                 ),
-                const _CreditNoOverrideHint(),
               ],
               if (_error != null) ...[
                 const SizedBox(height: 8),
@@ -443,87 +460,12 @@ class _PaymentModalState extends State<PaymentModal> {
   }
 }
 
-/// The server refused the sale for the customer's credit limit.
+/// Why the credit limit stopped the sale.
 class _CreditBlock {
-  const _CreditBlock({
-    required this.message,
-    required this.credit,
-    required this.needed,
-  });
+  const _CreditBlock({required this.message, this.numbers});
 
   final String message;
-  final CreditContext credit;
-
-  /// The part of the sale that was going on credit.
-  final Decimal needed;
-}
-
-/// "Credit limit reached" with the customer's numbers. People who may
-/// override (`customers.credit.override`) get "Allow anyway"; everybody else
-/// is told to ask the owner or take more money now.
-class _CreditBlockedNotice extends StatelessWidget {
-  const _CreditBlockedNotice({
-    required this.block,
-    required this.busy,
-    required this.onAllowAnyway,
-  });
-
-  final _CreditBlock block;
-  final bool busy;
-  final VoidCallback onAllowAnyway;
-
-  @override
-  Widget build(BuildContext context) {
-    final limit = block.credit.creditLimit;
-    final available = block.credit.available;
-    final knowsNumbers = !block.credit.serverChecksLimit &&
-        block.credit.balance != null &&
-        limit != null &&
-        limit > Decimal.zero &&
-        available != null;
-    final body = knowsNumbers
-        ? KhataText.creditBlockedBody(
-            limit: formatPKR(limit),
-            owed: formatPKR(block.credit.alreadyOwed),
-            available: formatPKR(available),
-            needed: formatPKR(block.needed),
-          )
-        : block.message;
-    return KhataNotice(
-      key: const ValueKey('credit-blocked'),
-      icon: Icons.credit_score_outlined,
-      title: KhataText.creditBlockedTitle,
-      body: body,
-      action: PermissionGate(
-        permission: Perm.customersCreditOverride,
-        child: FilledButton(
-          key: const ValueKey('credit-allow-anyway'),
-          onPressed: busy ? null : onAllowAnyway,
-          child: const Text(KhataText.allowAnyway),
-        ),
-      ),
-    );
-  }
-}
-
-/// Shown under the notice for people who cannot override.
-class _CreditNoOverrideHint extends StatelessWidget {
-  const _CreditNoOverrideHint();
-
-  @override
-  Widget build(BuildContext context) {
-    if (hasPermission(context, Perm.customersCreditOverride)) {
-      return const SizedBox.shrink();
-    }
-    return const Padding(
-      padding: EdgeInsets.only(top: 6),
-      child: Text(
-        KhataText.creditBlockedNoOverride,
-        key: ValueKey('credit-no-override'),
-        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-      ),
-    );
-  }
+  final CreditNumbers? numbers;
 }
 
 class _ShiftRequiredBanner extends StatelessWidget {
@@ -552,7 +494,7 @@ class _ShiftRequiredBanner extends StatelessWidget {
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
-              'Open shift first. Sales need an open register shift.',
+              ShiftRequiredException.needsShift,
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -765,7 +707,7 @@ class _PaymentLineEditor extends StatelessWidget {
                   ),
                   for (final amount in [500, 1000, 5000])
                     ActionChip(
-                      label: Text('Rs. $amount'),
+                      label: Text('$currencyLabel $amount'),
                       onPressed: () =>
                           onQuickCash!(Decimal.fromInt(amount)),
                     ),

@@ -107,7 +107,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
   Future<Either<Failure, CustomerPaymentResponseModel>> recordPayment(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,
@@ -116,7 +116,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
     try {
       final body = <String, dynamic>{
         'amount': DecimalUtils.format(amount),
-        'payment_method': paymentMethod,
+        'payment_source': paymentSource,
       };
       if (referenceNo != null && referenceNo.isNotEmpty) {
         body['reference_no'] = referenceNo;

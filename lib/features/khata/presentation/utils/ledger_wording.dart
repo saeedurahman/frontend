@@ -11,8 +11,8 @@ enum LedgerParty { customer, supplier }
 ///
 /// Both ledgers use one sign: negative = money is owed (we owe the supplier, or
 /// the customer owes us). The screens never show that sign: the balance says in
-/// words who owes, and an amount says what it was, with "+" when it adds to what
-/// is owed and "-" when it takes away.
+/// words who owes, and an amount says what it was, in red when it adds to what
+/// is owed and green when it takes away.
 abstract final class LedgerWording {
   /// More owed.
   static const Color more = AppColors.error;
@@ -42,8 +42,8 @@ abstract final class LedgerWording {
     return (text: KhataText.balanceSettled, color: AppColors.textPrimary);
   }
 
-  /// "Goods +1,000.00" / "Paid -300.00". [type] is the server's `entry_type`;
-  /// [amount] has the ledger sign.
+  /// "Goods received 1,000.00" / "Paid 300.00". [type] is the server's
+  /// `entry_type`; [amount] has the ledger sign, which picks the colour only.
   static ({String text, Color color}) amount({
     required String type,
     required Decimal amount,
@@ -62,16 +62,11 @@ abstract final class LedgerWording {
       // Opening balances and corrections can go either way.
       _ => addsToOwed ? KhataText.amountAdded : KhataText.amountReduced,
     };
-    if (amount == Decimal.zero) {
-      return (
-        text: '$word ${formatMoneyNumber(amount)}',
-        color: AppColors.textPrimary,
-      );
-    }
-    final sign = addsToOwed ? '+' : '-';
     return (
-      text: '$word $sign${formatMoneyNumber(amount.abs())}',
-      color: addsToOwed ? more : less,
+      text: '$word ${formatMoneyNumber(amount.abs())}',
+      color: amount == Decimal.zero
+          ? AppColors.textPrimary
+          : (addsToOwed ? more : less),
     );
   }
 }

@@ -14,7 +14,7 @@ class RecordCustomerPaymentUseCase {
   Future<Either<Failure, CustomerPaymentResponseModel>> call(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,
@@ -23,7 +23,7 @@ class RecordCustomerPaymentUseCase {
       _repository.recordPayment(
         customerId,
         amount: amount,
-        paymentMethod: paymentMethod,
+        paymentSource: paymentSource,
         referenceNo: referenceNo,
         notes: notes,
         registerShiftId: registerShiftId,

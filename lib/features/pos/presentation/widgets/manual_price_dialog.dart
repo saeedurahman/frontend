@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class ManualPriceDialog extends StatefulWidget {
   const ManualPriceDialog({
@@ -77,7 +78,7 @@ class _ManualPriceDialogState extends State<ManualPriceDialog> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               decoration: InputDecoration(
-                labelText: 'Price (Rs.) *',
+                labelText: 'Price ($currencyLabel) *',
                 border: const OutlineInputBorder(),
                 errorText: _error,
               ),

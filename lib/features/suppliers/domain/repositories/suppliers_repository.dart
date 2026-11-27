@@ -24,11 +24,15 @@ abstract class SuppliersRepository {
     String? branchId,
   });
 
+  /// [dateFrom] / [dateTo] are whole days (both included); the server filters
+  /// and answers the opening and closing balance of that period.
   Future<Either<Failure, SupplierLedgerPage>> getLedger(
     String supplierId, {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   });
 
   Future<Either<Failure, SupplierPaymentResult>> paySupplier(

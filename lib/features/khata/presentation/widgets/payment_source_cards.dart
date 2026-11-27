@@ -9,9 +9,13 @@ IconData paymentSourceIcon(PaymentSource source) => switch (source) {
       PaymentSource.easypaisa => Icons.phone_android_outlined,
       PaymentSource.jazzcash => Icons.smartphone_outlined,
       PaymentSource.cheque => Icons.edit_note_outlined,
+      PaymentSource.card => Icons.credit_card_outlined,
+      PaymentSource.wallet => Icons.wallet_outlined,
+      PaymentSource.other => Icons.more_horiz,
     };
 
-/// Large selectable cards: "Where is the money coming from?"
+/// Large selectable cards: "Where is the money coming from?" (or, for a
+/// customer's payment, how it is coming in).
 class PaymentSourceCards extends StatelessWidget {
   const PaymentSourceCards({
     super.key,
@@ -19,7 +23,14 @@ class PaymentSourceCards extends StatelessWidget {
     required this.onSelected,
     this.enabled = true,
     this.cardWidth = 150,
+    this.sources = PaymentSource.supplierSources,
+    this.incoming = false,
   });
+
+  final List<PaymentSource> sources;
+
+  /// The money is coming in (a customer is paying).
+  final bool incoming;
 
   final PaymentSource selected;
   final ValueChanged<PaymentSource> onSelected;
@@ -32,10 +43,11 @@ class PaymentSourceCards extends StatelessWidget {
       spacing: 10,
       runSpacing: 10,
       children: [
-        for (final source in PaymentSource.values)
+        for (final source in sources)
           _SourceCard(
             key: ValueKey('source_${source.apiValue}'),
             source: source,
+            hint: incoming ? source.incomingHint : source.hint,
             selected: source == selected,
             width: cardWidth,
             onTap: enabled ? () => onSelected(source) : null,
@@ -49,12 +61,14 @@ class _SourceCard extends StatelessWidget {
   const _SourceCard({
     super.key,
     required this.source,
+    required this.hint,
     required this.selected,
     required this.width,
     required this.onTap,
   });
 
   final PaymentSource source;
+  final String hint;
   final bool selected;
   final double width;
   final VoidCallback? onTap;
@@ -104,7 +118,7 @@ class _SourceCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      source.hint,
+                      hint,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(

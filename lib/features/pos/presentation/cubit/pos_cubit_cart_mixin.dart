@@ -920,14 +920,14 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
 
   /// Completes the sale. Payments must add up to the total on every path.
   ///
-  /// [allowCreditOverride]: only after the server refused for the customer's
-  /// credit limit and the person holds `customers.credit.override`. The paid
-  /// part is sent without a credit tender and the server puts the remainder on
-  /// the customer's account (and records the override).
+  /// [creditOverride]: only from "Allow anyway", which is shown to people who
+  /// hold `customers.credit.override` after the sale was stopped for the
+  /// customer's credit limit. The same sale is sent with
+  /// `credit_override: true`; nobody passes the limit without it.
   Future<SaleResponseModel> submitSale(
     List<PaymentLineModel> payments, {
     bool confirmExpired = false,
-    bool allowCreditOverride = false,
+    bool creditOverride = false,
   }) async {
     // Hard gate for every path (plain, dine-in, resumed order): no open shift,
     // no sale. The UI also blocks this, but the cubit is the authority.
@@ -939,7 +939,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         (this as PosCubitDineInMixin).isDineIn) {
       return (this as PosCubitDineInMixin).completeDineInTab(
         payments,
-        allowCreditOverride: allowCreditOverride,
+        creditOverride: creditOverride,
       );
     }
 
@@ -956,7 +956,6 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
       payments: payments,
       due: state.displayGrandTotal,
       hasCustomer: hasCustomer,
-      allowCreditRemainder: allowCreditOverride,
     );
 
     _safeEmit(state.patch(isSubmittingSale: true));
@@ -975,6 +974,7 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         customerId: state.selectedCustomer?.id,
         notes: state.cartNote,
         payments: PosSaleRequestBuilder.paymentsJson(payments),
+        creditOverride: creditOverride,
       );
 
       // Same cart + payments as a failed earlier attempt = the same sale id,
@@ -990,9 +990,14 @@ mixin PosCubitCartMixin on PosCubitBase, PosCubitShiftMixin {
         throw Exception('Sale submission cancelled');
       }
       return await result.fold(
-        (failure) =>
-            throw SaleFailureMapper.map(failure, hasCustomer: hasCustomer) ??
-                Exception(UserErrorMessage.from(failure)),
+        (failure) async {
+          final refusal =
+              SaleFailureMapper.map(failure, hasCustomer: hasCustomer);
+          if (refusal is ShiftRequiredException) {
+            await _dropRefusedShift(failure.code);
+          }
+          throw refusal ?? Exception(UserErrorMessage.from(failure));
+        },
         (sale) {
           _saleAttempts.completed();
           clearCart();

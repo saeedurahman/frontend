@@ -120,6 +120,12 @@ abstract final class AppNav {
     ),
     NavEntry(
       section: 'FINANCE',
+      label: 'Khata',
+      icon: Icons.menu_book_outlined,
+      route: RouteNames.khata,
+    ),
+    NavEntry(
+      section: 'FINANCE',
       label: 'Expenses',
       icon: Icons.account_balance_wallet_outlined,
       route: RouteNames.expenses,

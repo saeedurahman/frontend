@@ -9,6 +9,9 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_c
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_header.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_table.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_layout.dart';
+import 'package:frantend/shared/widgets/min_width_scroll.dart';
 import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/utils/app_alerts.dart';
 
@@ -30,10 +33,11 @@ class CustomerLedgerPage extends StatelessWidget {
               .read<CustomerLedgerCubit>()
               .onBranchChanged(branchState.selectedBranchId);
         },
+        // The account stays usable offline: promises, reminders and notes are
+        // saved on this device and sent later.
         child: const OfflineAwareScaffold(
           message: 'The full ledger needs internet. '
-              "The customer's balance is still available on the customer screen.",
-          replaceChildWhenOffline: true,
+              'You can still record payments, promises and notes.',
           child: _CustomerLedgerView(),
         ),
       ),
@@ -59,13 +63,24 @@ class _CustomerLedgerView extends StatelessWidget {
           CustomerLedgerError(:final message) => Center(
               child: Text(message, style: AppTextStyles.bodyMedium),
             ),
-          CustomerLedgerLoaded loaded => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CustomerLedgerHeader(state: loaded),
-                const SizedBox(height: AppDimensions.spacingMd),
-                Expanded(child: CustomerLedgerTable(state: loaded)),
-              ],
+          CustomerLedgerLoaded loaded => PartyKhataLayout(
+              type: PartyType.customer,
+              partyId: loaded.customer.id,
+              name: loaded.customer.name,
+              branchId: context.read<CustomerLedgerCubit>().branchId,
+              account: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CustomerLedgerHeader(state: loaded),
+                  const SizedBox(height: AppDimensions.spacingMd),
+                  Expanded(
+                    child: MinWidthScroll(
+                      minWidth: 760,
+                      child: CustomerLedgerTable(state: loaded),
+                    ),
+                  ),
+                ],
+              ),
             ),
         };
       },

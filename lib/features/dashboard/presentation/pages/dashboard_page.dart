@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
@@ -13,9 +14,14 @@ import 'package:frantend/features/dashboard/data/models/sales_trend_model.dart';
 import 'package:frantend/features/dashboard/domain/entities/dashboard_data.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:frantend/features/dashboard/presentation/cubit/dashboard_state.dart';
+import 'package:frantend/features/khata/data/khata_repository.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/khata_dashboard_tiles.dart';
+import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -102,12 +108,24 @@ class _DashboardView extends StatelessWidget {
         final data = loaded.data;
         final summary = data.summary;
 
+        final khataTiles = sl.isRegistered<KhataRepository>() &&
+            hasPermission(context, Perm.khataView);
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _KpiSection(summary: summary, khata: data.khata),
+              _KpiSection(
+                summary: summary,
+                khata: data.khata,
+                // The khata cards below show these two, with their age.
+                showKhataTotals: !khataTiles,
+              ),
+              if (khataTiles) ...[
+                const SizedBox(height: AppDimensions.spacingLg),
+                const KhataDashboardTiles(),
+              ],
               const SizedBox(height: 28),
               _ChartsSection(
                 salesTrend: data.salesTrend,
@@ -205,10 +223,17 @@ class _DashboardLoading extends StatelessWidget {
 }
 
 class _KpiSection extends StatelessWidget {
-  const _KpiSection({required this.summary, this.khata});
+  const _KpiSection({
+    required this.summary,
+    this.khata,
+    this.showKhataTotals = true,
+  });
 
   final DashboardSummaryModel summary;
   final KhataSummaryModel? khata;
+
+  /// "Receivables" and "Payables" as plain cards.
+  final bool showKhataTotals;
 
   @override
   Widget build(BuildContext context) {
@@ -252,22 +277,24 @@ class _KpiSection extends StatelessWidget {
           subtitle: 'Today',
           borderColor: const Color(0xFFF59E0B),
         ),
-        _StatCard(
-          title: 'Receivables',
+        if (showKhataTotals) ...[
+          _StatCard(
+            title: 'Receivables',
           icon: Icons.people,
           value: formatPKR(
             khata?.receivable ?? summary.pendingCustomerReceivables,
           ),
           subtitle: KhataText.receivableHint,
           borderColor: const Color(0xFF8B5CF6),
-        ),
+          ),
         _StatCard(
           title: 'Payables',
           icon: Icons.local_shipping,
           value: formatPKR(khata?.payable ?? summary.pendingSupplierPayables),
           subtitle: KhataText.payableHint,
           borderColor: const Color(0xFFEF4444),
-        ),
+          ),
+        ],
         _StatCard(
           title: 'Cash in Drawer',
           icon: Icons.account_balance_wallet,
@@ -418,7 +445,7 @@ class _SalesTrendCard extends StatelessWidget {
                         return spots
                             .map(
                               (spot) => LineTooltipItem(
-                                'Rs. ${formatCompact(spot.y)}',
+                                '$currencyLabel ${formatCompact(spot.y)}',
                                 const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,

@@ -214,7 +214,6 @@ void main() {
         'format': format,
         'supplier_id': alphaId,
         'branch_id': tenant.branchId,
-        'date_from': '2000-01-01',
       });
       expect(
         files.lastSavedName,

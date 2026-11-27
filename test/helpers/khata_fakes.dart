@@ -27,9 +27,16 @@ class FakeShiftGuard extends Fake implements ShiftGuard {
     return shiftId;
   }
 
+  /// The branch the last [openNow] asked for.
+  String? openedIn;
+
   @override
-  Future<Either<Failure, String>> openNow({Decimal? openingFloat}) async {
+  Future<Either<Failure, String>> openNow({
+    Decimal? openingFloat,
+    String? branchId,
+  }) async {
     openCalls++;
+    openedIn = branchId;
     final result = openResult ?? const Right('opened-shift');
     result.fold((_) {}, (id) => shiftId = id);
     return result;

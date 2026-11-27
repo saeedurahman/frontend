@@ -71,6 +71,7 @@ import 'package:frantend/features/suppliers/domain/repositories/suppliers_reposi
 import 'package:frantend/features/suppliers/domain/usecases/supplier_usecases.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_state.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 // ---------------------------------------------------------------------------
 // Fakes & Mocks
@@ -151,7 +152,7 @@ class _FakeCustomersRepo extends Fake implements CustomersRepository {
   Future<Either<Failure, CustomerPaymentResponseModel>> recordPayment(
     String customerId, {
     required Decimal amount,
-    required String paymentMethod,
+    required String paymentSource,
     String? referenceNo,
     String? notes,
     String? registerShiftId,
@@ -525,7 +526,7 @@ void main() {
       // Now record payment
       final response = await cubit.recordPayment(
         amount: Decimal.fromInt(100),
-        paymentMethod: 'cash',
+        source: PaymentSource.drawer,
       );
       expect(response, isNotNull);
       expect(repo.lastPaymentBranchId, 'b1');

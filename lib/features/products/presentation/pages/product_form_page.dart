@@ -31,6 +31,7 @@ import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 class ProductFormPage extends StatelessWidget {
   const ProductFormPage({super.key, this.productId, this.taxRatesLoader});
@@ -339,7 +340,7 @@ class _PricingTabState extends State<_PricingTab> {
                           style: AppTextStyles.bodySmall,
                         ),
                         Text(
-                          'Rs. ${state.retailUnitPrice}',
+                          '$currencyLabel ${state.retailUnitPrice}',
                           style: AppTextStyles.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -391,9 +392,9 @@ class _PricingTabState extends State<_PricingTab> {
           TextField(
             key: const Key('product-price'),
             controller: _priceController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Price *',
-              prefixText: 'Rs. ',
+              prefixText: '$currencyLabel ',
               helperText: 'Retail price on the default price list',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),

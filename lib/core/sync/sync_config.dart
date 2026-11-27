@@ -53,6 +53,7 @@ abstract final class SyncErrorText {
     'unknown_branch': 'The branch no longer exists on the server.',
     'unknown_register': 'The cash register is not known to the server yet.',
     'unknown_customer': 'The customer is not known to the server yet.',
+    'unknown_supplier': 'The supplier is not known to the server yet.',
     'unknown_shift': 'The shift is not known to the server yet.',
     'sale_not_synced': 'The original sale has not reached the server yet.',
     'duplicate_receipt':
@@ -74,8 +75,10 @@ abstract final class SyncErrorText {
     'subscription_expired': 'Your subscription has expired. Renew to send this.',
     'subscription_suspended': 'Your subscription is suspended.',
     'subscription_cancelled': 'Your subscription was cancelled.',
-    'no_open_shift':
-        'Returns need an open shift. Open a shift, then press Retry.',
+    'no_open_shift': 'Open shift first: open a shift, then press Retry.',
+    'shift_not_yours':
+        'Open shift first: that shift belongs to someone else. Open your own '
+        'shift, then press Retry.',
     'internal_error': 'The server had a problem. It will be tried again.',
   };
 
@@ -98,6 +101,12 @@ abstract final class SyncErrorText {
         'Stock went below zero because this was sold while offline. Check the stock count.',
     'credit_limit_exceeded':
         "The credit portion took the customer past their credit limit.",
+    'credit_limit_overridden':
+        'This sale took the customer past their credit limit. Someone with that '
+        'permission chose "Allow anyway".',
+    'credit_override_denied':
+        'This sale was sent as "Allow anyway" by someone who is not allowed to '
+        'pass a credit limit. The sale is kept; check what the customer owes.',
     'cost_estimated':
         'There was not enough costed stock, so the last known cost was used for profit figures.',
     'shift_mismatch':
@@ -107,8 +116,24 @@ abstract final class SyncErrorText {
     'underpaid_unreconciled': KhataText.underpaidFlagExplain,
   };
 
+  /// Flags of a customer payment, where the wording differs from a sale.
+  static const paymentFlagText = <String, String>{
+    'shift_mismatch':
+        'This cash payment had no open shift of yours behind it. The payment is '
+        'kept as cash outside the drawer: no shift counts this money, so check '
+        'where it went.',
+  };
+
+  static String paymentFlag(String code) =>
+      paymentFlagText[code] ??
+      flagText[code] ??
+      'The server flagged this payment ($code).';
+
   /// Short names for the flags that need a clearer title than the code.
   static const flagTitle = <String, String>{
+    'credit_limit_overridden': 'Credit limit passed (allowed)',
+    'credit_override_denied': 'Credit override refused',
+    'shift_mismatch': 'No open shift for this cash',
     'underpaid_unreconciled': KhataText.underpaidFlagTitle,
   };
 

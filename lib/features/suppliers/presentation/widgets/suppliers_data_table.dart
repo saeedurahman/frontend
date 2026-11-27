@@ -4,6 +4,8 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/router/route_names.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
 import 'package:frantend/features/khata/presentation/utils/supplier_balance_text.dart';
 import 'package:frantend/features/khata/presentation/widgets/pay_supplier_dialog.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_cubit.dart';
@@ -41,7 +43,7 @@ class SuppliersDataTable extends StatelessWidget {
       itemId: (row) => row.supplier.id,
       itemLabel: 'suppliers',
       resetToken: cubit.newestCreatedId,
-      actionsWidth: 190,
+      actionsWidth: 230,
       sortCompare: _sortCompare,
       onRowTap: hasPermission(context, Perm.suppliersLedgerView)
           ? (row) => openSupplierForm(
@@ -61,7 +63,7 @@ class SuppliersDataTable extends StatelessWidget {
           columns: _supplierTableColumns,
           selected: selected,
           onSelected: onSelected,
-          actionsWidth: 190,
+          actionsWidth: 230,
           cells: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,6 +159,10 @@ class SuppliersDataTable extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
+              StatementRowButton(
+                type: PartyType.supplier,
+                partyId: supplier.id,
+              ),
               PermissionGate(
                 permission: Perm.suppliersUpdate,
                 mutating: true,

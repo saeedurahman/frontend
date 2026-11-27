@@ -194,6 +194,43 @@ void main() {
       expect(summary.expectedCash, '710.00');
     });
 
+    test('credit sales are their own total, also the unpaid rest', () async {
+      final repo = _repo(rig);
+      final shift = (await repo.openShift({
+        'cash_register_id': 'reg-1',
+        'opening_float': '500.00',
+      }))
+          .getOrElse(() => throw 'x');
+      Future<void> sale(String id, List<Map<String, dynamic>> payments,
+              {String? customerId}) =>
+          repo.createSale({
+            ...rig.cartBody(
+              shiftId: shift.id,
+              customerId: customerId,
+              payments: payments,
+            ),
+            'id': id,
+          });
+      // All on account.
+      await sale('s1', [
+        {'payment_method': 'credit', 'amount': '210.00'},
+      ], customerId: 'c1');
+      // 50 taken, the other 160 goes on the account.
+      await sale('s2', [
+        {'payment_method': 'cash', 'amount': '50.00'},
+      ], customerId: 'c1');
+      // Real "other" money.
+      await sale('s3', [
+        {'payment_method': 'cheque', 'amount': '210.00'},
+      ]);
+      final summary = (await repo.getShiftSummary(shift.id)).getOrElse(() => throw 'x');
+      expect(summary.creditSales, '370.00');
+      expect(summary.totalOtherSales, '210.00');
+      expect(summary.totalCashSales, '50.00');
+      expect(summary.expectedCash, '550.00');
+      expect(summary.totalSalesAmount.toString(), '630');
+    });
+
     test('quick-created customer is usable straight away and queued', () async {
       final repo = _repo(rig);
       final created = (await repo.createCustomer({'name': 'Walk In', 'phone': '0345'}))
@@ -319,7 +356,7 @@ void main() {
       await rig.writer.recordCustomerPayment(
         customerId: 'c1',
         amount: Decimal.parse('300'),
-        paymentMethod: 'cash',
+        paymentSource: 'cash',
       );
       expect((await rig.catalog.customer('c1'))!.balance, '-700.00');
       expect(customer('0').creditLimit, '5000');
@@ -338,7 +375,7 @@ void main() {
       final r = (await repo.recordPayment(
         'c1',
         amount: Decimal.parse('250'),
-        paymentMethod: 'cash',
+        paymentSource: 'cash',
       ))
           .getOrElse(() => throw 'x');
       expect(r.newBalance, '-750.00');

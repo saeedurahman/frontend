@@ -10,6 +10,9 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_s
 import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
 import 'package:frantend/features/customers/presentation/utils/ledger_entry_formatters.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/party_type.dart';
+import 'package:frantend/features/khata/domain/text/entry_text.dart';
+import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
 import 'package:frantend/features/khata/presentation/widgets/reverse_payment_dialog.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
@@ -41,6 +44,10 @@ class CustomerLedgerTable extends StatelessWidget {
     final cubit = context.read<CustomerLedgerCubit>();
     // Hidden (not just disabled) for people who may not reverse payments.
     final canReverse = hasPermission(context, Perm.customersPaymentsReverse);
+    final khata = khataRepositoryIfAny();
+    final canReverseEntries =
+        khata != null && hasPermission(context, Perm.customersLedgerManage);
+    final showActions = canReverse || canReverseEntries;
 
     // A new line goes to the top, so the table leaves any column sort and
     // shows its first page.
@@ -72,7 +79,7 @@ class CustomerLedgerTable extends StatelessWidget {
       itemLabel: 'entries',
       resetToken: newest,
       showSelection: false,
-      showActions: canReverse,
+      showActions: showActions,
       actionsHeader: '',
       actionsWidth: 150,
       sortCompare: _sortCompare,
@@ -105,19 +112,26 @@ class CustomerLedgerTable extends StatelessWidget {
           showSelection: false,
           selected: selected,
           onSelected: onSelected,
-          actionsWidth: canReverse ? 150 : 0,
+          actionsWidth: showActions ? 150 : 0,
           actions: canReverse && line.canReverse
-              ? TextButton.icon(
+              ? _ReverseButton(
                   key: ValueKey('reverse_${entry.id}'),
+                  label: KhataText.reversePayment,
                   onPressed: () => _reverse(context, line),
-                  icon: const Icon(Icons.undo, size: 16),
-                  label: const Text(KhataText.reversePayment),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.warning,
-                    textStyle: const TextStyle(fontSize: 12),
-                  ),
                 )
-              : const SizedBox.shrink(),
+              : canReverseEntries && line.canReverseEntry
+                  ? _ReverseButton(
+                      key: ValueKey('reverse_entry_${entry.id}'),
+                      label: EntryText.reverseEntry,
+                      onPressed: () => reverseKhataEntry(
+                        context,
+                        repository: khata,
+                        type: PartyType.customer,
+                        line: line,
+                        name: state.customer.name,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
           cells: [
             Text(
               formatLedgerEntryDate(entry.entryAt),
@@ -166,9 +180,9 @@ class CustomerLedgerTable extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (entry.notes != null && entry.notes!.isNotEmpty)
+                if (line.note != null && line.note!.isNotEmpty)
                   Text(
-                    entry.notes!,
+                    line.note!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -248,6 +262,28 @@ class CustomerLedgerTable extends StatelessWidget {
       _ => 0,
     };
   }
+}
+
+class _ReverseButton extends StatelessWidget {
+  const _ReverseButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => TextButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.undo, size: 16),
+        label: Text(label, overflow: TextOverflow.ellipsis),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.warning,
+          textStyle: const TextStyle(fontSize: 12),
+        ),
+      );
 }
 
 class _Tag extends StatelessWidget {

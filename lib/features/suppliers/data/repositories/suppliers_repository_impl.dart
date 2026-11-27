@@ -92,6 +92,8 @@ class SuppliersRepositoryImpl implements SuppliersRepository {
     String? branchId,
     int skip = 0,
     int limit = 50,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   }) async {
     try {
       return Right(
@@ -100,6 +102,8 @@ class SuppliersRepositoryImpl implements SuppliersRepository {
           branchId: branchId,
           skip: skip,
           limit: limit,
+          dateFrom: dateFrom,
+          dateTo: dateTo,
         ),
       );
     } catch (e) {

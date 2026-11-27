@@ -21,6 +21,9 @@ class SyncEngineState {
     this.deviceRevoked = false,
   });
 
+  /// True only while there is real work: sending queued changes, receiving
+  /// changes, downloading the first copy, or a sync the user asked for. A
+  /// background check that finds nothing never sets it.
   final bool syncing;
   final DateTime? lastSyncedAt;
   final String? lastError;
@@ -126,6 +129,7 @@ class SyncEngine {
   StreamSubscription<ReachabilityStatus>? _probeSub;
   Future<void>? _running;
   bool _rerun = false;
+  bool _rerunManual = false;
   bool _started = false;
   Duration _backoff = Duration.zero;
   ReachabilityStatus _lastProbe = ReachabilityStatus.online;
@@ -212,6 +216,7 @@ class SyncEngine {
     final running = _running;
     if (running != null) {
       _rerun = true;
+      if (manual) _rerunManual = true;
       return running;
     }
     final future = _runLoop(manual: manual, forceSnapshot: forceSnapshot)
@@ -222,22 +227,36 @@ class SyncEngine {
 
   Future<void> _runLoop({required bool manual, required bool forceSnapshot}) async {
     var force = forceSnapshot;
-    do {
-      _rerun = false;
-      await _cycle(manual: manual, forceSnapshot: force);
-      force = false;
-    } while (_rerun);
-    _schedule();
+    var asked = manual;
+    try {
+      do {
+        _rerun = false;
+        _rerunManual = false;
+        await _cycle(manual: asked, forceSnapshot: force);
+        force = false;
+        asked = _rerunManual;
+      } while (_rerun);
+    } finally {
+      // Whatever happened, the next cycle is still planned.
+      _schedule();
+    }
+  }
+
+  void _working() {
+    if (!_state.syncing) _emit(_state.copyWith(syncing: true));
   }
 
   Future<void> _cycle({required bool manual, required bool forceSnapshot}) async {
     if (!manual && _probe.current == ReachabilityStatus.offline) {
-      await refreshState();
+      await _settle();
       return;
     }
-    _emit(_state.copyWith(syncing: true, clearError: true));
+    _emit(_state.copyWith(clearError: true));
+    var succeeded = false;
     try {
-      final push = await _push.pushAll();
+      // The user pressed a button: show that something is happening.
+      if (manual || forceSnapshot) _working();
+      final push = await _push.pushAll(onWork: _working);
       if (push.deviceRevoked) {
         _emit(_state.copyWith(deviceRevoked: true, lastError: push.message));
         await hooks.onDeviceRevoked?.call(push.message ?? 'This device was removed.');
@@ -255,7 +274,10 @@ class SyncEngine {
         return;
       }
 
-      final pull = await _pull.pullAll(forceSnapshot: forceSnapshot);
+      final pull = await _pull.pullAll(
+        forceSnapshot: forceSnapshot,
+        onWork: _working,
+      );
       if (pull.deviceRevoked) {
         _emit(_state.copyWith(deviceRevoked: true, lastError: pull.message));
         await hooks.onDeviceRevoked?.call(pull.message ?? 'This device was removed.');
@@ -271,19 +293,38 @@ class SyncEngine {
         await _store.releaseDeferred();
       });
       _backoff = Duration.zero;
-      try {
-        await hooks.afterSync?.call();
-      } catch (e) {
-        AppLogger.warning('Post-sync extras failed: $e');
-      }
-      _emit(_state.copyWith(clearError: true));
+      succeeded = true;
     } catch (e, st) {
       AppLogger.error('Sync cycle failed', error: e, stackTrace: st);
       _failedContact(UserErrorMessage.from(e));
+      // Items marked "sending" when the cycle broke are sent again (the
+      // server recognises them by their id).
+      try {
+        await _store.resetSending();
+      } catch (e) {
+        AppLogger.warning('Could not release unsent items: $e');
+      }
     } finally {
-      await refreshState();
-      _emit(_state.copyWith(syncing: false, clearProgress: true));
+      await _settle();
     }
+    if (!succeeded) return;
+    // Not part of the sync: the screen is already idle while these run.
+    try {
+      await hooks.afterSync?.call();
+    } catch (e) {
+      AppLogger.warning('Post-sync extras failed: $e');
+    }
+  }
+
+  /// Reads the counters again and marks the engine idle. The idle mark is set
+  /// even when the counters cannot be read.
+  Future<void> _settle() async {
+    try {
+      await refreshState();
+    } catch (e) {
+      AppLogger.warning('Could not refresh the sync state: $e');
+    }
+    _emit(_state.copyWith(syncing: false, clearProgress: true));
   }
 
   void _failedContact(String? message, {Duration? retryAfter}) {

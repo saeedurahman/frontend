@@ -10,6 +10,7 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/tax/tax_settings.dart';
 import 'package:frantend/features/customers/data/datasources/customers_remote_datasource.dart';
+import 'package:frantend/features/customers/data/models/customer_ledger_entry_model.dart';
 import 'package:frantend/features/customers/data/repositories/customers_repository_impl.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/customers/domain/usecases/record_customer_payment_usecase.dart';
@@ -17,6 +18,7 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_c
 import 'package:frantend/features/customers/presentation/pages/customer_ledger_page.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_wording.dart';
 import 'package:frantend/features/khata/presentation/widgets/khata_ledger_table.dart';
@@ -61,13 +63,16 @@ void _expectColor(WidgetTester tester, String text, Color color) =>
 double _top(WidgetTester tester, String text) =>
     tester.getTopLeft(find.text(text)).dy;
 
-/// No amount of money on screen carries a minus sign in front of "Rs.".
-void _expectNoMinusMoney(WidgetTester tester) {
+/// No amount of money on screen carries a plus or minus sign.
+void _expectNoSignedMoney(WidgetTester tester) {
   final all = tester
       .widgetList<Text>(find.byType(Text))
       .map((t) => t.data ?? '')
       .toList();
-  expect(all.where((s) => RegExp(r'-\s*Rs|Rs\.\s*-').hasMatch(s)), isEmpty);
+  expect(
+    all.where((s) => RegExp(r'(^|\s)[+-]\s*(Rs|\d)|Rs\.\s*[+-]').hasMatch(s)),
+    isEmpty,
+  );
 }
 
 void _bigWindow(WidgetTester tester) {
@@ -134,46 +139,174 @@ void main() {
     test('supplier: goods add to what we owe, payments take from it', () {
       expect(
         amount('sale', '-1000', LedgerParty.supplier),
-        (text: 'Goods +1,000', color: _red),
+        (text: 'Goods received 1,000', color: _red),
       );
       expect(
         amount('payment', '300', LedgerParty.supplier),
-        (text: 'Paid -300', color: _green),
+        (text: 'Paid 300', color: _green),
       );
       expect(
         amount('reversal', '-300', LedgerParty.supplier),
-        (text: 'Reversed +300', color: _red),
+        (text: 'Reversed 300', color: _red),
       );
       expect(
         amount('return', '100', LedgerParty.supplier),
-        (text: 'Returned -100', color: _green),
+        (text: 'Returned 100', color: _green),
       );
     });
 
     test('customer: the same, seen from the customer', () {
       expect(
         amount('sale', '-1000', LedgerParty.customer),
-        (text: 'Sale +1,000', color: _red),
+        (text: 'Credit sale 1,000', color: _red),
       );
       expect(
         amount('payment', '300', LedgerParty.customer),
-        (text: 'Received -300', color: _green),
+        (text: 'Received 300', color: _green),
       );
       expect(
         amount('reversal', '-300', LedgerParty.customer),
-        (text: 'Reversed +300', color: _red),
+        (text: 'Reversed 300', color: _red),
       );
     });
 
     test('a correction goes either way', () {
       expect(
         amount('adjustment', '-5', LedgerParty.supplier).text,
-        'Added +5',
+        'Added 5',
       );
       expect(
         amount('adjustment', '5', LedgerParty.supplier).text,
-        'Reduced -5',
+        'Reduced 5',
       );
+    });
+  });
+
+  group('wording from the fields, not the stored description', () {
+    LedgerLine customer(Map<String, dynamic> row) => LedgerLine.fromCustomer(
+          CustomerLedgerEntryModel.fromJson({
+            'id': 'r1',
+            'business_id': 'b1',
+            'customer_id': 'c1',
+            'amount': '50',
+            'entry_type': 'payment',
+            ...row,
+          }),
+        );
+
+    test('every source has one label', () {
+      expect(
+        {
+          for (final s in [
+            'drawer',
+            'owner_pocket',
+            'bank',
+            'bank_transfer',
+            'easypaisa',
+            'jazzcash',
+            'cheque',
+            'card',
+          ])
+            s: PaymentSource.describe(s),
+        },
+        {
+          'drawer': 'Cash drawer',
+          'owner_pocket': "Owner's pocket",
+          'bank': 'Bank',
+          'bank_transfer': 'Bank',
+          'easypaisa': 'Easypaisa',
+          'jazzcash': 'JazzCash',
+          'cheque': 'Cheque',
+          'card': 'Card',
+        },
+      );
+    });
+
+    test("a customer's account uses the words of their statement", () {
+      expect(
+        {
+          for (final s in [
+            'drawer',
+            'cash',
+            'owner_pocket',
+            'bank',
+            'bank_transfer',
+            'easypaisa',
+            'jazzcash',
+            'cheque',
+            'card',
+            'something_new',
+          ])
+            s: customer({'payment_source': s}).sourceLabel,
+        },
+        {
+          'drawer': 'Cash',
+          'cash': 'Cash',
+          'owner_pocket': 'Cash',
+          'bank': 'Bank transfer',
+          'bank_transfer': 'Bank transfer',
+          'easypaisa': 'Easypaisa',
+          'jazzcash': 'JazzCash',
+          'cheque': 'Cheque',
+          'card': 'Card',
+          'something_new': 'Other',
+        },
+      );
+      expect(
+        customer({'payment_source': 'cash', 'register_shift_id': 's1'})
+            .sourceLabel,
+        'Cash',
+      );
+      expect(customer({}).sourceLabel, '');
+    });
+
+    test('an old generated description is not shown', () {
+      final line = customer({
+        'payment_source': 'bank',
+        'reference_no': 'TX-9',
+        'notes': 'Payment received via bank_transfer | Ref: TX-9 | for May',
+      });
+      expect(line.detail, 'Bank transfer · #TX-9');
+      expect(line.note, 'for May');
+    });
+
+    test('a reference kept only in the old text is still shown', () {
+      final line = customer({
+        'payment_source': 'cheque',
+        'notes': 'Payment received via cheque | Ref: 000123',
+      });
+      expect(line.detail, 'Cheque · #000123');
+      expect(line.note, isNull);
+    });
+
+    test('old reversal text leaves the reason', () {
+      final line = customer({
+        'entry_type': 'reversal',
+        'amount': '-50',
+        'notes': 'Reversal of payment: typed twice',
+      });
+      expect(line.note, 'typed twice');
+    });
+
+    test("the user's own words and goods receipt text stay", () {
+      expect(
+        customer({'notes': 'Payment received via my brother'}).note,
+        'Payment received via my brother',
+      );
+      final paid = LedgerLine.fromSupplier(
+        SupplierLedgerEntry(
+          id: 's',
+          supplierId: 's1',
+          entryType: 'payment',
+          amount: _d('300'),
+          runningBalance: _d('0'),
+          entryAt: DateTime(2026, 11, 1),
+          paymentSource: 'drawer',
+          notes: 'Paid at goods receipt GRN-7',
+        ),
+      );
+      expect(paid.note, 'Paid at goods receipt GRN-7');
+      expect(paid.detail, 'Cash drawer');
     });
   });
 
@@ -193,6 +326,9 @@ void main() {
       expect(LedgerLine.customerTypeLabel('sale'), 'Credit sale');
       expect(LedgerLine.customerTypeLabel('payment'), 'Payment received');
       expect(LedgerLine.customerTypeLabel('reversal'), 'Payment reversed');
+      expect(LedgerLine.customerTypeLabel('return_'), 'Goods returned');
+      expect(LedgerLine.customerTypeLabel('refund'), 'Credit sale cancelled');
+      expect(LedgerLine.customerTypeLabel('correction'), 'Adjustment');
     });
   });
 
@@ -249,7 +385,7 @@ void main() {
     expect(find.textContaining('Sale'), findsNothing);
 
     for (final source in [
-      'Drawer',
+      'Cash drawer',
       "Owner's pocket",
       'Bank',
       'Easypaisa',
@@ -259,12 +395,12 @@ void main() {
       expect(find.text(source), findsOneWidget, reason: source);
     }
 
-    _expectColor(tester, 'Goods +1,000', _red);
-    _expectColor(tester, 'Expense +500', _red);
-    _expectColor(tester, 'Paid -60', _green);
+    _expectColor(tester, 'Goods received 1,000', _red);
+    _expectColor(tester, 'Expense 500', _red);
+    _expectColor(tester, 'Paid 60', _green);
     _expectColor(tester, 'Rs. 1,000 we owe', _red);
     _expectColor(tester, 'Rs. 200 advance', _green);
-    _expectNoMinusMoney(tester);
+    _expectNoSignedMoney(tester);
 
     final tops = [
       for (final balance in [
@@ -375,23 +511,24 @@ void main() {
       expect(find.text('Credit sale'), findsOneWidget);
       expect(find.text('Payment received'), findsNWidgets(2));
       expect(find.text('Payment reversed'), findsOneWidget);
-      expect(find.text('Drawer'), findsOneWidget);
+      expect(find.text('Cash'), findsOneWidget);
+      expect(find.textContaining('drawer'), findsNothing);
       expect(find.text('Easypaisa'), findsOneWidget);
 
-      _expectColor(tester, 'Sale +1,127', _red);
-      _expectColor(tester, 'Received -1,000', _green);
-      _expectColor(tester, 'Reversed +40', _red);
+      _expectColor(tester, 'Credit sale 1,127', _red);
+      _expectColor(tester, 'Received 1,000', _green);
+      _expectColor(tester, 'Reversed 40', _red);
       _expectColor(tester, 'Rs. 1,077 they owe', _red);
       _expectColor(tester, 'Rs. 50 advance', _green);
-      _expectNoMinusMoney(tester);
+      _expectNoSignedMoney(tester);
 
       final tops = [
         for (final amount in [
-          'Reversed +40',
-          'Received -1,000',
-          'Sale +1,127',
-          'Received -40',
-          'Reduced -10',
+          'Reversed 40',
+          'Received 1,000',
+          'Credit sale 1,127',
+          'Received 40',
+          'Reduced 10',
         ])
           _top(tester, amount),
       ];

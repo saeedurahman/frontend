@@ -1,22 +1,33 @@
 import 'package:equatable/equatable.dart';
+import 'package:frantend/core/error/api_error_parser.dart';
 
 abstract class Failure extends Equatable {
   const Failure(this.message);
 
   final String message;
 
+  /// Machine code of a `detail: {code, message}` body (e.g. `no_open_shift`).
+  String? get code => null;
+
   @override
   List<Object?> get props => [message];
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure([super.message = 'Server error occurred', this.code]);
-
-  /// Machine code of a `detail: {code, message}` body (e.g. `no_open_shift`).
-  final String? code;
+  const ServerFailure([
+    super.message = 'Server error occurred',
+    this.code,
+    this.credit,
+  ]);
 
   @override
-  List<Object?> get props => [message, code];
+  final String? code;
+
+  /// The customer's numbers on `credit_limit_exceeded`.
+  final CreditNumbers? credit;
+
+  @override
+  List<Object?> get props => [message, code, credit];
 }
 
 class CacheFailure extends Failure {
@@ -33,21 +44,33 @@ class AuthFailure extends Failure {
 
 class ValidationFailure extends Failure {
   const ValidationFailure(
-    [super.message = 'Validation failed', this.fieldErrors = const {}]
+    [super.message = 'Validation failed',
+    this.fieldErrors = const {},
+    this.code]
   );
 
   /// Per-field messages keyed by the field path (e.g. `phone`, `lines.0.qty`).
   final Map<String, String> fieldErrors;
 
   @override
-  List<Object?> get props => [message, fieldErrors];
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, fieldErrors, code];
 }
 
 /// HTTP 403: the session is valid but the user lacks the permission.
 class PermissionDeniedFailure extends Failure {
-  const PermissionDeniedFailure(
-    [super.message = "You don't have permission to do this."]
-  );
+  const PermissionDeniedFailure([
+    super.message = "You don't have permission to do this.",
+    this.code,
+  ]);
+
+  @override
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, code];
 }
 
 /// HTTP 429, with the cool-down taken from the `Retry-After` header.
@@ -71,7 +94,7 @@ class ConflictFailure extends Failure {
     [super.message = 'This record already exists', this.code]
   );
 
-  /// Machine code of a `detail: {code, message}` body.
+  @override
   final String? code;
 
   @override
@@ -181,6 +204,7 @@ class SubscriptionFailure extends Failure {
     );
   }
 
+  @override
   final String code;
   final DateTime? expiredAt;
   final SubscriptionContact contact;

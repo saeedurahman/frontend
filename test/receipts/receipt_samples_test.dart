@@ -1,6 +1,7 @@
 // Draws every receipt design (thermal roll 80 / roll 58, A4) with the sample
-// sale and saves PNG + PDF files in docs/receipt_samples/ for people to look
-// at. Fails if a design stops producing a picture or a valid PDF.
+// sale and saves PNG + PDF files for people to look at: in
+// build/test_samples/receipt_samples/, or in docs/receipt_samples/ when run with
+// UPDATE_SAMPLES=1. Fails if a design stops producing a picture or a valid PDF.
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -13,6 +14,8 @@ import 'package:frantend/features/receipts/domain/receipt_model_builder.dart';
 import 'package:frantend/features/receipts/domain/receipt_samples.dart';
 import 'package:frantend/features/receipts/presentation/render/receipt_pdf_renderer.dart';
 import 'package:frantend/features/receipts/presentation/widgets/receipt_view.dart';
+
+import '../helpers/sample_output.dart';
 
 class _Sample {
   const _Sample(this.design, this.paper, this.width, [this.language = ReceiptLanguage.en]);
@@ -39,10 +42,9 @@ final _samples = [
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final dir = Directory('docs/receipt_samples');
+  final dir = sampleOutputDir('receipt_samples');
 
   setUpAll(() async {
-    if (!dir.existsSync()) dir.createSync(recursive: true);
     // Load the shop's own fonts up front so the first picture is not drawn
     // with the test placeholder font.
     for (final f in const {

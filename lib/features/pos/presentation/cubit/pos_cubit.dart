@@ -11,6 +11,7 @@ import 'package:frantend/features/customers/domain/usecases/customer_usecases.da
     as customers_uc;
 import 'package:frantend/features/inventory/data/batch_stock_source.dart';
 import 'package:frantend/features/inventory/domain/batch_picker.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/pos/data/models/held_order_storage_mapper.dart';
 import 'package:frantend/features/pos/domain/errors/pos_errors.dart';
 import 'package:frantend/features/pos/presentation/models/held_resume_result.dart';

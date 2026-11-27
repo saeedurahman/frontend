@@ -4,7 +4,11 @@ import 'package:frantend/features/customers/data/models/customer_ledger_entry_mo
 import 'package:frantend/features/customers/domain/pending_ledger.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
+import 'package:frantend/features/khata/domain/ledger_note.dart';
+import 'package:frantend/features/khata/domain/manual_entry.dart';
 import 'package:frantend/features/khata/domain/payment_source.dart';
+import 'package:frantend/features/khata/domain/statement_wording.dart';
+import 'package:frantend/features/khata/domain/text/entry_text.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_wording.dart';
 
 /// One row of a customer or supplier account, in the words the screen shows.
@@ -27,6 +31,8 @@ class LedgerLine {
     this.reversalOfId,
     this.reversedById,
     this.canReverse = false,
+    this.source,
+    this.canReverseEntry = false,
   });
 
   final String id;
@@ -44,7 +50,9 @@ class LedgerLine {
   final DateTime? when;
   final Decimal? runningBalance;
 
-  /// "Paid from": "Drawer", "Bank", "Easypaisa", ...; empty when not a payment.
+  /// How it was paid, empty when not a payment: on a supplier account "Cash
+  /// drawer", "Bank", ...; on a customer's, the statement's words ("Cash",
+  /// "Bank transfer").
   final String sourceLabel;
   final String? reference;
   final String? shiftId;
@@ -53,9 +61,16 @@ class LedgerLine {
   final bool isReversal;
   final String? reversalOfId;
   final String? reversedById;
+  /// A payment that can be reversed.
   final bool canReverse;
 
-  /// "Drawer · slip-1" style detail line.
+  /// "opening" or "manual" for entries written by hand.
+  final String? source;
+
+  /// A hand-written entry that can be reversed.
+  final bool canReverseEntry;
+
+  /// "Bank · #slip-1" style detail line.
   String get detail {
     final parts = <String>[
       if (sourceLabel.isNotEmpty) sourceLabel,
@@ -64,7 +79,7 @@ class LedgerLine {
     return parts.join(' · ');
   }
 
-  /// The amount column: "Goods +1,000.00", "Paid -300.00".
+  /// The amount column: "Goods received 1,000.00", "Paid 300.00".
   ({String text, Color color}) get amountView => LedgerWording.amount(
         type: type,
         amount: amount,
@@ -80,7 +95,13 @@ class LedgerLine {
 
   /// On the supplier side the server books goods received as `sale`; to the
   /// shop owner it is never a sale.
-  static String supplierTypeLabel(String type, {bool isExpense = false}) =>
+  static String supplierTypeLabel(
+    String type, {
+    bool isExpense = false,
+    String? source,
+    String? manualKind,
+  }) =>
+      _handWritten(type, source, manualKind) ??
       switch (type) {
         'sale' || 'purchase' =>
           isExpense ? KhataText.expenseOnCredit : KhataText.goodsReceived,
@@ -94,15 +115,32 @@ class LedgerLine {
         _ => _humanize(type),
       };
 
-  static String customerTypeLabel(String type) => switch (type) {
+  /// Names for entries written by hand, and for their reversals.
+  static String? _handWritten(String type, String? source, String? kind) {
+    if (source == null) return null;
+    if (type == 'reversal') return EntryText.reversedEntryLine;
+    return switch (ManualKind.parse(kind)) {
+      ManualKind.udhaarGiven => EntryText.udhaarLine,
+      ManualKind.goodsOnCredit => EntryText.goodsLine,
+      _ => null,
+    };
+  }
+
+  /// The words of the customer's statement.
+  static String customerTypeLabel(
+    String type, {
+    String? source,
+    String? manualKind,
+  }) =>
+      _handWritten(type, source, manualKind) ??
+      switch (type) {
         'sale' => 'Credit sale',
         'payment' => 'Payment received',
-        'return' || 'return_' => 'Return',
+        'return' || 'return_' => 'Goods returned',
         'opening_balance' => 'Opening balance',
-        'adjustment' => 'Adjustment',
-        'refund' => 'Refund',
+        'adjustment' || 'correction' => 'Adjustment',
+        'refund' => 'Credit sale cancelled',
         'reversal' => 'Payment reversed',
-        'correction' => 'Correction',
         _ => _humanize(type),
       };
 
@@ -128,23 +166,31 @@ class LedgerLine {
       LedgerEntryType.reversal => 'reversal',
       LedgerEntryType.correction => 'correction',
     };
-    // Cash that went into a till is, to the owner, "the drawer".
-    final intoDrawer = e.paymentSource == 'cash' && e.registerShiftId != null;
+    final text = LedgerNote.read(type, e.notes, reference: e.referenceNo);
     return LedgerLine(
       id: e.id,
       party: LedgerParty.customer,
       type: type,
-      typeLabel: customerTypeLabel(type),
+      typeLabel: customerTypeLabel(
+        type,
+        source: e.source,
+        manualKind: e.manualKind,
+      ),
+      source: e.source,
+      canReverseEntry: e.source != null &&
+          !e.isReversed &&
+          !e.isReversal &&
+          e.entryType != LedgerEntryType.reversal &&
+          !e.isOnDeviceOnly,
       amount: Decimal.tryParse(e.amount) ?? Decimal.zero,
       when: e.entryAt == null ? null : DateTime.tryParse(e.entryAt!)?.toLocal(),
       runningBalance:
           runningBalance == null ? null : Decimal.tryParse(runningBalance),
-      sourceLabel: PaymentSource.describe(
-        intoDrawer ? PaymentSource.drawer.apiValue : e.paymentSource,
-      ),
-      reference: e.referenceNo,
+      // The customer's statement: cash is "Cash", wherever the shop put it.
+      sourceLabel: StatementWording.source(e.paymentSource),
+      reference: text.reference,
       shiftId: e.registerShiftId,
-      note: e.notes,
+      note: text.note,
       isReversed: e.isReversed,
       isReversal: e.isReversal || e.entryType == LedgerEntryType.reversal,
       reversalOfId: e.reversalOfId,
@@ -159,19 +205,27 @@ class LedgerLine {
 
   factory LedgerLine.fromSupplier(SupplierLedgerEntry e) {
     final isExpense = e.referenceType == 'expense';
+    final text = LedgerNote.read(e.entryType, e.notes, reference: e.referenceNo);
     return LedgerLine(
       id: e.id,
       party: LedgerParty.supplier,
       type: e.entryType,
       isExpense: isExpense,
-      typeLabel: supplierTypeLabel(e.entryType, isExpense: isExpense),
+      typeLabel: supplierTypeLabel(
+        e.entryType,
+        isExpense: isExpense,
+        source: e.source,
+        manualKind: e.manualKind,
+      ),
+      source: e.source,
+      canReverseEntry: e.canReverseEntry,
       amount: e.amount,
       when: e.entryAt,
       runningBalance: e.runningBalance,
       sourceLabel: PaymentSource.describe(e.paymentSource),
-      reference: e.referenceNo,
+      reference: text.reference,
       shiftId: e.registerShiftId,
-      note: e.notes,
+      note: text.note,
       isReversed: e.isReversed,
       isReversal: e.isReversal,
       reversalOfId: e.reversalOfId,

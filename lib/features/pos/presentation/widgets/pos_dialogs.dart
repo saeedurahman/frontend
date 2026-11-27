@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/settings/data/models/tax_rate_model.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// Sentinel returned when the user explicitly chooses no tax on a line.
 class LineTaxRateNone {
@@ -101,7 +102,7 @@ class _CartDiscountDialogState extends State<CartDiscountDialog> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               decoration: InputDecoration(
-                labelText: _isPercentage ? 'Percentage (%)' : 'Amount (Rs.)',
+                labelText: _isPercentage ? 'Percentage (%)' : 'Amount ($currencyLabel)',
                 border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
@@ -219,7 +220,7 @@ class _ItemDiscountDialogState extends State<ItemDiscountDialog> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               decoration: InputDecoration(
-                labelText: _isPercentage ? 'Percentage (%)' : 'Amount (Rs.)',
+                labelText: _isPercentage ? 'Percentage (%)' : 'Amount ($currencyLabel)',
                 border: const OutlineInputBorder(),
               ),
             ),

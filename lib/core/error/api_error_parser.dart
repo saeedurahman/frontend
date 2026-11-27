@@ -1,3 +1,23 @@
+import 'package:decimal/decimal.dart';
+import 'package:equatable/equatable.dart';
+
+/// The numbers sent with `credit_limit_exceeded`. [balance] and [wouldBe] use
+/// the ledger sign: negative means the customer owes.
+class CreditNumbers extends Equatable {
+  const CreditNumbers({
+    required this.limit,
+    required this.balance,
+    required this.wouldBe,
+  });
+
+  final Decimal limit;
+  final Decimal balance;
+  final Decimal wouldBe;
+
+  @override
+  List<Object?> get props => [limit, balance, wouldBe];
+}
+
 /// Turns FastAPI error bodies into readable messages.
 ///
 /// FastAPI returns 422 as `{"detail": [{"loc": ["body", "phone"], "msg": ...}]}`
@@ -47,6 +67,19 @@ abstract final class ApiErrorParser {
       if (code is String && code.isNotEmpty) return code;
     }
     return null;
+  }
+
+  /// `limit`, `balance` and `would_be` of a credit-limit refusal; null unless
+  /// all three are there.
+  static CreditNumbers? creditNumbers(dynamic data) {
+    if (data is! Map) return null;
+    final detail = data['detail'];
+    if (detail is! Map) return null;
+    final limit = Decimal.tryParse('${detail['limit']}');
+    final balance = Decimal.tryParse('${detail['balance']}');
+    final wouldBe = Decimal.tryParse('${detail['would_be']}');
+    if (limit == null || balance == null || wouldBe == null) return null;
+    return CreditNumbers(limit: limit, balance: balance, wouldBe: wouldBe);
   }
 
   /// One line per field: `Phone: field required`.

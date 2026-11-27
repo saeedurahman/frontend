@@ -19,6 +19,7 @@ import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/services/export_service.dart';
 import 'package:frantend/features/cash_register/data/datasources/cash_register_remote_datasource.dart';
+import 'package:frantend/features/cash_register/data/models/shift_cash_movement.dart';
 import 'package:frantend/features/cash_register/data/repositories/cash_register_repository_impl.dart';
 import 'package:frantend/features/customers/data/datasources/customers_remote_datasource.dart';
 import 'package:frantend/features/customers/data/repositories/customers_repository_impl.dart';
@@ -32,7 +33,6 @@ import 'package:frantend/features/khata/domain/payment_source.dart';
 import 'package:frantend/features/khata/domain/shift_guard.dart';
 import 'package:frantend/features/khata/presentation/cubit/supplier_ledger_cubit.dart';
 import 'package:frantend/features/khata/presentation/cubit/supplier_payment_cubit.dart';
-import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 import 'package:frantend/features/pos/domain/usecases/pos_local_usecases.dart';
 import 'package:frantend/features/products/domain/usecases/get_product_by_id_usecase.dart';
 import 'package:frantend/features/purchases/data/datasources/purchases_remote_datasource.dart';
@@ -58,14 +58,17 @@ class _LiveShiftGuard extends Fake implements ShiftGuard {
       (await _repo.getMyActiveShift()).fold((_) => null, (s) => s?.id);
 
   @override
-  Future<Either<Failure, String>> openNow({Decimal? openingFloat}) async {
-    final registers = await _repo.getRegisters(branchId: _branch);
+  Future<Either<Failure, String>> openNow({
+    Decimal? openingFloat,
+    String? branchId,
+  }) async {
+    final registers = await _repo.getRegisters(branchId: branchId ?? _branch);
     final list = registers.getOrElse(() => []);
     var id = list.where((r) => r.isActive).map((r) => r.id).firstOrNull;
     if (id == null) {
       final created = await _repo.createRegister({
         'name': 'Main Counter',
-        'branch_id': _branch,
+        'branch_id': branchId ?? _branch,
       });
       id = created.fold((_) => null, (r) => r.id);
     }
@@ -147,6 +150,12 @@ void main() {
       'cash_in': Decimal.parse(s.totalCashIn),
     };
   }
+
+  Future<List<ShiftCashMovement>> supplierMovements(String shiftId) async =>
+      _ok(await shiftsRepo.getShiftSummary(shiftId), 'shift summary')
+          .cashMovements
+          .where((m) => m.source.startsWith('supplier_payment'))
+          .toList();
 
   Future<Decimal> supplierBalance() async {
     final r = await tenant.get('/supplier-ledger/$supplierId/balance');
@@ -244,9 +253,8 @@ void main() {
     expect(directFailure, isNotNull);
     // ignore: avoid_print
     print('direct drawer failure: ${directFailure.runtimeType} ${directFailure!.message}');
-    // Contract mismatch: this endpoint sends plain text, no code. The app
-    // still explains it in plain words.
-    expect(KhataText.forCode(null, directFailure.message), KhataText.needsShiftBody);
+    expect(directFailure.code, KhataText.noOpenShiftCode);
+    expect(KhataText.forCode(directFailure.code), KhataText.needsShiftBody);
     await noShift.close();
 
     // ── 3. Open a shift with 1,000 in the drawer ─────────────────────────
@@ -269,7 +277,8 @@ void main() {
     final drawerPayment = pay.state.result!;
     expect(drawerPayment.registerShiftId, shiftId);
     expect(drawerPayment.balance, Decimal.parse('-700'));
-    expect(events.drawerPayments.totalForShift(shiftId), Decimal.parse('300'));
+    expect((await supplierMovements(shiftId)).single.ledgerEntryId,
+        drawerPayment.id);
 
     s = await shiftSummary(shiftId);
     expect(s['cash_out'], Decimal.parse('300'));
@@ -288,7 +297,7 @@ void main() {
     s = await shiftSummary(shiftId);
     expect(s['cash_out'], Decimal.parse('300'), reason: 'bank is not cash');
     expect(s['expected'], Decimal.parse('700'));
-    expect(events.drawerPayments.totalForShift(shiftId), Decimal.parse('300'),
+    expect(await supplierMovements(shiftId), hasLength(1),
         reason: 'bank payments are never listed as drawer cash');
     expect(await supplierBalance(), Decimal.parse('-600'));
     await bank.close();
@@ -323,7 +332,11 @@ void main() {
     expect(await ledger.reversePayment(drawerPayment.id, ''), isNotNull,
         reason: 'the server needs a reason of 3+ characters');
     expect(await timed('reverse payment', () => ledger.reversePayment(drawerPayment.id, 'Paid the wrong supplier')), isNull);
-    expect(events.drawerPayments.forShift(shiftId), isEmpty);
+    final movements = await supplierMovements(shiftId);
+    expect(movements.map((m) => (m.source, m.reversed)), [
+      ('supplier_payment', true),
+      ('supplier_payment_reversal', false),
+    ]);
     s = await shiftSummary(shiftId);
     expect(s['expected'], Decimal.parse('1000'),
         reason: 'the cash came back into the drawer');
@@ -370,7 +383,7 @@ void main() {
     await ali.load(aliId, branchId: tenant.branchId);
     final cashNoShift = await ali.recordPayment(
       amount: Decimal.parse('200'),
-      paymentMethod: PaymentMethods.cash,
+      source: PaymentSource.drawer,
     );
     expect(cashNoShift, isNull, reason: 'E14: cash with no shift is not recorded');
     expect((ali.state as CustomerLedgerLoaded).paymentError,
@@ -382,7 +395,7 @@ void main() {
       'customer bank payment',
       () => ali.recordPayment(
         amount: Decimal.parse('200'),
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
         referenceNo: 'TX-ALI',
       ),
     );
@@ -393,7 +406,7 @@ void main() {
     expect(
       await sara.recordPayment(
         amount: Decimal.parse('75'),
-        paymentMethod: PaymentMethods.bankTransfer,
+        source: PaymentSource.bank,
         referenceNo: 'TX-SARA',
       ),
       isNotNull,

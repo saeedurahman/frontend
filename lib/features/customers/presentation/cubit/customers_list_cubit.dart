@@ -8,7 +8,7 @@ import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/features/customers/data/models/customer_model.dart';
 import 'package:frantend/features/customers/domain/usecases/customer_usecases.dart';
 import 'package:frantend/features/customers/presentation/cubit/customers_list_state.dart';
-import 'package:frantend/features/customers/presentation/utils/customer_balance_utils.dart';
+import 'package:frantend/features/khata/domain/balance_filter.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -32,7 +32,8 @@ class CustomersListCubit extends Cubit<CustomersListState>
   Timer? _searchDebounce;
   String? _search;
   CustomerActiveFilter _activeFilter = CustomerActiveFilter.all;
-  bool _hasOutstandingOnly = false;
+  BalanceFilter _balanceFilter = BalanceFilter.all;
+  BalanceSort _balanceSort = BalanceSort.none;
 
   @override
   Future<void> close() {
@@ -120,7 +121,8 @@ class CustomersListCubit extends Cubit<CustomersListState>
         filteredItems: _filter(rows),
         searchQuery: _search,
         activeFilter: _activeFilter,
-        hasOutstandingOnly: _hasOutstandingOnly,
+        balanceFilter: _balanceFilter,
+        balanceSort: _balanceSort,
       ),
     );
     await _loadBalances(rows, read);
@@ -184,14 +186,24 @@ class CustomersListCubit extends Cubit<CustomersListState>
     }
   }
 
-  void setHasOutstandingFilter(bool value) {
-    _hasOutstandingOnly = value;
+  void setBalanceFilter(BalanceFilter filter) {
+    _balanceFilter = filter;
+    _applyBalanceChoice();
+  }
+
+  void setBalanceSort(BalanceSort sort) {
+    _balanceSort = sort;
+    _applyBalanceChoice();
+  }
+
+  void _applyBalanceChoice() {
     forgetCreated();
     final current = state;
     if (current is CustomersListLoaded) {
       emit(
         current.copyWith(
-          hasOutstandingOnly: value,
+          balanceFilter: _balanceFilter,
+          balanceSort: _balanceSort,
           filteredItems: _filter(current.allItems),
         ),
       );
@@ -201,7 +213,7 @@ class CustomersListCubit extends Cubit<CustomersListState>
   /// A customer just created is shown whatever the filters say, until the user
   /// changes them.
   List<CustomerListRow> _filter(List<CustomerListRow> items) {
-    return items.where((row) {
+    final matching = items.where((row) {
       if (isNewlyCreated(row.customer.id)) return true;
       switch (_activeFilter) {
         case CustomerActiveFilter.active:
@@ -211,12 +223,13 @@ class CustomersListCubit extends Cubit<CustomersListState>
         case CustomerActiveFilter.all:
           break;
       }
-      if (_hasOutstandingOnly &&
-          !CustomerBalanceUtils.hasOutstanding(row.balance)) {
-        return false;
-      }
-      return true;
+      return _balanceFilter.matches(listBalance(row.balance));
     }).toList();
+    return _balanceSort.apply(
+      matching,
+      (row) => listBalance(row.balance),
+      _balanceFilter,
+    );
   }
 
   Future<bool> toggleActive(String id, bool isActive) async {

@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:frantend/core/error/api_error_parser.dart';
 import 'package:frantend/features/pos/data/models/payment_line_model.dart';
 
 /// One payment line as typed by the cashier (before any capping).
@@ -52,6 +53,19 @@ class CreditContext {
     return left < Decimal.zero ? Decimal.zero : left;
   }
 
+  /// The numbers to show when [creditAmount] more would pass the limit; null
+  /// when there is no limit or the balance is unknown.
+  CreditNumbers? numbersAfter(Decimal creditAmount) {
+    final limit = creditLimit;
+    final now = balance;
+    if (limit == null || limit <= Decimal.zero || now == null) return null;
+    return CreditNumbers(
+      limit: limit,
+      balance: now,
+      wouldBe: now - creditAmount,
+    );
+  }
+
   static const none = CreditContext(hasCustomer: false);
 }
 
@@ -66,6 +80,7 @@ class PaymentAllocation {
     required this.creditAmount,
     required this.cappedInputIndexes,
     this.error,
+    this.overLimit = false,
   });
 
   final Decimal total;
@@ -91,15 +106,23 @@ class PaymentAllocation {
   /// Blocking problem (credit without customer, over credit limit).
   final String? error;
 
+  /// [error] is the credit limit, which a person with
+  /// `customers.credit.override` may pass.
+  final bool overLimit;
+
   bool get hasChange => change > Decimal.zero;
 
-  /// The sale can be completed only when the lines add up to the total.
-  bool get canComplete =>
-      error == null &&
+  bool get _covers =>
       total > Decimal.zero &&
       lines.isNotEmpty &&
       applied == total &&
       remaining == Decimal.zero;
+
+  /// The sale can be completed only when the lines add up to the total.
+  bool get canComplete => error == null && _covers;
+
+  /// The sale can be completed with `credit_override` ("Allow anyway").
+  bool get canOverride => overLimit && _covers;
 }
 
 /// Pure payment rules for the POS payment modal.
@@ -151,6 +174,7 @@ abstract final class PaymentAllocator {
     // 3) credit takes the remainder
     var creditAmount = Decimal.zero;
     String? error;
+    var overLimit = false;
     final creditIndexes = [
       for (var i = 0; i < inputs.length; i++)
         if (isCredit(inputs[i])) i,
@@ -173,6 +197,7 @@ abstract final class PaymentAllocator {
       } else {
         final available = credit.available;
         if (available != null && creditAmount > available) {
+          overLimit = true;
           error = 'Credit limit exceeded. Available credit: '
               '${available.toStringAsFixed(2)}';
         }
@@ -203,6 +228,7 @@ abstract final class PaymentAllocator {
       creditAmount: creditAmount,
       cappedInputIndexes: capped,
       error: error,
+      overLimit: overLimit,
     );
   }
 

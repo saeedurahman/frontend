@@ -16,6 +16,7 @@ import 'package:frantend/features/settings/presentation/cubit/tax_prices_cubit.d
 import 'package:frantend/shared/widgets/permission_gate.dart';
 import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/utils/app_alerts.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// Settings > Tax & Prices, in plain words for shop owners.
 class TaxPricesPage extends StatelessWidget {
@@ -72,11 +73,11 @@ class _TaxPricesViewState extends State<TaxPricesView> {
     super.dispose();
   }
 
-  static const _roundingOptions = <(String, String, String)>[
-    ('none', 'Exact amount', 'Charge the exact amount, with paisa. Rs. 1,234.56'),
-    ('nearest_1', 'Nearest Rs. 1', 'Round the bill to the nearest rupee. 1,234.56 becomes 1,235'),
-    ('nearest_5', 'Nearest Rs. 5', 'Round the bill to the nearest 5 rupees. 1,234.56 becomes 1,235'),
-    ('nearest_10', 'Nearest Rs. 10', 'Round the bill to the nearest 10 rupees. 1,234.56 becomes 1,230'),
+  static List<(String, String, String)> get _roundingOptions => [
+    ('none', 'Exact amount', 'Charge the exact amount, with paisa. $currencyLabel 1,234.56'),
+    ('nearest_1', 'Nearest $currencyLabel 1', 'Round the bill to the nearest rupee. 1,234.56 becomes 1,235'),
+    ('nearest_5', 'Nearest $currencyLabel 5', 'Round the bill to the nearest 5 rupees. 1,234.56 becomes 1,235'),
+    ('nearest_10', 'Nearest $currencyLabel 10', 'Round the bill to the nearest 10 rupees. 1,234.56 becomes 1,230'),
   ];
 
   Future<void> _save(BuildContext context) async {
@@ -255,7 +256,8 @@ class _TaxPricesViewState extends State<TaxPricesView> {
                   SwitchListTile(
                     key: const Key('tax-hide-zero'),
                     title: const Text('Hide .00 on whole amounts'),
-                    subtitle: const Text('Rs. 6.00 shows as Rs. 6. Rs. 7.02 stays Rs. 7.02.'),
+                    subtitle: Text('$currencyLabel 6.00 shows as $currencyLabel 6. '
+                        '$currencyLabel 7.02 stays $currencyLabel 7.02.'),
                     value: d.hideZeroDecimals,
                     onChanged: editable ? cubit.setHideZero : null,
                   ),

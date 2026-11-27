@@ -1,4 +1,5 @@
 import 'package:frantend/core/sync/outbox_op.dart';
+import 'package:frantend/core/utils/currency_label.dart';
 
 /// A queued op in words a cashier understands.
 class OpDescription {
@@ -23,15 +24,22 @@ abstract final class OpDescriber {
       case OpTypes.customerCreate:
         return OpDescription('New customer ${p['name'] ?? ''}'.trim(), when);
       case OpTypes.customerPayment:
-        return OpDescription('Customer payment Rs ${p['amount'] ?? ''}'.trim(), when);
+        return OpDescription('Customer payment $currencyLabel ${p['amount'] ?? ''}'.trim(), when);
       case OpTypes.shiftOpen:
         return OpDescription('Shift opened', when);
       case OpTypes.shiftClose:
         return OpDescription('Shift closed', when);
       case OpTypes.expenseCreate:
-        return OpDescription('Expense Rs ${p['amount'] ?? ''}'.trim(), when);
+        return OpDescription('Expense $currencyLabel ${p['amount'] ?? ''}'.trim(), when);
       case OpTypes.returnCreate:
         return OpDescription('Return', when);
+      case OpTypes.followupCreate:
+        final what = switch ('${p['kind']}') {
+          'promise' => 'Promise to pay',
+          'reminder' => 'Reminder',
+          _ => 'Note',
+        };
+        return OpDescription(what, when);
       default:
         return OpDescription(op.type, when);
     }

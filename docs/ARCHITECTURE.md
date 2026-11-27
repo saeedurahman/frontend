@@ -197,17 +197,25 @@ may say about it is exactly what is true:
   both;
 - a sale is never marked "synced" before the server answered `applied` or
   `duplicate`;
-- rejected items stay visible (chip "N failed", Sync page, Failed items page)
+- rejected items stay visible (chip "N need attention", Sync page, Failed items page)
   until retried or discarded by the owner/manager.
 
 See [Failure handling](#failure-handling) for every server answer.
 
 ## UI primitives
 
-- `SyncStatusChip` (Online / Offline / Syncing / N pending / N failed) in the
-  app shell, kitchen shell and POS header is driven by
-  `EngineSyncStatusSource` (probe + live outbox counters). Tap: Sync page, or
-  the failed-items page when something failed.
+- `SyncStatusChip` in the app shell, kitchen shell and POS header, driven by
+  `EngineSyncStatusSource` (probe + live outbox counters). First match wins:
+
+  | chip                 | when                                         |
+  | -------------------- | -------------------------------------------- |
+  | Offline              | the probe cannot reach the server            |
+  | N need attention     | failed or rejected ops                       |
+  | Syncing…             | something is being sent or received now      |
+  | N waiting            | ops not sent yet                             |
+  | All synced (green dot) | none of the above                          |
+
+  Tap: Sync page, or the failed-items page when something failed.
 - `OfflineBanner` (probe), `LeaseBanner` (grace / clock), "Preparing your data"
   (`DataPreparationGate`, first snapshot or resync).
 - Pages: `/sync` (`SyncPage`: waiting list, last synced, **Sync now**),
@@ -239,13 +247,26 @@ Widget --> Cubit --> UseCase --> Repository (interface)
 ```
 
 Reachability and sync status flow sideways: `ConnectivityProbe` ->
-`SyncStatusSource` -> chip/banner; the sync engine (4b) will consume the same
-probe.
+`SyncStatusSource` -> chip/banner; the sync engine consumes the same probe.
 
 ## Offline-first data layer (Phase 4b)
 
 Contract: backend README, "Offline sync" (`/sync/pull`, `/sync/snapshot`,
 `/sync/push`, `/sync/flags`, lease). Code: `lib/core/sync`, `lib/core/offline`.
+
+### What works offline
+
+| offline | needs the server |
+| ------- | ---------------- |
+| selling, held orders, receipts and printing | supplier ledger, supplier payments |
+| returns, voids, open / close shift | reversing a payment |
+| customers, customer payments (queued) | purchases, goods receipts, Quick Add save (draft kept) |
+| expenses (queued) | exports, expiry report, receipt layout editing |
+| catalog, stock, shift summary from local data | reports, user and business management |
+| purchase order PDF of the order already on screen | loading a purchase order |
+
+Supplier payments, reversals and Quick Add send an `Idempotency-Key` that is
+reused until the server gives a clear answer, so a retry cannot post twice.
 
 ```
  UI -> cubit -> use case -> repository ---read---> LocalCatalog (entities, stock_levels)
@@ -322,6 +343,20 @@ does not. After a successful sync the engine refreshes best-effort extras:
 `/settings` (cached; default tax etc.), `/shifts/my-active` (a shift opened
 elsewhere becomes the local shift) and `/subscription/status` (fresh lease).
 
+`syncing` is true only while there is work: push and pull report it through
+`onWork` (a batch to send, a snapshot, a page with changes); manual runs show
+it at once. An empty background poll stays idle, and so do the extras. Every
+cycle ends idle and schedules the next one, whatever failed; a failed cycle
+releases ops left `sending`. A cursor that does not advance, or a batch the
+server answers nothing for, stops the cycle instead of looping.
+
+### Flags
+
+Accepted but doubtful data (price or tax differs, oversold, credit limit,
+`shift_mismatch`, ...) is flagged by the server, never dropped. Sales show
+their flags; `/sync/flags` lists them for owner/manager. Wording:
+`SyncErrorText` (`core/sync/sync_config.dart`).
+
 ### POS from local data
 
 Products: `LocalCatalog.products` uses indexed `search_text` / `barcode` /
@@ -364,12 +399,77 @@ handling is unchanged.
 | 400 `invalid_cursor`, `full_resync_required` | new snapshot (once per cycle) |
 | `restricted: true` (expired subscription) | only `settings` arrive; the cursor does not move |
 
-### Hand-edited generated code (cumulative)
+### Generated code
 
-`app_database.g.dart` (Phase 4a trim; Phase 4b needs no change: the new tables
-are hand-written SQL), `injection.config.dart` (4a edits + removal of
-`PosRepositoryImpl`), localization `appTitle`. Phase 4b registrations live in
+Never edit `*.g.dart`, `*.freezed.dart` or `injection.config.dart`; run
+`scripts/codegen.ps1` (`scripts/check_generated.ps1` fails on a difference).
+The tables above are hand-written SQL. Phase 4b registrations live in
 `foundation_module.dart`, which also *replaces* generated registrations
 (`PosRepository`, `CustomersRepository`, `CashRegisterRepository`,
-`ExpensesRepository`, `ReturnsRepository`, `SalesRepository`, `PosCubit`), so a
-future `build_runner` run keeps working.
+`ExpensesRepository`, `ReturnsRepository`, `SalesRepository`, `PosCubit`).
+
+## Keeping screens current (`core/data_changes`)
+
+`DataChangeBus` announces writes as `DataTopic`s. Two writers publish: the
+server side (`DataChangeInterceptor`, every accepted non-GET request) and the
+device (`SyncStore`: queued ops, sync results, pulled rows). Forms never tell
+lists anything.
+
+A list or detail cubit mixes in `AutoRefresh` and calls `watchData(topics,
+reload)`. Re-reads are quiet (no spinner; filters, page and rows kept on
+failure), bursts fold into one more read, `beginRead` / `isStale` drop
+overtaken answers, and new rows are listed first. `KhataEvents.notifyChanged`
+is the "money moved on an account" signal and publishes to the same bus.
+
+## Khata (credit accounts)
+
+- **Balances.** Customer: negative = they owe. Ledger amounts carry no +/-
+  sign; words and colour say the direction (red: more is owed, green: less):
+  "Credit sale", "Received", "Goods received", "Paid"
+  (`ledger_wording.dart`).
+- **Paid from.** `PaymentSource` gives the one label set: Cash drawer, Owner's
+  pocket, Bank, Easypaisa, JazzCash, Cheque, Card. "via ..." text is built from
+  `payment_source`, never from the server's description; `LedgerNote` strips
+  the old generated sentences from stored notes.
+- **Supplier payments** (`SupplierPaymentCubit`, and "Paid now" on goods
+  receipt / Quick Add through `PaidNowCubit`): online only. Drawer money needs
+  the user's open shift and becomes a cash movement of that shift.
+- **Reversals** keep the original line and add an opposite one; online only.
+  When the payment came from a drawer whose shift is closed, an open shift is
+  needed first.
+- **Credit sales** (credit tender plus the unpaid rest of an under-paid sale
+  to a customer) are their own figure in shift summaries, apart from "Other".
+- **Refusals** are read by `detail.code`, never by message text.
+  `no_open_shift` and `shift_not_yours` (`KhataText.needsOwnShift`) get the
+  "Open shift first" prompt in sales, tab completion, returns and drawer cash.
+  Two sale refusals still arrive without a code (`payment is less than total`,
+  `customer_id is required for credit payments`); `SaleFailureMapper` matches
+  their text.
+
+## Receipts and layouts (`features/receipts`)
+
+One pipeline, `ReceiptService`: sale snapshot + layout + channel ->
+`ReceiptModel` -> renderer (thermal PDF, A4 PDF, plain text, preview).
+Renderers decide nothing. Layouts (`ReceiptLayoutConfig`, designs, per-channel
+and per-branch assignment) are pulled entities read from
+`ReceiptLayoutStore`; with none pulled the built-in classic layout prints.
+`ReceiptContextLoader` collects branding, logo and the public link from the
+device; the network is optional with short timeouts. Urdu is drawn as images
+(the PDF library does not shape it).
+
+The purchase order PDF (`PurchaseOrderPdfService`, A4) uses the same fonts,
+Urdu rendering, logo source and platform adapters: Save, Print (always asks for
+the printer, since the saved one is the receipt roll) and a WhatsApp text to the
+supplier (the link cannot attach the file).
+
+Sample files written by tests go to `build/test_samples`; set
+`UPDATE_SAMPLES=1` to rewrite the committed ones under `docs/`.
+
+## Exports
+
+Files are made by the server (`GET /export/{dataset}`, csv / xlsx / pdf) and
+saved by `ExportService`: pick the path first, download with progress and
+cancel, then offer Open file / folder. Screens pass their own dates, branch and
+filters (`customer_id`, `supplier_id`, `within_days`) through `ExportDialog`.
+The server states the period used inside the file; too large (413) asks for a
+shorter range.

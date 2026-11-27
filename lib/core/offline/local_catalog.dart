@@ -1035,7 +1035,9 @@ class LocalCatalog {
         createdAt: o.occurredAt,
         notes: p['notes'] as String?,
         branchId: branch,
-        paymentSource: p['payment_method'] as String?,
+        // Payments queued by an older version carry `payment_method`.
+        paymentSource:
+            (p['payment_source'] ?? p['payment_method']) as String?,
         referenceNo: p['reference_no'] as String?,
         registerShiftId: p['register_shift_id'] as String?,
       ));
@@ -1251,6 +1253,7 @@ class LocalCatalog {
       totalCashSales: s('total_cash_sales'),
       totalCardSales: s('total_card_sales'),
       totalWalletSales: s('total_wallet_sales'),
+      creditSales: s('credit_sales'),
       totalOtherSales: s('total_other_sales'),
       totalReturns: s('total_returns'),
       totalCashIn: s('total_cash_in'),
@@ -1268,10 +1271,13 @@ class LocalCatalog {
     final shift = await _store.shift(shiftId);
     final sales = await _store.sales(shiftId: shiftId, limit: 100000);
     var cash = Decimal.zero, card = Decimal.zero, wallet = Decimal.zero, other = Decimal.zero;
+    var credit = Decimal.zero;
     for (final s in sales) {
       if (s['status'] != 'completed' || s['sync_state'] == 'discarded') continue;
+      var tendered = Decimal.zero;
       for (final p in jsonDecode(s['payments']! as String) as List) {
         final amount = Decimal.tryParse('${(p as Map)['amount']}') ?? Decimal.zero;
+        tendered += amount;
         switch ('${p['payment_method']}') {
           case 'cash':
             cash += amount;
@@ -1281,11 +1287,16 @@ class LocalCatalog {
           case 'upi':
             wallet += amount;
           case 'credit':
-            break;
+            credit += amount;
           default:
             other += amount;
         }
       }
+      // The unpaid rest of an under-paid sale goes on the customer's account,
+      // as the server books it. Without a customer there is no account.
+      final rest =
+          (Decimal.tryParse('${s['total_amount']}') ?? Decimal.zero) - tendered;
+      if (s['customer_id'] != null && rest > Decimal.zero) credit += rest;
     }
     final opening = Decimal.tryParse('${shift?['opening_float'] ?? 0}') ?? Decimal.zero;
     final expected = opening + cash;
@@ -1297,6 +1308,7 @@ class LocalCatalog {
       totalCashSales: DecimalUtils.format(cash),
       totalCardSales: DecimalUtils.format(card),
       totalWalletSales: DecimalUtils.format(wallet),
+      creditSales: DecimalUtils.format(credit),
       totalOtherSales: DecimalUtils.format(other),
       expectedCash: DecimalUtils.format(expected),
       actualCash: actual,

@@ -297,7 +297,12 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('PDF export is limited to 2,000 rows'), findsOneWidget);
+    // The app's own words, which say how to get a smaller file.
+    expect(
+      find.textContaining(ExportService.tooLargeMessage('pdf')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('2,000 rows'), findsNothing);
     expect(fileSaver.lastSavedBytes, isNull);
   });
 
