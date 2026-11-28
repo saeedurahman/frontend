@@ -106,6 +106,7 @@ abstract final class EntryText {
         'not_a_reversible_entry' => entryNotReversible,
         'credit_override_forbidden' =>
           'You are not allowed to go over the credit limit. $creditNoOverride',
+        'online_only_operation' => offline,
         _ => null,
       };
 }

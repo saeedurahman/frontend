@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
@@ -202,7 +203,12 @@ class PaidNowCubit extends Cubit<PaidNowState> implements PaidNowHook {
     if (isClosed) return false;
     return result.fold(
       (failure) {
-        emit(state.copyWith(openingShift: false, error: failure.message));
+        emit(
+          state.copyWith(
+            openingShift: false,
+            error: UserErrorMessage.from(failure),
+          ),
+        );
         return false;
       },
       (id) {

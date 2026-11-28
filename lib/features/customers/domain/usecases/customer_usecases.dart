@@ -98,6 +98,14 @@ class GetCustomerLedgerUseCase {
         limit: limit,
       );
 
+  /// The account as this device holds it, when it does.
+  Future<DeviceLedger?> device(String customerId) async {
+    final Object repository = _repository;
+    return repository is DeviceLedgerSource
+        ? await repository.deviceLedger(customerId)
+        : null;
+  }
+
   /// Lines saved on this device that the server does not have yet.
   Future<List<CustomerLedgerEntryModel>> pending(
     String customerId, {

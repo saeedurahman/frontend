@@ -26,7 +26,8 @@ class PaymentReceiptData {
   final String amountText;
   final PaymentSource source;
 
-  /// "Still owed: Rs. 700.00" / "Advance with supplier: Rs. 50.00".
+  /// "Still owed: Rs. 700.00" / "Advance with supplier: Rs. 50.00"; empty when
+  /// it is not known (the receipt then leaves it out).
   final String balanceLine;
   final String? reference;
   final String? note;
@@ -65,8 +66,7 @@ class PaymentReceiptService {
         'Reference: ${data.reference}',
       if (data.note != null && data.note!.isNotEmpty) 'Note: ${data.note}',
       '',
-      data.balanceLine,
-      '',
+      if (data.balanceLine.isNotEmpty) ...[data.balanceLine, ''],
       'Thank you',
     ].join('\n');
   }
@@ -138,7 +138,8 @@ class PaymentReceiptService {
               row('Reference', data.reference!),
             if (data.note != null && data.note!.isNotEmpty) row('Note', data.note!),
             pw.Divider(),
-            pw.Text(data.balanceLine, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+            if (data.balanceLine.isNotEmpty)
+              pw.Text(data.balanceLine, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             pw.Text('Thank you', textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 9)),
           ],

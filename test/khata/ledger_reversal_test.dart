@@ -215,7 +215,7 @@ void main() {
         await cubit.load('s1');
         reverse.result = const Left(NetworkFailure());
         final first = await cubit.reversePayment('p1', 'Typed twice');
-        expect(first, KhataText.offlineBody);
+        expect(first, KhataText.offlineReverse);
         reverse.result = null;
         await cubit.reversePayment('p1', 'Typed twice');
         expect(reverse.keys[0], reverse.keys[1]);

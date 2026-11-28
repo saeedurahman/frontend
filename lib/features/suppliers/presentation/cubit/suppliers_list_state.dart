@@ -25,6 +25,10 @@ sealed class SuppliersListState with _$SuppliersListState {
     String? searchQuery,
     @Default(BalanceFilter.all) BalanceFilter balanceFilter,
     @Default(BalanceSort.none) BalanceSort balanceSort,
+
+    /// Set when the balances come from the device's copy: when that was last
+    /// updated.
+    DateTime? asOf,
   }) = SuppliersListLoaded;
 
   const factory SuppliersListState.error(String message) = SuppliersListError;

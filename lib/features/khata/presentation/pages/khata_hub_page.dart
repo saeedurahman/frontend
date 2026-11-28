@@ -14,6 +14,7 @@ import 'package:frantend/features/branches/presentation/cubit/branch_selector_st
 import 'package:frantend/features/khata/data/khata_remote_datasource.dart';
 import 'package:frantend/features/khata/data/khata_repository.dart';
 import 'package:frantend/features/khata/data/models/khata_p1_models.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/party_type.dart';
 import 'package:frantend/features/khata/domain/text/khata_ui_text.dart';
 import 'package:frantend/features/khata/presentation/cubit/khata_hub_cubit.dart';
@@ -307,6 +308,12 @@ class _HubViewState extends State<_HubView> {
                         now: widget.clock(),
                       ),
               ),
+              if (state.supplierAllBranches)
+                const Text(
+                  KhataText.offlineAllBranches,
+                  key: Key('khata-all-branches'),
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
             ],
           ),
         ),

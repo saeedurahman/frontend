@@ -126,20 +126,31 @@ class SnapshotPage {
 }
 
 class OpError extends Equatable {
-  const OpError({required this.code, required this.message, this.retryable = false});
+  const OpError({
+    required this.code,
+    required this.message,
+    this.retryable = false,
+    this.details = const {},
+  });
 
   factory OpError.fromJson(Map<String, dynamic> json) => OpError(
         code: '${json['code']}',
         message: '${json['message'] ?? ''}',
         retryable: json['retryable'] == true,
+        details: json['details'] is Map
+            ? Map<String, dynamic>.from(json['details'] as Map)
+            : const {},
       );
 
   final String code;
   final String message;
   final bool retryable;
 
+  /// What some refusals add, such as `existing_supplier_id`.
+  final Map<String, dynamic> details;
+
   @override
-  List<Object?> get props => [code, message, retryable];
+  List<Object?> get props => [code, message, retryable, details];
 }
 
 class OpResult {
@@ -209,6 +220,8 @@ class FlaggedPayment extends Equatable {
     required this.flags,
     this.customerName,
     this.takenAt,
+    this.toSupplier = false,
+    this.supplierName,
   });
 
   factory FlaggedPayment.fromJson(Map<String, dynamic> json) => FlaggedPayment(
@@ -217,8 +230,13 @@ class FlaggedPayment extends Equatable {
         flags: [for (final f in (json['flags'] as List? ?? const [])) '$f'],
         customerName: json['customer_name'] as String?,
         takenAt: DateTime.tryParse('${json['taken_at']}'),
+        toSupplier: json['to_supplier'] == true,
+        supplierName: json['supplier_name'] as String?,
       );
 
+  /// Money paid to a supplier, not received from a customer.
+  final bool toSupplier;
+  final String? supplierName;
   final String opId;
   final String amount;
   final List<String> flags;
@@ -231,10 +249,12 @@ class FlaggedPayment extends Equatable {
         'flags': flags,
         'customer_name': customerName,
         'taken_at': takenAt?.toUtc().toIso8601String(),
+        if (toSupplier) 'to_supplier': true,
+        if (supplierName != null) 'supplier_name': supplierName,
       };
 
   @override
-  List<Object?> get props => [opId, amount, flags];
+  List<Object?> get props => [opId, amount, flags, toSupplier];
 }
 
 class FlaggedSale extends Equatable {

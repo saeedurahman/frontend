@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/data_changes/auto_refresh.dart';
 import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/error/failures.dart';
@@ -26,6 +29,8 @@ class SupplierLedgerState {
     this.dateTo,
     this.error,
     this.offline = false,
+    this.asOf,
+    this.olderNeedsInternet = false,
   });
 
   final bool loading;
@@ -46,11 +51,22 @@ class SupplierLedgerState {
   final DateTime? dateTo;
   final String? error;
 
-  /// The list could not be fetched because there is no internet.
+  /// No internet, and this account is not saved on this device.
   final bool offline;
+
+  /// Set when the account on screen is the device's copy: when that was last
+  /// updated.
+  final DateTime? asOf;
+
+  /// The account goes further back than the device's copy on screen.
+  final bool olderNeedsInternet;
 
   bool get hasMore => entries.length < total;
   bool get hasDateFilter => dateFrom != null || dateTo != null;
+
+  /// Offline, with older entries missing, the start of a period can't be known.
+  bool get openingNeedsInternet =>
+      asOf != null && hasDateFilter && openingBalance == null;
   Decimal get owed => (balance ?? Decimal.zero) < Decimal.zero
       ? -(balance ?? Decimal.zero)
       : Decimal.zero;
@@ -71,6 +87,8 @@ class SupplierLedgerState {
     Object? dateTo = _keep,
     Object? error = _keep,
     bool? offline,
+    Object? asOf = _keep,
+    bool? olderNeedsInternet,
   }) =>
       SupplierLedgerState(
         loading: loading ?? this.loading,
@@ -89,6 +107,8 @@ class SupplierLedgerState {
         dateTo: identical(dateTo, _keep) ? this.dateTo : dateTo as DateTime?,
         error: identical(error, _keep) ? this.error : error as String?,
         offline: offline ?? this.offline,
+        asOf: identical(asOf, _keep) ? this.asOf : asOf as DateTime?,
+        olderNeedsInternet: olderNeedsInternet ?? this.olderNeedsInternet,
       );
 }
 
@@ -127,6 +147,21 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
   String? get branchId => _branchId;
   String? _reverseKey;
   String? _reverseFingerprint;
+  StreamSubscription<ReachabilityStatus>? _connectivity;
+
+  /// Reads again when the server comes back, so the device's copy is replaced.
+  void watchConnectivity(ConnectivityProbe probe) {
+    _connectivity?.cancel();
+    _connectivity = probe.status.listen((status) {
+      if (status != ReachabilityStatus.offline) _read(quiet: true);
+    });
+  }
+
+  @override
+  Future<void> close() {
+    unawaited(_connectivity?.cancel() ?? Future<void>.value());
+    return super.close();
+  }
 
   Future<void> load(String supplierId) async {
     _supplierId = supplierId;
@@ -175,6 +210,9 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
                 ? KhataText.offlineLedger
                 : failure.message,
             offline: failure is NetworkFailure,
+            // Nothing from the device is shown as the answer to this read.
+            asOf: null,
+            olderNeedsInternet: false,
           ),
         );
       },
@@ -210,6 +248,8 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
             total: data.total,
             error: null,
             offline: false,
+            asOf: data.asOf,
+            olderNeedsInternet: data.olderNeedsInternet,
           ),
         );
       },
@@ -247,6 +287,7 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
           openingBalance: data.openingBalance,
           closingBalance: data.closingBalance,
           total: data.total,
+          olderNeedsInternet: data.olderNeedsInternet,
         ),
       ),
     );
@@ -265,6 +306,7 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
         closingBalance: null,
         error: null,
         loadingMore: true,
+        olderNeedsInternet: false,
       ),
     );
     await refresh();
@@ -293,7 +335,7 @@ class SupplierLedgerCubit extends Cubit<SupplierLedgerState>
           _reverseKey = null;
           _reverseFingerprint = null;
         }
-        if (failure is NetworkFailure) return KhataText.offlineBody;
+        if (failure is NetworkFailure) return KhataText.offlineReverse;
         return KhataText.forCode(code) ?? failure.message;
       },
       (_) {

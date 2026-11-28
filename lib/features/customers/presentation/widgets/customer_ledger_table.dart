@@ -62,9 +62,11 @@ class CustomerLedgerTable extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         child: Text(
-          cubit.ledgerNeedsConnection
-              ? 'Ledger history is available when you are online.'
-              : 'No ledger entries yet',
+          cubit.olderNeedsInternet
+              ? KhataText.olderNeedInternet
+              : cubit.ledgerNeedsConnection && !cubit.fromDevice
+                  ? 'Ledger history is available when you are online.'
+                  : 'No ledger entries yet',
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -72,7 +74,11 @@ class CustomerLedgerTable extends StatelessWidget {
       );
     }
 
-    return AppPaginatedDataTable<LedgerDisplayRow>(
+    // At the end of an account this device only holds the recent part of.
+    final atEnd = cubit.olderNeedsInternet &&
+        state.currentPage >= cubit.totalPages(state);
+
+    final table = AppPaginatedDataTable<LedgerDisplayRow>(
       columns: _ledgerTableColumns,
       items: state.entries,
       itemId: (row) => row.entry.id,
@@ -217,6 +223,24 @@ class CustomerLedgerTable extends StatelessWidget {
         );
       },
     );
+
+    return !atEnd
+        ? table
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: table),
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  KhataText.olderNeedInternet,
+                  key: Key('ledger-older-offline'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+            ],
+          );
   }
 
   Future<void> _reverse(BuildContext context, LedgerLine line) async {

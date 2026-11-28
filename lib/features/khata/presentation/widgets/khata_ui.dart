@@ -674,9 +674,11 @@ class KhataTotalCard extends StatelessWidget {
               ),
               const SizedBox(width: AppDimensions.spacingSm),
               Text(
-                type.isCustomer
-                    ? KhataUiText.customerCount(side.count)
-                    : KhataUiText.supplierCount(side.count),
+                !side.known
+                    ? ''
+                    : type.isCustomer
+                        ? KhataUiText.customerCount(side.count)
+                        : KhataUiText.supplierCount(side.count),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -691,13 +693,21 @@ class KhataTotalCard extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: AnimatedMoney(
-              side.total,
-              style: KhataStyle.money.copyWith(
-                fontSize: dense ? 24 : 32,
-                color: color,
-              ),
-            ),
+            child: side.known
+                ? AnimatedMoney(
+                    side.total,
+                    style: KhataStyle.money.copyWith(
+                      fontSize: dense ? 24 : 32,
+                      color: color,
+                    ),
+                  )
+                : Text(
+                    '—',
+                    style: KhataStyle.money.copyWith(
+                      fontSize: dense ? 24 : 32,
+                      color: color,
+                    ),
+                  ),
           ),
           SizedBox(
             height:

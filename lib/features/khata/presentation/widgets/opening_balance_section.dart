@@ -6,7 +6,8 @@ import 'package:frantend/features/khata/presentation/cubit/opening_balance_cubit
 import 'package:frantend/features/khata/presentation/widgets/opening_balance_fields.dart';
 import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 
-/// [OpeningBalanceFields] on a create form: disabled with a notice offline.
+/// [OpeningBalanceFields] on a create form: disabled with a notice offline,
+/// unless the party can be saved on this device.
 class OpeningBalanceSection extends StatelessWidget {
   const OpeningBalanceSection({super.key});
 
@@ -20,7 +21,7 @@ class OpeningBalanceSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (offline) ...[
+            if (offline && !cubit.worksOffline) ...[
               const OnlineOnlyBanner(message: EntryText.openingNeedsInternet),
               const SizedBox(height: AppDimensions.spacing12),
             ],
@@ -28,7 +29,8 @@ class OpeningBalanceSection extends StatelessWidget {
               type: cubit.type,
               value: state.draft,
               amountError: state.amountError,
-              enabled: !offline && !state.submitting,
+              enabled:
+                  (!offline || cubit.worksOffline) && !state.submitting,
               onChanged: cubit.update,
             ),
           ],

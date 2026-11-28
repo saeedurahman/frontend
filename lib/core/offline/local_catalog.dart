@@ -1007,14 +1007,19 @@ class LocalCatalog {
   /// Account lines saved on this device that the server does not have yet:
   /// payments still in the outbox and credit sales not sent. Oldest first,
   /// without a running balance (the caller knows what they come on top of).
+  /// [untilPulled] adds what the server has accepted but no pull has brought
+  /// back yet.
   Future<List<CustomerLedgerEntryModel>> pendingLedger(
     String customerId, {
     String? branchId,
+    bool untilPulled = false,
   }) async {
     final businessId =
         '${(await _store.entity('customer', customerId))?['business_id'] ?? ''}';
     final lines = <CustomerLedgerEntryModel>[];
-    for (final o in await _store.ops(statuses: OutboxStatus.unfinished)) {
+    for (final o in untilPulled
+        ? await _store.uncountedCustomerPayments(customerId)
+        : await _store.ops(statuses: OutboxStatus.unfinished)) {
       final p = o.payload;
       if (o.type != OpTypes.customerPayment ||
           '${p['customer_id']}' != customerId) {
@@ -1042,7 +1047,16 @@ class LocalCatalog {
         registerShiftId: p['register_shift_id'] as String?,
       ));
     }
-    for (final row in await _store.sales(syncState: 'pending', limit: 500)) {
+    final unconfirmed = untilPulled
+        ? await _store.stockUnconfirmedSales()
+        : const <String>{};
+    for (final row in [
+      ...await _store.sales(syncState: 'pending', limit: 500),
+      if (unconfirmed.isNotEmpty)
+        for (final sale
+            in await _store.sales(syncState: 'synced', limit: 500))
+          if (unconfirmed.contains(sale['id'])) sale,
+    ]) {
       if (row['customer_id'] != customerId || row['status'] != 'completed') {
         continue;
       }
@@ -1068,6 +1082,85 @@ class LocalCatalog {
     }
     lines.sort((a, b) => (a.entryAt ?? '').compareTo(b.entryAt ?? ''));
     return lines;
+  }
+
+  /// The customer's account from this device: the pulled lines with what waits
+  /// to be sent on top. Null when the account was never pulled.
+  ///
+  /// The feed sends no running balance, so it is worked backwards from the
+  /// pulled balance, and only when these rows account for it: either they are
+  /// the whole account, or older ones exist and this user receives every
+  /// branch ([everyBranch]), so none is missing from the recent part.
+  Future<DeviceLedger?> deviceLedger(
+    String customerId, {
+    bool everyBranch = false,
+  }) async {
+    if (await _store.meta(SyncStore.lastPullAtKey) == null) return null;
+    final account = await _store.entity('customer_balance', customerId);
+    if (account == null) return null;
+    final businessId =
+        '${(await _store.entity('customer', customerId))?['business_id'] ?? ''}';
+    final rows = await _store.entities(
+      'customer_ledger',
+      where: "json_extract(data, '\$.customer_id') = ?",
+      args: [customerId],
+      orderBy: 'id',
+    );
+    String at(Map<String, dynamic> row) =>
+        '${row['entry_at'] ?? row['created_at'] ?? ''}';
+    // Oldest first.
+    rows.sort((a, b) {
+      final byTime = at(a).compareTo(at(b));
+      return byTime != 0 ? byTime : '${a['id']}'.compareTo('${b['id']}');
+    });
+    Decimal amount(Object? value) =>
+        Decimal.tryParse('${value ?? ''}') ?? Decimal.zero;
+
+    final balance = balanceOf(account);
+    final hasOlder = account['has_older_entries'] == true;
+    final sum = rows.fold<Decimal>(
+      Decimal.zero,
+      (total, row) => total + amount(row['amount']),
+    );
+    final provable = hasOlder ? everyBranch : sum == balance;
+
+    var running = balance;
+    final pulled = <CustomerLedgerEntryModel>[];
+    for (final row in rows.reversed) {
+      pulled.add(
+        CustomerLedgerEntryModel.fromJson({
+          ...row,
+          'business_id': row['business_id'] ?? businessId,
+          'amount': DecimalUtils.format(amount(row['amount'])),
+          'is_reversed':
+              row['reversed_at'] != null || row['reversed_by_id'] != null,
+          'is_reversal': row['reversal_of_id'] != null ||
+              row['entry_type'] == 'reversal',
+          'running_balance':
+              provable ? DecimalUtils.format(running) : null,
+        }),
+      );
+      running -= amount(row['amount']);
+    }
+
+    final have = {
+      for (final row in rows) ...[
+        '${row['id']}',
+        if (row['entry_type'] == 'sale' && row['reference_id'] != null)
+          'pending-sale-${row['reference_id']}',
+      ],
+    };
+    var after = balance;
+    final waiting = <CustomerLedgerEntryModel>[];
+    for (final line in await pendingLedger(customerId, untilPulled: true)) {
+      if (have.contains(line.id)) continue;
+      after += amount(line.amount);
+      waiting.add(line.copyWith(runningBalance: DecimalUtils.format(after)));
+    }
+    return DeviceLedger(
+      lines: [...waiting.reversed, ...pulled],
+      olderNeedsInternet: hasOlder,
+    );
   }
 
   Future<CustomerModel?> customer(String id) async {
@@ -1299,7 +1392,14 @@ class LocalCatalog {
       if (s['customer_id'] != null && rest > Decimal.zero) credit += rest;
     }
     final opening = Decimal.tryParse('${shift?['opening_float'] ?? 0}') ?? Decimal.zero;
-    final expected = opening + cash;
+    // Suppliers paid in cash from this drawer.
+    final paidOut = SyncStore.paymentTotal([
+      for (final o in await _store.ops())
+        if (o.type == OpTypes.supplierPayment &&
+            o.payload['register_shift_id'] == shiftId)
+          o,
+    ]);
+    final expected = opening + cash - paidOut;
     final actual = shift?['actual_cash'] as String?;
     return ShiftSummaryModel(
       shiftId: shiftId,
@@ -1310,6 +1410,7 @@ class LocalCatalog {
       totalWalletSales: DecimalUtils.format(wallet),
       creditSales: DecimalUtils.format(credit),
       totalOtherSales: DecimalUtils.format(other),
+      totalCashOut: DecimalUtils.format(paidOut),
       expectedCash: DecimalUtils.format(expected),
       actualCash: actual,
       cashDifference: actual == null

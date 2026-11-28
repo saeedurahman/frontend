@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:frantend/features/khata/data/models/khata_models.dart';
@@ -48,7 +50,7 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
       emit(
         state.copyWith(
           isLoading: false,
-          errors: {'_general': failure.message},
+          errors: {'_general': UserErrorMessage.from(failure)},
         ),
       );
       return null;
@@ -207,8 +209,9 @@ class GoodsReceiptCubit extends Cubit<GoodsReceiptState> {
       (failure) {
         lastErrorCode = failure.code;
         emit(state.copyWith(isSubmitting: false));
+        if (failure is NetworkFailure) return KhataText.receivingNeedsInternet;
         return KhataText.forCode(failure.code) ??
-            failure.message;
+            UserErrorMessage.from(failure);
       },
       (receipt) {
         lastPayment = receipt.paymentResult;

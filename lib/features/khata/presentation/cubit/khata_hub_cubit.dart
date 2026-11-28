@@ -17,6 +17,7 @@ class HubList {
     required this.rows,
     required this.offline,
     this.asOf,
+    this.allBranches = false,
   });
 
   /// Totals and bucket figures of the latest answer.
@@ -24,6 +25,9 @@ class HubList {
   final List<HubRow> rows;
   final bool offline;
   final DateTime? asOf;
+
+  /// A branch was asked for, but these figures cover all of them.
+  final bool allBranches;
 
   bool get hasMore => !offline && rows.length < page.total;
 }
@@ -66,6 +70,10 @@ class KhataHubState {
   final int generation;
 
   bool get hasFilters => bucket != null || search.trim().isNotEmpty;
+
+  /// A branch is picked, but a supplier figure on screen is over all of them.
+  bool get supplierAllBranches =>
+      (overview?.allBranches ?? false) || (list?.allBranches ?? false);
 
   /// Some figure on screen comes from the copy on this device.
   DateTime? get offlineAsOf {
@@ -261,6 +269,7 @@ class KhataHubCubit extends Cubit<KhataHubState>
           rows: rows,
           offline: data.offline,
           asOf: data.asOf,
+          allBranches: data.allBranches,
         );
         if (query.isUnfiltered) _seen[query.party] = list;
         emit(
@@ -323,6 +332,7 @@ class KhataHubCubit extends Cubit<KhataHubState>
                 rows: data.value.items,
                 offline: true,
                 asOf: data.asOf,
+                allBranches: data.allBranches,
               ),
             ),
           );

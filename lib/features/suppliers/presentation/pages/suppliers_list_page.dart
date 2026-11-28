@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
@@ -7,6 +8,7 @@ import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_cubit.dart';
 import 'package:frantend/features/branches/presentation/cubit/branch_selector_state.dart';
 import 'package:frantend/features/khata/domain/balance_filter.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/party_type.dart';
 import 'package:frantend/features/khata/domain/text/khata_ui_text.dart';
 import 'package:frantend/features/khata/domain/text/list_filter_text.dart';
@@ -27,7 +29,13 @@ class SuppliersListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<SuppliersListCubit>()..load(),
+      create: (_) {
+        final cubit = sl<SuppliersListCubit>();
+        if (sl.isRegistered<ConnectivityProbe>()) {
+          cubit.watchConnectivity(sl<ConnectivityProbe>());
+        }
+        return cubit..load();
+      },
       child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
         bloc: sl.isRegistered<BranchSelectorCubit>()
             ? sl<BranchSelectorCubit>()
@@ -116,6 +124,16 @@ class _SuppliersListViewState extends State<_SuppliersListView> {
                       context.read<SuppliersListCubit>().setBalanceFilter,
                   onSort: context.read<SuppliersListCubit>().setBalanceSort,
                 ),
+                if (state case SuppliersListLoaded(:final asOf?)) ...[
+                  AsOfLabel(
+                    key: const Key('suppliers-as-of'),
+                    asOf: asOf,
+                  ),
+                  const Text(
+                    KhataText.offlineAllBranches,
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: AppDimensions.spacingMd),

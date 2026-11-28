@@ -5,6 +5,7 @@ import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/presentation/cubit/paid_now_cubit.dart';
 import 'package:frantend/features/khata/presentation/widgets/paid_now_section.dart';
 import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:frantend/features/purchases/presentation/cubit/goods_receipt_sta
 import 'package:frantend/shared/widgets/buttons/primary_button.dart';
 import 'package:frantend/shared/widgets/buttons/secondary_button.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frantend/shared/widgets/inputs/synced_text_field.dart';
@@ -74,6 +76,18 @@ class _GoodsReceiptView extends StatelessWidget {
                     style: AppTextStyles.bodySmall,
                   ),
                   const SizedBox(height: AppDimensions.spacingLg),
+                  OfflineAwareBuilder(
+                    builder: (context, offline) => !offline
+                        ? const SizedBox.shrink()
+                        : const Padding(
+                            padding: EdgeInsets.only(
+                              bottom: AppDimensions.spacingMd,
+                            ),
+                            child: OnlineOnlyBanner(
+                              message: KhataText.receivingNeedsInternet,
+                            ),
+                          ),
+                  ),
                   _MetaCard(state: state),
                   const SizedBox(height: AppDimensions.spacingMd),
                   _LinesCard(state: state),
@@ -346,41 +360,43 @@ class _BottomBar extends StatelessWidget {
           PermissionGate(
             permission: Perm.purchasesReceive,
             mutating: true,
-            child: PrimaryButton(
-              label: 'Confirm Receipt',
-              isLoading: state.isSubmitting,
-              fullWidth: false,
-              onPressed: state.isSubmitting
-                  ? null
-                  : () async {
-                      final paid = context.read<PaidNowCubit>();
-                      final total = state.total;
-                      final canPay = _canPay(context);
-                      final block =
-                          canPay ? paid.blockingProblem(total) : null;
-                      if (block != null) {
-                        AppAlerts.showErrorMessage(context, block);
-                        return;
-                      }
-                      final payment = canPay ? paid.inputFor(total) : null;
-                      final err = await cubit.confirmReceipt(payment: payment);
-                      if (!context.mounted) return;
-                      if (err != null) {
-                        if (payment != null) {
-                          paid.explain(cubit.lastErrorCode, err);
+            child: OfflineAwareBuilder(
+              builder: (context, offline) => PrimaryButton(
+                label: 'Confirm Receipt',
+                isLoading: state.isSubmitting,
+                fullWidth: false,
+                onPressed: state.isSubmitting || offline
+                    ? null
+                    : () async {
+                        final paid = context.read<PaidNowCubit>();
+                        final total = state.total;
+                        final canPay = _canPay(context);
+                        final block =
+                            canPay ? paid.blockingProblem(total) : null;
+                        if (block != null) {
+                          AppAlerts.showErrorMessage(context, block);
+                          return;
                         }
-                        AppAlerts.showErrorMessage(context, err);
-                      } else {
-                        final result = cubit.lastPayment;
-                        await paid.saved(paid: result != null, result: result);
+                        final payment = canPay ? paid.inputFor(total) : null;
+                        final err = await cubit.confirmReceipt(payment: payment);
                         if (!context.mounted) return;
-                        AppAlerts.showSuccessMessage(
-                          context,
-                          receivedMessage(result, total),
-                        );
-                        context.pop(true);
-                      }
-                    },
+                        if (err != null) {
+                          if (payment != null) {
+                            paid.explain(cubit.lastErrorCode, err);
+                          }
+                          AppAlerts.showErrorMessage(context, err);
+                        } else {
+                          final result = cubit.lastPayment;
+                          await paid.saved(paid: result != null, result: result);
+                          if (!context.mounted) return;
+                          AppAlerts.showSuccessMessage(
+                            context,
+                            receivedMessage(result, total),
+                          );
+                          context.pop(true);
+                        }
+                      },
+              ),
             ),
           ),
         ],

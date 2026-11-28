@@ -54,6 +54,8 @@ abstract final class SyncErrorText {
     'unknown_register': 'The cash register is not known to the server yet.',
     'unknown_customer': 'The customer is not known to the server yet.',
     'unknown_supplier': 'The supplier is not known to the server yet.',
+    'supplier_deleted':
+        'This supplier was deleted on the server. Discard this change.',
     'unknown_shift': 'The shift is not known to the server yet.',
     'sale_not_synced': 'The original sale has not reached the server yet.',
     'duplicate_receipt':
@@ -79,6 +81,12 @@ abstract final class SyncErrorText {
     'shift_not_yours':
         'Open shift first: that shift belongs to someone else. Open your own '
         'shift, then press Retry.',
+    'paid_at_in_future':
+        'The payment date is in the future. Check the date and time on this '
+        'computer, then discard this item and record it again.',
+    'online_only_operation':
+        'This can only be done online. Discard this item, connect to the '
+        'internet and do it there.',
     'internal_error': 'The server had a problem. It will be tried again.',
   };
 
@@ -128,6 +136,20 @@ abstract final class SyncErrorText {
       paymentFlagText[code] ??
       flagText[code] ??
       'The server flagged this payment ($code).';
+
+  /// Flags of a payment to a supplier.
+  static const supplierPaymentFlagText = <String, String>{
+    'shift_mismatch':
+        'This supplier payment was marked as paid from the cash drawer, but no '
+        'open shift of yours was behind it. The supplier is paid, but no shift '
+        'counts this cash going out, so check the drawer.',
+    'subscription_expired':
+        'This supplier payment was accepted while the subscription was expired.',
+  };
+
+  static String supplierPaymentFlag(String code) =>
+      supplierPaymentFlagText[code] ??
+      'The server flagged this supplier payment. Check the supplier account.';
 
   /// Short names for the flags that need a clearer title than the code.
   static const flagTitle = <String, String>{

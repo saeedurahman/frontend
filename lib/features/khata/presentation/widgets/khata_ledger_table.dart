@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/text/entry_text.dart';
@@ -222,6 +223,17 @@ class _LedgerRow extends StatelessWidget {
                         label: KhataText.reversalTag,
                         color: AppColors.info,
                       ),
+                    if (line.pending)
+                      _Tag(
+                        key: ValueKey('not_synced_${line.id}'),
+                        label: UserErrorMessage.notSyncedYet,
+                        color: AppColors.info,
+                      ),
+                    if (line.needsAttention)
+                      const _Tag(
+                        label: KhataText.syncNeedsAttentionTag,
+                        color: AppColors.error,
+                      ),
                   ],
                 ),
                 if (line.note != null && line.note!.isNotEmpty)
@@ -353,7 +365,7 @@ class _LedgerRow extends StatelessWidget {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag({required this.label, required this.color});
+  const _Tag({super.key, required this.label, required this.color});
 
   final String label;
   final Color color;

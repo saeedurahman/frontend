@@ -22,6 +22,9 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
     emit(const SupplierFormState(mode: 'create'));
   }
 
+  /// The body of the supplier as loaded for editing.
+  Map<String, dynamic>? _loaded;
+
   Future<void> loadForEdit(String supplierId) async {
     emit(state.copyWith(isLoading: true, mode: 'edit', supplierId: supplierId));
 
@@ -30,21 +33,40 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
       (failure) => emit(
         state.copyWith(isLoading: false, errors: {'_general': failure.message}),
       ),
-      (supplier) => emit(
-        SupplierFormState(
-          mode: 'edit',
-          supplierId: supplier.id,
-          name: supplier.name,
-          contactPerson: supplier.contactPerson ?? '',
-          email: supplier.email ?? '',
-          phone: supplier.phone ?? '',
-          taxId: supplier.taxId ?? '',
-          addressLine1: supplier.addressLine1 ?? '',
-          city: supplier.city ?? '',
-          paymentTermsDays: supplier.paymentTermsDays.toString(),
-        ),
-      ),
+      (supplier) {
+        emit(
+          SupplierFormState(
+            mode: 'edit',
+            supplierId: supplier.id,
+            name: supplier.name,
+            contactPerson: supplier.contactPerson ?? '',
+            email: supplier.email ?? '',
+            phone: supplier.phone ?? '',
+            taxId: supplier.taxId ?? '',
+            addressLine1: supplier.addressLine1 ?? '',
+            city: supplier.city ?? '',
+            paymentTermsDays: supplier.paymentTermsDays.toString(),
+          ),
+        );
+        _loaded = createBody();
+      },
     );
+  }
+
+  /// What an edit sends: only the fields that differ from the loaded supplier,
+  /// so that an edit made elsewhere is not undone. A cleared text field is sent
+  /// as "", which clears it.
+  Map<String, dynamic> changes() {
+    final now = createBody();
+    final was = _loaded;
+    if (was == null) return now;
+    return {
+      for (final key in {...was.keys, ...now.keys})
+        if (key == 'payment_terms_days'
+            ? now[key] != null && now[key] != was[key]
+            : now[key] != was[key])
+          key: now[key] ?? '',
+    };
   }
 
   void updateName(String value) => emit(state.copyWith(name: value));
@@ -89,10 +111,9 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
     if (!validate()) return 'Validation failed';
 
     emit(state.copyWith(isSubmitting: true, errors: {}));
-    final body = createBody();
 
     if (state.mode == 'create') {
-      final result = await _createSupplier(body);
+      final result = await _createSupplier(createBody());
       return result.fold(
         (failure) {
           emit(state.copyWith(isSubmitting: false));
@@ -105,6 +126,11 @@ class SupplierFormCubit extends Cubit<SupplierFormState> {
       );
     }
 
+    final body = changes();
+    if (body.isEmpty) {
+      emit(state.copyWith(isSubmitting: false));
+      return null;
+    }
     final result = await _updateSupplier(state.supplierId!, body);
     return result.fold(
       (failure) {

@@ -33,6 +33,9 @@ abstract class SupplierBalanceModel with _$SupplierBalanceModel {
     required String balance,
     @JsonKey(name: 'balance_owed') String? balanceOwed,
     @JsonKey(name: 'is_advance') @Default(false) bool isAdvance,
+
+    /// Set when this is the device's figure: when its copy was last updated.
+    @JsonKey(includeFromJson: false, includeToJson: false) DateTime? asOf,
   }) = _SupplierBalanceModel;
 
   factory SupplierBalanceModel.fromJson(Map<String, dynamic> json) =>

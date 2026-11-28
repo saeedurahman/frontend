@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/data_changes/auto_refresh.dart';
 import 'package:frantend/core/data_changes/data_change_bus.dart';
 import 'package:frantend/core/di/injection.dart';
@@ -41,9 +42,20 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
   BalanceFilter _balanceFilter = BalanceFilter.all;
   BalanceSort _balanceSort = BalanceSort.none;
 
+  StreamSubscription<ReachabilityStatus>? _connectivity;
+
+  /// Reads again when the server comes back, so the device's copy is replaced.
+  void watchConnectivity(ConnectivityProbe probe) {
+    _connectivity?.cancel();
+    _connectivity = probe.status.listen((status) {
+      if (status != ReachabilityStatus.offline) _reload();
+    });
+  }
+
   @override
   Future<void> close() {
     _searchDebounce?.cancel();
+    unawaited(_connectivity?.cancel() ?? Future<void>.value());
     return super.close();
   }
 
@@ -105,6 +117,7 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
         searchQuery: _search,
         balanceFilter: _balanceFilter,
         balanceSort: _balanceSort,
+        asOf: current is SuppliersListLoaded ? current.asOf : null,
       ),
     );
     await _loadBalances(rows, read);
@@ -122,10 +135,15 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
         ? sl<BranchSelectorCubit>().state.selectedBranchId
         : null;
     final balances = <String, String?>{};
+    DateTime? asOf;
     await Future.wait(
       rows.map((row) async {
         final result = await _getBalance(row.supplier.id, branchId: branchId);
-        balances[row.supplier.id] = result.fold((_) => null, (b) => b.balance);
+        balances[row.supplier.id] = result.fold((_) => null, (b) {
+          final at = b.asOf;
+          if (at != null && (asOf == null || at.isBefore(asOf!))) asOf = at;
+          return b.balance;
+        });
       }),
     );
     if (isStale(read)) return;
@@ -144,6 +162,7 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
       current.copyWith(
         allItems: updated,
         filteredItems: _filter(updated, _search),
+        asOf: asOf,
       ),
     );
   }
@@ -161,6 +180,7 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
       current.copyWith(
         allItems: rows,
         filteredItems: _filter(rows, _search),
+        asOf: null,
       ),
     );
     await _loadBalances(rows, read);
@@ -255,17 +275,23 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
       (failure) {
         final restored = [...allItems];
         restored[index] = row;
-        emit(
+        _refused(
+          failure.message,
           current.copyWith(
             allItems: restored,
             filteredItems: _filter(restored, _search),
           ),
         );
-        emit(SuppliersListState.error(failure.message));
         return false;
       },
       (_) => true,
     );
+  }
+
+  /// Says why, then puts the list back.
+  void _refused(String message, SuppliersListState restored) {
+    emit(SuppliersListState.error(message));
+    emit(restored);
   }
 
   Future<bool> deleteSupplier(String id) async {
@@ -289,18 +315,22 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
       (failure) {
         final restored = [...allItems];
         restored.insert(index, removed);
-        emit(
+        _refused(
+          failure.message,
           current.copyWith(
             allItems: restored,
             filteredItems: _filter(restored, _search),
           ),
         );
-        emit(SuppliersListState.error(failure.message));
         return false;
       },
       (_) => true,
     );
   }
+
+  /// Why the last [createQuick] made nothing.
+  String? get lastCreateError => _lastCreateError;
+  String? _lastCreateError;
 
   Future<SupplierModel?> createQuick({
     required String name,
@@ -310,10 +340,12 @@ class SuppliersListCubit extends Cubit<SuppliersListState>
       'name': name,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
     };
+    _lastCreateError = null;
     final result = await _createSupplier(body);
     return result.fold(
       (failure) {
-        emit(SuppliersListState.error(failure.message));
+        // The dialog says why; the list behind it stays.
+        _lastCreateError = failure.message;
         return null;
       },
       (supplier) {

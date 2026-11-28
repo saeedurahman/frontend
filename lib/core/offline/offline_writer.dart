@@ -8,6 +8,12 @@ import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/decimal_utils.dart';
 import 'package:frantend/features/pos/domain/utils/pricing_engine.dart';
+import 'package:frantend/features/suppliers/domain/supplier_text.dart';
+
+/// Drawer money was recorded with no open shift on this device.
+class NoOpenShiftException implements Exception {
+  const NoOpenShiftException();
+}
 
 /// Who is acting (cashier) - resolved from the cached signed-in user.
 class ActingUser {
@@ -380,6 +386,228 @@ class OfflineWriter {
     return ledgerId;
   }
 
+  // ── suppliers ────────────────────────────────────────────────────────
+
+  /// Saves a new supplier on this device and queues `supplier.create`: the row
+  /// and the op in one transaction. [body] is the `POST /suppliers` body, with
+  /// an optional `opening_balance`. Returns the row as the sync feed sends it.
+  ///
+  /// Throws [SupplierInputException] or [DuplicateSupplierException].
+  Future<Map<String, dynamic>> createSupplier(Map<String, dynamic> body) async {
+    final user = await _user();
+    final id = _ids.newId();
+    final occurredAt = _occurredAt();
+    final fields = SupplierRules.fields(body)
+      ..removeWhere((_, value) => value == '');
+    final problems = SupplierRules.problems({'name': '', ...fields});
+    if (problems.isNotEmpty) throw SupplierInputException(problems);
+    final opening = body['opening_balance'];
+    final payload = <String, dynamic>{
+      'id': id,
+      ...fields,
+      if (opening is Map) 'opening_balance': Map<String, dynamic>.from(opening),
+    };
+    final row = <String, dynamic>{
+      'id': id,
+      'business_id': user.businessId,
+      'payment_terms_days': 30,
+      ...fields,
+      'is_active': true,
+      'created_at': occurredAt,
+      'updated_at': occurredAt,
+    };
+    await _store.transaction(() async {
+      await _refuseDuplicate(id, fields);
+      await _store.putEntity('supplier', id, row);
+      await _store.enqueue(
+        opId: _ids.opId(),
+        type: OpTypes.supplierCreate,
+        payload: payload,
+        occurredAt: occurredAt,
+        entity: 'supplier',
+        entityId: id,
+      );
+    });
+    return row;
+  }
+
+  /// Saves an edit on this device and queues `supplier.update` with only the
+  /// fields that changed. An edit of a new supplier the server has refused is
+  /// put into its `supplier.create` instead. Returns the row as it now is.
+  ///
+  /// Throws [SupplierInputException], [DuplicateSupplierException] or
+  /// [SupplierNotOnDeviceException].
+  Future<Map<String, dynamic>> updateSupplier(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final occurredAt = _occurredAt();
+    final asked = SupplierRules.fields(body);
+    return _store.transaction(() async {
+      final current = await _store.entity('supplier', id);
+      if (current == null) throw const SupplierNotOnDeviceException();
+      final fields = <String, dynamic>{
+        for (final e in asked.entries)
+          if ('${e.value}' != '${current[e.key] ?? ''}') e.key: e.value,
+      };
+      if (fields.isEmpty) return current;
+      final problems = SupplierRules.problems(fields);
+      if (problems.isNotEmpty) throw SupplierInputException(problems);
+      await _refuseDuplicate(id, fields);
+      final next = {...current, ...fields, 'updated_at': occurredAt};
+
+      final create = (await _store.unfinishedSupplierOps(
+        id,
+        OpTypes.supplierCreate,
+      ))
+          .firstOrNull;
+      if (create != null && create.needsAttention) {
+        await _store.amendAndRetry(
+          create.opId,
+          {...create.payload, ...fields}..removeWhere((_, v) => v == ''),
+        );
+      } else {
+        // Edits the server refused go again with this one.
+        var send = fields;
+        for (final o in await _store.unfinishedSupplierOps(
+          id,
+          OpTypes.supplierUpdate,
+        )) {
+          if (!o.needsAttention) continue;
+          send = {
+            ...Map<String, dynamic>.from(o.payload['fields'] as Map),
+            ...send,
+          };
+          await _store.removeSuperseded(o.opId);
+        }
+        if (create == null) await _store.keepSupplierBase(id, current);
+        await _store.enqueue(
+          opId: _ids.opId(),
+          type: OpTypes.supplierUpdate,
+          payload: {'id': id, 'fields': send},
+          occurredAt: occurredAt,
+          dependsOn: [if (create != null) create.opId],
+          entity: 'supplier',
+          entityId: id,
+        );
+      }
+      await _store.putEntity('supplier', id, next);
+      return next;
+    });
+  }
+
+  /// The server keeps names and phones unique; what this device holds is
+  /// checked before anything is queued.
+  Future<void> _refuseDuplicate(
+    String id,
+    Map<String, dynamic> fields,
+  ) async {
+    final name = fields.containsKey('name')
+        ? SupplierRules.nameKey(fields['name'])
+        : null;
+    final phone = SupplierRules.phoneKey(fields['phone']);
+    if (name == null && phone == null) return;
+    for (final other in await _store.entities('supplier', orderBy: 'id')) {
+      if ('${other['id']}' == id) continue;
+      final field = name != null && SupplierRules.nameKey(other['name']) == name
+          ? 'name'
+          : phone != null && SupplierRules.phoneKey(other['phone']) == phone
+              ? 'phone'
+              : null;
+      if (field != null) {
+        throw DuplicateSupplierException(
+          field: field,
+          existingId: '${other['id']}',
+          existingName: '${other['name']}',
+        );
+      }
+    }
+  }
+
+  // ── supplier payments ────────────────────────────────────────────────
+
+  /// Saves a payment to a supplier on this device and queues
+  /// `supplier.payment`: the account line and the op in one transaction.
+  /// [body] is the `POST /suppliers/payments` body; [id] becomes the ledger
+  /// row's id on the server too. Returns the queued payload.
+  ///
+  /// Money from the cash drawer goes with this user's open shift on this
+  /// device, and its branch; without one this throws [NoOpenShiftException].
+  /// Every other source needs no shift. Saving the same [id] twice queues it
+  /// once.
+  Future<Map<String, dynamic>> recordSupplierPayment(
+    Map<String, dynamic> body, {
+    String? id,
+  }) async {
+    final user = await _user();
+    final ledgerId = id ?? _ids.newId();
+    final supplierId = '${body['supplier_id']}';
+    final source = '${body['payment_source']}';
+    final occurredAt = _occurredAt();
+    String? text(String key) {
+      final value = body[key]?.toString().trim();
+      return value == null || value.isEmpty ? null : value;
+    }
+
+    return _store.transaction(() async {
+      for (final o in await _store.ops()) {
+        if (o.type == OpTypes.supplierPayment && o.payload['id'] == ledgerId) {
+          return o.payload;
+        }
+      }
+      final shift = source == 'drawer'
+          ? await _store.openShiftFor(user.id)
+          : null;
+      if (source == 'drawer' && shift == null) {
+        throw const NoOpenShiftException();
+      }
+      final shiftId = shift?['id'] as String?;
+      final branchId = shift?['branch_id'] as String? ?? text('branch_id');
+      final payload = <String, dynamic>{
+        'id': ledgerId,
+        'supplier_id': supplierId,
+        'amount': DecimalUtils.format(Decimal.parse('${body['amount']}')),
+        'payment_source': source,
+        if (text('reference') != null) 'reference': text('reference'),
+        if (text('note') != null) 'note': text('note'),
+        'paid_at': text('paid_at') ?? occurredAt,
+        if (branchId != null) 'branch_id': branchId,
+        if (shiftId != null) 'register_shift_id': shiftId,
+      };
+      final deps = <String>[
+        ?await _pendingCreator(OpTypes.supplierCreate, 'supplier', supplierId),
+        ?await _pendingShiftOpen(shiftId),
+      ];
+      await _store.putEntity('supplier_ledger', ledgerId, {
+        'id': ledgerId,
+        'business_id': user.businessId,
+        'supplier_id': supplierId,
+        'branch_id': branchId,
+        'entry_type': 'payment',
+        'amount': payload['amount'],
+        'payment_source': source,
+        'reference_no': text('reference'),
+        'reference_type': 'manual',
+        'reference_id': supplierId,
+        'notes': text('note'),
+        'register_shift_id': shiftId,
+        'entry_at': payload['paid_at'],
+        'created_at': occurredAt,
+        SyncStore.localRowKey: true,
+      });
+      await _store.enqueue(
+        opId: _ids.opId(),
+        type: OpTypes.supplierPayment,
+        payload: payload,
+        occurredAt: occurredAt,
+        dependsOn: deps,
+        entity: 'supplier_ledger',
+        entityId: ledgerId,
+      );
+      return payload;
+    });
+  }
+
   // ── khata follow-ups ─────────────────────────────────────────────────
 
   /// Saves a promise, reminder or note locally and queues `followup.create`.
@@ -398,10 +626,12 @@ class OfflineWriter {
       'created_by': user.id,
     };
     await _store.transaction(() async {
-      // A customer made offline must reach the server first.
+      // A customer or supplier made offline must reach the server first.
       final deps = <String>[
         if (partyType == 'customer')
           ?await _pendingCreator(OpTypes.customerCreate, 'customer', partyId),
+        if (partyType == 'supplier')
+          ?await _pendingCreator(OpTypes.supplierCreate, 'supplier', partyId),
       ];
       await _store.putEntity('party_followup', id, row);
       await _store.enqueue(
@@ -423,12 +653,22 @@ class OfflineWriter {
   /// server gives it one).
   Future<String> createExpense(Map<String, dynamic> body) async {
     final opId = _ids.opId();
+    final supplierId = body['supplier_id']?.toString();
     await _store.transaction(() async {
+      final deps = <String>[
+        if (supplierId != null)
+          ?await _pendingCreator(
+            OpTypes.supplierCreate,
+            'supplier',
+            supplierId,
+          ),
+      ];
       await _store.enqueue(
         opId: opId,
         type: OpTypes.expenseCreate,
         payload: Map<String, dynamic>.from(body)..remove('id'),
         occurredAt: _occurredAt(),
+        dependsOn: deps,
       );
     });
     return opId;

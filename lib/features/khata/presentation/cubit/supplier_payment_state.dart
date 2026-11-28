@@ -23,6 +23,8 @@ class SupplierPaymentState {
     this.errorCode,
     this.offline = false,
     this.result,
+    this.balanceKnown = true,
+    this.balanceAsOf,
   }) : balance = balance ?? Decimal.zero;
 
   final String supplierId;
@@ -49,6 +51,12 @@ class SupplierPaymentState {
   /// The last try failed because there is no internet; the draft is kept.
   final bool offline;
   final SupplierPaymentResult? result;
+
+  /// False when what is owed could not be read: no balance is shown.
+  final bool balanceKnown;
+
+  /// Set when the balance is the device's copy: when that was last updated.
+  final DateTime? balanceAsOf;
 
   Decimal get owed => balance < Decimal.zero ? -balance : Decimal.zero;
 
@@ -80,7 +88,8 @@ class SupplierPaymentState {
   Decimal get advanceAfter =>
       balanceAfter > Decimal.zero ? balanceAfter : Decimal.zero;
 
-  bool get isAdvance => amount != null && advanceAfter > Decimal.zero;
+  bool get isAdvance =>
+      balanceKnown && amount != null && advanceAfter > Decimal.zero;
 
   /// Cash drawer picked but the user has no open shift.
   bool get needsShift =>
@@ -139,6 +148,8 @@ class SupplierPaymentState {
           identical(errorCode, _keep) ? this.errorCode : errorCode as String?,
       offline: offline ?? this.offline,
       result: result ?? this.result,
+      balanceKnown: balanceKnown,
+      balanceAsOf: balanceAsOf,
     );
   }
 
@@ -161,6 +172,8 @@ class SupplierPaymentState {
         errorCode: errorCode,
         offline: offline,
         result: result,
+        balanceKnown: balanceKnown,
+        balanceAsOf: balanceAsOf,
       );
 }
 

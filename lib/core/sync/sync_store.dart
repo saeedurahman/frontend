@@ -109,6 +109,18 @@ class IndexedEntity {
         return IndexedEntity(parentId: s('product_id'), active: isActive);
       case 'customer_balance':
         return IndexedEntity(parentId: s('customer_id') ?? s('id'));
+      case 'supplier':
+        return IndexedEntity(
+          searchText: search([s('name'), s('phone'), s('email')]),
+          active: isActive,
+        );
+      case 'supplier_balance' || 'supplier_open_items':
+        return IndexedEntity(parentId: s('supplier_id') ?? s('id'));
+      case 'supplier_ledger':
+        return IndexedEntity(
+          branchId: s('branch_id'),
+          parentId: s('supplier_id'),
+        );
       case 'sale_summary':
         // Searchable by number, customer, receipt number and date.
         final customer = data['customer'];
@@ -441,7 +453,11 @@ class SyncStore {
         'customer' ||
         'customer_balance' =>
           const {DataTopic.customers, DataTopic.customerLedger},
-        'supplier' => const {DataTopic.suppliers},
+        'supplier' ||
+        'supplier_balance' ||
+        'supplier_open_items' ||
+        'supplier_ledger' =>
+          const {DataTopic.suppliers, DataTopic.supplierLedger},
         'party_followup' => const {DataTopic.followups},
         'product' ||
         'product_variation' ||
@@ -471,9 +487,21 @@ class SyncStore {
         OpTypes.customerCreate =>
           const {DataTopic.customers, DataTopic.customerLedger},
         OpTypes.followupCreate => const {DataTopic.followups},
+        OpTypes.supplierCreate ||
+        OpTypes.supplierUpdate => const {
+            DataTopic.suppliers,
+            DataTopic.supplierLedger,
+          },
         OpTypes.customerPayment => const {
             DataTopic.customers,
             DataTopic.customerLedger,
+            DataTopic.shifts,
+            DataTopic.cashMovements,
+          },
+        OpTypes.supplierPayment => const {
+            DataTopic.suppliers,
+            DataTopic.supplierLedger,
+            DataTopic.purchases,
             DataTopic.shifts,
             DataTopic.cashMovements,
           },
@@ -508,6 +536,24 @@ class SyncStore {
   Future<void> _noteOp(String opId) async {
     final o = await op(opId);
     if (o != null) _topicsInTx.addAll(opTopics(o.type));
+  }
+
+  /// Writes a row the server just answered a request with, and tells the open
+  /// screens. Call inside [transaction].
+  Future<void> putFromServer(
+    String entity,
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    await putEntity(entity, id, data);
+    _topicsInTx.addAll(_entityTopics(entity));
+  }
+
+  /// Removes a row the server says is gone, and tells the open screens. Call
+  /// inside [transaction].
+  Future<void> removeFromServer(String entity, String id) async {
+    await deleteEntity(entity, id);
+    _topicsInTx.addAll(_entityTopics(entity));
   }
 
   /// Insert or replace one entity row (used by pulls and by local creates).
@@ -935,7 +981,8 @@ class SyncStore {
     );
     _queuedInTx = true;
     _topicsInTx.addAll(opTopics(type));
-    if (type == OpTypes.customerCreate && entityId != null) {
+    if ((type == OpTypes.customerCreate || type == OpTypes.supplierCreate) &&
+        entityId != null) {
       _createdInTx.add(entityId);
     }
     if (type == OpTypes.returnCreate || type == OpTypes.saleVoid) {
@@ -1150,6 +1197,19 @@ class SyncStore {
   Future<void> discardOp(String opId, {required String reason}) async {
     final o = await op(opId);
     if (o == null) return;
+    // What was recorded for a supplier that will never exist goes with it.
+    if (o.type == OpTypes.supplierCreate && o.entityId != null) {
+      for (final other in await supplierDependants(o.entityId!)) {
+        await discardOp(other.opId, reason: reason);
+      }
+      // Money spent stays on record, without the supplier.
+      for (final other in await ops(statuses: OutboxStatus.unfinished)) {
+        if (other.opId != o.opId &&
+            '${other.payload['supplier_id']}' == o.entityId) {
+          await _repointSupplier(other, o.opId, 'supplier_id', null);
+        }
+      }
+    }
     await _exec('DELETE FROM outbox WHERE op_id = ?', [opId]);
     _topicsInTx.addAll(opTopics(o.type));
     if (o.type == OpTypes.saleCreate) {
@@ -1168,10 +1228,23 @@ class SyncStore {
     if (o.type == OpTypes.followupCreate && o.entityId != null) {
       await _exec("DELETE FROM entities WHERE entity = 'party_followup' AND id = ?", [o.entityId]);
     }
+    if (o.type == OpTypes.supplierPayment && o.entityId != null) {
+      await _deleteLocalLedgerRow(o.entityId!);
+    }
+    if (o.type == OpTypes.supplierCreate && o.entityId != null) {
+      await _forgetUncreatedSupplier(o);
+    }
+    if (o.type == OpTypes.supplierUpdate && o.entityId != null) {
+      await _undoSupplierEdits(o.entityId!);
+    }
+    await _logDiscard(o, reason);
+  }
+
+  Future<void> _logDiscard(OutboxOp o, String reason) async {
     final log = (await metaJson(discardLogKey)) ?? {'entries': <dynamic>[]};
     final entries = List<dynamic>.from(log['entries'] as List)
       ..add({
-        'op_id': opId,
+        'op_id': o.opId,
         'type': o.type,
         'at': _clock().toUtc().toIso8601String(),
         'reason': reason,
@@ -1286,19 +1359,244 @@ class SyncStore {
     return total;
   }
 
-  /// Customer payments queued but not yet confirmed: still in the outbox, or
-  /// accepted by the server but not yet pulled back into the balance.
-  Future<Decimal> pendingPaymentsFor(String customerId) async {
+  /// Payment ops of [type] whose money is not in the pulled balances yet:
+  /// still in the outbox, or accepted by the server but not yet pulled back.
+  /// Oldest first.
+  Future<List<OutboxOp>> _uncountedPayments(String type) async {
     final awaiting = await unconfirmedPaymentOps();
     final all = await ops(statuses: [...OutboxStatus.unfinished, OutboxStatus.applied]);
-    var total = Decimal.zero;
-    for (final o in all) {
-      if (o.type != OpTypes.customerPayment) continue;
-      if ('${o.payload['customer_id']}' != customerId) continue;
-      if (o.status == OutboxStatus.applied && !awaiting.contains(o.opId)) continue;
-      total += Decimal.tryParse('${o.payload['amount']}') ?? Decimal.zero;
+    return [
+      for (final o in all)
+        if (o.type == type &&
+            (o.status != OutboxStatus.applied || awaiting.contains(o.opId)))
+          o,
+    ];
+  }
+
+  /// The money of [payments] added up.
+  static Decimal paymentTotal(Iterable<OutboxOp> payments) => payments.fold(
+        Decimal.zero,
+        (sum, o) =>
+            sum + (Decimal.tryParse('${o.payload['amount']}') ?? Decimal.zero),
+      );
+
+  /// This customer's payments the pulled account does not include yet.
+  Future<List<OutboxOp>> uncountedCustomerPayments(String customerId) async => [
+        for (final o in await _uncountedPayments(OpTypes.customerPayment))
+          if ('${o.payload['customer_id']}' == customerId) o,
+      ];
+
+  /// Customer payments queued but not yet confirmed.
+  Future<Decimal> pendingPaymentsFor(String customerId) async => paymentTotal([
+        for (final o in await _uncountedPayments(OpTypes.customerPayment))
+          if ('${o.payload['customer_id']}' == customerId) o,
+      ]);
+
+  // ── suppliers ────────────────────────────────────────────────────────
+
+  /// Ids of suppliers added or changed on this device that the server has not
+  /// accepted yet ("Not synced yet").
+  Future<Set<String>> unsyncedSupplierIds() async {
+    final rows = await _rows(
+      'SELECT entity_id FROM outbox WHERE type IN (?, ?) '
+      'AND entity_id IS NOT NULL '
+      "AND status IN ('pending','sending','failed','rejected')",
+      [OpTypes.supplierCreate, OpTypes.supplierUpdate],
+    );
+    return {for (final r in rows) r['entity_id']! as String};
+  }
+
+  /// The ops of [type] for this supplier that the server has not accepted,
+  /// oldest first.
+  Future<List<OutboxOp>> unfinishedSupplierOps(
+    String supplierId,
+    String type,
+  ) async => [
+        for (final o in await ops(statuses: OutboxStatus.unfinished))
+          if (o.type == type && o.entityId == supplierId) o,
+      ];
+
+  /// New suppliers the pulled copy does not account for yet: still waiting,
+  /// or accepted since the last completed pull.
+  Future<List<OutboxOp>> pendingSupplierCreates({String? supplierId}) async => [
+        for (final o in await _uncountedPayments(OpTypes.supplierCreate))
+          if (supplierId == null || o.entityId == supplierId) o,
+      ];
+
+  /// Everything queued that only makes sense if the server gets [supplierId].
+  Future<List<OutboxOp>> supplierDependants(String supplierId) async => [
+        for (final o in await ops(statuses: OutboxStatus.unfinished))
+          if ((o.type == OpTypes.supplierPayment &&
+                  '${o.payload['supplier_id']}' == supplierId) ||
+              (o.type == OpTypes.followupCreate &&
+                  '${o.payload['party_id']}' == supplierId) ||
+              (o.type == OpTypes.supplierUpdate && o.entityId == supplierId))
+            o,
+      ];
+
+  /// Sends [o] for the supplier [to] (null: for none) in the [party] field of
+  /// its payload, and no longer after [createOpId].
+  Future<void> _repointSupplier(
+    OutboxOp o,
+    String createOpId,
+    String party,
+    String? to,
+  ) async {
+    final payload = {...o.payload, party: to}
+      ..removeWhere((key, value) => key == party && value == null);
+    // A new id: the server keeps its answer to an id it already refused.
+    final id = await _reissue(o.opId);
+    await _exec(
+      'UPDATE outbox SET payload = ?, depends_on = ? WHERE op_id = ?',
+      [
+        jsonEncode(payload),
+        jsonEncode([
+          for (final d in o.dependsOn)
+            if (d != createOpId) d,
+        ]),
+        id,
+      ],
+    );
+    await _resetToPending(id);
+    _topicsInTx.addAll(opTopics(o.type));
+    _queuedInTx = true;
+    if (o.entity != null && o.entityId != null) {
+      final row = await entity(o.entity!, o.entityId!);
+      if (row != null) {
+        await putEntity(o.entity!, o.entityId!, {...row, party: to});
+      }
     }
-    return total;
+  }
+
+  static String _supplierBaseKey(String id) => 'supplier_base_$id';
+
+  /// Keeps the supplier as it was before the first edit waiting to be sent,
+  /// so a discarded edit can be undone.
+  Future<void> keepSupplierBase(String id, Map<String, dynamic> row) async {
+    if (await meta(_supplierBaseKey(id)) != null) return;
+    await setMetaJson(_supplierBaseKey(id), row);
+  }
+
+  /// Drops it once no edit is waiting any more.
+  Future<void> dropSupplierBase(String id) async {
+    final waiting = await unfinishedSupplierOps(id, OpTypes.supplierUpdate);
+    if (waiting.isEmpty) await setMeta(_supplierBaseKey(id), null);
+  }
+
+  /// The row as it was, with the edits still waiting put back on top.
+  Future<void> _undoSupplierEdits(String id) async {
+    final base = await metaJson(_supplierBaseKey(id));
+    if (base != null && await entity('supplier', id) != null) {
+      var row = base;
+      for (final o in await unfinishedSupplierOps(id, OpTypes.supplierUpdate)) {
+        final fields = o.payload['fields'];
+        if (fields is Map) {
+          row = {...row, ...Map<String, dynamic>.from(fields)};
+        }
+      }
+      await putEntity('supplier', id, row);
+    }
+    await dropSupplierBase(id);
+  }
+
+  Future<void> _forgetUncreatedSupplier(OutboxOp create) async {
+    final id = create.entityId!;
+    await deleteEntity('supplier', id);
+    await setMeta(_supplierBaseKey(id), null);
+    await setMeta(_duplicateKey(create.opId), null);
+  }
+
+  /// Changes what a queued op will send and puts it back in the queue under a
+  /// new id. Call inside [transaction].
+  Future<String> amendAndRetry(
+    String opId,
+    Map<String, dynamic> payload,
+  ) async {
+    await _exec(
+      'UPDATE outbox SET payload = ? WHERE op_id = ?',
+      [jsonEncode(payload), opId],
+    );
+    await setMeta(_duplicateKey(opId), null);
+    return retryOp(opId);
+  }
+
+  /// Removes an op whose content another queued op now carries, or that no
+  /// longer applies.
+  Future<void> removeSuperseded(String opId) async {
+    await _noteOp(opId);
+    await _exec('DELETE FROM outbox WHERE op_id = ?', [opId]);
+  }
+
+  static String _duplicateKey(String opId) => 'supplier_duplicate_$opId';
+
+  /// The server refused this op because another supplier has the name or the
+  /// phone: which one.
+  Future<void> noteDuplicateSupplier(
+    String opId, {
+    required String existingId,
+    required String field,
+  }) =>
+      setMetaJson(_duplicateKey(opId), {'id': existingId, 'field': field});
+
+  Future<({String existingId, String field})?> duplicateSupplier(
+    String opId,
+  ) async {
+    final row = await metaJson(_duplicateKey(opId));
+    final id = row?['id']?.toString();
+    return id == null ? null : (existingId: id, field: '${row!['field']}');
+  }
+
+  /// A new supplier was refused as a duplicate and the user chose the one that
+  /// already exists: payments, expenses and notes recorded for the new one are
+  /// sent for that one instead; the new one, its opening balance and its edits
+  /// are dropped. Returns false when there is nothing to move to. Call inside
+  /// [transaction].
+  Future<bool> useExistingSupplier(String createOpId) async {
+    final create = await op(createOpId);
+    final found = await duplicateSupplier(createOpId);
+    final from = create?.entityId;
+    if (create == null || from == null || found == null) return false;
+    final to = found.existingId;
+
+    final waiting = await ops(statuses: OutboxStatus.unfinished);
+    for (final o in waiting) {
+      if (o.opId == createOpId) continue;
+      if (o.type == OpTypes.supplierUpdate && o.entityId == from) {
+        await removeSuperseded(o.opId);
+        continue;
+      }
+      final isNote = o.type == OpTypes.followupCreate &&
+          '${o.payload['party_id']}' == from;
+      if (!isNote && '${o.payload['supplier_id']}' != from) continue;
+      await _repointSupplier(
+        o,
+        createOpId,
+        isNote ? 'party_id' : 'supplier_id',
+        to,
+      );
+    }
+    await removeSuperseded(createOpId);
+    await _forgetUncreatedSupplier(create);
+    await _logDiscard(create, 'Replaced by an existing supplier');
+    _queuedInTx = true;
+    return true;
+  }
+
+  /// Supplier payments of this device that the pulled balances, bills and
+  /// ledger do not account for yet (all suppliers, or [supplierId] only).
+  Future<List<OutboxOp>> pendingSupplierPayments({String? supplierId}) async => [
+        for (final o in await _uncountedPayments(OpTypes.supplierPayment))
+          if (supplierId == null || '${o.payload['supplier_id']}' == supplierId) o,
+      ];
+
+  /// Marks a `supplier_ledger` row written by this device; the server's row
+  /// of the same id replaces it, without the mark.
+  static const localRowKey = '_local';
+
+  Future<void> _deleteLocalLedgerRow(String id) async {
+    final row = await entity('supplier_ledger', id);
+    if (row?[localRowKey] != true) return;
+    await deleteEntity('supplier_ledger', id);
   }
 
   static const balanceUnconfirmedKey = 'balance_unconfirmed_payments';
@@ -1307,14 +1605,18 @@ class SyncStore {
   static const flaggedPaymentsKey = 'flagged_payments';
 
   Future<void> noteFlaggedPayment(OutboxOp op, List<String> flags) async {
-    final customerId = op.payload['customer_id']?.toString();
-    final customer =
-        customerId == null ? null : await entity('customer', customerId);
+    final toSupplier = op.type == OpTypes.supplierPayment;
+    final party = toSupplier ? 'supplier' : 'customer';
+    final partyId = op.payload['${party}_id']?.toString();
+    final row = partyId == null ? null : await entity(party, partyId);
+    final name = row?['name']?.toString();
     final entry = FlaggedPayment(
       opId: op.opId,
       amount: '${op.payload['amount'] ?? '0'}',
       flags: flags,
-      customerName: customer?['name']?.toString(),
+      toSupplier: toSupplier,
+      customerName: toSupplier ? null : name,
+      supplierName: toSupplier ? name : null,
       takenAt: DateTime.tryParse(op.occurredAt),
     );
     final all = [
@@ -1339,8 +1641,8 @@ class SyncStore {
     ];
   }
 
-  /// Ids of `customer.payment` ops the server accepted whose effect on the
-  /// customer balance has not been pulled yet.
+  /// Ids of customer and supplier payment ops the server accepted whose
+  /// effect on the balance has not been pulled yet.
   Future<Set<String>> unconfirmedPaymentOps() async {
     final raw = await meta(balanceUnconfirmedKey);
     if (raw == null || raw.isEmpty) return <String>{};
@@ -1354,8 +1656,8 @@ class SyncStore {
   Future<void> _setUnconfirmedPayments(Set<String> ids) =>
       setMeta(balanceUnconfirmedKey, ids.isEmpty ? null : jsonEncode(ids.toList()));
 
-  /// The server accepted [opId] (a customer payment): its amount keeps being
-  /// added to the pulled balance until the next completed pull.
+  /// The server accepted [opId] (a payment): its amount keeps being applied
+  /// to the pulled balance until the next completed pull.
   Future<void> noteBalanceUnconfirmed(String opId) async =>
       _setUnconfirmedPayments({...await unconfirmedPaymentOps(), opId});
 
@@ -1366,6 +1668,20 @@ class SyncStore {
     final left = current.difference(opIds);
     if (left.length == current.length) return;
     await _setUnconfirmedPayments(left);
+    for (final opId in current.intersection(opIds)) {
+      final o = await op(opId);
+      if (o == null) continue;
+      if (o.type != OpTypes.supplierPayment &&
+          o.type != OpTypes.supplierCreate) {
+        continue;
+      }
+      // A row the pull did not replace (older than the history it sends, or
+      // not allowed to see) is no longer "waiting to sync".
+      if (o.type == OpTypes.supplierPayment && o.entityId != null) {
+        await _deleteLocalLedgerRow(o.entityId!);
+      }
+      _topicsInTx.addAll(opTopics(o.type));
+    }
   }
 
   // ── local shifts ─────────────────────────────────────────────────────

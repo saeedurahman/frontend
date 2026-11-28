@@ -135,6 +135,22 @@ class HubRow {
   final Decimal? promiseAmount;
   final int openItemsCount;
 
+  /// With [paid] (less than what is owed) taken off the balance.
+  HubRow lessPaid(Decimal paid) => HubRow(
+        id: id,
+        name: name,
+        phone: phone,
+        balanceOwed: balanceOwed - paid,
+        oldestOpenDate: oldestOpenDate,
+        oldestAgeDays: oldestAgeDays,
+        buckets: buckets,
+        lastPaymentAt: lastPaymentAt,
+        lastReminderAt: lastReminderAt,
+        promiseDate: promiseDate,
+        promiseAmount: promiseAmount,
+        openItemsCount: openItemsCount,
+      );
+
   /// With the newer follow-ups saved on this device on top.
   HubRow withFollowups({
     DateTime? reminderAt,
@@ -230,11 +246,22 @@ class KhataSide {
     required this.total,
     required this.count,
     required this.buckets,
+    this.known = true,
   });
 
   static final empty =
       KhataSide(total: Decimal.zero, count: 0, buckets: AgingBuckets.empty);
 
+  /// No figure for this side on the device.
+  static final unknown = KhataSide(
+    total: Decimal.zero,
+    count: 0,
+    buckets: AgingBuckets.empty,
+    known: false,
+  );
+
+  /// False when the figures are not on the device: nothing is shown for them.
+  final bool known;
   final Decimal total;
   final int count;
   final AgingBuckets buckets;
@@ -332,6 +359,7 @@ class OpenItems {
     this.phone,
     this.asOf,
     this.termsDays = 0,
+    this.pendingPaid,
   });
 
   factory OpenItems.fromJson(Map<String, dynamic> json) => OpenItems(
@@ -357,6 +385,27 @@ class OpenItems {
   /// Oldest first.
   final List<OpenItem> items;
   final AgingBuckets buckets;
+
+  /// Paid on this device and not yet in the bills: already taken off
+  /// [balanceOwed], but not given to any bill.
+  final Decimal? pendingPaid;
+
+  /// These bills with [paid] (money waiting to sync) off the total.
+  OpenItems withPayments(Decimal paid) {
+    if (paid == Decimal.zero) return this;
+    final balance = advance - balanceOwed + paid;
+    return OpenItems(
+      name: name,
+      phone: phone,
+      asOf: asOf,
+      termsDays: termsDays,
+      balanceOwed: balance < Decimal.zero ? -balance : Decimal.zero,
+      advance: balance > Decimal.zero ? balance : Decimal.zero,
+      items: items,
+      buckets: buckets,
+      pendingPaid: paid,
+    );
+  }
 }
 
 enum FollowupKind {

@@ -4,6 +4,7 @@ import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/constants/app_text_styles.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/features/suppliers/domain/repositories/suppliers_repository.dart';
 import 'package:frantend/features/suppliers/presentation/cubit/supplier_form_cubit.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/features/khata/domain/party_type.dart';
@@ -45,6 +46,9 @@ class SupplierFormPage extends StatelessWidget {
           create: (_) => OpeningBalanceCubit(
             khataRepositoryIfAny(),
             type: PartyType.supplier,
+            saveOffline: sl.isRegistered<SuppliersRepository>()
+                ? sl<SuppliersRepository>().createSupplier
+                : null,
           ),
         ),
       ],

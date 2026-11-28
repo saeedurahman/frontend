@@ -7,6 +7,7 @@ import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/data/models/khata_p1_models.dart';
 import 'package:frantend/features/khata/domain/khata_format.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/text/khata_ui_text.dart';
 import 'package:frantend/features/khata/domain/text/party_text.dart';
 import 'package:frantend/features/khata/presentation/cubit/party_khata_cubit.dart';
@@ -94,6 +95,15 @@ class _PendingBillsCardState extends State<PendingBillsCard> {
                       asOf: data.asOf!,
                       now: widget.clock(),
                     ),
+                  ),
+                ),
+              if (open?.pendingPaid != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppDimensions.spacingSm),
+                  child: Text(
+                    KhataText.waitingPayments(formatPKR(open!.pendingPaid!)),
+                    key: const Key('bills-waiting-payments'),
+                    style: _secondary,
                   ),
                 ),
               const SizedBox(height: AppDimensions.spacing12),

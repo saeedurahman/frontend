@@ -1,5 +1,6 @@
 import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/utils/currency_label.dart';
+import 'package:frantend/features/khata/domain/payment_source.dart';
 
 /// A queued op in words a cashier understands.
 class OpDescription {
@@ -25,6 +26,27 @@ abstract final class OpDescriber {
         return OpDescription('New customer ${p['name'] ?? ''}'.trim(), when);
       case OpTypes.customerPayment:
         return OpDescription('Customer payment $currencyLabel ${p['amount'] ?? ''}'.trim(), when);
+      case OpTypes.supplierPayment:
+        final from = PaymentSource.describe(p['payment_source']?.toString());
+        return OpDescription(
+          'Supplier payment $currencyLabel ${p['amount'] ?? ''}'.trim(),
+          from.isEmpty ? when : '$from - $when',
+        );
+      case OpTypes.supplierCreate:
+        return OpDescription('New supplier ${p['name'] ?? ''}'.trim(), when);
+      case OpTypes.supplierUpdate:
+        final fields = p['fields'];
+        final what = [
+          if (fields is Map)
+            for (final key in fields.keys)
+              '$key' == 'payment_terms_days'
+                  ? 'payment terms'
+                  : '$key'.replaceAll('_', ' '),
+        ].join(', ');
+        return OpDescription(
+          'Supplier details changed',
+          what.isEmpty ? when : '$what - $when',
+        );
       case OpTypes.shiftOpen:
         return OpDescription('Shift opened', when);
       case OpTypes.shiftClose:

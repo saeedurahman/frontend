@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
+import 'package:frantend/core/connectivity/connectivity_probe.dart';
 import 'package:frantend/core/constants/app_dimensions.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
@@ -15,6 +16,7 @@ import 'package:frantend/features/khata/presentation/cubit/supplier_ledger_cubit
 import 'package:frantend/features/khata/presentation/utils/ledger_line.dart';
 import 'package:frantend/features/khata/presentation/utils/ledger_wording.dart';
 import 'package:frantend/features/khata/presentation/widgets/khata_ledger_table.dart';
+import 'package:frantend/features/khata/presentation/widgets/khata_ui.dart';
 import 'package:frantend/features/khata/presentation/widgets/party_khata_actions.dart';
 import 'package:frantend/features/khata/presentation/widgets/party_khata_layout.dart';
 import 'package:frantend/features/khata/presentation/widgets/pay_supplier_dialog.dart';
@@ -22,6 +24,7 @@ import 'package:frantend/features/khata/presentation/widgets/reverse_payment_dia
 import 'package:frantend/shared/widgets/dialogs/export_dialog.dart';
 import 'package:frantend/shared/widgets/min_width_scroll.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/shared/widgets/sync/not_synced_badge.dart';
 import 'package:frantend/utils/app_alerts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -37,7 +40,13 @@ class SupplierLedgerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<SupplierLedgerCubit>()..load(supplierId),
+      create: (_) {
+        final cubit = sl<SupplierLedgerCubit>();
+        if (sl.isRegistered<ConnectivityProbe>()) {
+          cubit.watchConnectivity(sl<ConnectivityProbe>());
+        }
+        return cubit..load(supplierId);
+      },
       child: BlocListener<BranchSelectorCubit, BranchSelectorState>(
         bloc: sl.isRegistered<BranchSelectorCubit>()
             ? sl<BranchSelectorCubit>()
@@ -76,10 +85,32 @@ class SupplierLedgerView extends StatelessWidget {
           children: [
             _TopBar(state: state, supplierId: supplierId),
             const SizedBox(height: 12),
-            _BalanceCard(state: state),
-            const SizedBox(height: 12),
+            if (state.asOf != null) ...[
+              Wrap(
+                spacing: AppDimensions.spacing12,
+                runSpacing: AppDimensions.spacingXs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  AsOfLabel(
+                    key: const ValueKey('ledger_as_of'),
+                    asOf: state.asOf!,
+                  ),
+                  const Text(
+                    KhataText.offlineAccountNote,
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+            // No balance to show when the account is not on this device.
+            if (!state.offline || state.balance != null) ...[
+              _BalanceCard(state: state),
+              const SizedBox(height: 12),
+            ],
             _DateFilter(state: state),
-            if (state.hasDateFilter && state.openingBalance != null)
+            if (state.hasDateFilter &&
+                (state.openingBalance != null || state.openingNeedsInternet))
               _PeriodBalances(state: state),
             if (state.error != null && !state.offline)
               Padding(
@@ -127,7 +158,10 @@ class SupplierLedgerView extends StatelessWidget {
                                     name: supplier?.name ?? '',
                                   )
                                 : null,
-                            emptyText: state.hasDateFilter
+                            // An empty copy is not an empty account.
+                            emptyText: state.olderNeedsInternet
+                                ? KhataText.olderNeedInternet
+                                : state.hasDateFilter
                                 ? KhataText.noEntriesInRange
                                 : KhataText.noEntries,
                             reverseTooltip: canReverse
@@ -156,6 +190,15 @@ class SupplierLedgerView extends StatelessWidget {
                                     ? 'Loading…'
                                     : 'Show older entries',
                               ),
+                            ),
+                          )
+                        else if (state.olderNeedsInternet && lines.isNotEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              KhataText.olderNeedInternet,
+                              key: ValueKey('ledger_older_offline'),
+                              style: TextStyle(color: AppColors.textSecondary),
                             ),
                           ),
                       ],
@@ -234,6 +277,7 @@ class _TopBar extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                SupplierSyncBadge(supplierId: supplierId, compact: false),
                 if (supplier?.phone != null)
                   Text(
                     supplier!.phone!,
@@ -380,8 +424,8 @@ class _PeriodBalances extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget figure(String label, Decimal value, String key) => Text(
-      '$label: ${LedgerWording.balance(value, LedgerParty.supplier).text}',
+    Widget figure(String label, Decimal? value, String key) => Text(
+      '$label: ${value == null ? KhataText.needsInternetValue : LedgerWording.balance(value, LedgerParty.supplier).text}',
       key: ValueKey(key),
       style: const TextStyle(fontWeight: FontWeight.w600),
     );
@@ -394,7 +438,7 @@ class _PeriodBalances extends StatelessWidget {
         children: [
           figure(
             KhataText.openingBalance,
-            state.openingBalance!,
+            state.openingBalance,
             'ledger_opening_balance',
           ),
           if (closing != null)

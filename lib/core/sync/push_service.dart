@@ -159,6 +159,14 @@ class PushService {
 
     await _store.markFailed(op.opId, code: error.code, message: text);
     outcome.failed++;
+    final existing = error.details['existing_supplier_id']?.toString();
+    if (error.code == 'duplicate_supplier' && existing != null) {
+      await _store.noteDuplicateSupplier(
+        op.opId,
+        existingId: existing,
+        field: '${error.details['field'] ?? 'name'}',
+      );
+    }
     await _onFailed(op);
   }
 
@@ -176,11 +184,16 @@ class PushService {
         await _store.updateShift('${op.payload['id']}', {'sync_state': 'synced'});
       case OpTypes.shiftClose:
         await _store.updateShift('${op.payload['shift_id']}', {'sync_state': 'synced'});
-      case OpTypes.customerPayment:
+      case OpTypes.customerPayment || OpTypes.supplierPayment:
         await _store.noteBalanceUnconfirmed(op.opId);
         if (result.flags.isNotEmpty) {
           await _store.noteFlaggedPayment(op, result.flags);
         }
+      case OpTypes.supplierCreate:
+        // Its opening balance counts from here until a pull delivers it.
+        await _store.noteBalanceUnconfirmed(op.opId);
+      case OpTypes.supplierUpdate:
+        await _store.dropSupplierBase('${op.payload['id']}');
       case OpTypes.saleVoid:
         await _store.setSaleStatus('${op.payload['sale_id']}', 'voided');
         await _store.setSaleState('${op.payload['sale_id']}', 'synced');

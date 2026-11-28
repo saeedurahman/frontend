@@ -13,6 +13,7 @@ import 'package:frantend/features/suppliers/presentation/cubit/suppliers_list_st
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_actions.dart';
 import 'package:frantend/features/suppliers/presentation/utils/supplier_list_navigation.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/shared/widgets/sync/not_synced_badge.dart';
 import 'package:frantend/shared/widgets/tables/app_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_paginated_data_table.dart';
 import 'package:frantend/shared/widgets/tables/app_table_cells.dart';
@@ -68,15 +69,24 @@ class SuppliersDataTable extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  supplier.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        supplier.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    SupplierSyncBadge(supplierId: supplier.id),
+                  ],
                 ),
                 if (supplier.contactPerson != null &&
                     supplier.contactPerson!.isNotEmpty) ...[

@@ -175,7 +175,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('pay_submit')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('offline_notice')), findsOneWidget);
-      expect(find.text(KhataText.offlineBody), findsOneWidget);
+      expect(find.text(KhataText.offlineNotSent), findsOneWidget);
       expect(rig.cubit.state.amount, Decimal.parse('400'));
       expect(find.text('400'), findsWidgets);
       // The same screen can try again when the internet is back.

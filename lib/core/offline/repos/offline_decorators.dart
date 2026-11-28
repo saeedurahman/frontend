@@ -67,20 +67,29 @@ Failure _localWriteFailure(Object error) => CacheFailure(
     );
 
 class OfflineCustomersRepository extends CustomersRepositoryImpl
-    implements PendingLedgerSource {
+    implements PendingLedgerSource, DeviceLedgerSource {
   OfflineCustomersRepository({
     required super.remoteDataSource,
     required super.errorHandler,
     required OfflineWriter writer,
     required LocalCatalog catalog,
     bool Function()? isReachable,
+    bool Function()? receivesEveryBranch,
   })  : _writer = writer,
         _catalog = catalog,
-        _isReachable = isReachable;
+        _isReachable = isReachable,
+        _receivesEveryBranch = receivesEveryBranch;
 
   final OfflineWriter _writer;
   final LocalCatalog _catalog;
   final bool Function()? _isReachable;
+  final bool Function()? _receivesEveryBranch;
+
+  @override
+  Future<DeviceLedger?> deviceLedger(String customerId) => _catalog.deviceLedger(
+        customerId,
+        everyBranch: _receivesEveryBranch?.call() ?? false,
+      );
 
   bool get _reachable => _isReachable?.call() ?? true;
 

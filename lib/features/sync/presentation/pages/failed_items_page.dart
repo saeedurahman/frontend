@@ -8,6 +8,7 @@ import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_engine.dart';
 import 'package:frantend/core/sync/sync_store.dart';
 import 'package:frantend/core/utils/logger.dart';
+import 'package:frantend/features/suppliers/domain/supplier_text.dart';
 import 'package:frantend/features/sync/domain/op_describer.dart';
 import 'package:frantend/features/sync/domain/sync_access.dart';
 
@@ -32,6 +33,9 @@ class _FailedItemsPageState extends State<FailedItemsPage> {
   StreamSubscription<void>? _sub;
   List<OutboxOp> _items = const [];
 
+  /// New suppliers refused because one already exists: op id to its name.
+  Map<String, String> _existing = const {};
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +51,47 @@ class _FailedItemsPageState extends State<FailedItemsPage> {
 
   Future<void> _load() async {
     final items = await _store.ops(statuses: OutboxStatus.needsAttention);
-    if (mounted) setState(() => _items = items);
+    final existing = <String, String>{};
+    for (final o in items) {
+      if (o.type != OpTypes.supplierCreate) continue;
+      final found = await _store.duplicateSupplier(o.opId);
+      if (found == null) continue;
+      final row = await _store.entity('supplier', found.existingId);
+      existing[o.opId] = '${row?['name'] ?? SupplierText.theExistingOne}';
+    }
+    if (!mounted) return;
+    setState(() {
+      _items = items;
+      _existing = existing;
+    });
+  }
+
+  Future<void> _useExisting(OutboxOp op, String name) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('use-existing-dialog'),
+        title: const Text(SupplierText.useExisting),
+        content: Text(
+          SupplierText.useExistingBody('${op.payload['name']}', name),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep it'),
+          ),
+          FilledButton(
+            key: const Key('confirm-use-existing'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(SupplierText.useExisting),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    AppLogger.info('Using the existing supplier instead of ${op.opId}');
+    await _store.transaction(() => _store.useExistingSupplier(op.opId));
+    unawaited(_engine.syncNow(manual: true));
   }
 
   bool get _canDiscard =>
@@ -74,8 +118,12 @@ class _FailedItemsPageState extends State<FailedItemsPage> {
         content: Text(
           '"${d.title}" will never be sent to the server. '
           'This cannot be undone.\n\n'
-          'A discarded sale stays on this device marked "discarded", but the '
-          'server will not know about it.',
+          '${switch (op.type) {
+            OpTypes.supplierCreate => SupplierText.discardNewSupplier,
+            OpTypes.supplierUpdate => SupplierText.discardEdit,
+            _ => 'A discarded sale stays on this device marked "discarded", '
+                'but the server will not know about it.',
+          }}',
         ),
         actions: [
           TextButton(
@@ -145,12 +193,20 @@ class _FailedItemsPageState extends State<FailedItemsPage> {
           child: ListView.separated(
             itemCount: _items.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, i) => _FailedTile(
-              op: _items[i],
-              canDiscard: _canDiscard,
-              onRetry: () => _retry(_items[i]),
-              onDiscard: () => _discard(_items[i]),
-            ),
+            itemBuilder: (context, i) {
+              final op = _items[i];
+              final existing = _existing[op.opId];
+              return _FailedTile(
+                op: op,
+                canDiscard: _canDiscard,
+                onRetry: () => _retry(op),
+                onDiscard: () => _discard(op),
+                existingSupplier: existing,
+                onUseExisting: existing == null
+                    ? null
+                    : () => _useExisting(op, existing),
+              );
+            },
           ),
         ),
       ],
@@ -164,12 +220,18 @@ class _FailedTile extends StatelessWidget {
     required this.canDiscard,
     required this.onRetry,
     required this.onDiscard,
+    this.existingSupplier,
+    this.onUseExisting,
   });
 
   final OutboxOp op;
   final bool canDiscard;
   final VoidCallback onRetry;
   final VoidCallback onDiscard;
+
+  /// The supplier that already has the refused one's name or phone.
+  final String? existingSupplier;
+  final VoidCallback? onUseExisting;
 
   @override
   Widget build(BuildContext context) {
@@ -194,12 +256,25 @@ class _FailedTile extends StatelessWidget {
                     key: const Key('failed-reason'),
                     style: const TextStyle(color: AppColors.error),
                   ),
+                  if (existingSupplier != null)
+                    Text(
+                      SupplierText.existingIs(existingSupplier!),
+                      key: const Key('existing-supplier'),
+                    ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
             Column(
               children: [
+                if (canDiscard && onUseExisting != null) ...[
+                  FilledButton(
+                    key: const Key('use-existing-supplier'),
+                    onPressed: onUseExisting,
+                    child: const Text(SupplierText.useExisting),
+                  ),
+                  const SizedBox(height: 4),
+                ],
                 FilledButton.tonal(
                   key: const Key('retry-op'),
                   onPressed: onRetry,

@@ -121,18 +121,30 @@ class _FlaggedPaymentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final taken = payment.takenAt;
+    final verb = payment.toSupplier ? 'Paid' : 'Taken';
     return _FlagCard(
       key: Key('flagged-payment-${payment.opId}'),
-      title: 'Customer payment'
-          '${payment.customerName == null ? '' : ' from ${payment.customerName}'}'
+      title: '${payment.toSupplier ? 'Supplier payment' : 'Customer payment'}'
+          '${_party()}'
           '  -  $currencyLabel ${payment.amount}',
       subtitle: taken == null
-          ? 'Taken on this device'
-          : 'Taken on this device, '
+          ? '$verb on this device'
+          : '$verb on this device, '
               '${DateFormat('d MMM yyyy, h:mm a').format(taken.toLocal())}',
       flags: payment.flags,
-      explain: SyncErrorText.paymentFlag,
+      explain: payment.toSupplier
+          ? SyncErrorText.supplierPaymentFlag
+          : SyncErrorText.paymentFlag,
     );
+  }
+
+  String _party() {
+    if (payment.toSupplier) {
+      final name = payment.supplierName;
+      return name == null ? '' : ' to $name';
+    }
+    final name = payment.customerName;
+    return name == null ? '' : ' from $name';
   }
 }
 

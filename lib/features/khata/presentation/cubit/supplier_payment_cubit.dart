@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/error/failures.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/session/active_branch_resolver.dart';
 import 'package:frantend/core/utils/uuid_utils.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
@@ -66,13 +67,18 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
 
     var balance = Decimal.zero;
     String? error;
-    var offline = false;
+    var balanceKnown = false;
+    DateTime? balanceAsOf;
     balanceResult.fold(
       (failure) {
-        error = failure.message;
-        offline = failure is NetworkFailure;
+        // Offline with no figures on the device: paying still works.
+        if (failure is! NetworkFailure) error = failure.message;
       },
-      (b) => balance = Decimal.tryParse(b.balance) ?? Decimal.zero,
+      (b) {
+        balance = Decimal.tryParse(b.balance) ?? Decimal.zero;
+        balanceKnown = true;
+        balanceAsOf = b.asOf;
+      },
     );
 
     var name = supplierName ?? '';
@@ -100,7 +106,8 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
         source: source,
         shiftId: shiftId,
         error: error,
-        offline: offline,
+        balanceKnown: balanceKnown,
+        balanceAsOf: balanceAsOf,
       ),
     );
   }
@@ -149,7 +156,12 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
     final result = await _shifts.openNow();
     return result.fold(
       (failure) {
-        emit(state.copyWith(openingShift: false, error: failure.message));
+        emit(
+          state.copyWith(
+            openingShift: false,
+            error: UserErrorMessage.from(failure),
+          ),
+        );
         return false;
       },
       (id) {
@@ -181,7 +193,8 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
     return d.year == now.year && d.month == now.month && d.day == now.day;
   }
 
-  /// Sends the payment. Returns true when the server accepted it.
+  /// Sends the payment. Returns true when it was recorded: accepted by the
+  /// server, or saved on this device to be sent later.
   Future<bool> submit() async {
     if (!state.canSubmit) return false;
     final branchId = await _branch.resolve();
@@ -209,10 +222,13 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
     return result.fold(
       (failure) {
         final code = failure.code;
-        final offline = failure is NetworkFailure;
+        // Sent, but no answer: its own message says what to check.
+        final offline = failure is NetworkFailure &&
+            failure is! UnconfirmedPaymentFailure;
         // A clear "no" from the server means nothing was paid: the next tap is
         // a fresh attempt. Network trouble / 5xx are unclear: keep the key.
-        final definite = !offline && (code != null || failure is! ServerFailure);
+        final definite = failure is! NetworkFailure &&
+            (code != null || failure is! ServerFailure);
         if (definite) {
           _attemptKey = null;
           _attemptFingerprint = null;
@@ -223,7 +239,7 @@ class SupplierPaymentCubit extends Cubit<SupplierPaymentState> {
             offline: offline,
             error: offline
                 ? null
-                : KhataText.forCode(code) ?? failure.message,
+                : KhataText.forCode(code) ?? UserErrorMessage.from(failure),
             errorCode: code,
             shiftId: KhataText.needsOwnShift(code) ? null : state.shiftId,
           ),

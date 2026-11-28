@@ -37,6 +37,9 @@ abstract final class OpTypes {
   static const saleCreate = 'sale.create';
   static const saleVoid = 'sale.void';
   static const customerPayment = 'customer.payment';
+  static const supplierPayment = 'supplier.payment';
+  static const supplierCreate = 'supplier.create';
+  static const supplierUpdate = 'supplier.update';
   static const expenseCreate = 'expense.create';
   static const returnCreate = 'return.create';
   static const followupCreate = 'followup.create';

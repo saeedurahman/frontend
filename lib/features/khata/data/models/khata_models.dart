@@ -38,6 +38,8 @@ class SupplierLedgerEntry {
     this.runningBalance,
     this.source,
     this.manualKind,
+    this.pending = false,
+    this.needsAttention = false,
   });
 
   factory SupplierLedgerEntry.fromJson(Map<String, dynamic> json) {
@@ -86,15 +88,49 @@ class SupplierLedgerEntry {
   final String? source;
   final String? manualKind;
 
+  /// Recorded on this device and not on the server's account yet.
+  final bool pending;
+
+  /// ... and the server refused it, or sending it needs the user.
+  final bool needsAttention;
+
   bool get isReversed => reversedAt != null || reversedById != null;
   bool get isReversal => reversalOfId != null || entryType == 'reversal';
   bool get isPayment => entryType == 'payment';
 
-  /// A real payment that has not been undone yet.
-  bool get canReverse => isPayment && !isReversed && !isReversal;
+  /// A real payment that has not been undone yet. The server cannot undo what
+  /// it does not have.
+  bool get canReverse => isPayment && !isReversed && !isReversal && !pending;
 
-  /// An opening balance or manual entry that has not been undone yet.
-  bool get canReverseEntry => source != null && !isReversed && !isReversal;
+  /// An opening balance or manual entry that has not been undone yet. The
+  /// server cannot undo what it does not have.
+  bool get canReverseEntry =>
+      source != null && !isReversed && !isReversal && !pending;
+
+  /// This line as one that is still only on this device.
+  SupplierLedgerEntry onDevice({
+    bool needsAttention = false,
+    Decimal? runningBalance,
+  }) =>
+      SupplierLedgerEntry(
+        id: id,
+        supplierId: supplierId,
+        branchId: branchId,
+        entryType: entryType,
+        amount: amount,
+        entryAt: entryAt,
+        notes: notes,
+        referenceType: referenceType,
+        referenceId: referenceId,
+        paymentSource: paymentSource,
+        referenceNo: referenceNo,
+        registerShiftId: registerShiftId,
+        runningBalance: runningBalance,
+        source: source,
+        manualKind: manualKind,
+        pending: true,
+        needsAttention: needsAttention,
+      );
 }
 
 class SupplierLedgerPage {
@@ -106,6 +142,8 @@ class SupplierLedgerPage {
     this.limit = 50,
     this.openingBalance,
     this.closingBalance,
+    this.asOf,
+    this.olderNeedsInternet = false,
   });
 
   factory SupplierLedgerPage.fromJson(Map<String, dynamic> json) {
@@ -139,6 +177,14 @@ class SupplierLedgerPage {
 
   /// Whole-ledger balance (negative = we owe).
   final Decimal balance;
+
+  /// Set when the page is this device's copy: when that was last updated.
+  final DateTime? asOf;
+
+  /// The account goes further back than this device's copy.
+  final bool olderNeedsInternet;
+
+  bool get offline => asOf != null;
 }
 
 /// What the server answers to a supplier payment (and to the `payment` object
@@ -158,6 +204,8 @@ class SupplierPaymentResult {
     this.registerTransactionId,
     this.isAdvance = false,
     this.advanceAmount,
+    this.queued = false,
+    this.balanceKnown = true,
   });
 
   factory SupplierPaymentResult.fromJson(Map<String, dynamic> json) {
@@ -196,6 +244,13 @@ class SupplierPaymentResult {
   final Decimal balance;
   final bool isAdvance;
   final Decimal? advanceAmount;
+
+  /// Saved on this device, not sent to the server yet: the balances are the
+  /// device's own figures.
+  final bool queued;
+
+  /// False for a queued payment to an account this device has no figures for.
+  final bool balanceKnown;
 
   /// What we still owe after the payment (never negative).
   Decimal get owedAfter => balance < Decimal.zero ? -balance : Decimal.zero;

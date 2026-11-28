@@ -148,8 +148,202 @@ class FakeSyncServer implements SyncApi {
     return PushResponse(batchId: batchId, results: results);
   }
 
-  /// Flags the server puts on applied customer payments.
+  /// Flags the server puts on applied customer and supplier payments.
   List<String> paymentFlags = const [];
+
+  /// What the server does with a `supplier.payment`: a ledger line, then the
+  /// supplier's position and bills (oldest paid first) as it now stands.
+  OpResult _supplierPayment(String opId, Map<String, dynamic> p) {
+    final sid = '${p['supplier_id']}';
+    final account = live['supplier_balance|$sid'];
+    if (account == null) {
+      return OpResult(
+        opId: opId,
+        status: 'rejected',
+        error: const OpError(code: 'unknown_supplier', message: 'no supplier'),
+      );
+    }
+    var paid = double.parse('${p['amount']}');
+    final balance = double.parse('${account.data!['advance_amount']}') -
+        double.parse('${account.data!['balance_owed']}') +
+        paid;
+    final position = {
+      'id': sid,
+      'supplier_id': sid,
+      'balance_owed': (balance < 0 ? -balance : 0.0).toStringAsFixed(2),
+      'advance_amount': (balance > 0 ? balance : 0.0).toStringAsFixed(2),
+    };
+    final id = '${p['id']}';
+    put('supplier_ledger', id, {
+      'id': id,
+      'supplier_id': sid,
+      'branch_id': p['branch_id'],
+      'entry_type': 'payment',
+      'amount': '${p['amount']}',
+      'payment_source': p['payment_source'],
+      'reference_no': p['reference'],
+      'reference_type': 'manual',
+      'notes': p['note'],
+      'register_shift_id': p['register_shift_id'],
+      'entry_at': p['paid_at'],
+      'running_balance': balance.toStringAsFixed(2),
+    });
+    put('supplier_balance', sid, position);
+    final open = live['supplier_open_items|$sid'];
+    if (open != null) {
+      final items = <Map<String, dynamic>>[];
+      for (final raw in open.data!['items'] as List) {
+        final item = Map<String, dynamic>.from(raw as Map);
+        final left = double.parse('${item['remaining']}');
+        final used = paid < left ? paid : left;
+        paid -= used;
+        if (left - used <= 0) continue;
+        items.add({
+          ...item,
+          'remaining': (left - used).toStringAsFixed(2),
+          'allocated': (double.parse('${item['allocated']}') + used)
+              .toStringAsFixed(2),
+        });
+      }
+      put('supplier_open_items', sid, {
+        ...position,
+        'terms_days': open.data!['terms_days'],
+        'items': items,
+      });
+    }
+    knownIds.add(id);
+    return OpResult(
+      opId: opId,
+      status: 'applied',
+      serverId: id,
+      flags: paymentFlags,
+    );
+  }
+
+  /// Names ignoring case and extra spaces, phones by their digits: neither may
+  /// be another supplier's. Null when the values are free.
+  OpResult? _duplicate(String opId, String id, Map<String, dynamic> values) {
+    String name(Object? v) =>
+        '${v ?? ''}'.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+    String digits(Object? v) => '${v ?? ''}'.replaceAll(RegExp(r'[^0-9]'), '');
+    for (final change in live.values) {
+      if (change.entity != 'supplier' || change.id == id) continue;
+      final other = change.data!;
+      final field = values.containsKey('name') &&
+              name(other['name']) == name(values['name'])
+          ? 'name'
+          : digits(values['phone']).isNotEmpty &&
+                  digits(other['phone']) == digits(values['phone'])
+              ? 'phone'
+              : null;
+      if (field == null) continue;
+      return OpResult(
+        opId: opId,
+        status: 'conflict',
+        error: OpError(
+          code: 'duplicate_supplier',
+          message: 'Another supplier already has this $field',
+          details: {'field': field, 'existing_supplier_id': change.id},
+        ),
+      );
+    }
+    return null;
+  }
+
+  OpResult _supplierCreate(String opId, Map<String, dynamic> p) {
+    final id = '${p['id']}';
+    if (knownIds.contains(id)) {
+      return OpResult(
+        opId: opId,
+        status: 'conflict',
+        error: const OpError(code: 'id_exists', message: 'exists'),
+      );
+    }
+    final refused = _duplicate(opId, id, p);
+    if (refused != null) return refused;
+    final opening = p['opening_balance'] as Map?;
+    final amount = double.parse('${opening?['amount'] ?? 0}') *
+        (opening?['direction'] == 'we_owe_them' ? -1 : 1);
+    put('supplier', id, {
+      'id': id,
+      'name': p['name'],
+      for (final key in const [
+        'phone',
+        'email',
+        'contact_person',
+        'address',
+        'city',
+        'tax_id',
+        'notes',
+      ])
+        key: p[key],
+      'payment_terms_days': p['payment_terms_days'] ?? 30,
+      'is_active': true,
+    });
+    final position = {
+      'id': id,
+      'supplier_id': id,
+      'balance_owed': (amount < 0 ? -amount : 0.0).toStringAsFixed(2),
+      'advance_amount': (amount > 0 ? amount : 0.0).toStringAsFixed(2),
+      'has_older_entries': false,
+      'oldest_included_entry_at': opening?['as_of_date'],
+    };
+    put('supplier_balance', id, position);
+    put('supplier_open_items', id, {
+      ...position,
+      'terms_days': p['payment_terms_days'] ?? 30,
+      'items': [
+        if (amount < 0)
+          {
+            'document_type': 'opening_balance',
+            'document_id': 'ob-$id',
+            'date': opening!['as_of_date'],
+            'total': (-amount).toStringAsFixed(2),
+            'allocated': '0.00',
+            'remaining': (-amount).toStringAsFixed(2),
+          },
+      ],
+    });
+    if (opening != null) {
+      put('supplier_ledger', 'ob-$id', {
+        'id': 'ob-$id',
+        'supplier_id': id,
+        'branch_id': opening['branch_id'],
+        'entry_type': 'opening_balance',
+        'amount': amount.toStringAsFixed(2),
+        'source': 'opening',
+        'entry_at': '${opening['as_of_date']}T00:00:00+00:00',
+        'running_balance': amount.toStringAsFixed(2),
+      });
+    }
+    return OpResult(opId: opId, status: 'applied', serverId: id);
+  }
+
+  OpResult _supplierUpdate(String opId, Map<String, dynamic> p) {
+    final id = '${p['id']}';
+    final held = live['supplier|$id'];
+    if (held == null) {
+      return OpResult(
+        opId: opId,
+        status: 'rejected',
+        error: const OpError(
+          code: 'unknown_supplier',
+          message: 'no supplier',
+          retryable: true,
+        ),
+      );
+    }
+    final fields = Map<String, dynamic>.from(p['fields'] as Map);
+    final changed = {
+      for (final key in const ['name', 'phone'])
+        if (fields.containsKey(key) && fields[key] != held.data![key])
+          key: fields[key],
+    };
+    final refused = _duplicate(opId, id, changed);
+    if (refused != null) return refused;
+    put('supplier', id, {...held.data!, ...fields});
+    return OpResult(opId: opId, status: 'applied', serverId: id);
+  }
 
   OpResult _process(Map<String, dynamic> op, Set<String> batchApplied) {
     final opId = '${op['op_id']}';
@@ -249,6 +443,12 @@ class FakeSyncServer implements SyncApi {
           serverId: '${payload['id'] ?? opId}',
           flags: paymentFlags,
         );
+      case 'supplier.payment':
+        result = _supplierPayment(opId, payload);
+      case 'supplier.create':
+        result = _supplierCreate(opId, payload);
+      case 'supplier.update':
+        result = _supplierUpdate(opId, payload);
       case 'followup.create':
         final id = '${payload['id']}';
         knownIds.add(id);

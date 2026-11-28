@@ -27,6 +27,7 @@ class _QuickAddSupplierDialogState extends State<QuickAddSupplierDialog> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _saving = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -38,13 +39,20 @@ class _QuickAddSupplierDialogState extends State<QuickAddSupplierDialog> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    setState(() => _saving = true);
-    final created = await context.read<SuppliersListCubit>().createQuick(
-          name: name,
-          phone: _phoneController.text.trim(),
-        );
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    final cubit = context.read<SuppliersListCubit>();
+    final created = await cubit.createQuick(
+      name: name,
+      phone: _phoneController.text.trim(),
+    );
     if (!mounted) return;
-    setState(() => _saving = false);
+    setState(() {
+      _saving = false;
+      _error = created == null ? cubit.lastCreateError : null;
+    });
     if (created != null) Navigator.pop(context, created);
   }
 
@@ -67,6 +75,14 @@ class _QuickAddSupplierDialogState extends State<QuickAddSupplierDialog> {
               controller: _phoneController,
               decoration: const InputDecoration(labelText: 'Phone (optional)'),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: AppDimensions.spacingMd),
+              Text(
+                _error!,
+                key: const Key('quick-supplier-error'),
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ],
           ],
         ),
       ),

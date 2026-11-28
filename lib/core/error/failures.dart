@@ -38,6 +38,20 @@ class NetworkFailure extends Failure {
   const NetworkFailure([super.message = 'No internet connection']);
 }
 
+/// A payment was sent but no answer came back: the server may or may not have
+/// it, so it is neither queued nor reported as refused.
+class UnconfirmedPaymentFailure extends NetworkFailure {
+  const UnconfirmedPaymentFailure([
+    super.message =
+        'The server did not answer, so we could not confirm this payment. '
+        'Trying again in this window, with the same details, will not pay '
+        'twice. If you close it, check the supplier account first.',
+  ]);
+
+  @override
+  String get code => 'payment_unconfirmed';
+}
+
 class AuthFailure extends Failure {
   const AuthFailure([super.message = 'Authentication failed']);
 }

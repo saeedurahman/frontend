@@ -88,6 +88,21 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
   /// The last payment was saved on this device and waits for the next sync.
   bool lastPaymentSavedOffline = false;
 
+  /// The lines on screen are this device's copy of the account.
+  bool fromDevice = false;
+
+  /// ... and the account goes further back than that copy.
+  bool olderNeedsInternet = false;
+
+  /// A branch is chosen, but the device's copy covers all of them.
+  bool get showsAllBranches => fromDevice && _branchId != null;
+
+  void _serverShown() {
+    ledgerNeedsConnection = false;
+    fromDevice = false;
+    olderNeedsInternet = false;
+  }
+
   int paginationTotal(CustomerLedgerLoaded state) {
     if (state.hasMore) {
       return state.entries.length + state.pageSize;
@@ -214,7 +229,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     }
     _allEntries = [];
     _pageSize = _defaultPageSize;
-    ledgerNeedsConnection = false;
+    _serverShown();
     final read = beginRead();
     emit(const CustomerLedgerState.loading());
 
@@ -226,9 +241,20 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
         final balanceResult = await _getBalance(customerId, branchId: _branchId);
         final ledgerResult =
             await _getLedger(customerId, branchId: _branchId, skip: 0, limit: _fetchSize);
-        final waiting = ledgerResult.isLeft()
+        final device = ledgerResult.fold(
+          (f) => f is NetworkFailure,
+          (_) => false,
+        )
+            ? await _getLedger.device(customerId)
+            : null;
+        final waiting = ledgerResult.isLeft() && device == null
             ? await _getLedger.pending(customerId, branchId: _branchId)
             : const <CustomerLedgerEntryModel>[];
+        // The device's lines are over every branch: so is the balance by them.
+        final deviceBalance = device == null || _branchId == null
+            ? null
+            : (await _getBalance(customerId))
+                .fold((_) => null, (b) => b.balance);
         if (isStale(read)) return;
 
         balanceResult.fold(
@@ -240,14 +266,17 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
                   emit(CustomerLedgerState.error(failure.message));
                   return;
                 }
-                // Offline: the customer, the balance and the lines still
-                // waiting to be sent are known on this device.
+                // Offline: the customer, the balance, the recent lines and the
+                // ones still waiting to be sent are known on this device.
                 ledgerNeedsConnection = true;
-                _allEntries = _runningUpTo(waiting, balance.balance);
+                fromDevice = device != null;
+                olderNeedsInternet = device?.olderNeedsInternet ?? false;
+                _allEntries = device?.lines ??
+                    _runningUpTo(waiting, balance.balance);
                 emit(
                   CustomerLedgerState.loaded(
                     customer: customer,
-                    balance: balance.balance,
+                    balance: deviceBalance ?? balance.balance,
                     entries: _computeDisplayRows(_allEntries),
                     hasMore: false,
                     currentPage: 1,
@@ -256,7 +285,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
                 );
               },
               (page) {
-                ledgerNeedsConnection = false;
+                _serverShown();
                 _allEntries = page;
                 emit(
                   CustomerLedgerState.loaded(
@@ -336,7 +365,7 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     final latest = state;
     if (isStale(read) || latest is! CustomerLedgerLoaded) return _Reread.fresh;
 
-    ledgerNeedsConnection = false;
+    _serverShown();
     _allEntries = rows;
     _emitLines(
       latest.copyWith(
@@ -357,11 +386,31 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
     String? fallback,
   }) async {
     ledgerNeedsConnection = true;
-    final waiting = await _getLedger.pending(id, branchId: _branchId);
     final server = [
       for (final e in _allEntries)
         if (!e.isOnDeviceOnly) e,
     ];
+    // With no lines from the server to keep, the device's copy is shown.
+    if (fromDevice || server.isEmpty) {
+      final device = await _getLedger.device(id);
+      if (device != null) {
+        final total = (await _getBalance(id)).fold((_) => null, (b) => b.balance);
+        final current = state;
+        if (isStale(read) || current is! CustomerLedgerLoaded) return;
+        fromDevice = true;
+        olderNeedsInternet = device.olderNeedsInternet;
+        _allEntries = device.lines;
+        _emitLines(
+          current.copyWith(
+            balance: total ?? fallback ?? current.balance,
+            hasMore: false,
+            isLoadingMore: false,
+          ),
+        );
+        return;
+      }
+    }
+    final waiting = await _getLedger.pending(id, branchId: _branchId);
     String? balance;
     final base = _newestBalance(
       _computeDisplayRows(server).map((r) => r.entry).toList(),
@@ -525,8 +574,10 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
   /// balance it leads to. Does nothing when the line is already there (or the
   /// payment went straight to the server).
   Future<void> _showSavedPayment(CustomerPaymentResponseModel response) async {
-    final waiting =
-        await _getLedger.pending(_customerId!, branchId: _branchId);
+    final waiting = await _getLedger.pending(
+      _customerId!,
+      branchId: fromDevice ? null : _branchId,
+    );
     final latest = state;
     if (latest is! CustomerLedgerLoaded) return;
     final id = response.ledgerEntryId;
@@ -646,7 +697,9 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
       }
       final aAt = a.entryAt ?? a.createdAt ?? '';
       final bAt = b.entryAt ?? b.createdAt ?? '';
-      return aAt.compareTo(bAt);
+      final byTime = aAt.compareTo(bAt);
+      // The device worked the balances out in this order.
+      return byTime != 0 || !fromDevice ? byTime : a.id.compareTo(b.id);
     });
 
     // The server's running balance is the real one for the whole account. Only
@@ -660,7 +713,10 @@ class CustomerLedgerCubit extends Cubit<CustomerLedgerState>
         entry: entry,
         running: (server != null && server.isNotEmpty)
             ? server
-            : DecimalUtils.format(running),
+            // The device's copy may lack rows: no sum of them is a balance.
+            : fromDevice
+                ? ''
+                : DecimalUtils.format(running),
       ));
     }
 

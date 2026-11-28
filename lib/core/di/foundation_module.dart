@@ -13,6 +13,9 @@ import 'package:frantend/core/identity/device_identity.dart';
 import 'package:frantend/core/identity/id_generator.dart';
 import 'package:frantend/core/lifecycle/local_data_lifecycle.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
+import 'package:frantend/core/offline/local_suppliers.dart';
+import 'package:frantend/core/offline/repos/offline_suppliers_repository.dart';
+import 'package:frantend/features/suppliers/data/datasources/suppliers_remote_datasource.dart';
 import 'package:frantend/core/offline/offline_policy.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/offline/product_modifier_cache.dart';
@@ -189,6 +192,7 @@ void registerFoundationServices(GetIt sl) {
   once<SyncConfig>(() => const SyncConfig());
   once<SyncStore>(() => SyncStore(sl<AppDatabase>()));
   once<LocalCatalog>(() => LocalCatalog(sl<SyncStore>(), businessId: businessId));
+  once<LocalSupplierBook>(() => LocalSupplierBook(sl<SyncStore>()));
   once<TaxSettingsStore>(() => TaxSettingsStore(sl<LocalCatalog>()));
   once<CurrencyLabelStore>(
     () => CurrencyLabelStore(
@@ -415,6 +419,19 @@ void registerFoundationServices(GetIt sl) {
       errorHandler: sl<ErrorHandler>(),
       writer: sl<OfflineWriter>(),
       catalog: sl<LocalCatalog>(),
+      isReachable: reachable,
+      // No branch restriction: the device is sent every branch's lines.
+      receivesEveryBranch: () =>
+          sl.isRegistered<AccessCubit>() &&
+          sl<AccessCubit>().state.branchIds.isEmpty,
+    ),
+  );
+  replace<SuppliersRepository>(
+    () => OfflineSuppliersRepository(
+      remoteDataSource: sl<SuppliersRemoteDataSource>(),
+      errorHandler: sl<ErrorHandler>(),
+      writer: sl<OfflineWriter>(),
+      book: sl<LocalSupplierBook>(),
       isReachable: reachable,
     ),
   );

@@ -37,7 +37,11 @@ void main() {
       final r = PayRig(shiftId: 'shift-1');
       r.balance.result = const Left(NetworkFailure());
       await r.start();
-      expect(r.cubit.state.offline, isTrue);
+      expect(r.cubit.state.balanceKnown, isFalse);
+      expect(r.cubit.state.error, isNull);
+      r.cubit.setAmount('100');
+      expect(r.cubit.state.isAdvance, isFalse);
+      expect(r.cubit.state.canSubmit, isTrue);
     });
   });
 

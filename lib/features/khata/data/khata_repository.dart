@@ -5,10 +5,14 @@ import 'package:decimal/decimal.dart';
 import 'package:frantend/core/error/error_handler.dart';
 import 'package:frantend/core/error/failures.dart';
 import 'package:frantend/core/offline/local_catalog.dart';
+import 'package:frantend/core/offline/local_suppliers.dart';
 import 'package:frantend/core/offline/offline_writer.dart';
 import 'package:frantend/core/sync/outbox_op.dart';
 import 'package:frantend/core/sync/sync_store.dart';
+import 'package:frantend/core/utils/logger.dart';
+import 'package:frantend/features/suppliers/data/models/supplier_model.dart';
 import 'package:frantend/features/khata/data/khata_remote_datasource.dart';
+import 'package:frantend/features/khata/data/models/khata_models.dart';
 import 'package:frantend/features/khata/data/models/khata_p1_models.dart';
 import 'package:frantend/features/khata/domain/khata_events.dart';
 import 'package:frantend/features/khata/domain/khata_settings.dart';
@@ -17,23 +21,33 @@ import 'package:frantend/features/settings/data/datasources/settings_remote_data
 
 /// An answer, and whether it is the one kept on this device.
 class KhataData<T> {
-  const KhataData(this.value, {this.asOf, this.offline = false});
+  const KhataData(
+    this.value, {
+    this.asOf,
+    this.offline = false,
+    this.allBranches = false,
+  });
 
   final T value;
 
-  /// When the server gave this answer.
+  /// When the server gave this answer (or the device's copy was updated).
   final DateTime? asOf;
 
-  /// The server could not be reached: this is the last answer it gave.
+  /// The server could not be reached: this comes from the device.
   final bool offline;
+
+  /// One branch was asked for, but the supplier figures kept on the device
+  /// are over all branches.
+  final bool allBranches;
 }
 
 /// Everything the khata screens read and write.
 ///
-/// Reads are online-first; the last answer is kept in the local database and
-/// shown (marked with its time) when the server can't be reached. Promises,
-/// reminders and notes are written through the outbox, so they work without
-/// internet. Anything that moves money needs the internet.
+/// Reads are online-first. When the server can't be reached, supplier figures
+/// come from the pulled copy on the device and the rest from the last answer
+/// kept, both marked with their time. Payments recorded here and not on the
+/// server yet are taken off what you owe. Promises, reminders and notes are
+/// written through the outbox, so they work without internet.
 class KhataRepository {
   KhataRepository({
     required KhataRemoteDataSource remote,
@@ -64,6 +78,7 @@ class KhataRepository {
   final bool Function() _isReachable;
   final KhataEvents? _events;
   final Future<void> Function()? _refreshLocal;
+  late final LocalSupplierBook _suppliers = LocalSupplierBook(_store);
 
   bool get isOnline => _isReachable();
 
@@ -136,39 +151,214 @@ class KhataRepository {
   /// Both sides at a glance (hub header and dashboard).
   Future<Either<Failure, KhataData<KhataOverview>>> overview({
     String? branchId,
-  }) =>
-      _cached(
-        key: _overviewKey(branchId),
-        fetch: () async =>
-            (await _remote.overview(branchId: branchId)).toJson(),
-        read: KhataOverview.fromJson,
-      );
+  }) async {
+    final answer = await _cached(
+      key: _overviewKey(branchId),
+      fetch: () async =>
+          (await _remote.overview(branchId: branchId)).toJson(),
+      read: KhataOverview.fromJson,
+    );
+    final failure = answer.fold((f) => f, (_) => null);
+    if (failure != null && failure is! NetworkFailure) return answer;
+    final server = answer.fold((_) => null, (d) => d);
 
-  /// One page of the hub list. Offline, the pages seen so far are searched,
-  /// filtered and sorted on this device (all at once, so [skip] is ignored).
+    if (server != null && !server.offline) {
+      final paid = await _suppliers.paidHere(
+        branchId: branchId,
+        unsentOnly: true,
+      );
+      if (paid.isEmpty) return answer;
+      return Right(
+        KhataData(
+          KhataOverview(
+            receivable: server.value.receivable,
+            payable: await _lessPaid(server.value.payable, paid),
+          ),
+          asOf: server.asOf,
+        ),
+      );
+    }
+
+    final owed = await _suppliers.hubRows();
+    final bookAt = await _suppliers.asOf();
+    if (owed != null) {
+      final kept = server?.asOf;
+      return Right(
+        KhataData(
+          KhataOverview(
+            // Nothing kept about customers: no figure is better than zero.
+            receivable: server?.value.receivable ?? KhataSide.unknown,
+            payable: KhataSide(
+              total: _owedBy(owed),
+              count: owed.length,
+              buckets: _bucketsOf(owed),
+            ),
+          ),
+          // Two sources: the older time is the honest one.
+          asOf: kept != null && bookAt != null && kept.isBefore(bookAt)
+              ? kept
+              : bookAt,
+          offline: true,
+          allBranches: branchId != null,
+        ),
+      );
+    }
+    if (server == null) return answer;
+    return Right(
+      KhataData(
+        KhataOverview(
+          receivable: server.value.receivable,
+          payable: await _lessPaid(
+            server.value.payable,
+            await _suppliers.paidHere(branchId: branchId),
+          ),
+        ),
+        asOf: server.asOf,
+        offline: true,
+      ),
+    );
+  }
+
+  static Decimal _owedBy(Iterable<HubRow> rows) =>
+      rows.fold(Decimal.zero, (sum, r) => sum + r.balanceOwed);
+
+  static AgingBuckets _bucketsOf(Iterable<HubRow> rows) => AgingBuckets({
+        for (final b in AgeBucket.values)
+          b: rows.fold(Decimal.zero, (sum, r) => sum + r.buckets[b]),
+      });
+
+  /// The server's payable figure with [paid] (per supplier, not on the server
+  /// yet) taken off. An overpayment never reduces what others are owed: the
+  /// pulled balance caps each supplier's share.
+  Future<KhataSide> _lessPaid(
+    KhataSide side,
+    Map<String, Decimal> paid,
+  ) async {
+    var total = side.total;
+    var count = side.count;
+    for (final entry in paid.entries) {
+      final account = await _store.entity('supplier_balance', entry.key);
+      final owed = account == null
+          ? null
+          : khataDecimal(account['balance_owed']);
+      if (owed == null) {
+        total -= entry.value;
+        continue;
+      }
+      total -= entry.value < owed ? entry.value : owed;
+      if (owed > Decimal.zero && entry.value >= owed) count -= 1;
+    }
+    return KhataSide(
+      total: total < Decimal.zero ? Decimal.zero : total,
+      count: count < 0 ? 0 : count,
+      buckets: side.buckets,
+    );
+  }
+
+  /// [page] with [paid] (per supplier) taken off its rows and totals; a
+  /// supplier paid in full leaves the list.
+  static HubPage _lessPaidRows(HubPage page, Map<String, Decimal> paid) {
+    if (paid.isEmpty) return page;
+    var off = Decimal.zero;
+    var settled = 0;
+    final rows = <HubRow>[];
+    for (final row in page.items) {
+      final money = paid[row.id];
+      if (money == null) {
+        rows.add(row);
+        continue;
+      }
+      if (money >= row.balanceOwed) {
+        off += row.balanceOwed;
+        settled++;
+        continue;
+      }
+      off += money;
+      rows.add(row.lessPaid(money));
+    }
+    return HubPage(
+      items: rows,
+      total: page.total - settled,
+      partyCount: page.partyCount - settled,
+      balanceOwed: page.balanceOwed - off,
+      openItemsCount: page.openItemsCount,
+      buckets: page.buckets,
+    );
+  }
+
+  /// One page of the hub list. Offline, suppliers are listed from the pulled
+  /// accounts on this device and customers from the pages seen so far; both
+  /// are searched, filtered and sorted here (all at once, so [skip] is
+  /// ignored).
   Future<Either<Failure, KhataData<HubPage>>> hub(
     HubQuery q, {
     int skip = 0,
     int limit = 50,
   }) async {
     Failure failure = const NetworkFailure(offlineMessage);
+    final supplier = !q.party.isCustomer;
     if (_isReachable()) {
       try {
+        // Read before asking the server: a payment sent in between is then
+        // in its answer.
+        final unsent = supplier
+            ? await _suppliers.paidHere(
+                branchId: q.branchId,
+                unsentOnly: true,
+              )
+            : const <String, Decimal>{};
         final page = await _remote.hub(q, skip: skip, limit: limit);
         final now = _store.now();
         if (q.isUnfiltered) await _keepHub(q, page, skip, now);
-        return Right(KhataData(await _withPending(q.party, page), asOf: now));
+        return Right(
+          KhataData(
+            await _withPending(q.party, _lessPaidRows(page, unsent)),
+            asOf: now,
+          ),
+        );
       } catch (e) {
         failure = _errors.mapExceptionToFailure(e);
         if (failure is! NetworkFailure) return Left(failure);
       }
     }
+    if (supplier) {
+      final rows = await _suppliers.hubRows();
+      if (rows != null) {
+        final all = HubPage(
+          items: rows,
+          total: rows.length,
+          partyCount: rows.length,
+          balanceOwed: _owedBy(rows),
+          openItemsCount: rows.fold(0, (sum, r) => sum + r.openItemsCount),
+          buckets: _bucketsOf(rows),
+        );
+        return Right(
+          KhataData(
+            await _withPending(
+              q.party,
+              _filterLocally(all, q),
+              // The rows carry no follow-ups: all saved ones apply.
+              since: DateTime.fromMillisecondsSinceEpoch(0),
+            ),
+            asOf: await _suppliers.asOf(),
+            offline: true,
+            allBranches: q.branchId != null,
+          ),
+        );
+      }
+    }
     final kept = await _kept(_hubKey(q));
     if (kept == null) return Left(failure);
-    final local = _filterLocally(HubPage.fromJson(kept.body), q);
+    var page = HubPage.fromJson(kept.body);
+    if (supplier) {
+      page = _lessPaidRows(
+        page,
+        await _suppliers.paidHere(branchId: q.branchId),
+      );
+    }
     return Right(
       KhataData(
-        await _withPending(q.party, local, since: kept.at),
+        await _withPending(q.party, _filterLocally(page, q), since: kept.at),
         asOf: kept.at,
         offline: true,
       ),
@@ -300,16 +490,55 @@ class KhataRepository {
 
   // ── one party ──────────────────────────────────────────────────────────
 
+  /// The unpaid bills. A supplier's are read from the pulled copy offline;
+  /// money waiting to sync comes off the total, never off a bill (the server
+  /// decides which bill it pays).
   Future<Either<Failure, KhataData<OpenItems>>> openItems(
     PartyType type,
     String id, {
     String? branchId,
-  }) =>
-      _cached(
-        key: 'khata_open|${type.apiValue}|$id|${_branch(branchId)}',
-        fetch: () => _remote.openItems(type, id, branchId: branchId),
-        read: OpenItems.fromJson,
+  }) async {
+    Future<Either<Failure, KhataData<OpenItems>>> ask() => _cached(
+          key: 'khata_open|${type.apiValue}|$id|${_branch(branchId)}',
+          fetch: () => _remote.openItems(type, id, branchId: branchId),
+          read: OpenItems.fromJson,
+        );
+    if (type.isCustomer) return ask();
+    final unsent = await _suppliers.pendingPaid(
+      id,
+      branchId: branchId,
+      unsentOnly: true,
+    );
+    final answer = await ask();
+    final failure = answer.fold((f) => f, (_) => null);
+    if (failure != null && failure is! NetworkFailure) return answer;
+    final server = answer.fold((_) => null, (d) => d);
+    if (server != null && !server.offline) {
+      return Right(
+        KhataData(server.value.withPayments(unsent), asOf: server.asOf),
       );
+    }
+    final local = await _suppliers.openItems(id);
+    if (local != null) {
+      return Right(
+        KhataData(
+          local,
+          asOf: await _suppliers.asOf(),
+          offline: true,
+          allBranches: branchId != null,
+        ),
+      );
+    }
+    if (server == null) return answer;
+    final paid = await _suppliers.pendingPaid(id, branchId: branchId);
+    return Right(
+      KhataData(
+        server.value.withPayments(paid),
+        asOf: server.asOf,
+        offline: true,
+      ),
+    );
+  }
 
   /// Follow-ups held on this device (pulled, or saved here).
   Future<List<Followup>> _localFollowups(
@@ -543,14 +772,29 @@ class KhataRepository {
     PartyType type,
     Map<String, dynamic> body, {
     String? idempotencyKey,
-  }) =>
-      _moneyWrite(
-        () => _remote.createParty(
-          type,
-          body,
-          idempotencyKey: idempotencyKey,
-        ),
-      );
+  }) async {
+    final result = await _moneyWrite(
+      () => _remote.createParty(
+        type,
+        body,
+        idempotencyKey: idempotencyKey,
+      ),
+    );
+    if (type == PartyType.supplier) {
+      await result.fold((_) async {}, _keepSupplier);
+    }
+    return result;
+  }
+
+  /// The supplier lists read this device: a new one is put there at once.
+  Future<void> _keepSupplier(Map<String, dynamic> created) async {
+    try {
+      await _suppliers.saveFromServer(SupplierModel.fromJson(created));
+    } catch (e) {
+      // The next sync brings it anyway.
+      AppLogger.warning('Local supplier write failed (${e.runtimeType})');
+    }
+  }
 
   Future<Either<Failure, Unit>> updatePhone(
     PartyType type,

@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/di/injection.dart';
 import 'package:frantend/core/error/failures.dart';
@@ -28,7 +29,10 @@ class OpeningBalanceCubit extends Cubit<OpeningBalanceState> {
     required this.type,
     Future<String?> Function()? resolveBranch,
     DateTime Function() clock = DateTime.now,
+    Future<Either<Failure, Object?>> Function(Map<String, dynamic> body)?
+        saveOffline,
   })  : _resolveBranch = resolveBranch ?? _activeBranch,
+        _saveOffline = saveOffline,
         super(
           OpeningBalanceState(
             draft: OpeningBalanceDraft.empty(type, clock()),
@@ -38,6 +42,11 @@ class OpeningBalanceCubit extends Cubit<OpeningBalanceState> {
   final KhataRepository? _repository;
   final PartyType type;
   final Future<String?> Function() _resolveBranch;
+
+  /// Saves the party and its balance on this device while the server can't be
+  /// reached. Null where that needs the internet.
+  final Future<Either<Failure, Object?>> Function(Map<String, dynamic> body)?
+      _saveOffline;
   final _key = RetryKey();
 
   static Future<String?> _activeBranch() async =>
@@ -47,6 +56,8 @@ class OpeningBalanceCubit extends Cubit<OpeningBalanceState> {
 
   /// False where the khata is not set up: the section is not shown.
   bool get available => _repository != null;
+
+  bool get worksOffline => _saveOffline != null;
 
   bool get isFilled => state.draft.isFilled;
 
@@ -64,7 +75,9 @@ class OpeningBalanceCubit extends Cubit<OpeningBalanceState> {
       return EntryText.amountInvalid;
     }
     final repository = _repository;
-    if (repository == null || !repository.isOnline) {
+    final offline = repository == null || !repository.isOnline;
+    final saveOffline = _saveOffline;
+    if (repository == null || (offline && saveOffline == null)) {
       return EntryText.openingNeedsInternet;
     }
     if (state.submitting) return null;
@@ -73,6 +86,11 @@ class OpeningBalanceCubit extends Cubit<OpeningBalanceState> {
       ...body,
       'opening_balance': draft.toJson(branchId: await _resolveBranch()),
     };
+    if (offline) {
+      final saved = await saveOffline!(request);
+      if (!isClosed) emit(OpeningBalanceState(draft: draft));
+      return saved.fold((f) => f.message, (_) => null);
+    }
     final result = await repository.createPartyWithOpening(
       type,
       request,

@@ -162,7 +162,6 @@ class _Bootstrap extends StatefulWidget {
 
 class _BootstrapState extends State<_Bootstrap> {
   late final Future<void> _ready = _guardedStartup();
-
   Future<void> _guardedStartup() async {
     try {
       await _startup();

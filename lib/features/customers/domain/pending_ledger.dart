@@ -9,6 +9,25 @@ abstract interface class PendingLedgerSource {
   });
 }
 
+/// A customer's account as this device holds it.
+class DeviceLedger {
+  const DeviceLedger({required this.lines, this.olderNeedsInternet = false});
+
+  /// Newest first, over every branch: the recent lines that were pulled, with
+  /// the ones waiting to be sent on top. A line whose running balance can't be
+  /// proven from these rows has none.
+  final List<CustomerLedgerEntryModel> lines;
+
+  /// The account goes further back than this device's copy.
+  final bool olderNeedsInternet;
+}
+
+/// A repository that keeps pulled account lines on this device.
+abstract interface class DeviceLedgerSource {
+  /// Null when the account is not on this device.
+  Future<DeviceLedger?> deviceLedger(String customerId);
+}
+
 /// `reference_type` marks of the lines that exist only on this device. The
 /// server never sends these.
 abstract final class PendingLedgerMarks {

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frantend/core/constants/app_colors.dart';
 import 'package:frantend/core/di/injection.dart';
+import 'package:frantend/core/error/user_error_message.dart';
 import 'package:frantend/core/permissions/permission_keys.dart';
 import 'package:frantend/core/utils/currency_formatter.dart';
 import 'package:frantend/features/khata/domain/khata_text.dart';
@@ -11,9 +12,11 @@ import 'package:frantend/features/khata/domain/payment_receipt_service.dart';
 import 'package:frantend/features/khata/presentation/cubit/supplier_payment_cubit.dart';
 import 'package:frantend/features/khata/presentation/cubit/supplier_payment_state.dart';
 import 'package:frantend/features/khata/presentation/utils/money_input.dart';
+import 'package:frantend/features/khata/presentation/widgets/khata_ui.dart' show AsOfLabel;
 import 'package:frantend/features/khata/presentation/widgets/money_keypad.dart';
 import 'package:frantend/features/khata/presentation/widgets/payment_source_cards.dart';
 import 'package:frantend/shared/widgets/permission_gate.dart';
+import 'package:frantend/shared/widgets/sync/offline_aware.dart';
 import 'package:intl/intl.dart';
 import 'package:frantend/core/utils/currency_label.dart';
 
@@ -269,7 +272,10 @@ class _PaySupplierContentState extends State<PaySupplierContent> {
             key: const ValueKey('pay_reference'),
             controller: _reference,
             onChanged: _cubit.setReference,
+            // The server refuses a longer one, offline payments included.
+            maxLength: 100,
             decoration: InputDecoration(
+              counterText: '',
               labelText: source.referenceLabel,
               hintText: KhataText.referenceHint,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -318,16 +324,22 @@ class _PaySupplierContentState extends State<PaySupplierContent> {
             body: KhataText.advanceBody(formatPKR(state.advanceAfter)),
           ),
         ],
-        if (state.offline) ...[
-          const SizedBox(height: 12),
-          const KhataNotice(
-            key: ValueKey('offline_notice'),
-            icon: Icons.wifi_off_outlined,
-            color: AppColors.offline,
-            title: KhataText.offlineTitle,
-            body: KhataText.offlineBody,
-          ),
-        ],
+        OfflineAwareBuilder(
+          builder: (context, noServer) => !noServer && !state.offline
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: KhataNotice(
+                    key: const ValueKey('offline_notice'),
+                    icon: Icons.wifi_off_outlined,
+                    color: AppColors.offline,
+                    title: KhataText.offlineTitle,
+                    body: state.offline
+                        ? KhataText.offlineNotSent
+                        : KhataText.offlineBody,
+                  ),
+                ),
+        ),
         if (state.error != null && !state.offline && !state.needsShift) ...[
           const SizedBox(height: 12),
           Text(
@@ -414,7 +426,22 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        if (!state.loading)
+        if (!state.loading && state.balanceAsOf != null) ...[
+          AsOfLabel(
+            key: const ValueKey('payable_as_of'),
+            asOf: state.balanceAsOf!,
+          ),
+          const SizedBox(width: 10),
+        ],
+        if (!state.loading && !state.balanceKnown)
+          const Flexible(
+            child: Text(
+              KhataText.balanceNotSavedYet,
+              key: ValueKey('payable_unknown'),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ),
+        if (!state.loading && state.balanceKnown)
           Container(
             key: const ValueKey('payable_now'),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -457,7 +484,7 @@ class _Summary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAmount = state.amount != null;
+    final hasAmount = state.amount != null && state.balanceKnown;
     final after = state.owedAfter;
     final advance = state.advanceAfter;
     final text = !hasAmount
@@ -529,6 +556,13 @@ class _Done extends StatelessWidget {
   PaymentReceiptData get _data {
     final r = state.result!;
     final advance = r.balance > Decimal.zero ? r.balance : Decimal.zero;
+    final balanceLine = !r.balanceKnown
+        ? ''
+        : advance > Decimal.zero
+            ? 'Advance with supplier: ${formatPKR(advance)}'
+            : (r.owedAfter > Decimal.zero
+                ? 'Still owed: ${formatPKR(r.owedAfter)}'
+                : 'All settled');
     return PaymentReceiptData(
       partyName: state.supplierName,
       amountText: formatPKR(r.amount),
@@ -537,11 +571,7 @@ class _Done extends StatelessWidget {
       note: r.note,
       when: r.entryAt,
       partyPhone: state.supplierPhone,
-      balanceLine: advance > Decimal.zero
-          ? 'Advance with supplier: ${formatPKR(advance)}'
-          : (r.owedAfter > Decimal.zero
-              ? 'Still owed: ${formatPKR(r.owedAfter)}'
-              : 'All settled'),
+      balanceLine: balanceLine,
     );
   }
 
@@ -555,12 +585,31 @@ class _Done extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle, color: AppColors.success, size: 56),
-          const SizedBox(height: 8),
-          const Text(
-            KhataText.paymentDone,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          Icon(
+            r.queued ? Icons.cloud_upload_outlined : Icons.check_circle,
+            color: r.queued ? AppColors.info : AppColors.success,
+            size: 56,
           ),
+          const SizedBox(height: 8),
+          Text(
+            r.queued ? KhataText.savedTitle : KhataText.paymentDone,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          ),
+          if (r.queued) ...[
+            const SizedBox(height: 4),
+            const Text(
+              UserErrorMessage.notSyncedYet,
+              key: ValueKey('payment_not_synced'),
+              style: TextStyle(
+                color: AppColors.info,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const Text(
+              UserErrorMessage.savedOffline,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             key: const ValueKey('payment_receipt'),
@@ -582,7 +631,9 @@ class _Done extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    data.balanceLine,
+                    data.balanceLine.isEmpty
+                        ? KhataText.balanceUnknownOffline
+                        : data.balanceLine,
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),

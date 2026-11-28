@@ -33,6 +33,8 @@ class LedgerLine {
     this.canReverse = false,
     this.source,
     this.canReverseEntry = false,
+    this.pending = false,
+    this.needsAttention = false,
   });
 
   final String id;
@@ -69,6 +71,12 @@ class LedgerLine {
 
   /// A hand-written entry that can be reversed.
   final bool canReverseEntry;
+
+  /// A supplier payment recorded on this device and not on the server yet.
+  final bool pending;
+
+  /// ... and sending it needs the user.
+  final bool needsAttention;
 
   /// "Bank · #slip-1" style detail line.
   String get detail {
@@ -231,6 +239,8 @@ class LedgerLine {
       reversalOfId: e.reversalOfId,
       reversedById: e.reversedById,
       canReverse: e.canReverse,
+      pending: e.pending,
+      needsAttention: e.needsAttention,
     );
   }
 }

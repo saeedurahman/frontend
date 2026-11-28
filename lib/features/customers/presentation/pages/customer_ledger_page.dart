@@ -9,6 +9,7 @@ import 'package:frantend/features/customers/presentation/cubit/customer_ledger_c
 import 'package:frantend/features/customers/presentation/cubit/customer_ledger_state.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_header.dart';
 import 'package:frantend/features/customers/presentation/widgets/customer_ledger_table.dart';
+import 'package:frantend/features/khata/domain/khata_text.dart';
 import 'package:frantend/features/khata/domain/party_type.dart';
 import 'package:frantend/features/khata/presentation/widgets/party_khata_layout.dart';
 import 'package:frantend/shared/widgets/min_width_scroll.dart';
@@ -73,6 +74,15 @@ class _CustomerLedgerView extends StatelessWidget {
                 children: [
                   CustomerLedgerHeader(state: loaded),
                   const SizedBox(height: AppDimensions.spacingMd),
+                  if (context
+                      .read<CustomerLedgerCubit>()
+                      .showsAllBranches) ...[
+                    const Text(
+                      KhataText.offlineLedgerAllBranches,
+                      key: Key('ledger-all-branches'),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                  ],
                   Expanded(
                     child: MinWidthScroll(
                       minWidth: 760,

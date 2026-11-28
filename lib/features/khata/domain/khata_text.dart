@@ -6,6 +6,7 @@
 abstract final class KhataText {
   // Pay supplier
   static const paySupplierTitle = 'Pay supplier';
+  static const unnamedSupplier = 'Supplier (name not saved here yet)';
   static const payNow = 'Pay now';
   static const amountLabel = 'How much are you paying?';
   static const sourceQuestion = 'Where is the money coming from?';
@@ -29,8 +30,27 @@ abstract final class KhataText {
   static const openingShift = 'Opening shift…';
   static const offlineTitle = 'You are offline';
   static const offlineBody =
-      'Supplier payments need the internet so nothing is paid twice. '
-      'Your entry is kept. Pay when you are back online.';
+      'The payment is saved on this device and sent when you are back online.';
+  static const offlineNotSent =
+      'Not paid: the server could not be reached. Your entry is kept. Try '
+      'again.';
+  static const savedTitle = 'Saved on this device';
+  static String balanceAfterSync(String amount) =>
+      'You will owe $amount once it syncs';
+  static const balanceNotSavedYet =
+      'What you owe is not saved on this device yet.';
+  static const balanceUnknownOffline =
+      'The new balance shows after the next sync.';
+  static const onlineOnly = 'This needs internet. Connect and try again.';
+  static const onlineOnlyCode = 'online_only_operation';
+  static const receivingNeedsInternet =
+      'Receiving goods needs internet. Your entries are kept on this screen. '
+      'Connect, then confirm.';
+  static const offlineAccountNote =
+      'From the copy on this device: recent history, all branches.';
+  static const offlineAllBranches = 'Supplier figures cover all branches';
+  static String waitingPayments(String amount) =>
+      '$amount paid here is waiting to sync. Bills update after it syncs.';
   static const paymentDone = 'Payment done';
   static const paidTo = 'Paid to';
   static const share = 'Share on WhatsApp';
@@ -98,8 +118,14 @@ abstract final class KhataText {
   static const amountReturned = 'Returned';
   static const amountAdded = 'Added';
   static const amountReduced = 'Reduced';
+  /// At the end of an account this device only holds the recent part of.
+  static const olderNeedInternet = 'Older entries need internet';
+  static const needsInternetValue = 'needs internet';
+  static const offlineLedgerAllBranches =
+      'Offline: the entries and balance below cover all branches';
+
   static const offlineLedger =
-      'The account list needs the internet. Connect and try again.';
+      'This account is not saved on this device yet. Connect and try again.';
 
   // Reverse a payment
   static const reversePayment = 'Reverse payment';
@@ -234,6 +260,7 @@ abstract final class KhataText {
         'not_a_reversible_payment' => notAPayment,
         'paid_at_in_future' => futureDate,
         'payment_exceeds_receipt_total' => paidMoreThanTotal,
+        onlineOnlyCode => onlineOnly,
         _ => null,
       };
 }
